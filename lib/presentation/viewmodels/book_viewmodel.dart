@@ -28,8 +28,8 @@ class BookViewModel extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      _books = await bookRepository.getAllBooks(page: page, size: size);
-      print('Books: ${_books.length}');
+      final books = await bookRepository.getAllBooks(page: page, size: size);
+      _books = books;
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (e) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -41,16 +42,28 @@ class _BooksScreenState extends State<BooksScreen> {
   Future<void> _loadData() async {
     final bookViewModel = context.read<BookViewModel>();
 
-    // Load categories for filtering
-    await bookViewModel.loadCategories();
-    if (mounted) {
-      setState(() {
-        _categories = bookViewModel.categories;
-      });
-    }
+    try {
+      await bookViewModel.loadCategories();
 
-    // Load books
-    await bookViewModel.loadBooks();
+      if (mounted) {
+        setState(() {
+          _categories = bookViewModel.categories;
+        });
+      }
+
+      await bookViewModel.loadBooks();
+    } catch (e) {
+      final errorMessage =
+          e is AppException
+              ? e.message
+              : 'An unexpected error occurred while loading data. Please try again.';
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _applyFilters() {

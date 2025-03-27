@@ -65,9 +65,10 @@ class ModuleRepositoryImpl implements ModuleRepository {
         queryParameters: {'page': page, 'size': size},
       );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> moduleList = response['content'];
-        return moduleList.map((item) => ModuleSummary.fromJson(item)).toList();
+      final content = response['content'];
+
+      if (content != null && content is List) {
+        return content.map((item) => ModuleSummary.fromJson(item)).toList();
       } else {
         return [];
       }
