@@ -1,23 +1,27 @@
+// lib/presentation/widgets/repetition_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator';
 
-/// Card widget to display repetition information
 class RepetitionCard extends StatelessWidget {
   final Repetition repetition;
-  final VoidCallback? onMarkCompleted;
+  final VoidCallback? onStart;
+  final VoidCallback? onComplete;
   final VoidCallback? onSkip;
-  final VoidCallback? onReschedule;
-  final bool isActive;
+  final VoidCallback? onMarkCompleted; // Add this
+  final VoidCallback? onReschedule; // Add this
 
   const RepetitionCard({
     super.key,
     required this.repetition,
-    this.onMarkCompleted,
+    this.onStart,
+    this.onComplete,
     this.onSkip,
+    this.onMarkCompleted,
     this.onReschedule,
-    this.isActive = false,
   });
 
   @override
@@ -26,176 +30,243 @@ class RepetitionCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     // Format review date
-    final dateFormat = DateFormat('MMM dd, yyyy');
-    final reviewDateStr =
+    final dateFormatter = DateFormat('EEEE, MMMM d, yyyy');
+    final reviewDateText =
         repetition.reviewDate != null
-            ? dateFormat.format(repetition.reviewDate!)
+            ? dateFormatter.format(repetition.reviewDate!)
             : 'Not scheduled';
 
-    // Check if review date is today or in the past
-    bool isOverdue = false;
-    bool isToday = false;
-
-    if (repetition.reviewDate != null) {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final reviewDate = DateTime(
-        repetition.reviewDate!.year,
-        repetition.reviewDate!.month,
-        repetition.reviewDate!.day,
-      );
-
-      isOverdue = reviewDate.compareTo(today) < 0;
-      isToday = reviewDate.compareTo(today) == 0;
-    }
-
-    // Status color and text
+    // Status color
     Color statusColor;
-    String statusText;
-
     switch (repetition.status) {
-      case RepetitionStatus.notStarted:
-        if (isOverdue) {
-          statusColor = Colors.red;
-          statusText = 'Overdue';
-        } else if (isToday) {
-          statusColor = Colors.orange;
-          statusText = 'Due Today';
-        } else {
-          statusColor = Colors.blue;
-          statusText = 'Scheduled';
-        }
-        break;
       case RepetitionStatus.completed:
         statusColor = Colors.green;
-        statusText = 'Completed';
         break;
       case RepetitionStatus.skipped:
-        statusColor = Colors.grey;
-        statusText = 'Skipped';
+        statusColor = Colors.orange;
+        break;
+      case RepetitionStatus.notStarted:
+        statusColor = colorScheme.primary;
         break;
     }
 
-    return Card(
-      elevation: isActive ? 3 : 1,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side:
-            isActive
-                ? BorderSide(color: colorScheme.primary, width: 2)
-                : BorderSide.none,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // Repetition order (1st, 2nd, etc.)
-                Text(
-                  _formatRepetitionOrder(repetition.repetitionOrder),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
+    // Progress value based on repetition order
+    double progressValue;
+    switch (repetition.repetitionOrder) {
+      case RepetitionOrder.firstRepetition:
+        progressValue = 0.2;
+        break;
+      case RepetitionOrder.secondRepetition:
+        progressValue = 0.4;
+        break;
+      case RepetitionOrder.thirdRepetition:
+        progressValue = 0.6;
+        break;
+      case RepetitionOrder.fourthRepetition:
+        progressValue = 0.8;
+        break;
+      case RepetitionOrder.fifthRepetition:
+        progressValue = 1.0;
+        break;
+    }
 
-                // Status badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+    // Repetition label
+    String repetitionLabel;
+    switch (repetition.repetitionOrder) {
+      case RepetitionOrder.firstRepetition:
+        repetitionLabel = '1st Review';
+        break;
+      case RepetitionOrder.secondRepetition:
+        repetitionLabel = '2nd Review';
+        break;
+      case RepetitionOrder.thirdRepetition:
+        repetitionLabel = '3rd Review';
+        break;
+      case RepetitionOrder.fourthRepetition:
+        repetitionLabel = '4th Review';
+        break;
+      case RepetitionOrder.fifthRepetition:
+        repetitionLabel = 'Final Review';
+        break;
+    }
+
+    return AppCard(
+      title: Text(repetitionLabel),
+      leading: SizedBox(
+        width: 50,
+        child: AppProgressIndicator(
+          type: ProgressType.circular,
+          value: progressValue,
+          size: 50,
+          child: Text(
+            '${(progressValue * 100).toInt()}%',
+            style: theme.textTheme.bodySmall!.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 8),
-
-            // Review date
-            Row(
-              children: [
-                const Icon(Icons.event, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  'Review date: $reviewDateStr',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color:
-                        isOverdue &&
-                                repetition.status == RepetitionStatus.notStarted
-                            ? Colors.red
-                            : null,
-                  ),
-                ),
-              ],
-            ),
-
-            // Action buttons if not completed or skipped
-            if (repetition.status == RepetitionStatus.notStarted) ...[
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (onMarkCompleted != null)
-                    AppButton(
-                      text: 'Mark Completed',
-                      type: AppButtonType.primary,
-                      icon: Icons.check,
-                      onPressed: onMarkCompleted,
-                    ),
-                  if (onMarkCompleted != null && onSkip != null)
-                    const SizedBox(width: 8),
-                  if (onSkip != null)
-                    AppButton(
-                      text: 'Skip',
-                      type: AppButtonType.outline,
-                      icon: Icons.skip_next,
-                      onPressed: onSkip,
-                    ),
-                  if ((onMarkCompleted != null || onSkip != null) &&
-                      onReschedule != null)
-                    const SizedBox(width: 8),
-                  if (onReschedule != null)
-                    AppButton(
-                      text: '',
-                      type: AppButtonType.text,
-                      icon: Icons.calendar_today,
-                      onPressed: onReschedule,
-                    ),
-                ],
-              ),
-            ],
-          ],
+          ),
         ),
       ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: 16, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Review date:',
+                style: theme.textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(reviewDateText, style: theme.textTheme.bodyMedium),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.lens, size: 16, color: statusColor),
+              const SizedBox(width: 8),
+              Text(
+                'Status:',
+                style: theme.textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _formatStatus(repetition.status),
+                style: theme.textTheme.bodyMedium!.copyWith(
+                  color: statusColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+      actions: _buildActions(context, repetition.status),
     );
   }
 
-  /// Format repetition order enum value to display string
-  String _formatRepetitionOrder(RepetitionOrder order) {
-    switch (order) {
-      case RepetitionOrder.firstRepetition:
-        return '1st Repetition';
-      case RepetitionOrder.secondRepetition:
-        return '2nd Repetition';
-      case RepetitionOrder.thirdRepetition:
-        return '3rd Repetition';
-      case RepetitionOrder.fourthRepetition:
-        return '4th Repetition';
-      case RepetitionOrder.fifthRepetition:
-        return '5th Repetition';
+  String _formatStatus(RepetitionStatus status) {
+    switch (status) {
+      case RepetitionStatus.completed:
+        return 'Completed';
+      case RepetitionStatus.skipped:
+        return 'Skipped';
+      case RepetitionStatus.notStarted:
+        return 'Not Started';
     }
+  }
+
+  List<Widget> _buildActions(BuildContext context, RepetitionStatus status) {
+    final actions = <Widget>[];
+
+    switch (status) {
+      case RepetitionStatus.notStarted:
+        if (onReschedule != null) {
+          actions.add(
+            AppButton(
+              text: 'Reschedule',
+              onPressed: onReschedule,
+              type: AppButtonType.outline,
+              size: AppButtonSize.small,
+              prefixIcon: Icons.calendar_month,
+            ),
+          );
+        }
+        if (onSkip != null) {
+          actions.add(
+            AppButton(
+              text: 'Skip',
+              onPressed: onSkip,
+              type: AppButtonType.text,
+              size: AppButtonSize.small,
+            ),
+          );
+        }
+        if (onStart != null) {
+          actions.add(
+            AppButton(
+              text: 'Start',
+              onPressed: onStart,
+              type: AppButtonType.primary,
+              size: AppButtonSize.small,
+              prefixIcon: Icons.play_arrow,
+            ),
+          );
+        }
+        if (onMarkCompleted != null) {
+          actions.add(
+            AppButton(
+              text: 'Mark Done',
+              onPressed: onMarkCompleted,
+              type: AppButtonType.success,
+              size: AppButtonSize.small,
+              prefixIcon: Icons.check_circle,
+            ),
+          );
+        }
+        break;
+
+      case RepetitionStatus.completed:
+        // No actions for completed status, just show status
+        actions.add(
+          const AppButton(
+            text: 'Completed',
+            onPressed: null,
+            type: AppButtonType.outline,
+            size: AppButtonSize.small,
+            prefixIcon: Icons.check_circle,
+            textColor: Colors.green,
+          ),
+        );
+        break;
+
+      case RepetitionStatus.skipped:
+        if (onReschedule != null) {
+          actions.add(
+            AppButton(
+              text: 'Reschedule',
+              onPressed: onReschedule,
+              type: AppButtonType.outline,
+              size: AppButtonSize.small,
+              prefixIcon: Icons.calendar_month,
+            ),
+          );
+        }
+        if (onStart != null) {
+          actions.add(
+            AppButton(
+              text: 'Start Now',
+              onPressed: onStart,
+              type: AppButtonType.primary,
+              size: AppButtonSize.small,
+              prefixIcon: Icons.play_arrow,
+            ),
+          );
+        }
+        if (onMarkCompleted != null) {
+          actions.add(
+            AppButton(
+              text: 'Mark Done',
+              onPressed: onMarkCompleted,
+              type: AppButtonType.success,
+              size: AppButtonSize.small,
+              prefixIcon: Icons.check_circle,
+            ),
+          );
+        }
+        break;
+    }
+
+    return actions;
   }
 }

@@ -1,6 +1,6 @@
+// lib/core/theme/app_colors.dart
 import 'package:flutter/material.dart';
 
-/// App color definitions for both light and dark themes
 class AppColors {
   // Light Theme Colors
   static const Color lightPrimary = Color(0xFF2E7D32);
@@ -16,21 +16,29 @@ class AppColors {
   static const Color lightOnSurface = Color(0xFF121212);
   static const Color lightOnError = Colors.white;
 
-  // Dark Theme Colors
-  static const Color darkPrimary = Color(0xFF81C784);
-  static const Color darkPrimaryVariant = Color(0xFF4CAF50);
-  static const Color darkSecondary = Color(0xFF64B5F6);
-  static const Color darkSecondaryVariant = Color(0xFF42A5F5);
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkError = Color(0xFFCF6679);
-  static const Color darkOnPrimary = Color(0xFF000000);
-  static const Color darkOnSecondary = Color(0xFF000000);
-  static const Color darkOnBackground = Colors.white;
-  static const Color darkOnSurface = Colors.white;
-  static const Color darkOnError = Color(0xFF000000);
+  // Dark Theme Colors - Improved contrast
+  static const Color darkPrimary = Color(
+    0xFF81C784,
+  ); // Brighter green for better visibility
+  static const Color darkPrimaryVariant = Color(0xFF4CAF50); // Mid-tone green
+  static const Color darkSecondary = Color(0xFF90CAF9); // Brighter blue
+  static const Color darkSecondaryVariant = Color(0xFF64B5F6); // Mid-tone blue
+  static const Color darkBackground = Color(0xFF121212); // Near black
+  static const Color darkSurface = Color(0xFF1E1E1E); // Dark grey
+  static const Color darkError = Color(
+    0xFFEF5350,
+  ); // Brighter red for better visibility
+  static const Color darkOnPrimary = Color(0xFF000000); // Black on light colors
+  static const Color darkOnSecondary = Color(
+    0xFF000000,
+  ); // Black on light colors
+  static const Color darkOnBackground = Color(
+    0xFFE0E0E0,
+  ); // Light grey (not pure white for reduced eye strain)
+  static const Color darkOnSurface = Color(0xFFE0E0E0); // Light grey
+  static const Color darkOnError = Color(0xFF000000); // Black on error
 
-  // Success, warning, info colors
+  // Accent colors with better contrast
   static const Color successLight = Color(0xFF4CAF50);
   static const Color successDark = Color(0xFF81C784);
   static const Color warningLight = Color(0xFFFFC107);
@@ -39,7 +47,13 @@ class AppColors {
   static const Color infoDark = Color(0xFF64B5F6);
 
   // Gray scale
-  static const Color grayLight = Color(0xFFE0E0E0);
+  static const Color grayLight = Color(0xFFEEEEEE);
   static const Color grayMedium = Color(0xFF9E9E9E);
   static const Color grayDark = Color(0xFF616161);
+
+  // Additional colors for UI enhancement
+  static const Color accentPurpleLight = Color(0xFF9C27B0);
+  static const Color accentPurpleDark = Color(0xFFCE93D8);
+  static const Color accentAmberLight = Color(0xFFFFC107);
+  static const Color accentAmberDark = Color(0xFFFFD54F);
 }

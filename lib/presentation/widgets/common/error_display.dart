@@ -72,7 +72,8 @@ class ErrorDisplay extends StatelessWidget {
                 text: 'Try Again',
                 type: AppButtonType.outline,
                 onPressed: onRetry,
-                icon: Icons.refresh,
+                prefixIcon:
+                    Icons.refresh, // Changed from 'icon' to 'prefixIcon'
               ),
             ],
           ],

@@ -1,19 +1,19 @@
+// lib/presentation/widgets/book_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
 
-/// Card widget to display book summary information
 class BookCard extends StatelessWidget {
   final BookSummary book;
-  final VoidCallback onTap;
-  final bool showStatus;
-  final bool isActive;
+  final VoidCallback? onTap;
+  final VoidCallback? onStartPressed;
 
   const BookCard({
     super.key,
     required this.book,
-    required this.onTap,
-    this.showStatus = true,
-    this.isActive = false,
+    this.onTap,
+    this.onStartPressed,
   });
 
   @override
@@ -21,163 +21,144 @@ class BookCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Determine status color
-    Color statusColor;
-    switch (book.status) {
-      case BookStatus.published:
-        statusColor = Colors.green;
-        break;
-      case BookStatus.draft:
-        statusColor = Colors.amber;
-        break;
-      case BookStatus.archived:
-        statusColor = Colors.grey;
-        break;
+    // Create a badge for the book status
+    Widget statusBadge() {
+      Color badgeColor;
+      IconData iconData;
+      String statusText;
+
+      switch (book.status) {
+        case BookStatus.published:
+          badgeColor = Colors.green;
+          iconData = Icons.check_circle;
+          statusText = 'Published';
+          break;
+        case BookStatus.draft:
+          badgeColor = Colors.amber;
+          iconData = Icons.edit;
+          statusText = 'Draft';
+          break;
+        case BookStatus.archived:
+          badgeColor = Colors.grey;
+          iconData = Icons.archive;
+          statusText = 'Archived';
+          break;
+      }
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: badgeColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: badgeColor.withOpacity(0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(iconData, size: 12, color: badgeColor),
+            const SizedBox(width: 4),
+            Text(
+              statusText,
+              style: theme.textTheme.bodySmall!.copyWith(
+                color: badgeColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    // Determine difficulty color
-    Color difficultyColor;
-    String difficultyText = 'Unknown';
+    // Create a badge for difficulty level
+    Widget? difficultyBadge() {
+      if (book.difficultyLevel == null) return null;
 
-    if (book.difficultyLevel != null) {
-      switch (book.difficultyLevel!) {
+      Color badgeColor;
+      String difficultyText;
+
+      switch (book.difficultyLevel) {
         case DifficultyLevel.beginner:
-          difficultyColor = Colors.green;
+          badgeColor = Colors.green;
           difficultyText = 'Beginner';
           break;
         case DifficultyLevel.intermediate:
-          difficultyColor = Colors.blue;
+          badgeColor = Colors.blue;
           difficultyText = 'Intermediate';
           break;
         case DifficultyLevel.advanced:
-          difficultyColor = Colors.orange;
+          badgeColor = Colors.orange;
           difficultyText = 'Advanced';
           break;
         case DifficultyLevel.expert:
-          difficultyColor = Colors.red;
+          badgeColor = Colors.red;
           difficultyText = 'Expert';
           break;
+        default:
+          return null;
       }
-    } else {
-      difficultyColor = Colors.grey;
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: badgeColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: badgeColor.withOpacity(0.5)),
+        ),
+        child: Text(
+          difficultyText,
+          style: theme.textTheme.bodySmall!.copyWith(
+            color: badgeColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
     }
 
-    return Card(
-      elevation: isActive ? 4 : 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side:
-            isActive
-                ? BorderSide(color: colorScheme.primary, width: 2)
-                : BorderSide.none,
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      book.name,
-                      style: theme.textTheme.titleLarge,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (showStatus)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _formatStatus(book.status),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Display category if available
-                  if (book.category != null) ...[
-                    Chip(
-                      label: Text(
-                        book.category!,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      backgroundColor: colorScheme.surfaceContainerHighest,
-                      padding: EdgeInsets.zero,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-
-                  // Display difficulty level
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: difficultyColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      difficultyText,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: difficultyColor,
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Module count
-                  Row(
-                    children: [
-                      const Icon(Icons.book, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${book.moduleCount} modules',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+    return AppCard(
+      onTap: onTap,
+      title: Text(book.name),
+      subtitle: book.category != null ? Text(book.category!) : null,
+      trailing: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: colorScheme.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            '${book.moduleCount}',
+            style: theme.textTheme.titleLarge!.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              statusBadge(),
+              if (difficultyBadge() != null) difficultyBadge()!,
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        if (onStartPressed != null && book.status == BookStatus.published)
+          AppButton(
+            text: 'Start Learning',
+            onPressed: onStartPressed,
+            type: AppButtonType.primary,
+            size: AppButtonSize.small,
+            prefixIcon: Icons.play_arrow,
+          ),
+      ],
     );
-  }
-
-  /// Format status enum value to display string
-  String _formatStatus(BookStatus status) {
-    switch (status) {
-      case BookStatus.published:
-        return 'Published';
-      case BookStatus.draft:
-        return 'Draft';
-      case BookStatus.archived:
-        return 'Archived';
-    }
   }
 }

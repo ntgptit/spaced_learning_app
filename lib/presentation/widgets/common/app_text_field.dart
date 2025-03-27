@@ -1,176 +1,206 @@
+// lib/presentation/widgets/app_text_field.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Shared text field widget with consistent styling
-class AppTextField extends StatelessWidget {
+class AppTextField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? errorText;
+  final String? helperText;
   final TextEditingController? controller;
-  final bool obscureText;
   final TextInputType keyboardType;
-  final TextInputAction textInputAction;
-  final List<TextInputFormatter>? inputFormatters;
-  final int maxLines;
-  final int? maxLength;
-  final bool autoFocus;
+  final bool obscureText;
   final FocusNode? focusNode;
-  final VoidCallback? onEditingComplete;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final Widget? prefixIcon;
-  final Widget? suffixIcon;
-  final String? initialValue;
-  final bool readOnly;
+  final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
-  final EdgeInsets? contentPadding;
+  final bool readOnly;
   final bool enabled;
-  final bool autofillHints;
-  final Iterable<String>? autofillHintsData;
+  final IconData? prefixIcon;
+  final Widget? prefix;
+  final IconData? suffixIcon;
+  final Widget? suffix;
+  final VoidCallback? onSuffixIconTap;
+  final int? maxLength;
+  final int? maxLines;
+  final int? minLines;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool showCounter;
+  final bool autofocus;
+  final TextAlign textAlign;
+  final TextCapitalization textCapitalization;
+  final String? Function(String?)? validator;
+  final AutovalidateMode autovalidateMode;
+  final Color? fillColor;
+  final EdgeInsetsGeometry? contentPadding;
+  final TextInputAction? textInputAction;
+  final VoidCallback? onEditingComplete;
+  final ValueChanged<String>? onSubmitted;
 
   const AppTextField({
     super.key,
     this.label,
     this.hint,
     this.errorText,
+    this.helperText,
     this.controller,
-    this.obscureText = false,
     this.keyboardType = TextInputType.text,
-    this.textInputAction = TextInputAction.next,
-    this.inputFormatters,
-    this.maxLines = 1,
-    this.maxLength,
-    this.autoFocus = false,
+    this.obscureText = false,
     this.focusNode,
-    this.onEditingComplete,
     this.onChanged,
-    this.onSubmitted,
-    this.prefixIcon,
-    this.suffixIcon,
-    this.initialValue,
-    this.readOnly = false,
     this.onTap,
-    this.contentPadding,
+    this.readOnly = false,
     this.enabled = true,
-    this.autofillHints = true,
-    this.autofillHintsData,
+    this.prefixIcon,
+    this.prefix,
+    this.suffixIcon,
+    this.suffix,
+    this.onSuffixIconTap,
+    this.maxLength,
+    this.maxLines = 1,
+    this.minLines,
+    this.inputFormatters,
+    this.showCounter = false,
+    this.autofocus = false,
+    this.textAlign = TextAlign.start,
+    this.textCapitalization = TextCapitalization.none,
+    this.validator,
+    this.autovalidateMode = AutovalidateMode.onUserInteraction,
+    this.fillColor,
+    this.contentPadding,
+    this.textInputAction,
+    this.onEditingComplete,
+    this.onSubmitted,
   });
+
+  @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  bool _passwordVisible = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    // Determine autofill hints
-    Iterable<String>? autofill;
-    if (autofillHints && autofillHintsData == null) {
-      if (keyboardType == TextInputType.emailAddress) {
-        autofill = [AutofillHints.email];
-      } else if (obscureText) {
-        autofill = [AutofillHints.password];
-      } else if (keyboardType == TextInputType.name) {
-        autofill = [AutofillHints.name];
-      } else if (keyboardType == TextInputType.phone) {
-        autofill = [AutofillHints.telephoneNumber];
-      }
-    } else if (autofillHints) {
-      autofill = autofillHintsData;
-    }
-
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      inputFormatters: inputFormatters,
-      maxLines: maxLines,
-      maxLength: maxLength,
-      autofocus: autoFocus,
-      focusNode: focusNode,
-      onEditingComplete: onEditingComplete,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      readOnly: readOnly,
-      onTap: onTap,
-      enabled: enabled,
-      autofillHints: autofill,
-      style: theme.textTheme.bodyLarge,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        errorText: errorText,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
-        contentPadding: contentPadding,
-      ),
-    );
-  }
-}
-
-/// Password text field with toggle visibility button
-class AppPasswordField extends StatefulWidget {
-  final String? label;
-  final String? hint;
-  final String? errorText;
-  final TextEditingController? controller;
-  final TextInputAction textInputAction;
-  final bool autoFocus;
-  final FocusNode? focusNode;
-  final VoidCallback? onEditingComplete;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final Widget? prefixIcon;
-  final String? initialValue;
-  final bool enabled;
-
-  const AppPasswordField({
-    super.key,
-    this.label,
-    this.hint,
-    this.errorText,
-    this.controller,
-    this.textInputAction = TextInputAction.next,
-    this.autoFocus = false,
-    this.focusNode,
-    this.onEditingComplete,
-    this.onChanged,
-    this.onSubmitted,
-    this.prefixIcon,
-    this.initialValue,
-    this.enabled = true,
-  });
-
-  @override
-  State<AppPasswordField> createState() => _AppPasswordFieldState();
-}
-
-class _AppPasswordFieldState extends State<AppPasswordField> {
-  bool _obscureText = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppTextField(
-      label: widget.label,
-      hint: widget.hint,
-      errorText: widget.errorText,
-      controller: widget.controller,
-      obscureText: _obscureText,
-      keyboardType: TextInputType.visiblePassword,
-      textInputAction: widget.textInputAction,
-      autoFocus: widget.autoFocus,
-      focusNode: widget.focusNode,
-      onEditingComplete: widget.onEditingComplete,
-      onChanged: widget.onChanged,
-      onSubmitted: widget.onSubmitted,
-      prefixIcon: widget.prefixIcon,
-      initialValue: widget.initialValue,
-      enabled: widget.enabled,
-      suffixIcon: IconButton(
-        icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
-        onPressed: () {
+    Widget? suffixIconWidget;
+    if (widget.suffixIcon != null) {
+      suffixIconWidget = InkWell(
+        onTap: widget.onSuffixIconTap,
+        borderRadius: BorderRadius.circular(48),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            widget.suffixIcon,
+            color:
+                widget.errorText != null
+                    ? colorScheme.error
+                    : colorScheme.primary,
+            size: 20,
+          ),
+        ),
+      );
+    } else if (widget.obscureText) {
+      suffixIconWidget = InkWell(
+        onTap: () {
           setState(() {
-            _obscureText = !_obscureText;
+            _passwordVisible = !_passwordVisible;
           });
         },
+        borderRadius: BorderRadius.circular(48),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            _passwordVisible
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
+            color: colorScheme.onSurface.withOpacity(0.6),
+            size: 20,
+          ),
+        ),
+      );
+    }
+
+    return TextFormField(
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      textCapitalization: widget.textCapitalization,
+      textAlign: widget.textAlign,
+      readOnly: widget.readOnly,
+      enabled: widget.enabled,
+      // lib/presentation/widgets/app_text_field.dart (continued)
+      obscureText: widget.obscureText && !_passwordVisible,
+      maxLength: widget.maxLength,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      minLines: widget.minLines,
+      autofocus: widget.autofocus,
+      onChanged: widget.onChanged,
+      onTap: widget.onTap,
+      inputFormatters: widget.inputFormatters,
+      onEditingComplete: widget.onEditingComplete,
+      onFieldSubmitted: widget.onSubmitted,
+      autovalidateMode: widget.autovalidateMode,
+      validator: widget.validator,
+      style: theme.textTheme.bodyLarge!.copyWith(
+        color:
+            widget.enabled
+                ? colorScheme.onSurface
+                : colorScheme.onSurface.withOpacity(0.6),
+      ),
+      decoration: InputDecoration(
+        labelText: widget.label,
+        hintText: widget.hint,
+        errorText: widget.errorText,
+        helperText: widget.helperText,
+        filled: true,
+        fillColor:
+            widget.fillColor ??
+            (theme.brightness == Brightness.dark
+                ? colorScheme.onSurface.withOpacity(0.08)
+                : colorScheme.onSurface.withOpacity(0.04)),
+        contentPadding:
+            widget.contentPadding ??
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        prefixIcon:
+            widget.prefixIcon != null
+                ? Icon(
+                  widget.prefixIcon,
+                  color:
+                      widget.errorText != null
+                          ? colorScheme.error
+                          : colorScheme.onSurface.withOpacity(0.6),
+                  size: 20,
+                )
+                : widget.prefix,
+        suffixIcon: suffixIconWidget ?? widget.suffix,
+        counterText: widget.showCounter ? null : '',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+        ),
       ),
     );
   }
