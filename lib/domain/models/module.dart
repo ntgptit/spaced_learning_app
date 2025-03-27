@@ -6,7 +6,7 @@ part 'module.g.dart';
 
 /// Module summary model with basic information
 @freezed
-class ModuleSummary with _$ModuleSummary {
+abstract class ModuleSummary with _$ModuleSummary {
   const factory ModuleSummary({
     required String id,
     required String bookId,
@@ -23,7 +23,7 @@ class ModuleSummary with _$ModuleSummary {
 
 /// Detailed module model including progress
 @freezed
-class ModuleDetail with _$ModuleDetail {
+abstract class ModuleDetail with _$ModuleDetail {
   const factory ModuleDetail({
     required String id,
     required String bookId,

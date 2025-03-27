@@ -27,7 +27,9 @@ class _BooksScreenState extends State<BooksScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   @override
@@ -41,9 +43,11 @@ class _BooksScreenState extends State<BooksScreen> {
 
     // Load categories for filtering
     await bookViewModel.loadCategories();
-    setState(() {
-      _categories = bookViewModel.categories;
-    });
+    if (mounted) {
+      setState(() {
+        _categories = bookViewModel.categories;
+      });
+    }
 
     // Load books
     await bookViewModel.loadBooks();
@@ -93,9 +97,7 @@ class _BooksScreenState extends State<BooksScreen> {
     final bookViewModel = context.watch<BookViewModel>();
 
     if (authViewModel.currentUser == null) {
-      return const Center(
-        child: Text('Please log in to browse books'),
-      );
+      return const Center(child: Text('Please log in to browse books'));
     }
 
     return Scaffold(
@@ -112,15 +114,16 @@ class _BooksScreenState extends State<BooksScreen> {
                   decoration: InputDecoration(
                     hintText: 'Search books...',
                     prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _searchBooks('');
-                            },
-                          )
-                        : null,
+                    suffixIcon:
+                        _searchController.text.isNotEmpty
+                            ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                _searchBooks('');
+                              },
+                            )
+                            : null,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -147,7 +150,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       if (_selectedCategory != null) ...[
                         const SizedBox(width: 8),
                         Chip(
-                          label: Text(_selectedCategory),
+                          label: Text(_selectedCategory!),
                           onDeleted: () {
                             setState(() {
                               _selectedCategory = null;
@@ -209,24 +212,23 @@ class _BooksScreenState extends State<BooksScreen> {
           ),
         ],
       ),
-      floatingActionButton: authViewModel.currentUser?.roles?.contains('ADMIN') == true
-          ? FloatingActionButton(
-              onPressed: () {
-                // Navigate to book creation screen
-                Navigator.of(context).pushNamed('/books/create');
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton:
+          authViewModel.currentUser?.roles?.contains('ADMIN') == true
+              ? FloatingActionButton(
+                onPressed: () {
+                  // Navigate to book creation screen
+                  Navigator.of(context).pushNamed('/books/create');
+                },
+                child: const Icon(Icons.add),
+              )
+              : null,
     );
   }
 
   /// Build the books list with header
   Widget _buildBooksList(BookViewModel viewModel, String title) {
     if (viewModel.isLoading) {
-      return const Center(
-        child: AppLoadingIndicator(),
-      );
+      return const Center(child: AppLoadingIndicator());
     }
 
     if (viewModel.errorMessage != null) {
@@ -243,11 +245,7 @@ class _BooksScreenState extends State<BooksScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.book,
-              size: 64,
-              color: Colors.grey,
-            ),
+            const Icon(Icons.book, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               _isSearching
@@ -255,10 +253,7 @@ class _BooksScreenState extends State<BooksScreen> {
                   : 'No books available',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            TextButton(
-              onPressed: _loadData,
-              child: const Text('Refresh'),
-            ),
+            TextButton(onPressed: _loadData, child: const Text('Refresh')),
           ],
         ),
       );
@@ -321,6 +316,52 @@ class _BooksScreenState extends State<BooksScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Categories
+                  Text(
+                    'Category',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final category in _categories)
+                        ChoiceChip(
+                          label: Text(category),
+                          selected: _selectedCategory == category,
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedCategory = selected ? category : null;
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Status
+                  Text(
+                    'Status',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final status in BookStatus.values)
+                        ChoiceChip(
+                          label: Text(_formatStatus(status)),
+                          selected: _selectedStatus == status,
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedStatus = selected ? status : null;
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
                   // Difficulty
                   Text(
                     'Difficulty',
@@ -336,7 +377,8 @@ class _BooksScreenState extends State<BooksScreen> {
                           selected: _selectedDifficulty == difficulty,
                           onSelected: (selected) {
                             setState(() {
-                              _selectedDifficulty = selected ? difficulty : null;
+                              _selectedDifficulty =
+                                  selected ? difficulty : null;
                             });
                           },
                         ),
@@ -401,50 +443,4 @@ class _BooksScreenState extends State<BooksScreen> {
         return 'Expert';
     }
   }
-}),
-
-                  // Categories
-                  void Text(
-                    'Category',
-                    style = Theme.of(context).textTheme.titleMedium,
-                  ),
-                  void SizedBox(height = 8),
-                  void Wrap(
-                    spacing = 8,
-                    children = [
-                      for (final category in _categories)
-                        ChoiceChip(
-                          label: Text(category),
-                          selected: _selectedCategory == category,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = selected ? category : null;
-                            });
-                          },
-                        ),
-                    ],
-                  ),
-                  void SizedBox(height = 16),
-
-                  // Status
-                  void Text(
-                    'Status',
-                    style = Theme.of(context).textTheme.titleMedium,
-                  ),
-                  void SizedBox(height = 8),
-                  void Wrap(
-                    spacing = 8,
-                    children = [
-                      for (final status in BookStatus.values)
-                        ChoiceChip(
-                          label: Text(_formatStatus(status)),
-                          selected: _selectedStatus == status,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedStatus = selected ? status : null;
-                            });
-                          },
-                        ),
-                    ],
-                  ),
-                  void SizedBox(height = 16
+}

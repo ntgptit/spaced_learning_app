@@ -20,6 +20,7 @@ class BookRepositoryImpl implements BookRepository {
 
       if (response['success'] == true && response['content'] != null) {
         final List<dynamic> bookList = response['content'];
+        print('bookList - book_repository_impl.dart: $bookList');
         return bookList.map((item) => BookSummary.fromJson(item)).toList();
       } else {
         return [];

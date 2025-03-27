@@ -6,7 +6,7 @@ part 'auth_response.g.dart';
 
 /// Authentication response model
 @freezed
-class AuthResponse with _$AuthResponse {
+abstract class AuthResponse with _$AuthResponse {
   const factory AuthResponse({
     required String token,
     String? refreshToken,

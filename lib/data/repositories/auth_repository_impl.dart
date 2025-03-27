@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:spaced_learning_app/core/constants/api_endpoints.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
@@ -14,6 +15,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResponse> login(String email, String password) async {
     try {
       final data = {'email': email, 'password': password};
+
+      final response1 = await Dio().get(
+        'https://jsonplaceholder.typicode.com/posts',
+      );
+      print(response1.data);
 
       final response = await _apiClient.post(ApiEndpoints.login, data: data);
 

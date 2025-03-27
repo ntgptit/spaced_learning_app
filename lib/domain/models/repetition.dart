@@ -29,7 +29,7 @@ enum RepetitionStatus {
 
 /// Repetition model
 @freezed
-class Repetition with _$Repetition {
+abstract class Repetition with _$Repetition {
   const factory Repetition({
     required String id,
     required String moduleProgressId,

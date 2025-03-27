@@ -39,12 +39,12 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   Future<void> _markCompleted(String repetitionId) async {
     final repetitionViewModel = context.read<RepetitionViewModel>();
 
-    final success = await repetitionViewModel.updateRepetition(
+    final repetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.completed,
     );
 
-    if (success && mounted) {
+    if (repetition != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Repetition marked as completed')),
       );
@@ -58,12 +58,12 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   Future<void> _markSkipped(String repetitionId) async {
     final repetitionViewModel = context.read<RepetitionViewModel>();
 
-    final success = await repetitionViewModel.updateRepetition(
+    final repetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.skipped,
     );
 
-    if (success && mounted) {
+    if (repetition != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Repetition marked as skipped')),
       );
@@ -85,12 +85,12 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     if (date != null && mounted) {
       final repetitionViewModel = context.read<RepetitionViewModel>();
 
-      final success = await repetitionViewModel.updateRepetition(
+      final repetition = await repetitionViewModel.updateRepetition(
         repetitionId,
         reviewDate: date,
       );
 
-      if (success && mounted) {
+      if (repetition != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

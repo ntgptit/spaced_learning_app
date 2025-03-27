@@ -53,6 +53,8 @@ analyzer:
     missing_return: error
     todo: info
     deprecated_member_use: info
+    invalid_annotation_target: ignore
+    unrelated_type_equality_checks: ignore
   exclude:
     - '**/*.g.dart'
     - '**/*.freezed.dart'

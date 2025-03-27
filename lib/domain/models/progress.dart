@@ -20,7 +20,7 @@ enum CycleStudied {
 
 /// Progress summary model with basic information
 @freezed
-class ProgressSummary with _$ProgressSummary {
+abstract class ProgressSummary with _$ProgressSummary {
   const factory ProgressSummary({
     required String id,
     required String moduleId,
@@ -40,7 +40,7 @@ class ProgressSummary with _$ProgressSummary {
 
 /// Detailed progress model including repetitions
 @freezed
-class ProgressDetail with _$ProgressDetail {
+abstract class ProgressDetail with _$ProgressDetail {
   const factory ProgressDetail({
     required String id,
     required String moduleId,

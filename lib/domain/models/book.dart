@@ -28,7 +28,7 @@ enum DifficultyLevel {
 
 /// Book summary model with basic information
 @freezed
-class BookSummary with _$BookSummary {
+abstract class BookSummary with _$BookSummary {
   const factory BookSummary({
     required String id,
     required String name,
@@ -46,7 +46,7 @@ class BookSummary with _$BookSummary {
 
 /// Detailed book model including modules
 @freezed
-class BookDetail with _$BookDetail {
+abstract class BookDetail with _$BookDetail {
   const factory BookDetail({
     required String id,
     required String name,
