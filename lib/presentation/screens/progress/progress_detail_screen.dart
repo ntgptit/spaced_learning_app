@@ -1,8 +1,10 @@
+// lib/presentation/screens/progress/progress_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
+import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
@@ -38,6 +40,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   /// Mark a repetition as completed
   Future<void> _markCompleted(String repetitionId) async {
     final repetitionViewModel = context.read<RepetitionViewModel>();
+    final progressViewModel = context.read<ProgressViewModel>();
 
     final repetition = await repetitionViewModel.updateRepetition(
       repetitionId,
@@ -45,13 +48,73 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     );
 
     if (repetition != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Repetition marked as completed')),
+      // Check if all repetitions in cycle are completed
+      final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
+        repetition.moduleProgressId,
       );
+
+      if (allCompleted) {
+        // Show completion message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Chúc mừng! Bạn đã hoàn thành chu kỳ học này.'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Chi tiết',
+              onPressed: () {
+                _showCycleCompletionDialog();
+              },
+            ),
+          ),
+        );
+
+        // Reload data to reflect changes
+        await _loadData();
+      } else {
+        // Regular completion message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Repetition marked as completed')),
+        );
+      }
 
       // Update progress percentage
       await _updateProgressPercentage();
     }
+  }
+
+  /// Show dialog explaining cycle completion
+  void _showCycleCompletionDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Chu kỳ học hoàn thành!'),
+            content: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bạn đã hoàn thành tất cả các lần ôn tập trong chu kỳ này.',
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Hệ thống đã tự động tạo lịch ôn tập mới cho chu kỳ tiếp theo với khoảng cách thời gian được điều chỉnh dựa trên hiệu suất học tập của bạn.',
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Hãy tiếp tục duy trì việc ôn tập đều đặn để đạt hiệu quả học tập tối ưu.',
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Đã hiểu'),
+              ),
+            ],
+          ),
+    );
   }
 
   /// Mark a repetition as skipped
@@ -135,7 +198,24 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final progress = progressViewModel.selectedProgress;
 
     return Scaffold(
-      appBar: AppBar(title: Text(progress?.moduleTitle ?? 'Module Progress')),
+      appBar: AppBar(
+        title: Text(progress?.moduleTitle ?? 'Module Progress'),
+        actions: [
+          // Add help button
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Thông tin về chu kỳ học',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SpacedRepetitionInfoScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _loadData,
         child: _buildBody(
@@ -188,6 +268,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   /// Build the progress header with stats
   Widget _buildProgressHeader(ThemeData theme, ProgressDetail progress) {
     final dateFormat = DateFormat('MMM dd, yyyy');
+    final repetitionViewModel = context.watch<RepetitionViewModel>();
 
     // Format dates
     final startDateText =
@@ -199,6 +280,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
         progress.nextStudyDate != null
             ? dateFormat.format(progress.nextStudyDate!)
             : 'Not scheduled';
+
+    // Calculate completed repetitions
+    final completedCount =
+        progress.repetitions
+            .where((r) => r.status == RepetitionStatus.completed)
+            .length;
+    final totalCount = progress.repetitions.length;
 
     return Card(
       child: Padding(
@@ -213,14 +301,17 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Progress bar
+            // Progress bar for overall completion
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Progress', style: theme.textTheme.titleMedium),
+                    Text(
+                      'Overall Progress',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     Text(
                       '${progress.percentComplete.toInt()}%',
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -236,6 +327,66 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
                     value: progress.percentComplete / 100,
                     minHeight: 10,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Cycle progress section
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Chu kỳ học: ${_formatCycleStudied(progress.cyclesStudied)}',
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+
+                // Show progress in current cycle
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: totalCount > 0 ? completedCount / totalCount : 0,
+                    minHeight: 10,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+                Text(
+                  '$completedCount/$totalCount lần ôn tập hoàn thành trong chu kỳ này',
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+
+                // Show cycle info
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.lightbulb,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          repetitionViewModel.getCycleInfo(
+                            progress.cyclesStudied,
+                          ),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -259,28 +410,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
                     'Next Study',
                     nextDateText,
                     Icons.event,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoItem(
-                    theme,
-                    'Cycle',
-                    _formatCycleStudied(progress.cyclesStudied),
-                    Icons.sync,
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoItem(
-                    theme,
-                    'Repetitions',
-                    progress.repetitions.length.toString(),
-                    Icons.repeat,
                   ),
                 ),
               ],
@@ -407,15 +536,15 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   String _formatCycleStudied(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return 'First Time';
+        return 'Chu kỳ đầu tiên';
       case CycleStudied.firstReview:
-        return 'First Review';
+        return 'Chu kỳ ôn tập thứ nhất';
       case CycleStudied.secondReview:
-        return 'Second Review';
+        return 'Chu kỳ ôn tập thứ hai';
       case CycleStudied.thirdReview:
-        return 'Third Review';
+        return 'Chu kỳ ôn tập thứ ba';
       case CycleStudied.moreThanThreeReviews:
-        return 'Multiple Reviews';
+        return 'Đã ôn tập nhiều hơn 3 chu kỳ';
     }
   }
 }

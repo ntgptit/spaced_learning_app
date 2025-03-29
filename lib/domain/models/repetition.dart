@@ -1,3 +1,4 @@
+// lib/domain/models/repetition.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'repetition.freezed.dart';

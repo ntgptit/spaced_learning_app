@@ -1,3 +1,4 @@
+// lib/presentation/screens/progress/due_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -196,10 +197,14 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     // For this demo, we'll use a placeholder
     const moduleTitle = 'Module';
 
+    // Format cycle studied for subtitle
+    final String cycleText = _formatCycleStudied(progress.cyclesStudied);
+
     return ProgressCard(
       progress: progress,
       moduleTitle: moduleTitle,
       isDue: isDue,
+      subtitle: 'Chu kỳ: $cycleText',
       onTap: () {
         Navigator.push(
           context,
@@ -209,5 +214,21 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
         ).then((_) => _loadData()); // Refresh on return
       },
     );
+  }
+
+  /// Format cycle studied enum to user-friendly string
+  String _formatCycleStudied(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return 'Chu kỳ đầu tiên';
+      case CycleStudied.firstReview:
+        return 'Chu kỳ ôn tập thứ nhất';
+      case CycleStudied.secondReview:
+        return 'Chu kỳ ôn tập thứ hai';
+      case CycleStudied.thirdReview:
+        return 'Chu kỳ ôn tập thứ ba';
+      case CycleStudied.moreThanThreeReviews:
+        return 'Đã ôn tập nhiều hơn 3 chu kỳ';
+    }
   }
 }

@@ -1,3 +1,4 @@
+// lib/domain/models/progress.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 

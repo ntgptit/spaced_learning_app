@@ -2,7 +2,7 @@
 class AppConstants {
   // API related constants
   static const String baseUrl =
-      'http://192.168.1.13:8080'; // For Android emulator
+      'http://192.168.1.10:8080'; // For Android emulator
   static const String apiPrefix = '/api/v1';
   static const int connectTimeout = 15000; // milliseconds
   static const int receiveTimeout = 15000; // milliseconds

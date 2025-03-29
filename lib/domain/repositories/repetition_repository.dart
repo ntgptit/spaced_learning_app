@@ -46,4 +46,7 @@ abstract class RepetitionRepository {
 
   /// Delete a repetition
   Future<void> deleteRepetition(String id);
+
+  /// Count total repetitions by module progress ID
+  Future<int> countByModuleProgressId(String moduleProgressId);
 }

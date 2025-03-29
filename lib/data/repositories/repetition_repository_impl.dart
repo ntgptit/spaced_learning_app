@@ -260,6 +260,26 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
     }
   }
 
+  @override
+  Future<int> countByModuleProgressId(String moduleProgressId) async {
+    try {
+      final response = await _apiClient.get(
+        '${ApiEndpoints.repetitions}/count',
+        queryParameters: {'moduleProgressId': moduleProgressId},
+      );
+
+      if (response['success'] == true && response['data'] != null) {
+        return response['data'] as int;
+      } else {
+        return 0;
+      }
+    } catch (e) {
+      // Fallback: Count from available repetitions
+      final repetitions = await getRepetitionsByProgressId(moduleProgressId);
+      return repetitions.length;
+    }
+  }
+
   /// Format date to ISO8601 string (YYYY-MM-DD)
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

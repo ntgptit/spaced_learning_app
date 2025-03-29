@@ -1,5 +1,7 @@
+// lib/presentation/viewmodels/repetition_viewmodel.dart
 import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
 
@@ -238,6 +240,42 @@ class RepetitionViewModel extends ChangeNotifier {
       return false;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Check if all repetitions in a cycle are completed
+  Future<bool> areAllRepetitionsCompleted(String progressId) async {
+    try {
+      final repetitions = await repetitionRepository.getRepetitionsByProgressId(
+        progressId,
+      );
+      if (repetitions.isEmpty) return false;
+
+      final totalCount = repetitions.length;
+      final completedCount =
+          repetitions
+              .where((r) => r.status == RepetitionStatus.completed)
+              .length;
+
+      return completedCount >= totalCount;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get a user-friendly description of the cycle stage
+  String getCycleInfo(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return 'Bạn đang trong chu kỳ đầu tiên. Hoàn thành 5 lần ôn tập để chuyển sang chu kỳ tiếp theo.';
+      case CycleStudied.firstReview:
+        return 'Bạn đang trong chu kỳ ôn tập đầu tiên. Hoàn thành cả 5 lần ôn tập để tiếp tục.';
+      case CycleStudied.secondReview:
+        return 'Bạn đang trong chu kỳ ôn tập thứ hai. Bạn đã làm rất tốt!';
+      case CycleStudied.thirdReview:
+        return 'Bạn đang trong chu kỳ ôn tập thứ ba. Bạn gần như đã thuộc bài học này!';
+      case CycleStudied.moreThanThreeReviews:
+        return 'Bạn đã hoàn thành hơn 3 chu kỳ học. Kiến thức đã được củng cố rất tốt!';
     }
   }
 
