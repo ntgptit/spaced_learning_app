@@ -205,3 +205,53 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 }
+
+class AppPasswordField extends StatefulWidget {
+  final String? label;
+  final String? hint;
+  final String? errorText;
+  final TextEditingController? controller;
+  final Widget? prefixIcon;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onEditingComplete;
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
+  final String? Function(String?)? validator;
+
+  const AppPasswordField({
+    super.key,
+    this.label,
+    this.hint,
+    this.errorText,
+    this.controller,
+    this.prefixIcon,
+    this.onChanged,
+    this.onEditingComplete,
+    this.textInputAction = TextInputAction.done,
+    this.focusNode,
+    this.validator,
+  });
+
+  @override
+  State<AppPasswordField> createState() => _AppPasswordFieldState();
+}
+
+class _AppPasswordFieldState extends State<AppPasswordField> {
+  @override
+  Widget build(BuildContext context) {
+    return AppTextField(
+      label: widget.label,
+      hint: widget.hint,
+      controller: widget.controller,
+      errorText: widget.errorText,
+      prefix: widget.prefixIcon,
+      obscureText: true,
+      keyboardType: TextInputType.visiblePassword,
+      onChanged: widget.onChanged,
+      onEditingComplete: widget.onEditingComplete,
+      textInputAction: widget.textInputAction,
+      focusNode: widget.focusNode,
+      validator: widget.validator,
+    );
+  }
+}

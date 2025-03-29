@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       errorText: _emailError,
-                      prefixIcon: const Icon(Icons.email),
+                      prefixIcon: Icons.email,
                       onChanged: (_) => _emailError = null,
                       onEditingComplete: _validateEmail,
                     ),

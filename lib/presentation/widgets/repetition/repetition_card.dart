@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator';
+import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart';
 
 class RepetitionCard extends StatelessWidget {
   final Repetition repetition;

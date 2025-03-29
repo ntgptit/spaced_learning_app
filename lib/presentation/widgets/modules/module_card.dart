@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator';
+import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart';
 
 class ModuleCard extends StatelessWidget {
   final ModuleSummary module;

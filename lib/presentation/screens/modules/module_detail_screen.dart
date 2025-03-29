@@ -192,7 +192,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
               child: AppButton(
                 text: 'View Detailed Progress',
                 type: AppButtonType.outline,
-                icon: Icons.visibility,
+                prefixIcon: Icons.visibility,
                 onPressed: () {
                   Navigator.push(
                     context,

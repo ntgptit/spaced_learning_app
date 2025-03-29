@@ -195,7 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             AppButton(
               text: 'Logout',
               type: AppButtonType.outline,
-              icon: Icons.logout,
+              prefixIcon: Icons.logout,
               onPressed: _logout,
               isFullWidth: true,
             ),
@@ -314,7 +314,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: 'Display Name',
                 hint: 'Enter your display name',
                 controller: _displayNameController,
-                prefixIcon: const Icon(Icons.person),
+                prefixIcon: Icons.person,
               ),
               const SizedBox(height: 24),
 
