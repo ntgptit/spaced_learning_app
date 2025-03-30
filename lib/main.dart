@@ -4,6 +4,7 @@ import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
@@ -71,6 +72,7 @@ class AppWithTheme extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
+        '/learning/progress': (context) => const LearningProgressScreen(),
       },
     );
   }

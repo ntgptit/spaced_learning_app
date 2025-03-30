@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_card.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -70,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Dashboard tab showing summary and recent progress
 class _DashboardTab extends StatefulWidget {
   const _DashboardTab();
 
@@ -112,10 +112,32 @@ class _DashboardTabState extends State<_DashboardTab> {
           // Welcome message
           Text(
             'Welcome, ${authViewModel.currentUser!.displayName ?? authViewModel.currentUser!.email}!',
-            style: theme.textTheme.headlineSmall,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text('Your learning dashboard', style: theme.textTheme.titleMedium),
+          Text(
+            'Your learning dashboard',
+            style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+
+          // Learning Stats Card - Overview only
+          LearningStatsCard(
+            totalModules: 68, // From the data provided in paste.txt
+            completedModules: 43, // Modules with 100% completion
+            inProgressModules: 25, // Modules with <100% completion
+            dueModules: 12, // Modules due in the next 7 days
+            onViewProgress: () {
+              // Navigate to dedicated overview screen
+              Navigator.of(context).pushNamed('/learning/progress');
+            },
+          ),
+
           const SizedBox(height: 24),
 
           // Due today section
