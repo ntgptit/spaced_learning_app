@@ -11,7 +11,7 @@ import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart
 import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/enhanced_learning_stats_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
 /// Home screen displaying dashboard and navigation
@@ -127,11 +127,11 @@ class _DashboardTabState extends State<_DashboardTab> {
           const SizedBox(height: 24),
 
           // Learning Stats Card - Overview only
-          LearningStatsCard(
+          EnhancedLearningStatsCard(
             totalModules: 68, // From the data provided in paste.txt
             completedModules: 43, // Modules with 100% completion
             inProgressModules: 25, // Modules with <100% completion
-            dueModules: 12, // Modules due in the next 7 days
+            // dueModules: 12, // Modules due in the next 7 days
             onViewProgress: () {
               // Navigate to dedicated overview screen
               Navigator.of(context).pushNamed('/learning/progress');

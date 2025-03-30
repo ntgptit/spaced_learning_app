@@ -17,7 +17,7 @@ import 'package:spaced_learning_app/domain/repositories/repetition_repository.da
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/enhanced_learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
@@ -86,8 +86,14 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerFactory<ThemeViewModel>(
     () => ThemeViewModel(storageService: serviceLocator<StorageService>()),
   );
-  serviceLocator.registerFactory<LearningStatsViewModel>(
-    () => LearningStatsViewModel(
+  // serviceLocator.registerFactory<LearningStatsViewModel>(
+  //   () => LearningStatsViewModel(
+  //     progressRepository: serviceLocator<ProgressRepository>(),
+  //     learningDataService: serviceLocator<LearningDataService>(),
+  //   ),
+  // );
+  serviceLocator.registerFactory<EnhancedLearningStatsViewModel>(
+    () => EnhancedLearningStatsViewModel(
       progressRepository: serviceLocator<ProgressRepository>(),
       learningDataService: serviceLocator<LearningDataService>(),
     ),

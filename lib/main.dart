@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/dashboard/dashboard_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/dashboard/enhanced_dashboard_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/enhanced_learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
@@ -45,8 +45,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => serviceLocator<RepetitionViewModel>(),
         ),
+        // ChangeNotifierProvider(
+        //   create: (_) => serviceLocator<LearningStatsViewModel>(),
+        // ),
         ChangeNotifierProvider(
-          create: (_) => serviceLocator<LearningStatsViewModel>(),
+          create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
         ),
       ],
       child: const AppWithTheme(),
@@ -71,13 +74,13 @@ class AppWithTheme extends StatelessWidget {
       // Start with the appropriate screen based on authentication status
       home:
           authViewModel.isAuthenticated
-              ? const DashboardScreen()
+              ? const EnhancedDashboardScreen()
               : const LoginScreen(),
 
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
+        '/dashboard': (context) => const EnhancedDashboardScreen(),
         '/learning/progress': (context) => const LearningProgressScreen(),
       },
     );
