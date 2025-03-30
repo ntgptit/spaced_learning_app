@@ -146,12 +146,41 @@ class ProgressViewModel extends ChangeNotifier {
       return progress;
     } on NotFoundException {
       // If not found, return null but don't set error (this is expected)
+      _selectedProgress = null;
       return null;
     } on AppException catch (e) {
       _errorMessage = e.message;
+      _selectedProgress = null;
       return null;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
+      _selectedProgress = null;
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Load progress for current user and a specific module
+  Future<ProgressDetail?> loadCurrentUserProgressByModule(
+    String moduleId,
+  ) async {
+    _setLoading(true);
+    _errorMessage = null;
+
+    try {
+      final progress = await progressRepository.getCurrentUserProgressByModule(
+        moduleId,
+      );
+      _selectedProgress = progress;
+      return progress;
+    } on AppException catch (e) {
+      _errorMessage = e.message;
+      _selectedProgress = null;
+      return null;
+    } catch (e) {
+      _errorMessage = 'An unexpected error occurred';
+      _selectedProgress = null;
       return null;
     } finally {
       _setLoading(false);
@@ -274,6 +303,21 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
       return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Refresh progress details
+  Future<void> refreshProgressDetails(String progressId) async {
+    _setLoading(true);
+    _errorMessage = null;
+
+    try {
+      _selectedProgress = await progressRepository.getProgressById(progressId);
+    } catch (e) {
+      // Just log the error, don't set error message to avoid UI disruption
+      print('Error refreshing progress details: $e');
     } finally {
       _setLoading(false);
     }

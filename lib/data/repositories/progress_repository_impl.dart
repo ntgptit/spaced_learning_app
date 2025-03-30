@@ -166,6 +166,34 @@ class ProgressRepositoryImpl implements ProgressRepository {
   }
 
   @override
+  Future<ProgressDetail?> getCurrentUserProgressByModule(
+    String moduleId,
+  ) async {
+    try {
+      final response = await _apiClient.get(
+        ApiEndpoints.currentUserProgressByModule(moduleId),
+      );
+
+      if (response['success'] == true) {
+        if (response['data'] == null) {
+          // No progress found, but API call was successful
+          return null;
+        }
+        return ProgressDetail.fromJson(response['data']);
+      } else {
+        return null;
+      }
+    } on NotFoundException {
+      // If not found, return null (this is expected)
+      return null;
+    } on AppException catch (e) {
+      rethrow;
+    } catch (e) {
+      throw UnexpectedException('Failed to get current user progress: $e');
+    }
+  }
+
+  @override
   Future<List<ProgressSummary>> getDueProgress(
     String userId, {
     DateTime? studyDate,

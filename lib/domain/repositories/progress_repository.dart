@@ -36,6 +36,9 @@ abstract class ProgressRepository {
     String moduleId,
   );
 
+  /// Get progress for current user and a specific module
+  Future<ProgressDetail?> getCurrentUserProgressByModule(String moduleId);
+
   /// Get progress records due for study
   Future<List<ProgressSummary>> getDueProgress(
     String userId, {

@@ -29,22 +29,35 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 
   Future<void> _loadData() async {
-    await context.read<ModuleViewModel>().loadModuleDetails(widget.moduleId);
-
-    // If user is authenticated, check if they have progress for this module
+    final moduleViewModel = context.read<ModuleViewModel>();
     final authViewModel = context.read<AuthViewModel>();
-    if (authViewModel.isAuthenticated && authViewModel.currentUser != null) {
-      await context.read<ProgressViewModel>().loadProgressByUserAndModule(
-        authViewModel.currentUser!.id,
-        widget.moduleId,
-      );
+    final progressViewModel = context.read<ProgressViewModel>();
+
+    // Lưu trữ moduleId để sử dụng sau các thao tác bất đồng bộ
+    final String moduleId = widget.moduleId;
+
+    await moduleViewModel.loadModuleDetails(moduleId);
+
+    // Kiểm tra mounted trước khi tiếp tục
+    if (!mounted) return;
+
+    // Kiểm tra xác thực và lấy tiến trình học tập
+    if (authViewModel.isAuthenticated) {
+      await progressViewModel.loadCurrentUserProgressByModule(moduleId);
     }
   }
 
   Future<void> _startLearning() async {
     final authViewModel = context.read<AuthViewModel>();
+    final moduleViewModel = context.read<ModuleViewModel>();
+    final progressViewModel = context.read<ProgressViewModel>();
+
+    // Lưu trữ các giá trị cần thiết
+    final String moduleId = widget.moduleId;
+
+    // Kiểm tra xác thực
     if (!authViewModel.isAuthenticated || authViewModel.currentUser == null) {
-      // Show login message
+      // Kiểm tra mounted trước khi sử dụng BuildContext
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please log in to start learning')),
@@ -53,17 +66,14 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       return;
     }
 
-    final moduleViewModel = context.read<ModuleViewModel>();
     final module = moduleViewModel.selectedModule;
     if (module == null) return;
 
-    final progressViewModel = context.read<ProgressViewModel>();
-
-    // Try to get existing progress
+    // Kiểm tra tiến trình hiện có
     final existingProgress = progressViewModel.selectedProgress;
 
     if (existingProgress != null) {
-      // Navigate to existing progress
+      // Kiểm tra mounted trước khi sử dụng BuildContext
       if (mounted) {
         Navigator.push(
           context,
@@ -72,12 +82,17 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                 (context) =>
                     ProgressDetailScreen(progressId: existingProgress.id),
           ),
-        );
+        ).then((_) {
+          // Kiểm tra mounted trước khi gọi _loadData()
+          if (mounted) {
+            _loadData();
+          }
+        });
       }
       return;
     }
 
-    // Create new progress
+    // Tạo tiến trình mới
     final newProgress = await progressViewModel.createProgress(
       moduleId: module.id,
       userId: authViewModel.currentUser!.id,
@@ -85,15 +100,20 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       nextStudyDate: DateTime.now(),
     );
 
+    // Kiểm tra mounted trước khi sử dụng BuildContext
     if (newProgress != null && mounted) {
-      // Navigate to new progress
       Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (context) => ProgressDetailScreen(progressId: newProgress.id),
         ),
-      ).then((_) => _loadData()); // Refresh on return
+      ).then((_) {
+        // Kiểm tra mounted trước khi gọi _loadData()
+        if (mounted) {
+          _loadData();
+        }
+      });
     }
   }
 
@@ -103,6 +123,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final moduleViewModel = context.watch<ModuleViewModel>();
     final progressViewModel = context.watch<ProgressViewModel>();
     final module = moduleViewModel.selectedModule;
+    final userProgress = progressViewModel.selectedProgress;
 
     return Scaffold(
       appBar: AppBar(title: Text(module?.title ?? 'Module Details')),
@@ -112,8 +133,9 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
         moduleViewModel.isLoading,
         moduleViewModel.errorMessage,
       ),
+      // Chỉ hiển thị nút "Start Learning" khi chưa có tiến trình học tập
       floatingActionButton:
-          module != null
+          module != null && progressViewModel.selectedProgress == null
               ? FloatingActionButton.extended(
                 onPressed: _startLearning,
                 icon: const Icon(Icons.play_arrow),
@@ -183,11 +205,17 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                         (context) =>
                             ProgressDetailScreen(progressId: userProgress.id),
                   ),
-                ).then((_) => _loadData()); // Refresh on return
+                ).then((_) {
+                  // Kiểm tra mounted trước khi gọi _loadData()
+                  if (mounted) {
+                    _loadData();
+                  }
+                });
               },
             ),
             const SizedBox(height: 16),
 
+            // Chỉ hiển thị nút "View Detailed Progress" khi có tiến trình
             Center(
               child: AppButton(
                 text: 'View Detailed Progress',
@@ -201,7 +229,12 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                           (context) =>
                               ProgressDetailScreen(progressId: userProgress.id),
                     ),
-                  ).then((_) => _loadData()); // Refresh on return
+                  ).then((_) {
+                    // Kiểm tra mounted trước khi gọi _loadData()
+                    if (mounted) {
+                      _loadData();
+                    }
+                  });
                 },
               ),
             ),

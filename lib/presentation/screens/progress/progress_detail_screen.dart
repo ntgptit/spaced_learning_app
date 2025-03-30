@@ -31,10 +31,17 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
   Future<void> _loadData() async {
     final progressViewModel = context.read<ProgressViewModel>();
-    await progressViewModel.loadProgressDetails(widget.progressId);
-
     final repetitionViewModel = context.read<RepetitionViewModel>();
-    await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
+
+    // Lưu trữ ID để sử dụng sau các thao tác bất đồng bộ
+    final String progressId = widget.progressId;
+
+    await progressViewModel.loadProgressDetails(progressId);
+
+    // Kiểm tra mounted trước khi tiếp tục
+    if (!mounted) return;
+
+    await repetitionViewModel.loadRepetitionsByProgressId(progressId);
   }
 
   /// Mark a repetition as completed
@@ -42,16 +49,25 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
 
+    // Lưu trữ progressId để sử dụng sau các thao tác bất đồng bộ
+    final String progressId = widget.progressId;
+
     final repetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.completed,
     );
 
-    if (repetition != null && mounted) {
+    // Kiểm tra mounted sau thao tác bất đồng bộ
+    if (!mounted) return;
+
+    if (repetition != null) {
       // Check if all repetitions in cycle are completed
       final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
         repetition.moduleProgressId,
       );
+
+      // Kiểm tra mounted sau thao tác bất đồng bộ thứ hai
+      if (!mounted) return;
 
       if (allCompleted) {
         // Show completion message
@@ -63,24 +79,52 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
             action: SnackBarAction(
               label: 'Chi tiết',
               onPressed: () {
-                _showCycleCompletionDialog();
+                if (mounted) {
+                  _showCycleCompletionDialog();
+                }
               },
             ),
           ),
         );
 
-        // Reload data to reflect changes
-        await _loadData();
+        // Reload data to reflect changes including new repetitions
+        await _reloadDataSafely();
       } else {
         // Regular completion message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Repetition marked as completed')),
         );
+
+        // Reload repetitions to update the UI
+        await repetitionViewModel.loadRepetitionsByProgressId(progressId);
       }
+
+      // Kiểm tra mounted trước khi tiếp tục
+      if (!mounted) return;
 
       // Update progress percentage
       await _updateProgressPercentage();
+
+      // Reload progress details to get the updated cycle information
+      await progressViewModel.loadProgressDetails(progressId);
     }
+  }
+
+  // Helper method to safely reload data with mounted checks
+  Future<void> _reloadDataSafely() async {
+    final progressViewModel = context.read<ProgressViewModel>();
+    final repetitionViewModel = context.read<RepetitionViewModel>();
+
+    final String progressId = widget.progressId;
+
+    // Load progress details first
+    await progressViewModel.loadProgressDetails(progressId);
+
+    // Check if still mounted
+    if (!mounted) return;
+
+    // Then load repetitions
+    await repetitionViewModel.loadRepetitionsByProgressId(progressId);
   }
 
   /// Show dialog explaining cycle completion
@@ -120,22 +164,31 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   /// Mark a repetition as skipped
   Future<void> _markSkipped(String repetitionId) async {
     final repetitionViewModel = context.read<RepetitionViewModel>();
+    final String progressId = widget.progressId;
 
     final repetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.skipped,
     );
 
-    if (repetition != null && mounted) {
+    // Kiểm tra mounted sau thao tác bất đồng bộ
+    if (!mounted) return;
+
+    if (repetition != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Repetition marked as skipped')),
       );
+
+      // Reload data
+      await repetitionViewModel.loadRepetitionsByProgressId(progressId);
     }
   }
 
   /// Reschedule a repetition
   Future<void> _rescheduleRepetition(String repetitionId) async {
     final dateFormat = DateFormat('yyyy-MM-dd');
+    final repetitionViewModel = context.read<RepetitionViewModel>();
+    final String progressId = widget.progressId;
 
     // Show date picker
     final date = await showDatePicker(
@@ -145,15 +198,19 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       lastDate: DateTime.now().add(const Duration(days: 90)),
     );
 
-    if (date != null && mounted) {
-      final repetitionViewModel = context.read<RepetitionViewModel>();
+    // Kiểm tra mounted sau thao tác bất đồng bộ
+    if (!mounted) return;
 
+    if (date != null) {
       final repetition = await repetitionViewModel.updateRepetition(
         repetitionId,
         reviewDate: date,
       );
 
-      if (repetition != null && mounted) {
+      // Kiểm tra mounted sau thao tác bất đồng bộ thứ hai
+      if (!mounted) return;
+
+      if (repetition != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -161,6 +218,9 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
             ),
           ),
         );
+
+        // Reload data
+        await repetitionViewModel.loadRepetitionsByProgressId(progressId);
       }
     }
   }
@@ -170,6 +230,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
     final progress = progressViewModel.selectedProgress;
+    final String progressId = widget.progressId;
 
     if (progress == null) return;
 
@@ -189,6 +250,12 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       progress.id,
       percentComplete: newPercentage,
     );
+
+    // Kiểm tra mounted sau thao tác bất đồng bộ
+    if (!mounted) return;
+
+    // Reload progress
+    await progressViewModel.loadProgressDetails(progressId);
   }
 
   @override
@@ -468,10 +535,11 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     if (repetitionViewModel.errorMessage != null) {
       return ErrorDisplay(
         message: repetitionViewModel.errorMessage!,
-        onRetry:
-            () => repetitionViewModel.loadRepetitionsByProgressId(
-              widget.progressId,
-            ),
+        onRetry: () {
+          if (mounted) {
+            repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
+          }
+        },
         compact: true,
       );
     }
@@ -490,9 +558,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
                 onPressed: () async {
                   final repetitionViewModel =
                       context.read<RepetitionViewModel>();
-                  await repetitionViewModel.createDefaultSchedule(
-                    widget.progressId,
-                  );
+                  final String progressId = widget.progressId;
+                  await repetitionViewModel.createDefaultSchedule(progressId);
+
+                  // Kiểm tra mounted trước khi làm mới dữ liệu
+                  if (mounted) {
+                    _loadData();
+                  }
                 },
               ),
             ],
