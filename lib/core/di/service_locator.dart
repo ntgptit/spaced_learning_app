@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
+import 'package:spaced_learning_app/core/services/learning_data_service.dart';
+import 'package:spaced_learning_app/core/services/learning_data_service_impl.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/data/repositories/auth_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/book_repository_impl.dart';
@@ -15,6 +17,7 @@ import 'package:spaced_learning_app/domain/repositories/repetition_repository.da
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
@@ -28,6 +31,11 @@ Future<void> setupServiceLocator() async {
   // Core services
   serviceLocator.registerLazySingleton<ApiClient>(() => ApiClient());
   serviceLocator.registerLazySingleton<StorageService>(() => StorageService());
+
+  // Services
+  serviceLocator.registerLazySingleton<LearningDataService>(
+    () => LearningDataServiceImpl(),
+  );
 
   // Repositories
   serviceLocator.registerLazySingleton<AuthRepository>(
@@ -77,5 +85,11 @@ Future<void> setupServiceLocator() async {
   );
   serviceLocator.registerFactory<ThemeViewModel>(
     () => ThemeViewModel(storageService: serviceLocator<StorageService>()),
+  );
+  serviceLocator.registerFactory<LearningStatsViewModel>(
+    () => LearningStatsViewModel(
+      progressRepository: serviceLocator<ProgressRepository>(),
+      learningDataService: serviceLocator<LearningDataService>(),
+    ),
   );
 }
