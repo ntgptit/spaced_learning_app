@@ -42,7 +42,8 @@ class RepetitionCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: isHistory ? 1 : 2,
-      color: isHistory ? theme.cardColor.withOpacity(0.7) : theme.cardColor,
+      color:
+          isHistory ? theme.cardColor.withValues(alpha: 0.7) : theme.cardColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -67,7 +68,7 @@ class RepetitionCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
+                    color: statusColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -197,7 +198,7 @@ class RepetitionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Icon(Icons.percent, size: 10, color: color),
@@ -206,7 +207,7 @@ class RepetitionCard extends StatelessWidget {
           ],
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: color.withOpacity(0.5)),
+          side: BorderSide(color: color.withValues(alpha: 0.5)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),

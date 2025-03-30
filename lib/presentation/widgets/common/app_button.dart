@@ -157,7 +157,7 @@ class AppButton extends StatelessWidget {
         defaultElevation = 0;
         break;
       case AppButtonType.ghost:
-        defaultBackgroundColor = colorScheme.primary.withOpacity(0.05);
+        defaultBackgroundColor = colorScheme.primary.withValues(alpha: 0.05);
         defaultTextColor = colorScheme.primary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
@@ -213,8 +213,12 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             elevation: effectiveElevation,
-            disabledBackgroundColor: theme.disabledColor.withOpacity(0.12),
-            disabledForegroundColor: theme.disabledColor.withOpacity(0.38),
+            disabledBackgroundColor: theme.disabledColor.withValues(
+              alpha: 0.12,
+            ),
+            disabledForegroundColor: theme.disabledColor.withValues(
+              alpha: 0.38,
+            ),
             shadowColor:
                 type == AppButtonType.ghost ? Colors.transparent : null,
           ),
@@ -237,7 +241,9 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: theme.disabledColor.withOpacity(0.38),
+            disabledForegroundColor: theme.disabledColor.withValues(
+              alpha: 0.38,
+            ),
           ),
           child: _buildContent(
             effectiveTextColor,
@@ -257,7 +263,9 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: theme.disabledColor.withOpacity(0.38),
+            disabledForegroundColor: theme.disabledColor.withValues(
+              alpha: 0.38,
+            ),
           ),
           child: _buildContent(
             effectiveTextColor,

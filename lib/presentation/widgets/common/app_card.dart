@@ -48,8 +48,9 @@ class AppCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        highlightColor: highlightColor ?? colorScheme.primary.withOpacity(0.1),
-        splashColor: colorScheme.primary.withOpacity(0.1),
+        highlightColor:
+            highlightColor ?? colorScheme.primary.withValues(alpha: 0.1),
+        splashColor: colorScheme.primary.withValues(alpha: 0.1),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -84,7 +85,9 @@ class AppCard extends StatelessWidget {
                             if (subtitle != null)
                               DefaultTextStyle(
                                 style: theme.textTheme.bodyMedium!.copyWith(
-                                  color: colorScheme.onSurface.withOpacity(0.7),
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
                                 child: subtitle!,
                               ),

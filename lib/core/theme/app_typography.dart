@@ -89,7 +89,7 @@ class AppTypography {
         fontSize: 12,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
-        color: textColor.withOpacity(0.9),
+        color: textColor.withValues(alpha: 0.9),
         height: 1.5,
       ),
 

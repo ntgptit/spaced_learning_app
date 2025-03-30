@@ -115,7 +115,7 @@ class _AppTextFieldState extends State<AppTextField> {
             _passwordVisible
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
-            color: colorScheme.onSurface.withOpacity(0.6),
+            color: colorScheme.onSurface.withValues(alpha: 0.6),
             size: 20,
           ),
         ),
@@ -148,7 +148,7 @@ class _AppTextFieldState extends State<AppTextField> {
         color:
             widget.enabled
                 ? colorScheme.onSurface
-                : colorScheme.onSurface.withOpacity(0.6),
+                : colorScheme.onSurface.withValues(alpha: 0.6),
       ),
       decoration: InputDecoration(
         labelText: widget.label,
@@ -159,8 +159,8 @@ class _AppTextFieldState extends State<AppTextField> {
         fillColor:
             widget.fillColor ??
             (theme.brightness == Brightness.dark
-                ? colorScheme.onSurface.withOpacity(0.08)
-                : colorScheme.onSurface.withOpacity(0.04)),
+                ? colorScheme.onSurface.withValues(alpha: 0.08)
+                : colorScheme.onSurface.withValues(alpha: 0.04)),
         contentPadding:
             widget.contentPadding ??
             const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -171,7 +171,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   color:
                       widget.errorText != null
                           ? colorScheme.error
-                          : colorScheme.onSurface.withOpacity(0.6),
+                          : colorScheme.onSurface.withValues(alpha: 0.6),
                   size: 20,
                 )
                 : widget.prefix,
@@ -179,11 +179,15 @@ class _AppTextFieldState extends State<AppTextField> {
         counterText: widget.showCounter ? null : '',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.2),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.2),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -199,7 +203,9 @@ class _AppTextFieldState extends State<AppTextField> {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.1),
+          ),
         ),
       ),
     );

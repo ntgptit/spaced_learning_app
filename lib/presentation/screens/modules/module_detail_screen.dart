@@ -278,7 +278,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -394,7 +394,11 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
   /// Build a vertical divider
   Widget _buildDivider() {
-    return Container(height: 40, width: 1, color: Colors.grey.withOpacity(0.3));
+    return Container(
+      height: 40,
+      width: 1,
+      color: Colors.grey.withValues(alpha: 0.3),
+    );
   }
 
   /// Build a statistics item

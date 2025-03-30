@@ -1,4 +1,4 @@
-// lib/presentation/widgets/book_card.dart
+// lib/presentation/widgets/books/book_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
@@ -8,12 +8,14 @@ class BookCard extends StatelessWidget {
   final BookSummary book;
   final VoidCallback? onTap;
   final VoidCallback? onStartPressed;
+  final EdgeInsetsGeometry margin;
 
   const BookCard({
     super.key,
     required this.book,
     this.onTap,
     this.onStartPressed,
+    this.margin = const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
   });
 
   @override
@@ -48,9 +50,9 @@ class BookCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: badgeColor.withOpacity(0.1),
+          color: badgeColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: badgeColor.withOpacity(0.5)),
+          border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -100,9 +102,9 @@ class BookCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: badgeColor.withOpacity(0.1),
+          color: badgeColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: badgeColor.withOpacity(0.5)),
+          border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
         ),
         child: Text(
           difficultyText,
@@ -116,15 +118,17 @@ class BookCard extends StatelessWidget {
 
     return AppCard(
       onTap: onTap,
+      margin: margin,
       title: Text(book.name),
       subtitle: book.category != null ? Text(book.category!) : null,
       trailing: Container(
         width: 46,
         height: 46,
         decoration: BoxDecoration(
-          color: colorScheme.primary.withOpacity(0.1),
+          color: colorScheme.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
+
         child: Center(
           child: Text(
             '${book.moduleCount}',

@@ -200,7 +200,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.2),
+                color: statusColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -229,7 +229,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: difficultyColor.withOpacity(0.2),
+                color: difficultyColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(

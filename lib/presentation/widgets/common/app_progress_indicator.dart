@@ -36,8 +36,8 @@ class AppProgressIndicator extends StatelessWidget {
     final effectiveBackgroundColor =
         backgroundColor ??
         (theme.brightness == Brightness.dark
-            ? colorScheme.surface.withOpacity(0.2)
-            : colorScheme.primary.withOpacity(0.2));
+            ? colorScheme.surface.withValues(alpha: 0.2)
+            : colorScheme.primary.withValues(alpha: 0.2));
 
     Widget progressIndicator;
 
@@ -82,7 +82,7 @@ class AppProgressIndicator extends StatelessWidget {
             style:
                 labelStyle ??
                 theme.textTheme.bodyMedium!.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
           ),
         ],

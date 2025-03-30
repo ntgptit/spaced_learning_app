@@ -126,19 +126,24 @@ class AppTheme {
         filled: true,
         fillColor:
             isDark
-                ? colorScheme.onSurface.withOpacity(0.08)
-                : colorScheme.onSurface.withOpacity(0.04),
+                ? colorScheme.onSurface.withValues(alpha: 0.08)
+                : colorScheme.onSurface.withValues(alpha: 0.04),
+
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 16,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.2),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.2),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -153,10 +158,13 @@ class AppTheme {
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         labelStyle: TextStyle(
-          color: colorScheme.onSurface.withOpacity(0.7),
+          color: colorScheme.onSurface.withValues(alpha: 0.7),
           fontWeight: FontWeight.w500,
         ),
-        hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
+        hintStyle: TextStyle(
+          color: colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
+
         errorStyle: TextStyle(
           color: colorScheme.error,
           fontWeight: FontWeight.w500,
@@ -169,7 +177,8 @@ class AppTheme {
 
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: colorScheme.onSurface.withOpacity(0.12),
+        color: colorScheme.onSurface.withValues(alpha: 0.12),
+
         thickness: 1,
         space: 1,
       ),
@@ -194,7 +203,7 @@ class AppTheme {
       // Chip theme
       chipTheme: ChipThemeData(
         backgroundColor: colorScheme.surface,
-        selectedColor: colorScheme.primary.withOpacity(0.2),
+        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
         secondarySelectedColor: colorScheme.primary,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         labelStyle: TextStyle(
@@ -207,13 +216,13 @@ class AppTheme {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: colorScheme.primary.withOpacity(0.5)),
+          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
         ),
       ),
 
       // Icon theme
       iconTheme: IconThemeData(
-        color: colorScheme.onSurface.withOpacity(0.8),
+        color: colorScheme.onSurface.withValues(alpha: 0.8),
         size: 24,
       ),
 
@@ -221,7 +230,7 @@ class AppTheme {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurface.withOpacity(0.6),
+        unselectedItemColor: colorScheme.onSurface.withValues(alpha: 0.6),
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
@@ -231,7 +240,7 @@ class AppTheme {
       // Tab bar theme
       tabBarTheme: TabBarThemeData(
         labelColor: colorScheme.primary,
-        unselectedLabelColor: colorScheme.onSurface.withOpacity(0.7),
+        unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.7),
         labelStyle: const TextStyle(fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
         indicator: BoxDecoration(
