@@ -317,7 +317,7 @@ class ProgressViewModel extends ChangeNotifier {
       _selectedProgress = await progressRepository.getProgressById(progressId);
     } catch (e) {
       // Just log the error, don't set error message to avoid UI disruption
-      print('Error refreshing progress details: $e');
+      debugPrint('Error refreshing progress details: $e');
     } finally {
       _setLoading(false);
     }

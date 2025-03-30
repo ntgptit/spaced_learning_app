@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:spaced_learning_app/core/constants/api_endpoints.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
@@ -16,18 +15,17 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final data = {'email': email, 'password': password};
 
-      final response1 = await Dio().get(
-        'https://jsonplaceholder.typicode.com/posts',
-      );
-      print(response1.data);
-
       final response = await _apiClient.post(ApiEndpoints.login, data: data);
 
-      if (response['success'] == true && response['data'] != null) {
-        return AuthResponse.fromJson(response['data']);
+      // Log để debug
+      print('Full login response: $response');
+
+      // Kiểm tra token tồn tại (không kiểm tra success hay data nữa)
+      if (response != null && response['token'] != null) {
+        return AuthResponse.fromJson(response);
       } else {
         throw AuthenticationException(
-          'Failed to login: ${response['message']}',
+          'Failed to login: ${response['message'] ?? "Invalid credentials"}',
         );
       }
     } catch (e) {
