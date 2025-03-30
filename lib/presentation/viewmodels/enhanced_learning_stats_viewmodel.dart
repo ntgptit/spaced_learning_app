@@ -101,7 +101,7 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      // Load modules data
+      // Load modules data from service
       _modules = await learningDataService.getModules();
 
       // Calculate statistics
@@ -129,63 +129,34 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Calculate week range
-    final weekStart = today.subtract(Duration(days: today.weekday - 1));
-    final weekEnd = weekStart.add(const Duration(days: 6));
-
-    // Calculate month range
-    final monthStart = DateTime(now.year, now.month, 1);
-    final monthEnd =
-        (now.month < 12)
-            ? DateTime(now.year, now.month + 1, 0)
-            : DateTime(now.year + 1, 1, 0);
+    // Get modules due today, this week, and this month using LearningDataService
+    final dueToday = learningDataService.getDueToday(_modules);
+    final dueThisWeek = learningDataService.getDueThisWeek(_modules);
+    final dueThisMonth = learningDataService.getDueThisMonth(_modules);
 
     // Reset counters
-    _dueToday = 0;
-    _dueThisWeek = 0;
-    _dueThisMonth = 0;
-    _wordsDueToday = 0;
-    _wordsDueThisWeek = 0;
-    _wordsDueThisMonth = 0;
+    _dueToday = dueToday.length;
+    _dueThisWeek = dueThisWeek.length;
+    _dueThisMonth = dueThisMonth.length;
+
+    // Calculate word counts
+    _wordsDueToday = dueToday.fold(0, (sum, module) => sum + module.wordCount);
+    _wordsDueThisWeek = dueThisWeek.fold(
+      0,
+      (sum, module) => sum + module.wordCount,
+    );
+    _wordsDueThisMonth = dueThisMonth.fold(
+      0,
+      (sum, module) => sum + module.wordCount,
+    );
 
     // Calculate totals
     _totalModules = _modules.length;
-    _completedModules = _modules.where((m) => m.percentage >= 100).length;
+    _completedModules = learningDataService.countCompletedModules(_modules);
     _inProgressModules = _totalModules - _completedModules;
 
-    // Calculate due counts and word counts
-    for (final module in _modules) {
-      if (module.nextStudyDate != null) {
-        final studyDate = DateTime(
-          module.nextStudyDate!.year,
-          module.nextStudyDate!.month,
-          module.nextStudyDate!.day,
-        );
-
-        // Today due
-        if (_isSameDay(studyDate, today)) {
-          _dueToday++;
-          _wordsDueToday += module.wordCount;
-        }
-
-        // This week due
-        if (studyDate.isAfter(weekStart.subtract(const Duration(days: 1))) &&
-            studyDate.isBefore(weekEnd.add(const Duration(days: 1)))) {
-          _dueThisWeek++;
-          _wordsDueThisWeek += module.wordCount;
-        }
-
-        // This month due
-        if (studyDate.isAfter(monthStart.subtract(const Duration(days: 1))) &&
-            studyDate.isBefore(monthEnd.add(const Duration(days: 1)))) {
-          _dueThisMonth++;
-          _wordsDueThisMonth += module.wordCount;
-        }
-      }
-    }
-
-    // For the purpose of the demo, set some values for completions
-    // In a real app, you'd query these from the repository
+    // For the purpose of the demo, set realistic values for completions
+    // In a real app, these would come from the repository
     _completedToday =
         (_dueToday * 0.7).round(); // Assume 70% completion rate for today
     _completedThisWeek =
@@ -193,7 +164,7 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     _completedThisMonth =
         (_dueThisMonth * 0.85).round(); // Assume 85% completion rate for month
 
-    // Set completed word counts (using similar ratios for demo)
+    // Set completed word counts (using similar ratios for realism)
     _wordsCompletedToday = (_wordsDueToday * 0.7).round();
     _wordsCompletedThisWeek = (_wordsDueThisWeek * 0.8).round();
     _wordsCompletedThisMonth = (_wordsDueThisMonth * 0.85).round();
@@ -204,10 +175,12 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     // Total words across all modules
     _totalWords = _modules.fold(0, (sum, module) => sum + module.wordCount);
 
-    // Learned words (from completed modules)
-    _learnedWords = _modules
-        .where((m) => m.percentage >= 100)
-        .fold(0, (sum, module) => sum + module.wordCount);
+    // Learned words (based on completion percentage of each module)
+    _learnedWords = _modules.fold(
+      0,
+      (sum, module) =>
+          sum + ((module.wordCount * module.percentage / 100).round()),
+    );
 
     // Pending words
     _pendingWords = _totalWords - _learnedWords;
@@ -216,9 +189,40 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     _vocabularyCompletionRate =
         _totalWords > 0 ? (_learnedWords / _totalWords) * 100 : 0;
 
-    // Weekly new words rate (what percentage of words are learned per week)
-    // For demo purposes, we'll use a fixed value or calculate based on recent completion
-    _weeklyNewWordsRate = 8.5; // Simulated 8.5% of new vocabulary per week
+    // Calculate a realistic weekly new words rate based on the data
+    if (_modules.isNotEmpty) {
+      // Modules with first learning dates in the past 4 weeks
+      final recentModules =
+          _modules
+              .where(
+                (m) =>
+                    m.firstLearningDate != null &&
+                    m.firstLearningDate!.isAfter(
+                      DateTime.now().subtract(const Duration(days: 28)),
+                    ),
+              )
+              .toList();
+
+      if (recentModules.isNotEmpty) {
+        final totalWordsLearned = recentModules.fold(
+          0,
+          (sum, module) =>
+              sum + ((module.wordCount * module.percentage / 100).round()),
+        );
+
+        // What percentage of total words is this?
+        _weeklyNewWordsRate =
+            _totalWords > 0
+                ? (totalWordsLearned / _totalWords) *
+                    25 // Adjust for a weekly rate
+                : 0;
+      } else {
+        // Fallback to a reasonable default
+        _weeklyNewWordsRate = 5.5;
+      }
+    } else {
+      _weeklyNewWordsRate = 0;
+    }
   }
 
   /// Calculate the user's learning streak in days
@@ -226,8 +230,35 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     // In a real app, this would query the database to determine
     // how many consecutive days the user has completed at least one module
 
-    // For this demo, return a simulated value
-    return 14; // Simulated 14-day streak
+    // For this demo, derive a plausible streak from our generated data
+    final modulesByRecency =
+        _modules.where((m) => m.lastStudyDate != null).toList()
+          ..sort((a, b) => b.lastStudyDate!.compareTo(a.lastStudyDate!));
+
+    if (modulesByRecency.isEmpty) return 0;
+
+    // Check if studied today
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Get most recent study date
+    final lastStudyDate = modulesByRecency.first.lastStudyDate!;
+    final lastStudyDay = DateTime(
+      lastStudyDate.year,
+      lastStudyDate.month,
+      lastStudyDate.day,
+    );
+
+    // If not studied today or yesterday, streak is broken
+    if (lastStudyDay.isBefore(today.subtract(const Duration(days: 1)))) {
+      return 0;
+    }
+
+    // Count back from today to find consecutive study days
+    // In a real app, this would be from actual study records
+    // Here we'll use a plausible generated value between 1-21 days
+    final random = DateTime.now().millisecondsSinceEpoch % 21;
+    return random + 1;
   }
 
   /// Calculate the user's learning streak in weeks
@@ -235,15 +266,14 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     // In a real app, this would query the database to determine
     // how many consecutive weeks the user has completed at least one module
 
-    // For this demo, return a simulated value
-    return 3; // Simulated 3-week streak
-  }
+    // For this demo, derive from our day streak with some logic
+    final dayStreak = await _calculateStreakDays(userId);
 
-  /// Check if two dates are the same day
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
+    // If day streak is 0, week streak is also 0
+    if (dayStreak == 0) return 0;
+
+    // Otherwise calculate a plausible week streak (roughly day streak / 7)
+    return (dayStreak / 7).ceil();
   }
 
   /// Helper to update loading state and notify listeners

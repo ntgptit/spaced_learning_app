@@ -1,185 +1,201 @@
+import 'dart:math';
+
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
-/// Implementation of the learning data service
+/// Implementation of the learning data service with realistic data
 class LearningDataServiceImpl implements LearningDataService {
+  // Cache for loaded modules to reduce repeated data generation
+  List<LearningModule>? _cachedModules;
+
   @override
   Future<List<LearningModule>> getModules() async {
+    // Return cached data if available
+    if (_cachedModules != null) {
+      return _cachedModules!;
+    }
+
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 800));
 
-    // Sample data
-    return [
-      LearningModule(
-        id: '1',
-        book: 'Book1',
-        subject: 'Vitamin_Book1_Chapter1-1 + 1-2',
-        wordCount: 76,
-        cyclesStudied: CycleStudied.secondReview,
-        firstLearningDate: DateTime(2024, 12, 8),
-        percentage: 96,
-        nextStudyDate: DateTime.now(), // Due today
-        taskCount: 1,
-      ),
-      LearningModule(
-        id: '2',
-        book: 'Book1',
-        subject: 'Vitamin_Book1_Chapter1-3: Single Final Consonants',
-        wordCount: 52,
-        cyclesStudied: CycleStudied.secondReview,
-        firstLearningDate: DateTime(2024, 12, 9),
-        percentage: 98,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 2),
-        ), // Due this week
-        taskCount: 1,
-      ),
-      LearningModule(
-        id: '3',
-        book: 'Book1',
-        subject: 'Vitamin_Book1_Chapter1-3: Double Final Consonants',
-        wordCount: 12,
-        cyclesStudied: CycleStudied.secondReview,
-        firstLearningDate: DateTime(2024, 12, 10),
-        percentage: 100,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 6),
-        ), // Due this week
-        taskCount: 3,
-      ),
-      LearningModule(
-        id: '4',
-        book: 'Book1',
-        subject: 'Vitamin_Book1_Chapter2-1: Vocabulary',
-        wordCount: 31,
-        cyclesStudied: CycleStudied.secondReview,
-        firstLearningDate: DateTime(2024, 12, 11),
-        percentage: 94,
-        nextStudyDate: DateTime.now(), // Due today
-        taskCount: 3,
-      ),
-      LearningModule(
-        id: '5',
-        book: 'Book1',
-        subject: 'Vitamin_Book1_Chapter2-2: Vocabulary',
-        wordCount: 29,
-        cyclesStudied: CycleStudied.secondReview,
-        firstLearningDate: DateTime(2024, 12, 12),
-        percentage: 100,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 10),
-        ), // Due this month
-        taskCount: 1,
-      ),
-      LearningModule(
-        id: '19',
-        book: 'Book2',
-        subject: 'Vitamin_Book2_Chapter1-1: Vocabulary',
-        wordCount: 74,
-        cyclesStudied: CycleStudied.firstTime,
-        firstLearningDate: DateTime(2024, 12, 26),
-        percentage: 86,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 15),
-        ), // Due this month
-        taskCount: 1,
-      ),
-      LearningModule(
-        id: '20',
-        book: 'Book2',
-        subject: 'Vitamin_Book2_Chapter1-2: Vocabulary',
-        wordCount: 47,
-        cyclesStudied: CycleStudied.secondReview,
-        firstLearningDate: DateTime(2024, 12, 27),
-        percentage: 85,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 23),
-        ), // Due this month
-        taskCount: 1,
-      ),
-      LearningModule(
-        id: '34',
-        book: 'Book3',
-        subject: 'Vitamin_Book3_Chapter1-1: Vocabulary',
-        wordCount: 108,
-        cyclesStudied: null,
-        firstLearningDate: null,
-        percentage: 100,
-        nextStudyDate: null,
-        taskCount: null,
-      ),
-      LearningModule(
-        id: '35',
-        book: 'Book3',
-        subject: 'Vitamin_Book3_Chapter1-2: Vocabulary',
-        wordCount: 62,
-        cyclesStudied: null,
-        firstLearningDate: null,
-        percentage: 100,
-        nextStudyDate: null,
-        taskCount: null,
-      ),
-      LearningModule(
-        id: '38',
-        book: 'Book3',
-        subject: 'Vitamin_Book3_Chapter2-1: Korean - Honorifics',
-        wordCount: 18,
-        cyclesStudied: CycleStudied.firstTime,
-        firstLearningDate: DateTime(2025, 1, 2),
-        percentage: 100,
-        nextStudyDate: DateTime.now(), // Due today
-        taskCount: 4,
-      ),
-      LearningModule(
-        id: '40',
-        book: 'Additional',
-        subject: 'Additional_20240814: 대인 관계',
-        wordCount: 60,
-        cyclesStudied: null,
-        firstLearningDate: null,
-        percentage: 100,
-        nextStudyDate: null,
-        taskCount: null,
-      ),
-      LearningModule(
-        id: '56',
-        book: 'Duyen선생님_중급1',
-        subject: 'Section 1: 대학 생활',
-        wordCount: 40,
-        cyclesStudied: CycleStudied.firstTime,
-        firstLearningDate: DateTime(2024, 12, 31),
-        percentage: 97,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 3),
-        ), // Due this week
-        taskCount: 3,
-      ),
-      LearningModule(
-        id: '57',
-        book: 'THTH Book2',
-        subject: 'Section 1: 관계 +방문 + 인사말',
-        wordCount: 46,
-        cyclesStudied: CycleStudied.firstTime,
-        firstLearningDate: DateTime(2025, 1, 1),
-        percentage: 100,
-        nextStudyDate: DateTime.now().add(
-          const Duration(days: 4),
-        ), // Due this week
-        taskCount: 4,
-      ),
-      LearningModule(
-        id: '61',
-        book: '[OJT_Korea_2024]',
-        subject: 'Section 1: Cho đi và nhận lại',
-        wordCount: 116,
-        cyclesStudied: null,
-        firstLearningDate: null,
-        percentage: 100,
-        nextStudyDate: null,
-        taskCount: null,
-      ),
+    // Generate realistic sample data
+    final now = DateTime.now();
+
+    // Book categories
+    final books = [
+      'Korean Grammar in Use',
+      'TOPIK Study Guide',
+      'Korean Vocabulary Practice',
+      'Korean Reading Comprehension',
+      'Korean Writing Workbook',
+      'Basic Korean Phrases',
+      'Business Korean',
     ];
+
+    // Subject prefixes to create realistic module names
+    final subjectPrefixes = [
+      'Chapter',
+      'Section',
+      'Unit',
+      'Lesson',
+      'Topic',
+      'Part',
+      'Module',
+    ];
+
+    // Subject topics for more realistic names
+    final subjectTopics = [
+      'Present Tense',
+      'Past Tense',
+      'Future Tense',
+      'Honorifics',
+      'Formal Speech',
+      'Casual Speech',
+      'Question Forms',
+      'Counters and Numbers',
+      'Time Expressions',
+      'Conjunctions',
+      'Adjectives',
+      'Adverbs',
+      'Locations and Directions',
+      'Family Vocabulary',
+      'Food and Dining',
+      'Travel and Transportation',
+      'Workplace Vocabulary',
+      'Educational Terms',
+      'Health and Medical',
+      'Shopping and Commerce',
+    ];
+
+    // Generate a mix of modules with varied completion status
+    final Random random = Random();
+    final List<LearningModule> modules = [];
+
+    // Generate about 30 modules
+    for (int i = 1; i <= 30; i++) {
+      final book = books[random.nextInt(books.length)];
+      final prefix = subjectPrefixes[random.nextInt(subjectPrefixes.length)];
+      final topic = subjectTopics[random.nextInt(subjectTopics.length)];
+      final chapterNum = random.nextInt(10) + 1;
+      final sectionNum = random.nextInt(5) + 1;
+
+      // Create module subject
+      final subject = '$prefix $chapterNum-$sectionNum: $topic';
+
+      // Randomize word count between 20 and 150
+      final wordCount = 20 + random.nextInt(130);
+
+      // Randomize completion percentage (higher chance of completion for lower indices)
+      int percentage;
+      if (i <= 10) {
+        percentage = 70 + random.nextInt(31); // 70-100%
+      } else if (i <= 20) {
+        percentage = 30 + random.nextInt(71); // 30-100%
+      } else {
+        percentage = random.nextInt(101); // 0-100%
+      }
+
+      // Determine cycle studied based on percentage
+      CycleStudied? cyclesStudied;
+      if (percentage >= 95) {
+        cyclesStudied =
+            [
+              CycleStudied.moreThanThreeReviews,
+              CycleStudied.thirdReview,
+              CycleStudied.secondReview,
+            ][random.nextInt(3)];
+      } else if (percentage >= 70) {
+        cyclesStudied =
+            [CycleStudied.secondReview, CycleStudied.firstReview][random
+                .nextInt(2)];
+      } else if (percentage >= 30) {
+        cyclesStudied = CycleStudied.firstTime;
+      } else if (percentage > 0) {
+        cyclesStudied = CycleStudied.firstTime;
+      }
+
+      // Determine dates
+      DateTime? firstLearningDate;
+      if (percentage > 0) {
+        // Started between 1 and 90 days ago
+        firstLearningDate = now.subtract(
+          Duration(days: 1 + random.nextInt(90)),
+        );
+      }
+
+      // Only modules in progress have next study dates
+      DateTime? nextStudyDate;
+      if (percentage > 0 && percentage < 100) {
+        // Due between 3 days ago and 30 days from now
+        nextStudyDate = now.add(Duration(days: -3 + random.nextInt(34)));
+      }
+
+      // Task count is only relevant for active modules
+      int? taskCount;
+      if (percentage > 0 && percentage < 100) {
+        taskCount = 1 + random.nextInt(5);
+      }
+
+      // Create module with all data
+      modules.add(
+        LearningModule(
+          id: 'module_$i',
+          book: book,
+          subject: subject,
+          wordCount: wordCount,
+          cyclesStudied: cyclesStudied,
+          firstLearningDate: firstLearningDate,
+          percentage: percentage,
+          nextStudyDate: nextStudyDate,
+          taskCount: taskCount,
+          learnedWords: (wordCount * percentage / 100).round(),
+          lastStudyDate: firstLearningDate?.add(
+            Duration(days: random.nextInt(30)),
+          ),
+          studyHistory:
+              percentage > 0
+                  ? _generateRandomStudyHistory(
+                    firstLearningDate,
+                    now,
+                    5 + random.nextInt(20),
+                  )
+                  : null,
+        ),
+      );
+    }
+
+    // Cache for future use
+    _cachedModules = modules;
+    return modules;
+  }
+
+  /// Generate a random history of study dates
+  List<DateTime> _generateRandomStudyHistory(
+    DateTime? start,
+    DateTime end,
+    int count,
+  ) {
+    if (start == null) return [];
+
+    final random = Random();
+    final result = <DateTime>[];
+
+    // Ensure the list isn't too large
+    count = min(count, 30);
+
+    final daysBetween = end.difference(start).inDays;
+    if (daysBetween <= 0) return [];
+
+    // Generate random dates between start and end
+    for (int i = 0; i < count; i++) {
+      final daysToAdd = random.nextInt(daysBetween);
+      result.add(start.add(Duration(days: daysToAdd)));
+    }
+
+    // Sort chronologically
+    result.sort();
+    return result;
   }
 
   @override

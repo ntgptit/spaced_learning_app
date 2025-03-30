@@ -32,7 +32,7 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerLazySingleton<ApiClient>(() => ApiClient());
   serviceLocator.registerLazySingleton<StorageService>(() => StorageService());
 
-  // Services
+  // Services - Make sure to register LearningDataService properly
   serviceLocator.registerLazySingleton<LearningDataService>(
     () => LearningDataServiceImpl(),
   );
@@ -86,12 +86,6 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerFactory<ThemeViewModel>(
     () => ThemeViewModel(storageService: serviceLocator<StorageService>()),
   );
-  // serviceLocator.registerFactory<LearningStatsViewModel>(
-  //   () => LearningStatsViewModel(
-  //     progressRepository: serviceLocator<ProgressRepository>(),
-  //     learningDataService: serviceLocator<LearningDataService>(),
-  //   ),
-  // );
   serviceLocator.registerFactory<EnhancedLearningStatsViewModel>(
     () => EnhancedLearningStatsViewModel(
       progressRepository: serviceLocator<ProgressRepository>(),
