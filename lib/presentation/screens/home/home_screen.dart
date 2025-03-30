@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_card.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -12,6 +11,7 @@ import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart
 import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
 /// Home screen displaying dashboard and navigation
