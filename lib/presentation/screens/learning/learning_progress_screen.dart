@@ -394,7 +394,9 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                                 child: DataTable(
                                   columnSpacing: 16,
                                   headingRowColor: WidgetStateProperty.all(
-                                    theme.colorScheme.primary.withOpacity(0.1),
+                                    theme.colorScheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
                                   ),
                                   columns: const [
                                     DataColumn(label: Text('Subject')),
@@ -528,7 +530,11 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   }
 
   Widget _buildDivider() {
-    return Container(height: 30, width: 1, color: Colors.grey.withOpacity(0.3));
+    return Container(
+      height: 30,
+      width: 1,
+      color: Colors.grey.withValues(alpha: 0.3),
+    );
   }
 
   Widget _buildStatItem(
@@ -690,7 +696,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
       width: MediaQuery.of(context).size.width / 2 - 32,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
