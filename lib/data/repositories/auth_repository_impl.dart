@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/constants/api_endpoints.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
@@ -15,19 +16,30 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final data = {'email': email, 'password': password};
 
+      // Debug trước khi gọi API
+      debugPrint('Calling login API with email: $email');
+
       final response = await _apiClient.post(ApiEndpoints.login, data: data);
 
       // Log để debug
-      print('Full login response: $response');
+      debugPrint('Full login response: $response');
 
-      // Kiểm tra token tồn tại (không kiểm tra success hay data nữa)
-      if (response != null && response['token'] != null) {
-        return AuthResponse.fromJson(response);
-      } else {
+      if (response == null) {
+        throw AuthenticationException('Login failed: No response received');
+      }
+
+      if (response['success'] != true) {
         throw AuthenticationException(
-          'Failed to login: ${response['message'] ?? "Invalid credentials"}',
+          'Login failed: ${response['message'] ?? "Unknown error"}',
         );
       }
+
+      if (response['data'] == null || response['data']['token'] == null) {
+        throw AuthenticationException(
+          'Login failed: Authentication token not found in response',
+        );
+      }
+      return AuthResponse.fromJson(response['data']);
     } catch (e) {
       if (e is AppException) {
         rethrow;
