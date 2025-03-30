@@ -5,6 +5,7 @@ import 'package:spaced_learning_app/domain/models/repetition.dart';
 
 class RepetitionCard extends StatelessWidget {
   final Repetition repetition;
+  final bool isHistory;
   final VoidCallback? onMarkCompleted;
   final VoidCallback? onSkip;
   final VoidCallback? onReschedule;
@@ -12,6 +13,7 @@ class RepetitionCard extends StatelessWidget {
   const RepetitionCard({
     super.key,
     required this.repetition,
+    this.isHistory = false,
     this.onMarkCompleted,
     this.onSkip,
     this.onReschedule,
@@ -20,200 +22,279 @@ class RepetitionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('MMM dd, yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy');
 
-    // Get repetition order text
-    final String repetitionOrderText = getRepetitionOrderText();
+    // Format repetition order
+    final orderText = _formatRepetitionOrder(repetition.repetitionOrder);
 
-    // Determine if this repetition is due
-    bool isDue = false;
-    if (repetition.reviewDate != null &&
-        repetition.status == RepetitionStatus.notStarted) {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final reviewDay = DateTime(
-        repetition.reviewDate!.year,
-        repetition.reviewDate!.month,
-        repetition.reviewDate!.day,
-      );
-      isDue = reviewDay.compareTo(today) <= 0;
-    }
+    // Determine status color
+    final statusColor = _getStatusColor(repetition.status, theme);
 
-    // Determine status colors
-    Color statusColor;
-    IconData statusIcon;
-    String statusText;
+    // Format date
+    final dateText =
+        repetition.reviewDate != null
+            ? dateFormat.format(repetition.reviewDate!)
+            : 'Chưa lên lịch';
 
-    switch (repetition.status) {
-      case RepetitionStatus.completed:
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        statusText = 'Completed';
-        break;
-      case RepetitionStatus.skipped:
-        statusColor = Colors.orange;
-        statusIcon = Icons.skip_next;
-        statusText = 'Skipped';
-        break;
-      case RepetitionStatus.notStarted:
-        statusColor = isDue ? Colors.red : Colors.blue;
-        statusIcon = isDue ? Icons.warning : Icons.access_time;
-        statusText = isDue ? 'Due now' : 'Upcoming';
-        break;
-    }
+    // Calculate days left or overdue
+    final String timeIndicator = _getTimeIndicator(repetition.reviewDate);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: isDue ? theme.colorScheme.errorContainer.withOpacity(0.3) : null,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: isHistory ? 1 : 2,
+      color: isHistory ? theme.cardColor.withOpacity(0.7) : theme.cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with order and status
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Repetition header
-                Row(
-                  children: [
-                    Icon(statusIcon, color: statusColor),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        repetitionOrderText,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        statusText,
+                // Order
+                Text(
+                  orderText,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                // Status
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _formatStatus(repetition.status),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: statusColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
 
-                // Scheduled date
-                if (repetition.reviewDate != null)
-                  Row(
-                    children: [
-                      const Icon(Icons.event, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Scheduled for: ${dateFormat.format(repetition.reviewDate!)}',
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                      // Hiển thị biểu tượng quiz cho các mục đã hoàn thành
+                      if (repetition.status == RepetitionStatus.completed) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.quiz, size: 12, color: statusColor),
+                      ],
                     ],
                   ),
+                ),
+              ],
+            ),
 
-                // Actions for not completed repetitions
-                if (repetition.status == RepetitionStatus.notStarted) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (onReschedule != null)
-                        TextButton.icon(
-                          icon: const Icon(Icons.calendar_today),
-                          label: const Text('Reschedule'),
-                          onPressed: onReschedule,
-                        ),
-                      if (onSkip != null) ...[
-                        const SizedBox(width: 8),
-                        TextButton.icon(
-                          icon: const Icon(Icons.skip_next),
-                          label: const Text('Skip'),
-                          onPressed: onSkip,
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                          ),
-                        ),
-                      ],
-                      if (onMarkCompleted != null) ...[
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.check),
-                          label: const Text('Complete'),
-                          onPressed: onMarkCompleted,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ],
+            const SizedBox(height: 12),
+
+            // Date information
+            Row(
+              children: [
+                Icon(Icons.quiz, color: theme.colorScheme.primary, size: 16),
+                const SizedBox(width: 8),
+                Text(dateText),
+                const Spacer(),
+
+                if (repetition.reviewDate != null && !isHistory) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getTimeIndicatorColor(
+                        repetition.reviewDate,
+                        theme,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      timeIndicator,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
               ],
             ),
-          ),
 
-          // Completion hint for fifth repetition
-          buildCompletionHint(theme),
-        ],
+            // Action buttons for non-history items
+            if (!isHistory &&
+                repetition.status == RepetitionStatus.notStarted) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Reschedule
+                  if (onReschedule != null)
+                    _buildActionButton(
+                      context,
+                      'Lịch',
+                      Icons.calendar_month,
+                      Colors.blue,
+                      onReschedule!,
+                    ),
+                  const SizedBox(width: 8),
+
+                  // Skip
+                  if (onSkip != null)
+                    _buildActionButton(
+                      context,
+                      'Bỏ qua',
+                      Icons.skip_next,
+                      Colors.orange,
+                      onSkip!,
+                    ),
+                  const SizedBox(width: 8),
+
+                  // Complete with quiz score input
+                  if (onMarkCompleted != null)
+                    _buildActionButton(
+                      context,
+                      'Hoàn thành',
+                      Icons.check_circle,
+                      Colors.green,
+                      onMarkCompleted!,
+                      showScoreIndicator: true,
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Get user-friendly repetition order text
-  String getRepetitionOrderText() {
-    switch (repetition.repetitionOrder) {
+  /// Build an action button
+  Widget _buildActionButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed, {
+    bool showScoreIndicator = false,
+  }) {
+    return SizedBox(
+      height: 36,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 16, color: color),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: TextStyle(color: color, fontSize: 12)),
+            if (showScoreIndicator) ...[
+              const SizedBox(width: 3),
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Icon(Icons.percent, size: 10, color: color),
+              ),
+            ],
+          ],
+        ),
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: color.withOpacity(0.5)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+      ),
+    );
+  }
+
+  /// Format repetition order to user-friendly string
+  String _formatRepetitionOrder(RepetitionOrder order) {
+    switch (order) {
       case RepetitionOrder.firstRepetition:
-        return 'Lần ôn tập thứ 1 (trong chu kỳ hiện tại)';
+        return 'Lần ôn tập thứ 1';
       case RepetitionOrder.secondRepetition:
-        return 'Lần ôn tập thứ 2 (trong chu kỳ hiện tại)';
+        return 'Lần ôn tập thứ 2';
       case RepetitionOrder.thirdRepetition:
-        return 'Lần ôn tập thứ 3 (trong chu kỳ hiện tại)';
+        return 'Lần ôn tập thứ 3';
       case RepetitionOrder.fourthRepetition:
-        return 'Lần ôn tập thứ 4 (trong chu kỳ hiện tại)';
+        return 'Lần ôn tập thứ 4';
       case RepetitionOrder.fifthRepetition:
-        return 'Lần ôn tập thứ 5 (trong chu kỳ hiện tại)';
+        return 'Lần ôn tập thứ 5';
     }
   }
 
-  /// Build completion hint for final repetition
-  Widget buildCompletionHint(ThemeData theme) {
-    if (repetition.repetitionOrder == RepetitionOrder.fifthRepetition &&
-        repetition.status != RepetitionStatus.completed) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer,
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(12),
-            bottomRight: Radius.circular(12),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.lightbulb, color: theme.colorScheme.primary, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Đây là lần ôn tập cuối cùng trong chu kỳ hiện tại. Hoàn thành để chuyển sang chu kỳ tiếp theo!',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+  /// Format status to user-friendly string
+  String _formatStatus(RepetitionStatus status) {
+    switch (status) {
+      case RepetitionStatus.notStarted:
+        return 'Chưa học';
+      case RepetitionStatus.completed:
+        return 'Đã hoàn thành';
+      case RepetitionStatus.skipped:
+        return 'Đã bỏ qua';
     }
-    return const SizedBox.shrink();
+  }
+
+  /// Get status color based on repetition status
+  Color _getStatusColor(RepetitionStatus status, ThemeData theme) {
+    switch (status) {
+      case RepetitionStatus.notStarted:
+        return theme.colorScheme.primary;
+      case RepetitionStatus.completed:
+        return Colors.green;
+      case RepetitionStatus.skipped:
+        return Colors.orange;
+    }
+  }
+
+  /// Get time indicator text (days left or overdue)
+  String _getTimeIndicator(DateTime? date) {
+    if (date == null) return '';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final reviewDate = DateTime(date.year, date.month, date.day);
+
+    final difference = reviewDate.difference(today).inDays;
+
+    if (difference < 0) {
+      return 'Trễ ${-difference} ngày';
+    } else if (difference == 0) {
+      return 'Hôm nay';
+    } else if (difference == 1) {
+      return 'Ngày mai';
+    } else {
+      return 'Còn $difference ngày';
+    }
+  }
+
+  /// Get time indicator color based on days left
+  Color _getTimeIndicatorColor(DateTime? date, ThemeData theme) {
+    if (date == null) return Colors.grey;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final reviewDate = DateTime(date.year, date.month, date.day);
+
+    final difference = reviewDate.difference(today).inDays;
+
+    if (difference < 0) {
+      return Colors.red; // Overdue
+    } else if (difference == 0) {
+      return Colors.green; // Today
+    } else if (difference <= 3) {
+      return Colors.orange; // Coming soon
+    } else {
+      return Colors.blue; // Future
+    }
   }
 }
