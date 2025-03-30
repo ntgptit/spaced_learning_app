@@ -1,3 +1,4 @@
+// lib/presentation/widgets/learning/learning_filter_bar.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -33,10 +34,13 @@ class LearningFilterBar extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    // Use a more constrained layout
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text('Filters', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -47,11 +51,13 @@ class LearningFilterBar extends StatelessWidget {
           else
             _buildWideScreenFilters(theme),
 
-          const SizedBox(height: 16),
-
-          // Stats row
+          const SizedBox(height: 12), // Reduced space
+          // Stats row with more compact layout
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ), // More compact padding
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
@@ -109,18 +115,16 @@ class LearningFilterBar extends StatelessWidget {
                   icon: const Icon(Icons.arrow_drop_down),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   items:
-                      books
-                          .map(
-                            (book) => DropdownMenuItem(
-                              value: book,
-                              child: Text(
-                                book,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          )
-                          .toList(),
+                      books.map((book) {
+                        return DropdownMenuItem(
+                          value: book,
+                          child: Text(
+                            book,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        );
+                      }).toList(),
                   onChanged: onBookChanged,
                 ),
               ),
@@ -140,7 +144,7 @@ class LearningFilterBar extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 16,
+                        vertical: 12, // Reduced height
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -188,7 +192,7 @@ class LearningFilterBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Book filter dropdown
+        // Book filter dropdown - full width on small screen
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -226,18 +230,18 @@ class LearningFilterBar extends StatelessWidget {
 
         const SizedBox(height: 8),
 
-        // Date filter button or chip - full width on small screens
+        // Date filter - full width on small screen
         selectedDate == null
             ? SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today),
+                icon: const Icon(Icons.calendar_today, size: 18),
                 label: const Text('Select Date'),
                 onPressed: onDateSelected,
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 16,
+                    vertical: 10, // Even more compact
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -253,7 +257,7 @@ class LearningFilterBar extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 8,
+                  vertical: 4,
                 ),
                 child: Row(
                   children: [
@@ -280,9 +284,14 @@ class LearningFilterBar extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return Container(height: 30, width: 1, color: Colors.grey.withOpacity(0.3));
+    return Container(
+      height: 24, // Reduced height
+      width: 1,
+      color: Colors.grey.withOpacity(0.3),
+    );
   }
 
+  /// Build a more compact stat item
   Widget _buildStatItem(
     String label,
     String value,
@@ -293,15 +302,22 @@ class LearningFilterBar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: theme.colorScheme.primary),
+            Icon(
+              icon,
+              size: 14,
+              color: theme.colorScheme.primary,
+            ), // Smaller icon
             const SizedBox(width: 4),
             Text(label, style: theme.textTheme.bodySmall),
           ],
         ),
+        const SizedBox(height: 2), // Reduced spacing
         Text(
           value,
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: theme.textTheme.titleMedium?.copyWith(
+            // Use medium instead of large
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
           ),

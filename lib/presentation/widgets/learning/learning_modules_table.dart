@@ -1,3 +1,4 @@
+// lib/presentation/widgets/learning/learning_modules_table.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
@@ -37,22 +38,25 @@ class LearningModulesTable extends StatelessWidget {
       );
     }
 
-    // Create a fixed table layout
+    // Use a fixed row height and column widths for better control
+    const double rowHeight = 64.0;
+
+    // Create a data table with fixed dimensions
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Ensure table is wide enough for all content
         final double tableWidth =
             constraints.maxWidth < 800 ? 800 : constraints.maxWidth;
 
+        // Create the table with scrollbars
         return Scrollbar(
           controller: verticalScrollController,
           thumbVisibility: true,
-          thickness: 8,
           child: SingleChildScrollView(
             controller: verticalScrollController,
             child: Scrollbar(
               controller: horizontalScrollController,
               thumbVisibility: true,
-              thickness: 8,
               scrollbarOrientation: ScrollbarOrientation.bottom,
               child: SingleChildScrollView(
                 controller: horizontalScrollController,
@@ -60,12 +64,16 @@ class LearningModulesTable extends StatelessWidget {
                 child: SizedBox(
                   width: tableWidth,
                   child: DataTable(
+                    // Set horizontal spacing
                     columnSpacing: 16,
+                    // Control row height
+                    dataRowMinHeight: rowHeight,
+                    dataRowMaxHeight: rowHeight,
+                    // Style the header row
                     headingRowColor: WidgetStatePropertyAll(
                       theme.colorScheme.primary.withOpacity(0.1),
                     ),
-                    dataRowMinHeight: 64,
-                    dataRowMaxHeight: 80,
+                    // Define fixed-width columns
                     columns: const [
                       DataColumn(label: Text('Subject')),
                       DataColumn(label: Text('Book')),
@@ -85,8 +93,9 @@ class LearningModulesTable extends StatelessWidget {
 
                           return DataRow(
                             cells: [
+                              // Column 1: Subject - limit width
                               DataCell(
-                                ConstrainedBox(
+                                Container(
                                   constraints: BoxConstraints(
                                     maxWidth: tableWidth * 0.25,
                                   ),
@@ -99,8 +108,9 @@ class LearningModulesTable extends StatelessWidget {
                                 onTap:
                                     () => _showModuleDetails(context, module),
                               ),
+                              // Column 2: Book - limit width
                               DataCell(
-                                ConstrainedBox(
+                                Container(
                                   constraints: BoxConstraints(
                                     maxWidth: tableWidth * 0.15,
                                   ),
@@ -111,7 +121,9 @@ class LearningModulesTable extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                              // Column 3: Word count
                               DataCell(Text(module.wordCount.toString())),
+                              // Column 4: Cycles
                               DataCell(
                                 Text(
                                   module.cyclesStudied != null
@@ -122,6 +134,7 @@ class LearningModulesTable extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              // Column 5: Progress bar
                               DataCell(
                                 SizedBox(
                                   width: 120,
@@ -154,6 +167,7 @@ class LearningModulesTable extends StatelessWidget {
                                 onTap:
                                     () => _showModuleDetails(context, module),
                               ),
+                              // Column 6: Next study date
                               DataCell(
                                 module.nextStudyDate != null
                                     ? Text(
@@ -170,6 +184,7 @@ class LearningModulesTable extends StatelessWidget {
                                     )
                                     : const Text('-'),
                               ),
+                              // Column 7: Task count
                               DataCell(
                                 Text(module.taskCount?.toString() ?? '-'),
                               ),

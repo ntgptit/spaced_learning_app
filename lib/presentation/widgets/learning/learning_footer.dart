@@ -1,3 +1,4 @@
+// lib/presentation/widgets/learning/learning_footer.dart
 import 'package:flutter/material.dart';
 
 /// Footer widget displayed at the bottom of the Learning Progress screen
@@ -39,6 +40,7 @@ class LearningFooter extends StatelessWidget {
           ),
         ],
       ),
+      // Use a more compact layout, especially for small screens
       child:
           isSmallScreen
               ? _buildSmallScreenLayout(theme, completionPercentage)
@@ -52,41 +54,31 @@ class LearningFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Progress summary
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Learning Progress', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 4),
-            RichText(
-              text: TextSpan(
-                style: theme.textTheme.bodySmall,
-                children: [
-                  TextSpan(
-                    text: 'Completed: ',
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                  ),
-                  TextSpan(
-                    text: '$completedModules of $totalModules modules ',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  TextSpan(
-                    text: '($completionPercentage%)',
-                    style: TextStyle(color: theme.colorScheme.secondary),
-                  ),
-                ],
+        // Progress summary text - using shorter format
+        RichText(
+          text: TextSpan(
+            style: theme.textTheme.bodySmall,
+            children: [
+              TextSpan(
+                text: 'Completed: ',
+                style: TextStyle(color: theme.colorScheme.onSurface),
               ),
-            ),
-          ],
+              TextSpan(
+                text: '$completedModules/$totalModules ',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              TextSpan(
+                text: '($completionPercentage%)',
+                style: TextStyle(color: theme.colorScheme.secondary),
+              ),
+            ],
+          ),
         ),
 
-        const SizedBox(height: 8),
-
-        // Action buttons in a row
+        // Action buttons in a row - use compact buttons
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -94,13 +86,13 @@ class LearningFooter extends StatelessWidget {
             if (onExportData != null)
               TextButton.icon(
                 onPressed: onExportData,
-                icon: const Icon(Icons.download, size: 18),
+                icon: const Icon(Icons.download, size: 16),
                 label: const Text('Export'),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 6,
+                    vertical: 0,
                   ),
                 ),
               ),
@@ -109,11 +101,11 @@ class LearningFooter extends StatelessWidget {
             if (onHelpPressed != null)
               IconButton(
                 onPressed: onHelpPressed,
-                icon: const Icon(Icons.help_outline, size: 20),
+                icon: const Icon(Icons.help_outline, size: 16),
                 tooltip: 'Help',
                 visualDensity: VisualDensity.compact,
                 constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
               ),
           ],
         ),
@@ -127,35 +119,27 @@ class LearningFooter extends StatelessWidget {
       children: [
         // Progress summary
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Learning Progress', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 4),
-              RichText(
-                text: TextSpan(
-                  style: theme.textTheme.bodySmall,
-                  children: [
-                    TextSpan(
-                      text: 'Completed: ',
-                      style: TextStyle(color: theme.colorScheme.onSurface),
-                    ),
-                    TextSpan(
-                      text: '$completedModules of $totalModules modules ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '($completionPercentage%)',
-                      style: TextStyle(color: theme.colorScheme.secondary),
-                    ),
-                  ],
+          child: RichText(
+            text: TextSpan(
+              style: theme.textTheme.bodySmall,
+              children: [
+                TextSpan(
+                  text: 'Completed: ',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
                 ),
-              ),
-            ],
+                TextSpan(
+                  text: '$completedModules of $totalModules modules ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                TextSpan(
+                  text: '($completionPercentage%)',
+                  style: TextStyle(color: theme.colorScheme.secondary),
+                ),
+              ],
+            ),
           ),
         ),
 
@@ -174,6 +158,7 @@ class LearningFooter extends StatelessWidget {
             onPressed: onHelpPressed,
             icon: const Icon(Icons.help_outline),
             tooltip: 'Help',
+            visualDensity: VisualDensity.compact,
           ),
       ],
     );

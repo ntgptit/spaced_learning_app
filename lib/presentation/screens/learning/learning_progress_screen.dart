@@ -1,3 +1,4 @@
+// lib/presentation/screens/learning/learning_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
@@ -59,7 +60,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     });
 
     try {
-      // Now it's safe to access Provider here
+      // Get service from provider
       final learningDataService = Provider.of<LearningDataService>(
         context,
         listen: false,
@@ -267,6 +268,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
           ),
         ],
       ),
+      // Use LayoutBuilder to constrain the height properly
       body: SafeArea(
         child: Column(
           children: [
@@ -317,7 +319,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                 ),
               ),
 
-            // Data table - we pass our scroll controllers to ensure consistent scrolling
+            // Data table - using Expanded to give it the remaining space
             Expanded(
               child: LearningModulesTable(
                 modules: _filteredModules,
@@ -327,7 +329,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
               ),
             ),
 
-            // Footer
+            // Footer - kept outside the Expanded to maintain fixed position
             LearningFooter(
               totalModules: totalModules,
               completedModules: completedModules,
