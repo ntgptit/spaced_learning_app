@@ -40,13 +40,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                   _buildModuleTitle(theme),
                   _buildBookInfo(theme),
                   const Divider(height: 32),
-                  _buildModuleDetailsSection(
-                    context,
-                    theme,
-                  ), // Truyền context vào đây
+                  _buildModuleDetailsSection(context, theme),
                   const Divider(height: 32),
-                  _buildVocabularyStatsSection(theme),
-                  const SizedBox(height: 24),
                   _buildDatesSection(theme),
                   if (module.studyHistory?.isNotEmpty ?? false) ...[
                     const SizedBox(height: 24),
@@ -86,7 +81,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         width: 40,
         height: 5,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.3),
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -183,49 +178,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               Icons.assignment,
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVocabularyStatsSection(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(theme, 'Vocabulary Statistics'),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              _buildStatRow(
-                theme,
-                'Total Words',
-                module.wordCount.toString(),
-                Icons.menu_book,
-              ),
-              const SizedBox(height: 12),
-              _buildStatRow(
-                theme,
-                'Words Learned',
-                module.learnedWords.toString(),
-                Icons.spellcheck,
-              ),
-              const SizedBox(height: 12),
-              _buildStatRow(
-                theme,
-                'Remaining Words',
-                module.remainingWords.toString(),
-                Icons.hourglass_bottom,
-              ),
-              const SizedBox(height: 12),
-              _buildProgressBar(theme),
-            ],
-          ),
         ),
       ],
     );
@@ -370,27 +322,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
-        const SizedBox(width: 16),
-        Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-        Text(
-          value,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildDateItem(
     ThemeData theme,
     String label,
@@ -440,24 +371,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressBar(ThemeData theme) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: LinearProgressIndicator(
-        value: module.percentage / 100,
-        minHeight: 8,
-        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-        valueColor: AlwaysStoppedAnimation<Color>(
-          module.percentage >= 90
-              ? Colors.green
-              : module.percentage >= 70
-              ? Colors.orange
-              : Colors.red,
-        ),
-      ),
-    );
-  }
-
   Widget _buildHistoryItems(ThemeData theme) {
     final dateFormat = DateFormat('MMM d');
     final studyHistory = List<DateTime>.from(module.studyHistory!)
@@ -467,7 +380,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children:
-          studyHistory.take(8).map((date) {
+          studyHistory.take(7).map((date) {
             final isToday = AppDateUtils.isSameDay(date, DateTime.now());
             return Tooltip(
               message: DateFormat('MMMM d, yyyy').format(date),
@@ -476,14 +389,14 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       isToday
-                          ? theme.colorScheme.primary.withOpacity(0.2)
+                          ? theme.colorScheme.primary.withValues(alpha: 0.2)
                           : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
                     color:
                         isToday
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.outline.withOpacity(0.3),
+                            : theme.colorScheme.outline.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Text(
