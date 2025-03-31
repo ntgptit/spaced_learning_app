@@ -222,7 +222,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                 context,
                 'Learning Progress Overview',
                 Icons.trending_up,
-                colorScheme.secondary,
+                Colors.indigo,
                 'Overall progress across all learning modules',
               ),
               const SizedBox(height: 12),
@@ -272,7 +272,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                 context,
                 'Vocabulary Statistics',
                 Icons.menu_book,
-                Colors.indigo,
+                Colors.blueGrey,
                 'Statistics about your vocabulary learning progress',
               ),
               const SizedBox(height: 12),
@@ -542,12 +542,12 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                     : 'No sessions due today',
                 style: theme.textTheme.bodySmall,
               ),
-              Text(
-                '$wordsCompletedToday/$wordsDueToday words',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // Text(
+              //   '$wordsCompletedToday/$wordsDueToday words',
+              //   style: theme.textTheme.bodySmall?.copyWith(
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
             ],
           ),
         ],
