@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// Filter bar for learning screen with book and date selection
 class LearningFilterBar extends StatefulWidget {
   final String selectedBook;
   final DateTime? selectedDate;
@@ -31,7 +32,7 @@ class LearningFilterBar extends StatefulWidget {
 
 class _LearningFilterBarState extends State<LearningFilterBar> {
   final TextEditingController _bookSearchController = TextEditingController();
-  List<String> _filteredBooks = [];
+  late List<String> _filteredBooks;
   bool _showSearch = false;
 
   @override
@@ -45,6 +46,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.books != widget.books) {
       _filteredBooks = widget.books;
+      if (!_showSearch) _bookSearchController.clear();
     }
   }
 
@@ -70,42 +72,18 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Filters', style: theme.textTheme.titleMedium),
-              if (widget.books.length > 10)
-                IconButton(
-                  icon: Icon(
-                    _showSearch ? Icons.search_off : Icons.search,
-                    semanticLabel: _showSearch ? 'Hide search' : 'Search books',
-                  ),
-                  tooltip: _showSearch ? 'Hide search' : 'Search books',
-                  onPressed: () {
-                    setState(() {
-                      _showSearch = !_showSearch;
-                      if (!_showSearch) {
-                        _bookSearchController.clear();
-                        _filteredBooks = widget.books;
-                      }
-                    });
-                  },
-                ),
-            ],
-          ),
+          _buildHeader(theme),
           const SizedBox(height: 8),
-          if (isSmallScreen)
-            _buildSmallScreenFilters(theme)
-          else
-            _buildWideScreenFilters(theme),
+          isSmallScreen
+              ? _buildSmallScreenFilters(theme)
+              : _buildWideScreenFilters(theme),
           const SizedBox(height: 16),
           _buildStatsRow(theme),
         ],
@@ -113,46 +91,43 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     );
   }
 
+  // UI Components
+  Widget _buildHeader(ThemeData theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Filters', style: theme.textTheme.titleMedium),
+        if (widget.books.length > 10)
+          IconButton(
+            icon: Icon(
+              _showSearch ? Icons.search_off : Icons.search,
+              semanticLabel: _showSearch ? 'Hide search' : 'Search books',
+            ),
+            tooltip: _showSearch ? 'Hide search' : 'Search books',
+            onPressed: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _bookSearchController.clear();
+                  _filteredBooks = widget.books;
+                }
+              });
+            },
+          ),
+      ],
+    );
+  }
+
   Widget _buildWideScreenFilters(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_showSearch) ...[
-          TextField(
-            controller: _bookSearchController,
-            decoration: InputDecoration(
-              hintText: 'Search books...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon:
-                  _bookSearchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        tooltip: 'Clear search',
-                        onPressed: () {
-                          _bookSearchController.clear();
-                          _filterBooks('');
-                        },
-                      )
-                      : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onChanged: _filterBooks,
-          ),
-          const SizedBox(height: 8),
-        ],
+        if (_showSearch) _buildSearchField(theme),
         Row(
           children: [
-            Expanded(
-              flex: 1, // Tỷ lệ 1:1 cho cả hai filter
-              child: _buildBookDropdown(theme),
-            ),
+            Expanded(child: _buildBookDropdown(theme)),
             const SizedBox(width: 12),
-            Expanded(
-              flex: 1, // Tỷ lệ 1:1 cho cả hai filter
-              child: _buildDateFilter(theme),
-            ),
+            Expanded(child: _buildDateFilter(theme)),
           ],
         ),
       ],
@@ -163,31 +138,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_showSearch) ...[
-          TextField(
-            controller: _bookSearchController,
-            decoration: InputDecoration(
-              hintText: 'Search books...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon:
-                  _bookSearchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        tooltip: 'Clear search',
-                        onPressed: () {
-                          _bookSearchController.clear();
-                          _filterBooks('');
-                        },
-                      )
-                      : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onChanged: _filterBooks,
-          ),
-          const SizedBox(height: 8),
-        ],
+        if (_showSearch) _buildSearchField(theme),
         SizedBox(
           height: 48,
           width: double.infinity,
@@ -200,6 +151,32 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
           child: _buildDateFilter(theme),
         ),
       ],
+    );
+  }
+
+  Widget _buildSearchField(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: TextField(
+        controller: _bookSearchController,
+        decoration: InputDecoration(
+          hintText: 'Search books...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon:
+              _bookSearchController.text.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    tooltip: 'Clear search',
+                    onPressed: () {
+                      _bookSearchController.clear();
+                      _filterBooks('');
+                    },
+                  )
+                  : null,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onChanged: _filterBooks,
+      ),
     );
   }
 
@@ -301,26 +278,21 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(
-            'Total',
-            totalCount: widget.totalCount,
-            icon: Icons.book,
-            theme: theme,
-          ),
+          _buildStatItem(theme, 'Total', widget.totalCount, Icons.book),
           _buildDivider(),
           _buildStatItem(
+            theme,
             'Due',
-            totalCount: widget.dueCount,
-            icon: Icons.warning,
-            theme: theme,
+            widget.dueCount,
+            Icons.warning,
             isHighlighted: widget.dueCount > 0,
           ),
           _buildDivider(),
           _buildStatItem(
+            theme,
             'Complete',
-            totalCount: widget.completeCount,
-            icon: Icons.check_circle,
-            theme: theme,
+            widget.completeCount,
+            Icons.check_circle,
           ),
         ],
       ),
@@ -332,10 +304,10 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   }
 
   Widget _buildStatItem(
-    String label, {
-    required int totalCount,
-    required IconData icon,
-    required ThemeData theme,
+    ThemeData theme,
+    String label,
+    int totalCount,
+    IconData icon, {
     bool isHighlighted = false,
   }) {
     final color =

@@ -14,38 +14,42 @@ class WelcomeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // User greeting
-        Text(
-          'Welcome back,',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
-          ),
-          textAlign: TextAlign.center,
-        ),
-
+        _buildGreeting(theme),
         const SizedBox(height: 4),
-
-        // User name in large text
-        Text(
-          user.displayName ?? user.email,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
-          textAlign: TextAlign.center,
-        ),
-
+        _buildUserName(theme),
         const SizedBox(height: 8),
-
-        // Motivational subtitle
-        Text(
-          'Ready to continue your learning journey?',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontStyle: FontStyle.italic,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        _buildMotivationalText(theme),
       ],
+    );
+  }
+
+  // UI Components
+  Widget _buildGreeting(ThemeData theme) {
+    return Text(
+      'Welcome back,',
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: theme.colorScheme.onSurface.withOpacity(0.7),
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildUserName(ThemeData theme) {
+    return Text(
+      user.displayName ?? user.email,
+      style: theme.textTheme.headlineSmall?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: theme.colorScheme.primary,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildMotivationalText(ThemeData theme) {
+    return Text(
+      'Ready to continue your learning journey?',
+      style: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
+      textAlign: TextAlign.center,
     );
   }
 }

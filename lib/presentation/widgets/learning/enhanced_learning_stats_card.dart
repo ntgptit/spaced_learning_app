@@ -1,72 +1,118 @@
 import 'package:flutter/material.dart';
 
-/// Card widget that displays comprehensive learning statistics with enhanced metrics
-/// Optimized for accessibility, scrollability, and performance
-class EnhancedLearningStatsCard extends StatelessWidget {
-  // Core learning stats
+/// Data classes for grouped statistics
+class ModuleStats {
   final int totalModules;
   final int completedModules;
   final int inProgressModules;
 
-  // Scheduled learning stats
+  const ModuleStats({
+    required this.totalModules,
+    required this.completedModules,
+    required this.inProgressModules,
+  });
+}
+
+class DueStats {
   final int dueToday;
   final int dueThisWeek;
   final int dueThisMonth;
-
-  // Word count stats for due sessions
   final int wordsDueToday;
   final int wordsDueThisWeek;
   final int wordsDueThisMonth;
 
-  // Completion stats
+  const DueStats({
+    required this.dueToday,
+    required this.dueThisWeek,
+    required this.dueThisMonth,
+    required this.wordsDueToday,
+    required this.wordsDueThisWeek,
+    required this.wordsDueThisMonth,
+  });
+}
+
+class CompletionStats {
   final int completedToday;
   final int completedThisWeek;
   final int completedThisMonth;
-
-  // Word count stats for completed sessions
   final int wordsCompletedToday;
   final int wordsCompletedThisWeek;
   final int wordsCompletedThisMonth;
 
-  // Learning streak
+  const CompletionStats({
+    required this.completedToday,
+    required this.completedThisWeek,
+    required this.completedThisMonth,
+    required this.wordsCompletedToday,
+    required this.wordsCompletedThisWeek,
+    required this.wordsCompletedThisMonth,
+  });
+}
+
+class StreakStats {
   final int streakDays;
   final int streakWeeks;
 
-  // Vocabulary stats
+  const StreakStats({required this.streakDays, required this.streakWeeks});
+}
+
+class VocabularyStats {
   final int totalWords;
   final int learnedWords;
   final int pendingWords;
   final double vocabularyCompletionRate;
   final double weeklyNewWordsRate;
 
-  // View progress callback
+  const VocabularyStats({
+    required this.totalWords,
+    required this.learnedWords,
+    required this.pendingWords,
+    required this.vocabularyCompletionRate,
+    required this.weeklyNewWordsRate,
+  });
+}
+
+/// Card widget that displays comprehensive learning statistics with enhanced metrics
+/// Optimized for accessibility, scrollability, and performance
+class EnhancedLearningStatsCard extends StatelessWidget {
+  final ModuleStats moduleStats;
+  final DueStats dueStats;
+  final CompletionStats completionStats;
+  final StreakStats streakStats;
+  final VocabularyStats vocabularyStats;
   final VoidCallback? onViewProgress;
 
-  /// Creates an enhanced learning stats card with comprehensive learning metrics
   const EnhancedLearningStatsCard({
     super.key,
-    this.totalModules = 0,
-    this.completedModules = 0,
-    this.inProgressModules = 0,
-    this.dueToday = 0,
-    this.dueThisWeek = 0,
-    this.dueThisMonth = 0,
-    this.wordsDueToday = 0,
-    this.wordsDueThisWeek = 0,
-    this.wordsDueThisMonth = 0,
-    this.completedToday = 0,
-    this.completedThisWeek = 0,
-    this.completedThisMonth = 0,
-    this.wordsCompletedToday = 0,
-    this.wordsCompletedThisWeek = 0,
-    this.wordsCompletedThisMonth = 0,
-    this.streakDays = 0,
-    this.streakWeeks = 0,
-    this.totalWords = 0,
-    this.learnedWords = 0,
-    this.pendingWords = 0,
-    this.vocabularyCompletionRate = 0.0,
-    this.weeklyNewWordsRate = 0.0,
+    this.moduleStats = const ModuleStats(
+      totalModules: 0,
+      completedModules: 0,
+      inProgressModules: 0,
+    ),
+    this.dueStats = const DueStats(
+      dueToday: 0,
+      dueThisWeek: 0,
+      dueThisMonth: 0,
+      wordsDueToday: 0,
+      wordsDueThisWeek: 0,
+      wordsDueThisMonth: 0,
+    ),
+    this.completionStats = const CompletionStats(
+      completedToday: 0,
+      completedThisWeek: 0,
+      completedThisMonth: 0,
+      wordsCompletedToday: 0,
+      wordsCompletedThisWeek: 0,
+      wordsCompletedThisMonth: 0,
+    ),
+    this.streakStats = const StreakStats(streakDays: 0, streakWeeks: 0),
+    this.vocabularyStats = const VocabularyStats(
+      totalWords: 0,
+      learnedWords: 0,
+      pendingWords: 0,
+      vocabularyCompletionRate: 0.0,
+      weeklyNewWordsRate: 0.0,
+    ),
     this.onViewProgress,
   });
 
@@ -79,245 +125,23 @@ class EnhancedLearningStatsCard extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SingleChildScrollView(
-        // Wrap with SingleChildScrollView for constrained vertical spaces
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with title and view all button
-              Row(
-                children: [
-                  Semantics(
-                    label: 'Learning Dashboard Icon',
-                    child: Icon(
-                      Icons.school,
-                      color: colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Learning Dashboard',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const Spacer(),
-                  if (onViewProgress != null)
-                    Semantics(
-                      label: 'View all learning statistics',
-                      hint: 'Navigate to detailed learning progress screen',
-                      button: true,
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.analytics_outlined),
-                        label: const Text('View All'),
-                        onPressed: onViewProgress,
-                      ),
-                    ),
-                ],
-              ),
+              _buildHeader(theme, colorScheme),
               const SizedBox(height: 8),
               const Divider(),
               const SizedBox(height: 16),
-
-              // Row 1: Due Sessions with clear title
-              _buildSectionHeader(
-                context,
-                'Upcoming Learning Sessions',
-                Icons.assignment_late,
-                Colors.teal,
-                'Upcoming learning sessions that need your attention',
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatColumnWithWordCount(
-                    context: context,
-                    label: 'Today',
-                    value: dueToday,
-                    wordCount: wordsDueToday,
-                    color: dueToday > 0 ? Colors.red : Colors.grey,
-                    icon: Icons.today,
-                    semanticLabel:
-                        '$dueToday learning sessions due today with $wordsDueToday words',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumnWithWordCount(
-                    context: context,
-                    label: 'This Week',
-                    value: dueThisWeek,
-                    wordCount: wordsDueThisWeek,
-                    color: dueThisWeek > 0 ? Colors.orange : Colors.grey,
-                    icon: Icons.view_week,
-                    semanticLabel:
-                        '$dueThisWeek learning sessions due this week with $wordsDueThisWeek words',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumnWithWordCount(
-                    context: context,
-                    label: 'This Month',
-                    value: dueThisMonth,
-                    wordCount: wordsDueThisMonth,
-                    color: dueThisMonth > 0 ? colorScheme.primary : Colors.grey,
-                    icon: Icons.calendar_month,
-                    semanticLabel:
-                        '$dueThisMonth learning sessions due this month with $wordsDueThisMonth words',
-                  ),
-                ],
-              ),
+              _buildDueSessionsSection(context),
               const SizedBox(height: 16),
-
-              // Row 2: Completed Sessions with clear title
-              _buildSectionHeader(
-                context,
-                'Completed Learning Sessions',
-                Icons.check_circle,
-                Colors.orange,
-                'Learning sessions you have completed',
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatColumnWithWordCount(
-                    context: context,
-                    label: 'Today',
-                    value: completedToday,
-                    wordCount: wordsCompletedToday,
-                    color: Colors.green,
-                    icon: Icons.check_circle,
-                    semanticLabel:
-                        '$completedToday learning sessions completed today with $wordsCompletedToday words',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumnWithWordCount(
-                    context: context,
-                    label: 'This Week',
-                    value: completedThisWeek,
-                    wordCount: wordsCompletedThisWeek,
-                    color: Colors.green,
-                    icon: Icons.check_circle_outline,
-                    semanticLabel:
-                        '$completedThisWeek learning sessions completed this week with $wordsCompletedThisWeek words',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumnWithWordCount(
-                    context: context,
-                    label: 'This Month',
-                    value: completedThisMonth,
-                    wordCount: wordsCompletedThisMonth,
-                    color: Colors.green,
-                    icon: Icons.verified,
-                    semanticLabel:
-                        '$completedThisMonth learning sessions completed this month with $wordsCompletedThisMonth words',
-                  ),
-                ],
-              ),
+              _buildCompletedSessionsSection(context),
               const SizedBox(height: 16),
-
-              // Row 3: Overall Learning Progress with clear title
-              _buildSectionHeader(
-                context,
-                'Learning Progress Overview',
-                Icons.trending_up,
-                Colors.indigo,
-                'Overall progress across all learning modules',
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatColumn(
-                    context: context,
-                    label: 'Modules\nCompleted',
-                    value: completedModules,
-                    secondValue: totalModules,
-                    color: colorScheme.primary,
-                    icon: Icons.auto_stories,
-                    format: '$completedModules/$totalModules',
-                    semanticLabel:
-                        'Completed $completedModules out of $totalModules total modules',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumn(
-                    context: context,
-                    label: 'Day\nStreak',
-                    value: streakDays,
-                    color: Colors.deepOrange,
-                    icon: Icons.local_fire_department,
-                    showBadge: streakDays >= 7,
-                    semanticLabel:
-                        '$streakDays day streak${streakDays >= 7 ? ", excellent progress!" : ""}',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumn(
-                    context: context,
-                    label: 'Week\nStreak',
-                    value: streakWeeks,
-                    color: Colors.purple,
-                    icon: Icons.pending_actions,
-                    showBadge: streakWeeks >= 4,
-                    semanticLabel:
-                        '$streakWeeks week streak${streakWeeks >= 4 ? ", outstanding commitment!" : ""}',
-                  ),
-                ],
-              ),
+              _buildProgressOverviewSection(context),
               const SizedBox(height: 16),
-
-              // Row 4: Vocabulary Statistics with clear title
-              _buildSectionHeader(
-                context,
-                'Vocabulary Statistics',
-                Icons.menu_book,
-                Colors.blueGrey,
-                'Statistics about your vocabulary learning progress',
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatColumn(
-                    context: context,
-                    label: 'Words\nLearned',
-                    value: learnedWords,
-                    secondValue: totalWords,
-                    color: Colors.teal,
-                    icon: Icons.book_sharp,
-                    format: '$learnedWords/$totalWords',
-                    showPercentage: true,
-                    percentage: vocabularyCompletionRate,
-                    semanticLabel:
-                        'Learned $learnedWords out of $totalWords words, ${vocabularyCompletionRate.toStringAsFixed(1)} percent complete',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumn(
-                    context: context,
-                    label: 'Pending\nWords',
-                    value: pendingWords,
-                    color: Colors.amber.shade800,
-                    icon: Icons.hourglass_bottom,
-                    semanticLabel: '$pendingWords words pending to learn',
-                  ),
-                  _buildDivider(),
-                  _buildStatColumn(
-                    context: context,
-                    label: 'New Words\nWeekly Rate',
-                    value: weeklyNewWordsRate.round(),
-                    color: Colors.indigo,
-                    icon: Icons.insights,
-                    suffix: '%',
-                    semanticLabel:
-                        'Learning ${weeklyNewWordsRate.round()} percent new words weekly',
-                  ),
-                ],
-              ),
-
-              // Today's learning progress bar
-              if (dueToday > 0) ...[
+              _buildVocabularyStatsSection(context),
+              if (dueStats.dueToday > 0) ...[
                 const SizedBox(height: 16),
                 _buildTodayProgressBar(context),
               ],
@@ -328,7 +152,253 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Build a section header with icon and title
+  // UI Components
+  Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
+    return Row(
+      children: [
+        Semantics(
+          label: 'Learning Dashboard Icon',
+          child: Icon(Icons.school, color: colorScheme.primary, size: 24),
+        ),
+        const SizedBox(width: 8),
+        Text('Learning Dashboard', style: theme.textTheme.titleMedium),
+        const Spacer(),
+        if (onViewProgress != null)
+          Semantics(
+            label: 'View all learning statistics',
+            hint: 'Navigate to detailed learning progress screen',
+            button: true,
+            child: TextButton.icon(
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text('View All'),
+              onPressed: onViewProgress,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDueSessionsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          'Upcoming Learning Sessions',
+          Icons.assignment_late,
+          Colors.teal,
+          'Upcoming learning sessions that need your attention',
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatColumnWithWordCount(
+              context: context,
+              label: 'Today',
+              value: dueStats.dueToday,
+              wordCount: dueStats.wordsDueToday,
+              color: dueStats.dueToday > 0 ? Colors.red : Colors.grey,
+              icon: Icons.today,
+              semanticLabel:
+                  '${dueStats.dueToday} learning sessions due today with ${dueStats.wordsDueToday} words',
+            ),
+            _buildDivider(),
+            _buildStatColumnWithWordCount(
+              context: context,
+              label: 'This Week',
+              value: dueStats.dueThisWeek,
+              wordCount: dueStats.wordsDueThisWeek,
+              color: dueStats.dueThisWeek > 0 ? Colors.orange : Colors.grey,
+              icon: Icons.view_week,
+              semanticLabel:
+                  '${dueStats.dueThisWeek} learning sessions due this week with ${dueStats.wordsDueThisWeek} words',
+            ),
+            _buildDivider(),
+            _buildStatColumnWithWordCount(
+              context: context,
+              label: 'This Month',
+              value: dueStats.dueThisMonth,
+              wordCount: dueStats.wordsDueThisMonth,
+              color:
+                  dueStats.dueThisMonth > 0
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.grey,
+              icon: Icons.calendar_month,
+              semanticLabel:
+                  '${dueStats.dueThisMonth} a sessions due this month with ${dueStats.wordsDueThisMonth} words',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompletedSessionsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          'Completed Learning Sessions',
+          Icons.check_circle,
+          Colors.orange,
+          'Learning sessions you have completed',
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatColumnWithWordCount(
+              context: context,
+              label: 'Today',
+              value: completionStats.completedToday,
+              wordCount: completionStats.wordsCompletedToday,
+              color: Colors.green,
+              icon: Icons.check_circle,
+              semanticLabel:
+                  '${completionStats.completedToday} learning sessions completed today with ${completionStats.wordsCompletedToday} words',
+            ),
+            _buildDivider(),
+            _buildStatColumnWithWordCount(
+              context: context,
+              label: 'This Week',
+              value: completionStats.completedThisWeek,
+              wordCount: completionStats.wordsCompletedThisWeek,
+              color: Colors.green,
+              icon: Icons.check_circle_outline,
+              semanticLabel:
+                  '${completionStats.completedThisWeek} learning sessions completed this week with ${completionStats.wordsCompletedThisWeek} words',
+            ),
+            _buildDivider(),
+            _buildStatColumnWithWordCount(
+              context: context,
+              label: 'This Month',
+              value: completionStats.completedThisMonth,
+              wordCount: completionStats.wordsCompletedThisMonth,
+              color: Colors.green,
+              icon: Icons.verified,
+              semanticLabel:
+                  '${completionStats.completedThisMonth} learning sessions completed this month with ${completionStats.wordsCompletedThisMonth} words',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressOverviewSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          'Learning Progress Overview',
+          Icons.trending_up,
+          Colors.indigo,
+          'Overall progress across all learning modules',
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatColumn(
+              context: context,
+              label: 'Modules\nCompleted',
+              value: moduleStats.completedModules,
+              secondValue: moduleStats.totalModules,
+              color: colorScheme.primary,
+              icon: Icons.auto_stories,
+              format:
+                  '${moduleStats.completedModules}/${moduleStats.totalModules}',
+              semanticLabel:
+                  'Completed ${moduleStats.completedModules} out of ${moduleStats.totalModules} total modules',
+            ),
+            _buildDivider(),
+            _buildStatColumn(
+              context: context,
+              label: 'Day\nStreak',
+              value: streakStats.streakDays,
+              color: Colors.deepOrange,
+              icon: Icons.local_fire_department,
+              showBadge: streakStats.streakDays >= 7,
+              semanticLabel:
+                  '${streakStats.streakDays} day streak${streakStats.streakDays >= 7 ? ", excellent progress!" : ""}',
+            ),
+            _buildDivider(),
+            _buildStatColumn(
+              context: context,
+              label: 'Week\nStreak',
+              value: streakStats.streakWeeks,
+              color: Colors.purple,
+              icon: Icons.pending_actions,
+              showBadge: streakStats.streakWeeks >= 4,
+              semanticLabel:
+                  '${streakStats.streakWeeks} week streak${streakStats.streakWeeks >= 4 ? ", outstanding commitment!" : ""}',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVocabularyStatsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          'Vocabulary Statistics',
+          Icons.menu_book,
+          Colors.blueGrey,
+          'Statistics about your vocabulary learning progress',
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatColumn(
+              context: context,
+              label: 'Words\nLearned',
+              value: vocabularyStats.learnedWords,
+              secondValue: vocabularyStats.totalWords,
+              color: Colors.teal,
+              icon: Icons.book_sharp,
+              format:
+                  '${vocabularyStats.learnedWords}/${vocabularyStats.totalWords}',
+              showPercentage: true,
+              percentage: vocabularyStats.vocabularyCompletionRate,
+              semanticLabel:
+                  'Learned ${vocabularyStats.learnedWords} out of ${vocabularyStats.totalWords} words, ${vocabularyStats.vocabularyCompletionRate.toStringAsFixed(1)} percent complete',
+            ),
+            _buildDivider(),
+            _buildStatColumn(
+              context: context,
+              label: 'Pending\nWords',
+              value: vocabularyStats.pendingWords,
+              color: Colors.amber.shade800,
+              icon: Icons.hourglass_bottom,
+              semanticLabel:
+                  '${vocabularyStats.pendingWords} words pending to learn',
+            ),
+            _buildDivider(),
+            _buildStatColumn(
+              context: context,
+              label: 'New Words\nWeekly Rate',
+              value: vocabularyStats.weeklyNewWordsRate.round(),
+              color: Colors.indigo,
+              icon: Icons.insights,
+              suffix: '%',
+              semanticLabel:
+                  'Learning ${vocabularyStats.weeklyNewWordsRate.round()} percent new words weekly',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildSectionHeader(
     BuildContext context,
     String title,
@@ -337,7 +407,6 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     String semanticDescription,
   ) {
     final theme = Theme.of(context);
-
     return Semantics(
       header: true,
       label: title,
@@ -367,7 +436,6 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Build a vertical divider
   Widget _buildDivider() {
     return SizedBox(
       height: 60,
@@ -379,7 +447,6 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Build a statistic column with icon, value and label
   Widget _buildStatColumn({
     required BuildContext context,
     required String label,
@@ -395,7 +462,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     required String semanticLabel,
   }) {
     final theme = Theme.of(context);
-    final formattedValue = format ?? value.toString() + suffix;
+    final formattedValue = format ?? '$value$suffix';
 
     return Expanded(
       child: Semantics(
@@ -435,14 +502,6 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            // if (showPercentage)
-            //   Text(
-            //     '(${percentage.toStringAsFixed(1)}%)',
-            //     style: theme.textTheme.bodySmall?.copyWith(
-            //       color: color,
-            //       fontWeight: FontWeight.bold,
-            //     ),
-            //   ),
             Text(
               label,
               style: theme.textTheme.bodySmall,
@@ -454,7 +513,6 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Build a statistic column with word count included
   Widget _buildStatColumnWithWordCount({
     required BuildContext context,
     required String label,
@@ -500,16 +558,17 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Build a progress bar showing today's completion
   Widget _buildTodayProgressBar(BuildContext context) {
     final theme = Theme.of(context);
-    final completionRate = dueToday > 0 ? completedToday / dueToday : 0.0;
+    final completionRate =
+        dueStats.dueToday > 0
+            ? completionStats.completedToday / dueStats.dueToday
+            : 0.0;
     final progressPercent = (completionRate * 100).toInt();
 
-    // Create semantic label for the progress bar
     final semanticLabel =
-        dueToday > 0
-            ? 'Today\'s progress: $completedToday of $dueToday sessions completed, $progressPercent percent. $wordsCompletedToday of $wordsDueToday words completed.'
+        dueStats.dueToday > 0
+            ? 'Today\'s progress: ${completionStats.completedToday} of ${dueStats.dueToday} sessions completed, $progressPercent percent. ${completionStats.wordsCompletedToday} of ${dueStats.wordsDueToday} words completed.'
             : 'No sessions scheduled for today';
 
     return Semantics(
@@ -537,17 +596,11 @@ class EnhancedLearningStatsCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                dueToday > 0
-                    ? 'Completed $completedToday of $dueToday due sessions ($progressPercent%)'
+                dueStats.dueToday > 0
+                    ? 'Completed ${completionStats.completedToday} of ${dueStats.dueToday} due sessions ($progressPercent%)'
                     : 'No sessions due today',
                 style: theme.textTheme.bodySmall,
               ),
-              // Text(
-              //   '$wordsCompletedToday/$wordsDueToday words',
-              //   style: theme.textTheme.bodySmall?.copyWith(
-              //     fontWeight: FontWeight.bold,
-              //   ),
-              // ),
             ],
           ),
         ],

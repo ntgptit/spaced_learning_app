@@ -26,47 +26,57 @@ class LearningInsightsWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.insights, color: theme.colorScheme.tertiary),
-                const SizedBox(width: 8),
-                Text('Learning Insights', style: theme.textTheme.titleLarge),
-              ],
-            ),
+            _buildHeader(theme),
             const Divider(),
-
-            // Learning insights
-            _buildInsightItem(
-              context,
-              'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
-              Icons.trending_up,
-              Colors.blue,
-            ),
-            _buildInsightItem(
-              context,
-              'Your current streak is $streakDays days - keep going!',
-              Icons.local_fire_department,
-              Colors.orange,
-            ),
-            _buildInsightItem(
-              context,
-              'You have $pendingWords words pending to learn',
-              Icons.menu_book,
-              Colors.teal,
-            ),
-            _buildInsightItem(
-              context,
-              'Complete today\'s $dueToday sessions to maintain your streak',
-              Icons.today,
-              Colors.red,
-            ),
+            _buildInsightsList(context),
           ],
         ),
       ),
     );
   }
 
-  /// Build an insight item
+  // UI Components
+  Widget _buildHeader(ThemeData theme) {
+    return Row(
+      children: [
+        Icon(Icons.insights, color: theme.colorScheme.tertiary),
+        const SizedBox(width: 8),
+        Text('Learning Insights', style: theme.textTheme.titleLarge),
+      ],
+    );
+  }
+
+  Widget _buildInsightsList(BuildContext context) {
+    return Column(
+      children: [
+        _buildInsightItem(
+          context,
+          'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
+          Icons.trending_up,
+          Colors.blue,
+        ),
+        _buildInsightItem(
+          context,
+          'Your current streak is $streakDays days - keep going!',
+          Icons.local_fire_department,
+          Colors.orange,
+        ),
+        _buildInsightItem(
+          context,
+          'You have $pendingWords words pending to learn',
+          Icons.menu_book,
+          Colors.teal,
+        ),
+        _buildInsightItem(
+          context,
+          'Complete today\'s $dueToday sessions to maintain your streak',
+          Icons.today,
+          Colors.red,
+        ),
+      ],
+    );
+  }
+
   Widget _buildInsightItem(
     BuildContext context,
     String message,

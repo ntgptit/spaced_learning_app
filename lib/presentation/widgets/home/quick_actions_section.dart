@@ -23,45 +23,49 @@ class QuickActionsSection extends StatelessWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      children: [
-        _buildActionCard(
-          context,
-          'Browse Books',
-          Icons.book,
-          onBrowseBooksPressed,
-          color: Colors.blueAccent,
-        ),
-        _buildActionCard(
-          context,
-          'Today\'s Learning',
-          Icons.assignment,
-          onTodaysLearningPressed,
-          color: Colors.green,
-        ),
-        _buildActionCard(
-          context,
-          'Progress Report',
-          Icons.bar_chart,
-          onProgressReportPressed,
-          color: Colors.orange,
-        ),
-        _buildActionCard(
-          context,
-          'Vocabulary Stats',
-          Icons.menu_book,
-          onVocabularyStatsPressed,
-          color: Colors.purple,
-        ),
-      ],
+      children: _buildActionItems(context),
     );
   }
 
-  /// Build a single action card for the quick actions section
+  // UI Components
+  List<Widget> _buildActionItems(BuildContext context) {
+    return [
+      _buildActionCard(
+        context,
+        title: 'Browse Books',
+        icon: Icons.book,
+        onTap: onBrowseBooksPressed,
+        color: Colors.blueAccent,
+      ),
+      _buildActionCard(
+        context,
+        title: 'Today\'s Learning',
+        icon: Icons.assignment,
+        onTap: onTodaysLearningPressed,
+        color: Colors.green,
+      ),
+      _buildActionCard(
+        context,
+        title: 'Progress Report',
+        icon: Icons.bar_chart,
+        onTap: onProgressReportPressed,
+        color: Colors.orange,
+      ),
+      _buildActionCard(
+        context,
+        title: 'Vocabulary Stats',
+        icon: Icons.menu_book,
+        onTap: onVocabularyStatsPressed,
+        color: Colors.purple,
+      ),
+    ];
+  }
+
   Widget _buildActionCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    VoidCallback onTap, {
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
     Color? color,
   }) {
     final theme = Theme.of(context);

@@ -17,6 +17,7 @@ import 'package:spaced_learning_app/presentation/widgets/home/home_app_bar.dart'
 import 'package:spaced_learning_app/presentation/widgets/home/learning_insights_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/quick_actions_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/welcome_section.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/enhanced_learning_stats_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
 /// Integrated home screen with dashboard functionality
@@ -249,30 +250,41 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
           compact: true,
         )
         : DashboardSection(
-          totalModules: learningStatsViewModel.totalModules,
-          completedModules: learningStatsViewModel.completedModules,
-          inProgressModules: learningStatsViewModel.inProgressModules,
-          dueToday: learningStatsViewModel.dueToday,
-          dueThisWeek: learningStatsViewModel.dueThisWeek,
-          dueThisMonth: learningStatsViewModel.dueThisMonth,
-          wordsDueToday: learningStatsViewModel.wordsDueToday,
-          wordsDueThisWeek: learningStatsViewModel.wordsDueThisWeek,
-          wordsDueThisMonth: learningStatsViewModel.wordsDueThisMonth,
-          completedToday: learningStatsViewModel.completedToday,
-          completedThisWeek: learningStatsViewModel.completedThisWeek,
-          completedThisMonth: learningStatsViewModel.completedThisMonth,
-          wordsCompletedToday: learningStatsViewModel.wordsCompletedToday,
-          wordsCompletedThisWeek: learningStatsViewModel.wordsCompletedThisWeek,
-          wordsCompletedThisMonth:
-              learningStatsViewModel.wordsCompletedThisMonth,
-          streakDays: learningStatsViewModel.streakDays,
-          streakWeeks: learningStatsViewModel.streakWeeks,
-          totalWords: learningStatsViewModel.totalWords,
-          learnedWords: learningStatsViewModel.learnedWords,
-          pendingWords: learningStatsViewModel.pendingWords,
-          vocabularyCompletionRate:
-              learningStatsViewModel.vocabularyCompletionRate,
-          weeklyNewWordsRate: learningStatsViewModel.weeklyNewWordsRate,
+          moduleStats: ModuleStats(
+            totalModules: learningStatsViewModel.totalModules,
+            completedModules: learningStatsViewModel.completedModules,
+            inProgressModules: learningStatsViewModel.inProgressModules,
+          ),
+          dueStats: DueStats(
+            dueToday: learningStatsViewModel.dueToday,
+            dueThisWeek: learningStatsViewModel.dueThisWeek,
+            dueThisMonth: learningStatsViewModel.dueThisMonth,
+            wordsDueToday: learningStatsViewModel.wordsDueToday,
+            wordsDueThisWeek: learningStatsViewModel.wordsDueThisWeek,
+            wordsDueThisMonth: learningStatsViewModel.wordsDueThisMonth,
+          ),
+          completionStats: CompletionStats(
+            completedToday: learningStatsViewModel.completedToday,
+            completedThisWeek: learningStatsViewModel.completedThisWeek,
+            completedThisMonth: learningStatsViewModel.completedThisMonth,
+            wordsCompletedToday: learningStatsViewModel.wordsCompletedToday,
+            wordsCompletedThisWeek:
+                learningStatsViewModel.wordsCompletedThisWeek,
+            wordsCompletedThisMonth:
+                learningStatsViewModel.wordsCompletedThisMonth,
+          ),
+          streakStats: StreakStats(
+            streakDays: learningStatsViewModel.streakDays,
+            streakWeeks: learningStatsViewModel.streakWeeks,
+          ),
+          vocabularyStats: VocabularyStats(
+            totalWords: learningStatsViewModel.totalWords,
+            learnedWords: learningStatsViewModel.learnedWords,
+            pendingWords: learningStatsViewModel.pendingWords,
+            vocabularyCompletionRate:
+                learningStatsViewModel.vocabularyCompletionRate,
+            weeklyNewWordsRate: learningStatsViewModel.weeklyNewWordsRate,
+          ),
           onViewProgress:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
