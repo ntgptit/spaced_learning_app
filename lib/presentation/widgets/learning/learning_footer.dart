@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class LearningFooter extends StatelessWidget {
+  // Properties
   final int totalModules;
   final int completedModules;
   final VoidCallback? onExportData;
@@ -8,6 +9,7 @@ class LearningFooter extends StatelessWidget {
   final VoidCallback? onSettingsPressed;
   final VoidCallback? onFeedbackPressed;
 
+  // Constructor
   const LearningFooter({
     super.key,
     required this.totalModules,
@@ -18,19 +20,16 @@ class LearningFooter extends StatelessWidget {
     this.onFeedbackPressed,
   });
 
+  // Build method
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
-
-    final completionPercentage =
-        totalModules > 0
-            ? (completedModules / totalModules * 100).toStringAsFixed(1)
-            : '0.0';
-
-    final progressSemanticLabel =
-        'Completed $completedModules of $totalModules modules, $completionPercentage percent complete';
+    final completionPercentage = _calculateCompletionPercentage();
+    final progressSemanticLabel = _buildProgressSemanticLabel(
+      completionPercentage,
+    );
 
     return Container(
       width: double.infinity,
@@ -60,6 +59,18 @@ class LearningFooter extends StatelessWidget {
     );
   }
 
+  // Helper methods
+  String _calculateCompletionPercentage() {
+    return totalModules > 0
+        ? (completedModules / totalModules * 100).toStringAsFixed(1)
+        : '0.0';
+  }
+
+  String _buildProgressSemanticLabel(String completionPercentage) {
+    return 'Completed $completedModules of $totalModules modules, $completionPercentage percent complete';
+  }
+
+  // Layout builders
   Widget _buildSmallScreenLayout(
     ThemeData theme,
     String completionPercentage,
@@ -69,40 +80,10 @@ class LearningFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Learning Progress', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 4),
-            Semantics(
-              label: progressSemanticLabel,
-              child: ExcludeSemantics(
-                child: RichText(
-                  text: TextSpan(
-                    style: theme.textTheme.bodySmall,
-                    children: [
-                      TextSpan(
-                        text: 'Completed: ',
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                      TextSpan(
-                        text: '$completedModules of $totalModules modules ',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      TextSpan(
-                        text: '($completionPercentage%)',
-                        style: TextStyle(color: theme.colorScheme.secondary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+        _buildProgressSection(
+          theme,
+          completionPercentage,
+          progressSemanticLabel,
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -111,7 +92,7 @@ class LearningFooter extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min, // Chỉ chiếm không gian cần thiết
+              mainAxisSize: MainAxisSize.min,
               children: _buildActionButtons(theme),
             ),
           ),
@@ -129,40 +110,10 @@ class LearningFooter extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Learning Progress', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 4),
-              Semantics(
-                label: progressSemanticLabel,
-                child: ExcludeSemantics(
-                  child: RichText(
-                    text: TextSpan(
-                      style: theme.textTheme.bodySmall,
-                      children: [
-                        TextSpan(
-                          text: 'Completed: ',
-                          style: TextStyle(color: theme.colorScheme.onSurface),
-                        ),
-                        TextSpan(
-                          text: '$completedModules of $totalModules modules ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        TextSpan(
-                          text: '($completionPercentage%)',
-                          style: TextStyle(color: theme.colorScheme.secondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          child: _buildProgressSection(
+            theme,
+            completionPercentage,
+            progressSemanticLabel,
           ),
         ),
         Row(
@@ -173,11 +124,52 @@ class LearningFooter extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildActionButtons(ThemeData theme) {
-    final buttons = <Widget>[];
+  Widget _buildProgressSection(
+    ThemeData theme,
+    String completionPercentage,
+    String progressSemanticLabel,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Learning Progress', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Semantics(
+          label: progressSemanticLabel,
+          child: ExcludeSemantics(
+            child: RichText(
+              text: TextSpan(
+                style: theme.textTheme.bodySmall,
+                children: [
+                  TextSpan(
+                    text: 'Completed: ',
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                  TextSpan(
+                    text: '$completedModules of $totalModules modules ',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '($completionPercentage%)',
+                    style: TextStyle(color: theme.colorScheme.secondary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-    if (onExportData != null) {
-      buttons.add(
+  // Action buttons builder
+  List<Widget> _buildActionButtons(ThemeData theme) {
+    return [
+      if (onExportData != null)
         Tooltip(
           message: 'Export learning data',
           child: TextButton.icon(
@@ -187,11 +179,7 @@ class LearningFooter extends StatelessWidget {
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ),
-      );
-    }
-
-    if (onSettingsPressed != null) {
-      buttons.addAll([
+      if (onSettingsPressed != null) ...[
         const SizedBox(width: 8),
         Tooltip(
           message: 'Settings',
@@ -201,11 +189,8 @@ class LearningFooter extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-      ]);
-    }
-
-    if (onFeedbackPressed != null) {
-      buttons.addAll([
+      ],
+      if (onFeedbackPressed != null) ...[
         const SizedBox(width: 8),
         Tooltip(
           message: 'Send feedback',
@@ -215,11 +200,8 @@ class LearningFooter extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-      ]);
-    }
-
-    if (onHelpPressed != null) {
-      buttons.addAll([
+      ],
+      if (onHelpPressed != null) ...[
         const SizedBox(width: 8),
         Tooltip(
           message: 'Help',
@@ -229,9 +211,7 @@ class LearningFooter extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-      ]);
-    }
-
-    return buttons;
+      ],
+    ];
   }
 }
