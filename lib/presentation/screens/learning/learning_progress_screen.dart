@@ -256,8 +256,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    // Calculate stats for the filter bar and footer
     final dueModules =
         _filteredModules
             .where(
@@ -268,7 +266,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                   ),
             )
             .length;
-
     final totalModules = _filteredModules.length;
     final completedModules =
         _filteredModules.where((m) => m.percentage == 100).length;
@@ -290,57 +287,57 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Filter bar
-            LearningFilterBar(
-              selectedBook: _selectedBook,
-              selectedDate: _selectedDate,
-              books: _getUniqueBooks(),
-              onBookChanged: (value) {
-                if (value != null && mounted) {
-                  setState(() {
-                    _selectedBook = value;
-                  });
-                  _applyFilters();
-                }
-              },
-              onDateSelected: _selectDate,
-              onDateCleared: _clearDateFilter,
-              totalCount: totalModules,
-              dueCount: dueModules,
-              completeCount: completedModules,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: LearningFilterBar(
+                selectedBook: _selectedBook,
+                selectedDate: _selectedDate,
+                books: _getUniqueBooks(),
+                onBookChanged: (value) {
+                  if (value != null && mounted) {
+                    setState(() {
+                      _selectedBook = value;
+                    });
+                    _applyFilters();
+                  }
+                },
+                onDateSelected: _selectDate,
+                onDateCleared: _clearDateFilter,
+                totalCount: totalModules,
+                dueCount: dueModules,
+                completeCount: completedModules,
+              ),
             ),
-
-            // Error display if needed
             if (_errorMessage != null && !_isLoading)
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: theme.colorScheme.error),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(color: theme.colorScheme.error),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: theme.colorScheme.error),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(color: theme.colorScheme.error),
+                        ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: _loadDataDebounced,
-                      child: const Text('Retry'),
-                    ),
-                  ],
+                      TextButton(
+                        onPressed: _loadDataDebounced,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-
-            // Data table - we pass our scroll controllers to ensure consistent scrolling
-            Expanded(
+            SliverFillRemaining(
+              hasScrollBody: true,
               child: LearningModulesTable(
                 modules: _filteredModules,
                 isLoading: _isLoading,
@@ -348,13 +345,13 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                 verticalScrollController: _verticalScrollController,
               ),
             ),
-
-            // Footer
-            LearningFooter(
-              totalModules: totalModules,
-              completedModules: completedModules,
-              onExportData: _exportData,
-              onHelpPressed: _showHelpDialog,
+            SliverToBoxAdapter(
+              child: LearningFooter(
+                totalModules: totalModules,
+                completedModules: completedModules,
+                onExportData: _exportData,
+                onHelpPressed: _showHelpDialog,
+              ),
             ),
           ],
         ),
