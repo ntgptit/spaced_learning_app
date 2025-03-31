@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/home/integrated_home_screen.dart';
@@ -46,6 +47,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
+        ),
+        Provider<LearningDataService>(
+          create: (_) => serviceLocator<LearningDataService>(),
         ),
       ],
       child: const AppWithTheme(),

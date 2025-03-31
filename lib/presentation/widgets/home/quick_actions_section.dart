@@ -17,42 +17,40 @@ class QuickActionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
       children: [
-        Row(
-          children: [
-            _buildActionCard(
-              context,
-              'Browse Books',
-              Icons.book,
-              onBrowseBooksPressed,
-            ),
-            const SizedBox(width: 16),
-            _buildActionCard(
-              context,
-              'Today\'s Learning',
-              Icons.assignment,
-              onTodaysLearningPressed,
-            ),
-          ],
+        _buildActionCard(
+          context,
+          'Browse Books',
+          Icons.book,
+          onBrowseBooksPressed,
+          color: Colors.blueAccent,
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _buildActionCard(
-              context,
-              'Progress Report',
-              Icons.bar_chart,
-              onProgressReportPressed,
-            ),
-            const SizedBox(width: 16),
-            _buildActionCard(
-              context,
-              'Vocabulary Stats',
-              Icons.menu_book,
-              onVocabularyStatsPressed,
-            ),
-          ],
+        _buildActionCard(
+          context,
+          'Today\'s Learning',
+          Icons.assignment,
+          onTodaysLearningPressed,
+          color: Colors.green,
+        ),
+        _buildActionCard(
+          context,
+          'Progress Report',
+          Icons.bar_chart,
+          onProgressReportPressed,
+          color: Colors.orange,
+        ),
+        _buildActionCard(
+          context,
+          'Vocabulary Stats',
+          Icons.menu_book,
+          onVocabularyStatsPressed,
+          color: Colors.purple,
         ),
       ],
     );
@@ -63,29 +61,31 @@ class QuickActionsSection extends StatelessWidget {
     BuildContext context,
     String title,
     IconData icon,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    Color? color,
+  }) {
     final theme = Theme.of(context);
-
-    return Expanded(
-      child: Card(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 32, color: theme.colorScheme.primary),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+    return Card(
+      elevation: 2,
+      color: color?.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 32, color: color ?? theme.colorScheme.primary),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
