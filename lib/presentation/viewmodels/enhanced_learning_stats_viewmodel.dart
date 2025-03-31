@@ -12,6 +12,7 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   List<LearningModule> _modules = [];
   String? _errorMessage;
+  bool _isInitialized = false;
 
   // Due learning sessions
   int _dueToday = 0;
@@ -53,6 +54,7 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<LearningModule> get modules => _modules;
   String? get errorMessage => _errorMessage;
+  bool get isInitialized => _isInitialized;
 
   // Due session getters
   int get dueToday => _dueToday;
@@ -97,6 +99,9 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
   /// Load all learning statistics data with enhanced metrics
   Future<void> loadLearningStats(String userId) async {
+    // Prevent multiple concurrent loading operations
+    if (_isLoading) return;
+
     _setLoading(true);
     _errorMessage = null;
 
@@ -104,28 +109,38 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
       // Load modules data from service
       _modules = await learningDataService.getModules();
 
-      // Calculate statistics
-      _calculateStatistics();
+      // Calculate statistics without notifying after each calculation
+      _calculateStatisticsWithoutNotifying();
 
       // Load streak data
-      _streakDays = await _calculateStreakDays(userId);
-      _streakWeeks = await _calculateStreakWeeks(userId);
+      final streakDays = await _calculateStreakDays(userId);
+      final streakWeeks = await _calculateStreakWeeks(userId);
+
+      // Set streak values
+      _streakDays = streakDays;
+      _streakWeeks = streakWeeks;
 
       // Calculate vocabulary statistics
-      _calculateVocabularyStats();
+      _calculateVocabularyStatsWithoutNotifying();
+
+      // Mark as initialized
+      _isInitialized = true;
+
+      // Now notify listeners once all calculations are done
+      _setLoading(false);
     } on AppException catch (e) {
       _errorMessage = e.message;
+      _setLoading(false);
     } catch (e) {
       _errorMessage =
           'An unexpected error occurred while loading learning statistics';
       debugPrint('Error loading learning stats: $e');
-    } finally {
       _setLoading(false);
     }
   }
 
-  /// Calculate all learning statistics
-  void _calculateStatistics() {
+  /// Calculate all learning statistics without notifying listeners after each step
+  void _calculateStatisticsWithoutNotifying() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -170,8 +185,8 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
     _wordsCompletedThisMonth = (_wordsDueThisMonth * 0.85).round();
   }
 
-  /// Calculate vocabulary statistics
-  void _calculateVocabularyStats() {
+  /// Calculate vocabulary statistics without notifying listeners
+  void _calculateVocabularyStatsWithoutNotifying() {
     // Total words across all modules
     _totalWords = _modules.fold(0, (sum, module) => sum + module.wordCount);
 
@@ -280,6 +295,11 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
+  }
+
+  /// Refresh all statistics
+  Future<void> refreshStats(String userId) async {
+    await loadLearningStats(userId);
   }
 
   /// Clear any error messages

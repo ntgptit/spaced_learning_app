@@ -22,10 +22,15 @@ class EnhancedDashboardScreen extends StatefulWidget {
 }
 
 class _EnhancedDashboardScreenState extends State<EnhancedDashboardScreen> {
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
-    _loadData();
+    // Schedule the _loadData to run after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
@@ -35,11 +40,21 @@ class _EnhancedDashboardScreenState extends State<EnhancedDashboardScreen> {
         context.read<EnhancedLearningStatsViewModel>();
 
     if (authViewModel.currentUser != null) {
-      // Load learning stats and due progress in parallel
-      await Future.wait([
-        learningStatsViewModel.loadLearningStats(authViewModel.currentUser!.id),
-        progressViewModel.loadDueProgress(authViewModel.currentUser!.id),
-      ]);
+      // Check if stats were already loaded to avoid duplicate loading
+      if (!learningStatsViewModel.isInitialized) {
+        // Load learning stats
+        await learningStatsViewModel.loadLearningStats(
+          authViewModel.currentUser!.id,
+        );
+      }
+
+      // Load due progress
+      await progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
+
+      // Mark as initialized
+      setState(() {
+        _isInitialized = true;
+      });
     }
   }
 
@@ -54,6 +69,12 @@ class _EnhancedDashboardScreenState extends State<EnhancedDashboardScreen> {
     if (authViewModel.currentUser == null) {
       return const Center(child: Text('Please log in to view your dashboard'));
     }
+
+    // Display loading indicator during initial load
+    final bool isLoading =
+        progressViewModel.isLoading ||
+        learningStatsViewModel.isLoading ||
+        !_isInitialized;
 
     return Scaffold(
       appBar: AppBar(
@@ -74,272 +95,302 @@ class _EnhancedDashboardScreenState extends State<EnhancedDashboardScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // Welcome message
-            Text(
-              'Welcome, ${authViewModel.currentUser!.displayName ?? authViewModel.currentUser!.email}!',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your enhanced learning dashboard',
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-
-            // Enhanced Learning Stats Card
-            if (learningStatsViewModel.isLoading)
-              const Center(child: AppLoadingIndicator())
-            else if (learningStatsViewModel.errorMessage != null)
-              ErrorDisplay(
-                message: learningStatsViewModel.errorMessage!,
-                onRetry: _loadData,
-                compact: true,
-              )
-            else
-              EnhancedLearningStatsCard(
-                totalModules: learningStatsViewModel.totalModules,
-                completedModules: learningStatsViewModel.completedModules,
-                inProgressModules: learningStatsViewModel.inProgressModules,
-
-                dueToday: learningStatsViewModel.dueToday,
-                dueThisWeek: learningStatsViewModel.dueThisWeek,
-                dueThisMonth: learningStatsViewModel.dueThisMonth,
-
-                wordsDueToday: learningStatsViewModel.wordsDueToday,
-                wordsDueThisWeek: learningStatsViewModel.wordsDueThisWeek,
-                wordsDueThisMonth: learningStatsViewModel.wordsDueThisMonth,
-
-                completedToday: learningStatsViewModel.completedToday,
-                completedThisWeek: learningStatsViewModel.completedThisWeek,
-                completedThisMonth: learningStatsViewModel.completedThisMonth,
-
-                wordsCompletedToday: learningStatsViewModel.wordsCompletedToday,
-                wordsCompletedThisWeek:
-                    learningStatsViewModel.wordsCompletedThisWeek,
-                wordsCompletedThisMonth:
-                    learningStatsViewModel.wordsCompletedThisMonth,
-
-                streakDays: learningStatsViewModel.streakDays,
-                streakWeeks: learningStatsViewModel.streakWeeks,
-
-                totalWords: learningStatsViewModel.totalWords,
-                learnedWords: learningStatsViewModel.learnedWords,
-                pendingWords: learningStatsViewModel.pendingWords,
-                vocabularyCompletionRate:
-                    learningStatsViewModel.vocabularyCompletionRate,
-                weeklyNewWordsRate: learningStatsViewModel.weeklyNewWordsRate,
-
-                onViewProgress: () {
-                  // Navigate to detailed learning progress screen
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const LearningProgressScreen(),
-                    ),
-                  );
-                },
-              ),
-
-            const SizedBox(height: 24),
-
-            // Due today section
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child:
+            isLoading
+                ? const Center(child: AppLoadingIndicator())
+                : ListView(
+                  padding: const EdgeInsets.all(16.0),
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text('Due Today', style: theme.textTheme.titleLarge),
-                        const Spacer(),
-                        Chip(
-                          label: Text(
-                            '${progressViewModel.progressRecords.length} items',
-                            style: TextStyle(
-                              color: theme.colorScheme.onPrimary,
-                            ),
-                          ),
-                          backgroundColor: theme.colorScheme.primary,
-                        ),
-                      ],
+                    // Welcome message
+                    Text(
+                      'Welcome, ${authViewModel.currentUser!.displayName ?? authViewModel.currentUser!.email}!',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Your enhanced learning dashboard',
+                      style: theme.textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
 
-                    if (progressViewModel.isLoading)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: AppLoadingIndicator(),
-                        ),
-                      )
-                    else if (progressViewModel.errorMessage != null)
+                    // Enhanced Learning Stats Card
+                    if (learningStatsViewModel.errorMessage != null)
                       ErrorDisplay(
-                        message: progressViewModel.errorMessage!,
-                        onRetry: _loadData,
+                        message: learningStatsViewModel.errorMessage!,
+                        onRetry: () {
+                          if (authViewModel.currentUser != null) {
+                            learningStatsViewModel.refreshStats(
+                              authViewModel.currentUser!.id,
+                            );
+                          }
+                        },
                         compact: true,
                       )
-                    else if (progressViewModel.progressRecords.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24.0),
-                        child: Center(
-                          child: Text('No repetitions due today. Great job!'),
-                        ),
-                      )
                     else
-                      _buildDueProgressList(progressViewModel.progressRecords),
+                      EnhancedLearningStatsCard(
+                        totalModules: learningStatsViewModel.totalModules,
+                        completedModules:
+                            learningStatsViewModel.completedModules,
+                        inProgressModules:
+                            learningStatsViewModel.inProgressModules,
 
-                    const SizedBox(height: 8),
+                        dueToday: learningStatsViewModel.dueToday,
+                        dueThisWeek: learningStatsViewModel.dueThisWeek,
+                        dueThisMonth: learningStatsViewModel.dueThisMonth,
 
-                    // View all due button
-                    if (progressViewModel.progressRecords.isNotEmpty)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            // Navigate to Due Progress screen
+                        wordsDueToday: learningStatsViewModel.wordsDueToday,
+                        wordsDueThisWeek:
+                            learningStatsViewModel.wordsDueThisWeek,
+                        wordsDueThisMonth:
+                            learningStatsViewModel.wordsDueThisMonth,
+
+                        completedToday: learningStatsViewModel.completedToday,
+                        completedThisWeek:
+                            learningStatsViewModel.completedThisWeek,
+                        completedThisMonth:
+                            learningStatsViewModel.completedThisMonth,
+
+                        wordsCompletedToday:
+                            learningStatsViewModel.wordsCompletedToday,
+                        wordsCompletedThisWeek:
+                            learningStatsViewModel.wordsCompletedThisWeek,
+                        wordsCompletedThisMonth:
+                            learningStatsViewModel.wordsCompletedThisMonth,
+
+                        streakDays: learningStatsViewModel.streakDays,
+                        streakWeeks: learningStatsViewModel.streakWeeks,
+
+                        totalWords: learningStatsViewModel.totalWords,
+                        learnedWords: learningStatsViewModel.learnedWords,
+                        pendingWords: learningStatsViewModel.pendingWords,
+                        vocabularyCompletionRate:
+                            learningStatsViewModel.vocabularyCompletionRate,
+                        weeklyNewWordsRate:
+                            learningStatsViewModel.weeklyNewWordsRate,
+
+                        onViewProgress: () {
+                          // Navigate to detailed learning progress screen
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => const LearningProgressScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                    const SizedBox(height: 24),
+
+                    // Due today section
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Due Today',
+                                  style: theme.textTheme.titleLarge,
+                                ),
+                                const Spacer(),
+                                Chip(
+                                  label: Text(
+                                    '${progressViewModel.progressRecords.length} items',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                  backgroundColor: theme.colorScheme.primary,
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+
+                            // Progress list with error handling
+                            if (progressViewModel.errorMessage != null)
+                              ErrorDisplay(
+                                message: progressViewModel.errorMessage!,
+                                onRetry: _loadData,
+                                compact: true,
+                              )
+                            else if (progressViewModel.progressRecords.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24.0),
+                                child: Center(
+                                  child: Text(
+                                    'No repetitions due today. Great job!',
+                                  ),
+                                ),
+                              )
+                            else
+                              _buildDueProgressList(
+                                progressViewModel.progressRecords,
+                              ),
+
+                            const SizedBox(height: 8),
+
+                            // View all due button
+                            if (progressViewModel.progressRecords.isNotEmpty)
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    // Navigate to Due Progress screen
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const DueProgressScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('View all'),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Learning stats insights section
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.insights,
+                                  color: theme.colorScheme.tertiary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Learning Insights',
+                                  style: theme.textTheme.titleLarge,
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+
+                            // Learning insights (to be generated based on statistics)
+                            _buildInsightItem(
+                              context,
+                              'You learn ${learningStatsViewModel.weeklyNewWordsRate.toStringAsFixed(1)}% new vocabulary each week',
+                              Icons.trending_up,
+                              Colors.blue,
+                            ),
+                            _buildInsightItem(
+                              context,
+                              'Your current streak is ${learningStatsViewModel.streakDays} days - keep going!',
+                              Icons.local_fire_department,
+                              Colors.orange,
+                            ),
+                            _buildInsightItem(
+                              context,
+                              'You have ${learningStatsViewModel.pendingWords} words pending to learn',
+                              Icons.menu_book,
+                              Colors.teal,
+                            ),
+                            _buildInsightItem(
+                              context,
+                              'Complete today\'s ${learningStatsViewModel.dueToday} sessions to maintain your streak',
+                              Icons.today,
+                              Colors.red,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Quick actions
+                    Text('Quick Actions', style: theme.textTheme.titleLarge),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        _buildActionCard(
+                          context,
+                          'Browse Books',
+                          Icons.book,
+                          () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const BooksScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        _buildActionCard(
+                          context,
+                          'Today\'s Learning',
+                          Icons.assignment,
+                          () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => const DueProgressScreen(),
                               ),
                             );
                           },
-                          child: const Text('View all'),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Learning stats insights section
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.insights, color: theme.colorScheme.tertiary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Learning Insights',
-                          style: theme.textTheme.titleLarge,
                         ),
                       ],
                     ),
-                    const Divider(),
-
-                    // Learning insights (to be generated based on statistics)
-                    _buildInsightItem(
-                      context,
-                      'You learn ${learningStatsViewModel.weeklyNewWordsRate.toStringAsFixed(1)}% new vocabulary each week',
-                      Icons.trending_up,
-                      Colors.blue,
-                    ),
-                    _buildInsightItem(
-                      context,
-                      'Your current streak is ${learningStatsViewModel.streakDays} days - keep going!',
-                      Icons.local_fire_department,
-                      Colors.orange,
-                    ),
-                    _buildInsightItem(
-                      context,
-                      'You have ${learningStatsViewModel.pendingWords} words pending to learn',
-                      Icons.menu_book,
-                      Colors.teal,
-                    ),
-                    _buildInsightItem(
-                      context,
-                      'Complete today\'s ${learningStatsViewModel.dueToday} sessions to maintain your streak',
-                      Icons.today,
-                      Colors.red,
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildActionCard(
+                          context,
+                          'Progress Report',
+                          Icons.bar_chart,
+                          () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => const LearningProgressScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        _buildActionCard(
+                          context,
+                          'Vocabulary Stats',
+                          Icons.menu_book,
+                          () {
+                            // Navigate to vocabulary statistics
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Vocabulary Statistics coming soon',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Quick actions
-            Text('Quick Actions', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                _buildActionCard(context, 'Browse Books', Icons.book, () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const BooksScreen(),
-                    ),
-                  );
-                }),
-                const SizedBox(width: 16),
-                _buildActionCard(
-                  context,
-                  'Today\'s Learning',
-                  Icons.assignment,
-                  () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const DueProgressScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildActionCard(
-                  context,
-                  'Progress Report',
-                  Icons.bar_chart,
-                  () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const LearningProgressScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 16),
-                _buildActionCard(
-                  context,
-                  'Vocabulary Stats',
-                  Icons.menu_book,
-                  () {
-                    // Navigate to vocabulary statistics
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Vocabulary Statistics coming soon'),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
