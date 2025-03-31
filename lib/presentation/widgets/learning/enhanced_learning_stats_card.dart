@@ -97,7 +97,10 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text('Learning Dashboard', style: theme.textTheme.titleLarge),
+                  Text(
+                    'Learning Dashboard',
+                    style: theme.textTheme.titleMedium,
+                  ),
                   const Spacer(),
                   if (onViewProgress != null)
                     Semantics(
@@ -112,15 +115,16 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: 8),
               const Divider(),
               const SizedBox(height: 16),
 
               // Row 1: Due Sessions with clear title
               _buildSectionHeader(
                 context,
-                'UPCOMING LEARNING SESSIONS',
+                'Upcoming Learning Sessions',
                 Icons.assignment_late,
-                colorScheme.primary,
+                Colors.teal,
                 'Upcoming learning sessions that need your attention',
               ),
               const SizedBox(height: 12),
@@ -162,14 +166,14 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Row 2: Completed Sessions with clear title
               _buildSectionHeader(
                 context,
-                'COMPLETED LEARNING SESSIONS',
+                'Completed Learning Sessions',
                 Icons.check_circle,
-                Colors.green,
+                Colors.orange,
                 'Learning sessions you have completed',
               ),
               const SizedBox(height: 12),
@@ -211,12 +215,12 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Row 3: Overall Learning Progress with clear title
               _buildSectionHeader(
                 context,
-                'LEARNING PROGRESS OVERVIEW',
+                'Learning Progress Overview',
                 Icons.trending_up,
                 colorScheme.secondary,
                 'Overall progress across all learning modules',
@@ -261,14 +265,14 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Row 4: Vocabulary Statistics with clear title
               _buildSectionHeader(
                 context,
-                'VOCABULARY STATISTICS',
+                'Vocabulary Statistics',
                 Icons.menu_book,
-                Colors.amber,
+                Colors.indigo,
                 'Statistics about your vocabulary learning progress',
               ),
               const SizedBox(height: 12),
@@ -282,7 +286,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
                     value: learnedWords,
                     secondValue: totalWords,
                     color: Colors.teal,
-                    icon: Icons.spellcheck,
+                    icon: Icons.book_sharp,
                     format: '$learnedWords/$totalWords',
                     showPercentage: true,
                     percentage: vocabularyCompletionRate,
@@ -314,7 +318,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
 
               // Today's learning progress bar
               if (dueToday > 0) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 _buildTodayProgressBar(context),
               ],
             ],
@@ -341,7 +345,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -368,7 +372,7 @@ class EnhancedLearningStatsCard extends StatelessWidget {
     return SizedBox(
       height: 60,
       child: VerticalDivider(
-        color: Colors.grey.withOpacity(0.3),
+        color: Colors.grey.withValues(alpha: 0.3),
         thickness: 1,
         width: 1,
       ),
@@ -423,20 +427,22 @@ class EnhancedLearningStatsCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              formattedValue,
-              style: theme.textTheme.titleLarge?.copyWith(
+              showPercentage
+                  ? '$formattedValue (${percentage.toStringAsFixed(1)}%)'
+                  : formattedValue,
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-            if (showPercentage)
-              Text(
-                '(${percentage.toStringAsFixed(1)}%)',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            // if (showPercentage)
+            //   Text(
+            //     '(${percentage.toStringAsFixed(1)}%)',
+            //     style: theme.textTheme.bodySmall?.copyWith(
+            //       color: color,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
             Text(
               label,
               style: theme.textTheme.bodySmall,

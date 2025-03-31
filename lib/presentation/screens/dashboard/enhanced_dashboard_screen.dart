@@ -221,6 +221,7 @@ class _EnhancedDashboardScreenState extends State<EnhancedDashboardScreen> {
                                       ),
                                     ],
                                   ),
+                                  const SizedBox(height: 8),
                                   const Divider(),
                                   if (progressViewModel.errorMessage != null)
                                     ErrorDisplay(
@@ -296,6 +297,7 @@ class _EnhancedDashboardScreenState extends State<EnhancedDashboardScreen> {
                                       ),
                                     ],
                                   ),
+                                  const SizedBox(height: 8),
                                   const Divider(),
                                   _buildInsightItem(
                                     context,

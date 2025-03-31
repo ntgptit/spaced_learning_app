@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Widget for displaying the filter bar on the Learning Progress screen
-/// Enhanced with accessibility features and better handling of long book lists
 class LearningFilterBar extends StatefulWidget {
   final String selectedBook;
   final DateTime? selectedDate;
@@ -32,11 +30,8 @@ class LearningFilterBar extends StatefulWidget {
 }
 
 class _LearningFilterBarState extends State<LearningFilterBar> {
-  // Controller for search in the book dropdown
   final TextEditingController _bookSearchController = TextEditingController();
-  // Filtered books based on search
   List<String> _filteredBooks = [];
-  // Flag to show the search field
   bool _showSearch = false;
 
   @override
@@ -48,7 +43,6 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   @override
   void didUpdateWidget(LearningFilterBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update filtered books list if the books list changes
     if (oldWidget.books != widget.books) {
       _filteredBooks = widget.books;
     }
@@ -60,20 +54,16 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     super.dispose();
   }
 
-  /// Filter books based on search query
   void _filterBooks(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredBooks = widget.books;
-      });
-      return;
-    }
-
     setState(() {
       _filteredBooks =
-          widget.books
-              .where((book) => book.toLowerCase().contains(query.toLowerCase()))
-              .toList();
+          query.isEmpty
+              ? widget.books
+              : widget.books
+                  .where(
+                    (book) => book.toLowerCase().contains(query.toLowerCase()),
+                  )
+                  .toList();
     });
   }
 
@@ -112,60 +102,21 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Row for filters - adapt for small screens
           if (isSmallScreen)
             _buildSmallScreenFilters(theme)
           else
             _buildWideScreenFilters(theme),
-
           const SizedBox(height: 16),
-
-          // Stats row
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  'Total',
-                  totalCount: widget.totalCount,
-                  icon: Icons.book,
-                  theme: theme,
-                ),
-                _buildDivider(),
-                _buildStatItem(
-                  'Due',
-                  totalCount: widget.dueCount,
-                  icon: Icons.warning,
-                  theme: theme,
-                  isHighlighted: widget.dueCount > 0,
-                ),
-                _buildDivider(),
-                _buildStatItem(
-                  'Complete',
-                  totalCount: widget.completeCount,
-                  icon: Icons.check_circle,
-                  theme: theme,
-                ),
-              ],
-            ),
-          ),
+          _buildStatsRow(theme),
         ],
       ),
     );
   }
 
-  /// Build filters layout for wide screens
   Widget _buildWideScreenFilters(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Search field (conditional)
         if (_showSearch) ...[
           TextField(
             controller: _bookSearchController,
@@ -191,108 +142,16 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
           ),
           const SizedBox(height: 8),
         ],
-
         Row(
           children: [
-            // Book filter dropdown
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: ButtonTheme(
-                    alignedDropdown: true,
-                    child: DropdownButton<String>(
-                      value:
-                          widget.books.contains(widget.selectedBook)
-                              ? widget.selectedBook
-                              : widget.books.first,
-                      isExpanded: true,
-                      borderRadius: BorderRadius.circular(8),
-                      icon: const Icon(Icons.arrow_drop_down),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      items:
-                          _filteredBooks
-                              .map(
-                                (book) => DropdownMenuItem(
-                                  value: book,
-                                  child: Tooltip(
-                                    message: book, // Tooltip for accessibility
-                                    child: Text(
-                                      book,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                      onChanged: widget.onBookChanged,
-                    ),
-                  ),
-                ),
-              ),
+              flex: 1, // Tỷ lệ 1:1 cho cả hai filter
+              child: _buildBookDropdown(theme),
             ),
-            const SizedBox(width: 16),
-
-            // Date filter button or chip
+            const SizedBox(width: 12),
             Expanded(
-              child:
-                  widget.selectedDate == null
-                      ? OutlinedButton.icon(
-                        icon: const Icon(Icons.calendar_today),
-                        label: const Text('Select Date'),
-                        onPressed: widget.onDateSelected,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      )
-                      : Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        margin: EdgeInsets.zero,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            children: [
-                              const Tooltip(
-                                message: 'Selected date filter',
-                                child: Icon(Icons.calendar_today, size: 18),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  DateFormat(
-                                    'MMM dd, yyyy',
-                                  ).format(widget.selectedDate!),
-                                  style: theme.textTheme.bodyMedium,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: widget.onDateCleared,
-                                tooltip: 'Clear date filter', // Added tooltip
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+              flex: 1, // Tỷ lệ 1:1 cho cả hai filter
+              child: _buildDateFilter(theme),
             ),
           ],
         ),
@@ -300,12 +159,10 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     );
   }
 
-  /// Build filters stacked vertically for small screens
   Widget _buildSmallScreenFilters(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Search field (conditional)
         if (_showSearch) ...[
           TextField(
             controller: _bookSearchController,
@@ -331,105 +188,142 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
           ),
           const SizedBox(height: 8),
         ],
-
-        // Book filter dropdown
-        Container(
+        SizedBox(
+          height: 48,
           width: double.infinity,
+          child: _buildBookDropdown(theme),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 48,
+          width: double.infinity,
+          child: _buildDateFilter(theme),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBookDropdown(ThemeData theme) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value:
+              widget.books.contains(widget.selectedBook)
+                  ? widget.selectedBook
+                  : widget.books.first,
+          isExpanded: true,
+          borderRadius: BorderRadius.circular(8),
+          icon: const Icon(Icons.arrow_drop_down),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          items:
+              _filteredBooks
+                  .map(
+                    (book) => DropdownMenuItem(
+                      value: book,
+                      child: Tooltip(
+                        message: book,
+                        child: Text(
+                          book,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+          onChanged: widget.onBookChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateFilter(ThemeData theme) {
+    return widget.selectedDate == null
+        ? OutlinedButton.icon(
+          icon: const Icon(Icons.calendar_today, size: 18),
+          label: const Text('Select Date'),
+          onPressed: widget.onDateSelected,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        )
+        : Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey.withOpacity(0.3)),
           ),
-          child: DropdownButtonHideUnderline(
-            child: ButtonTheme(
-              alignedDropdown: true,
-              child: DropdownButton<String>(
-                value:
-                    widget.books.contains(widget.selectedBook)
-                        ? widget.selectedBook
-                        : widget.books.first,
-                isExpanded: true,
-                borderRadius: BorderRadius.circular(8),
-                icon: const Icon(Icons.arrow_drop_down),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                items:
-                    _filteredBooks
-                        .map(
-                          (book) => DropdownMenuItem(
-                            value: book,
-                            child: Tooltip(
-                              message: book, // Tooltip for accessibility
-                              child: Text(
-                                book,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                onChanged: widget.onBookChanged,
+          child: Row(
+            children: [
+              const Tooltip(
+                message: 'Selected date filter',
+                child: Icon(Icons.calendar_today, size: 18),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  DateFormat('MMM dd, yyyy').format(widget.selectedDate!),
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.clear, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: widget.onDateCleared,
+                tooltip: 'Clear date filter',
+              ),
+            ],
           ),
-        ),
+        );
+  }
 
-        const SizedBox(height: 8),
-
-        // Date filter button or chip - full width on small screens
-        widget.selectedDate == null
-            ? SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today),
-                label: const Text('Select Date'),
-                onPressed: widget.onDateSelected,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            )
-            : Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    const Tooltip(
-                      message: 'Selected date filter',
-                      child: Icon(Icons.calendar_today, size: 18),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        DateFormat('MMM dd, yyyy').format(widget.selectedDate!),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.clear, size: 18),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: widget.onDateCleared,
-                      tooltip: 'Clear date filter', // Added tooltip
-                    ),
-                  ],
-                ),
-              ),
-            ),
-      ],
+  Widget _buildStatsRow(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem(
+            'Total',
+            totalCount: widget.totalCount,
+            icon: Icons.book,
+            theme: theme,
+          ),
+          _buildDivider(),
+          _buildStatItem(
+            'Due',
+            totalCount: widget.dueCount,
+            icon: Icons.warning,
+            theme: theme,
+            isHighlighted: widget.dueCount > 0,
+          ),
+          _buildDivider(),
+          _buildStatItem(
+            'Complete',
+            totalCount: widget.completeCount,
+            icon: Icons.check_circle,
+            theme: theme,
+          ),
+        ],
+      ),
     );
   }
 
