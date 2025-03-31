@@ -1,36 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
-import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/module_details_bottom_sheet.dart';
 
-/// Enhanced widget for displaying learning modules data in a sortable table
-/// with sticky headers and accessibility improvements
-class LearningModulesTable extends StatefulWidget {
+/// Simplified table widget for displaying learning modules data
+/// Optimized for mobile devices with limited columns and responsive design
+class SimplifiedLearningModulesTable extends StatefulWidget {
   final List<LearningModule> modules;
   final bool isLoading;
-  final ScrollController? horizontalScrollController;
   final ScrollController? verticalScrollController;
 
-  const LearningModulesTable({
+  const SimplifiedLearningModulesTable({
     super.key,
     required this.modules,
     this.isLoading = false,
-    this.horizontalScrollController,
     this.verticalScrollController,
   });
 
   @override
-  State<LearningModulesTable> createState() => _LearningModulesTableState();
+  State<SimplifiedLearningModulesTable> createState() =>
+      _SimplifiedLearningModulesTableState();
 }
 
-class _LearningModulesTableState extends State<LearningModulesTable> {
+class _SimplifiedLearningModulesTableState
+    extends State<SimplifiedLearningModulesTable> {
   // Sorting state
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
-
-  // List of column definitions for the table
-  late List<_ColumnDefinition> _columns;
 
   // Sorted list of modules
   List<LearningModule> _sortedModules = [];
@@ -38,13 +34,12 @@ class _LearningModulesTableState extends State<LearningModulesTable> {
   @override
   void initState() {
     super.initState();
-    _initializeColumns();
     _sortedModules = List.from(widget.modules);
     _sortData();
   }
 
   @override
-  void didUpdateWidget(LearningModulesTable oldWidget) {
+  void didUpdateWidget(SimplifiedLearningModulesTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.modules != widget.modules) {
       _sortedModules = List.from(widget.modules);
@@ -52,121 +47,46 @@ class _LearningModulesTableState extends State<LearningModulesTable> {
     }
   }
 
-  /// Initialize column definitions
-  void _initializeColumns() {
-    _columns = [
-      _ColumnDefinition(
-        label: 'Subject',
-        tooltip: 'Module subject or title',
-        onSort:
-            (index, ascending) =>
-                _onSort(index, ascending, (module) => module.subject),
-        cellBuilder: (context, module) => _buildSubjectCell(context, module),
-        flex: 3,
-      ),
-      _ColumnDefinition(
-        label: 'Book',
-        tooltip: 'Book containing this module',
-        onSort:
-            (index, ascending) =>
-                _onSort(index, ascending, (module) => module.book),
-        cellBuilder: (context, module) => _buildBookCell(context, module),
-        flex: 2,
-      ),
-      _ColumnDefinition(
-        label: 'Words',
-        tooltip: 'Number of words in this module',
-        numeric: true,
-        onSort:
-            (index, ascending) =>
-                _onSort(index, ascending, (module) => module.wordCount),
-        cellBuilder: (context, module) => _buildWordsCell(context, module),
-        flex: 1,
-      ),
-      _ColumnDefinition(
-        label: 'Cycles',
-        tooltip: 'Learning cycle status',
-        onSort:
-            (index, ascending) => _onSort(
-              index,
-              ascending,
-              (module) => module.cyclesStudied?.index ?? -1,
-            ),
-        cellBuilder: (context, module) => _buildCyclesCell(context, module),
-        flex: 2,
-      ),
-      _ColumnDefinition(
-        label: 'Progress',
-        tooltip: 'Completion percentage',
-        onSort:
-            (index, ascending) =>
-                _onSort(index, ascending, (module) => module.percentage),
-        cellBuilder: (context, module) => _buildProgressCell(context, module),
-        flex: 2,
-      ),
-      _ColumnDefinition(
-        label: 'Next Study',
-        tooltip: 'Scheduled date for next study session',
-        onSort:
-            (index, ascending) => _onSort(
-              index,
-              ascending,
-              (module) => module.nextStudyDate?.millisecondsSinceEpoch ?? 0,
-            ),
-        cellBuilder: (context, module) => _buildNextStudyCell(context, module),
-        flex: 2,
-      ),
-      _ColumnDefinition(
-        label: 'Tasks',
-        tooltip: 'Number of learning tasks',
-        numeric: true,
-        onSort:
-            (index, ascending) =>
-                _onSort(index, ascending, (module) => module.taskCount ?? 0),
-        cellBuilder: (context, module) => _buildTasksCell(context, module),
-        flex: 1,
-      ),
-    ];
-  }
-
-  /// General sort handler using a key extractor function
-  void _onSort<T>(
-    int columnIndex,
-    bool ascending,
-    T Function(LearningModule) getField,
-  ) {
+  /// Sort data based on column index and direction
+  void _sortData() {
     setState(() {
-      _sortColumnIndex = columnIndex;
-      _sortAscending = ascending;
-
-      _sortedModules.sort((a, b) {
-        final aValue = getField(a);
-        final bValue = getField(b);
-
-        int comparison;
-        if (aValue == null && bValue == null) {
-          comparison = 0;
-        } else if (aValue == null) {
-          comparison = -1;
-        } else if (bValue == null) {
-          comparison = 1;
-        } else if (aValue is String && bValue is String) {
-          comparison = aValue.toLowerCase().compareTo(bValue.toLowerCase());
-        } else {
-          // Using Comparable interface
-          comparison = (aValue as Comparable).compareTo(bValue);
-        }
-
-        return ascending ? comparison : -comparison;
-      });
+      switch (_sortColumnIndex) {
+        case 0: // Subject
+          _sortModules((module) => module.subject);
+          break;
+        case 1: // Next Study
+          _sortModules(
+            (module) => module.nextStudyDate?.millisecondsSinceEpoch ?? 0,
+          );
+          break;
+        case 2: // Tasks
+          _sortModules((module) => module.taskCount ?? 0);
+          break;
+      }
     });
   }
 
-  /// Sort data based on current sort parameters
-  void _sortData() {
-    if (_columns.isNotEmpty) {
-      _columns[_sortColumnIndex].onSort?.call(_sortColumnIndex, _sortAscending);
-    }
+  /// Generic sort function using a key extractor
+  void _sortModules<T>(T Function(LearningModule) getField) {
+    _sortedModules.sort((a, b) {
+      final aValue = getField(a);
+      final bValue = getField(b);
+
+      int comparison;
+      if (aValue == null && bValue == null) {
+        comparison = 0;
+      } else if (aValue == null) {
+        comparison = -1;
+      } else if (bValue == null) {
+        comparison = 1;
+      } else if (aValue is String && bValue is String) {
+        comparison = aValue.toLowerCase().compareTo(bValue.toLowerCase());
+      } else {
+        comparison = (aValue as Comparable).compareTo(bValue);
+      }
+
+      return _sortAscending ? comparison : -comparison;
+    });
   }
 
   @override
@@ -186,284 +106,264 @@ class _LearningModulesTableState extends State<LearningModulesTable> {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double tableWidth =
-            constraints.maxWidth < 800 ? 800 : constraints.maxWidth;
+    return Column(
+      children: [
+        // Table header
+        Container(
+          color: theme.colorScheme.surfaceContainerHigh,
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Row(
+            children: [
+              // Index (#) column
+              _buildHeaderCell(
+                context,
+                '#',
+                'Module number',
+                flex: 1,
+                onSort: null, // No sorting for index
+              ),
+              // Subject column
+              _buildHeaderCell(
+                context,
+                'Subject',
+                'Module title',
+                flex: 4,
+                onSort: () => _onSortColumn(0),
+                isActive: _sortColumnIndex == 0,
+              ),
+              // Next Study column
+              _buildHeaderCell(
+                context,
+                'Next Study',
+                'Date for next study session',
+                flex: 3,
+                onSort: () => _onSortColumn(1),
+                isActive: _sortColumnIndex == 1,
+              ),
+              // Tasks column
+              _buildHeaderCell(
+                context,
+                'Tasks',
+                'Number of pending tasks',
+                flex: 2,
+                onSort: () => _onSortColumn(2),
+                isActive: _sortColumnIndex == 2,
+              ),
+            ],
+          ),
+        ),
 
-        return Column(
-          children: [
-            // Sticky header with sort controls
-            Container(
-              color: theme.colorScheme.surface,
-              child: Scrollbar(
-                controller: widget.horizontalScrollController,
-                thumbVisibility: true,
-                trackVisibility: true,
-                thickness: 8,
-                scrollbarOrientation: ScrollbarOrientation.bottom,
-                child: SingleChildScrollView(
-                  controller: widget.horizontalScrollController,
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: tableWidth,
-                    child: Row(children: _buildTableHeaders(theme)),
-                  ),
-                ),
-              ),
-            ),
-            // Scrollable content
-            Expanded(
-              child: Scrollbar(
-                controller: widget.verticalScrollController,
-                thumbVisibility: true,
-                thickness: 8,
-                child: Scrollbar(
-                  controller: widget.horizontalScrollController,
-                  thumbVisibility: true,
-                  thickness: 8,
-                  scrollbarOrientation: ScrollbarOrientation.bottom,
-                  child: SingleChildScrollView(
-                    controller: widget.verticalScrollController,
-                    child: SingleChildScrollView(
-                      controller: widget.horizontalScrollController,
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        width: tableWidth,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _sortedModules.length,
-                          itemBuilder: (context, index) {
-                            final module = _sortedModules[index];
-                            return _buildTableRow(
-                              context,
-                              module,
-                              index,
-                              theme,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+        // Table body
+        Expanded(
+          child: ListView.builder(
+            controller: widget.verticalScrollController,
+            itemCount: _sortedModules.length,
+            itemBuilder: (context, index) {
+              return _buildTableRow(context, _sortedModules[index], index);
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  /// Build the table headers with sort controls
-  List<Widget> _buildTableHeaders(ThemeData theme) {
-    return _columns.asMap().entries.map((entry) {
-      final index = entry.key;
-      final column = entry.value;
+  /// Build a header cell with optional sort controls
+  Widget _buildHeaderCell(
+    BuildContext context,
+    String title,
+    String tooltip, {
+    required int flex,
+    VoidCallback? onSort,
+    bool isActive = false,
+  }) {
+    final theme = Theme.of(context);
 
-      final isCurrentSortColumn = _sortColumnIndex == index;
-
-      return Expanded(
-        flex: column.flex,
-        child: InkWell(
-          onTap: () {
-            if (column.onSort != null) {
-              final newAscending =
-                  _sortColumnIndex == index ? !_sortAscending : true;
-              column.onSort!(index, newAscending);
-            }
-          },
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
-              border: Border(
-                bottom: BorderSide(color: theme.colorScheme.outline, width: 1),
-              ),
-            ),
-            child: Tooltip(
-              message: column.tooltip,
-              child: Row(
-                mainAxisAlignment:
-                    column.numeric
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                children: [
-                  if (isCurrentSortColumn) ...[
-                    Icon(
-                      _sortAscending
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      size: 16,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                  Expanded(
-                    child: Text(
-                      column.label,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign:
-                          column.numeric ? TextAlign.right : TextAlign.left,
-                    ),
+    return Expanded(
+      flex: flex,
+      child: InkWell(
+        onTap: onSort,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
+              if (isActive)
+                Icon(
+                  _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+            ],
           ),
         ),
-      );
-    }).toList();
+      ),
+    );
   }
 
-  /// Build a table row with interactive cells
+  /// Build a table row for a learning module
   Widget _buildTableRow(
     BuildContext context,
     LearningModule module,
     int index,
-    ThemeData theme,
   ) {
+    final theme = Theme.of(context);
     final isEvenRow = index % 2 == 0;
     final backgroundColor =
         isEvenRow
             ? theme.colorScheme.surface
             : theme.colorScheme.surfaceContainerLowest;
 
-    return Material(
-      color: backgroundColor,
-      child: InkWell(
-        onTap: () => _showModuleDetails(context, module),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 64),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
-                width: 0.5,
-              ),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children:
-                _columns.map((column) {
-                  return Expanded(
-                    flex: column.flex,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: column.cellBuilder(context, module),
-                    ),
-                  );
-                }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Cell builders for each column
-
-  Widget _buildSubjectCell(BuildContext context, LearningModule module) {
-    return Tooltip(
-      message: module.subject,
-      child: Text(module.subject, overflow: TextOverflow.ellipsis, maxLines: 2),
-    );
-  }
-
-  Widget _buildBookCell(BuildContext context, LearningModule module) {
-    return Tooltip(
-      message: module.book,
-      child: Text(module.book, overflow: TextOverflow.ellipsis, maxLines: 1),
-    );
-  }
-
-  Widget _buildWordsCell(BuildContext context, LearningModule module) {
-    return Semantics(
-      value: '${module.wordCount} words',
-      child: Text(module.wordCount.toString(), textAlign: TextAlign.right),
-    );
-  }
-
-  Widget _buildCyclesCell(BuildContext context, LearningModule module) {
-    return Text(
-      module.cyclesStudied != null
-          ? CycleFormatter.format(module.cyclesStudied!)
-          : '-',
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  Widget _buildProgressCell(BuildContext context, LearningModule module) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: 120,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Semantics(
-            value: '${module.percentage}% complete',
-            child: Text('${module.percentage}%'),
-          ),
-          const SizedBox(height: 4),
-          Semantics(
-            label: 'Progress bar showing ${module.percentage}% completion',
-            child: LinearProgressIndicator(
-              value: module.percentage / 100,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                module.percentage >= 90
-                    ? Colors.green
-                    : module.percentage >= 70
-                    ? Colors.orange
-                    : Colors.red,
-              ),
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNextStudyCell(BuildContext context, LearningModule module) {
-    final theme = Theme.of(context);
+    // Determine if this module is due soon
     final isNearDue =
         module.nextStudyDate != null &&
         module.nextStudyDate!.isBefore(
           DateTime.now().add(const Duration(days: 3)),
         );
 
-    return module.nextStudyDate != null
-        ? Tooltip(
-          message:
-              'Due on ${DateFormat('EEEE, MMMM d, yyyy').format(module.nextStudyDate!)}',
-          child: Text(
-            DateFormat('MMM dd, yyyy').format(module.nextStudyDate!),
-            style:
-                isNearDue
-                    ? TextStyle(
-                      color: theme.colorScheme.error,
-                      fontWeight: FontWeight.bold,
-                    )
-                    : null,
+    return Material(
+      color: backgroundColor,
+      child: InkWell(
+        onTap: () => _showModuleDetails(context, module),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          child: Row(
+            children: [
+              // Index column
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Center(
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Subject column
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        module.subject,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                      Text(
+                        module.book,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Next Study column
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child:
+                      module.nextStudyDate != null
+                          ? Text(
+                            DateFormat(
+                              'MMM dd, yyyy',
+                            ).format(module.nextStudyDate!),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isNearDue ? theme.colorScheme.error : null,
+                              fontWeight: isNearDue ? FontWeight.bold : null,
+                            ),
+                          )
+                          : const Text('-'),
+                ),
+              ),
+
+              // Tasks column
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child:
+                      module.taskCount != null
+                          ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withOpacity(
+                                    0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  module.taskCount.toString(),
+                                  style: TextStyle(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                          : const Text('-'),
+                ),
+              ),
+            ],
           ),
-        )
-        : const Text('-');
+        ),
+      ),
+    );
   }
 
-  Widget _buildTasksCell(BuildContext context, LearningModule module) {
-    return Text(
-      module.taskCount?.toString() ?? '-',
-      textAlign: TextAlign.right,
-    );
+  /// Handle column sorting
+  void _onSortColumn(int columnIndex) {
+    setState(() {
+      if (_sortColumnIndex == columnIndex) {
+        // Reverse sort direction if same column is clicked
+        _sortAscending = !_sortAscending;
+      } else {
+        // Set new sort column and default to ascending
+        _sortColumnIndex = columnIndex;
+        _sortAscending = true;
+      }
+      _sortData();
+    });
   }
 
   /// Show module details in a bottom sheet
@@ -471,30 +371,8 @@ class _LearningModulesTableState extends State<LearningModulesTable> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) => ModuleDetailsBottomSheet(module: module),
     );
   }
-}
-
-/// Internal class to define table columns
-class _ColumnDefinition {
-  final String label;
-  final String tooltip;
-  final bool numeric;
-  final void Function(int columnIndex, bool ascending)? onSort;
-  final Widget Function(BuildContext context, LearningModule module)
-  cellBuilder;
-  final int flex;
-
-  _ColumnDefinition({
-    required this.label,
-    required this.tooltip,
-    this.numeric = false,
-    this.onSort,
-    required this.cellBuilder,
-    this.flex = 1,
-  });
 }

@@ -5,7 +5,7 @@ import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
 /// Bottom sheet that displays detailed information about a learning module
-/// Enhanced with better keyboard handling, SafeArea, and animations
+/// Enhanced for mobile view with all module details that aren't visible in the simplified table
 class ModuleDetailsBottomSheet extends StatelessWidget {
   final LearningModule module;
   final String? heroTagPrefix;
@@ -19,211 +19,268 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    // Get the MediaQuery with view insets removed to handle keyboard properly
     final mediaQuery = MediaQuery.of(context);
-    final removeInsets = mediaQuery.removeViewInsets(removeBottom: true);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutQuad,
-      child: SafeArea(
-        // SafeArea to protect content from system UI
-        bottom: true,
-        child: MediaQuery(
-          // Apply the adjusted MediaQuery
-          data: removeInsets,
-          child: DraggableScrollableSheet(
-            initialChildSize: 0.5,
-            maxChildSize: 0.9,
-            minChildSize: 0.3,
-            expand: false,
-            builder: (context, scrollController) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Handle for dragging
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12, bottom: 8),
-                      child: Container(
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
-                            0.3,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-
-                    // Main content
-                    Expanded(
-                      child: SingleChildScrollView(
-                        controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Module title with Hero animation
-                            _buildModuleTitle(theme),
-
-                            // Book source
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.book,
-                                  color: theme.colorScheme.primary,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'From: ${module.book}',
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          color: theme.colorScheme.primary,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const Divider(height: 32),
-
-                            // Details grid
-                            Wrap(
-                              spacing: 16,
-                              runSpacing: 16,
-                              children: [
-                                _buildDetailItem(
-                                  context,
-                                  'Word Count',
-                                  module.wordCount.toString(),
-                                  Icons.text_fields,
-                                ),
-                                _buildDetailItem(
-                                  context,
-                                  'Progress',
-                                  '${module.percentage}%',
-                                  Icons.trending_up,
-                                  progressValue: module.percentage / 100,
-                                ),
-                                _buildDetailItem(
-                                  context,
-                                  'Cycle',
-                                  module.cyclesStudied != null
-                                      ? CycleFormatter.format(
-                                        module.cyclesStudied!,
-                                      )
-                                      : 'Not started',
-                                  Icons.loop,
-                                  color:
-                                      module.cyclesStudied != null
-                                          ? Color(
-                                            CycleFormatter.getColorValue(
-                                              module.cyclesStudied!,
-                                            ),
-                                          )
-                                          : null,
-                                ),
-                                _buildDetailItem(
-                                  context,
-                                  'Tasks',
-                                  module.taskCount?.toString() ?? 'None',
-                                  Icons.assignment,
-                                ),
-                              ],
-                            ),
-
-                            const Divider(height: 32),
-
-                            // Dates section with animation
-                            AnimatedOpacity(
-                              opacity: 1.0,
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // First learning date
-                                  if (module.firstLearningDate != null)
-                                    _buildDateItem(
-                                      context,
-                                      'First Learning',
-                                      module.firstLearningDate!,
-                                      Icons.play_circle,
-                                    ),
-
-                                  // Next study date
-                                  if (module.nextStudyDate != null) ...[
-                                    const SizedBox(height: 16),
-                                    _buildDateItem(
-                                      context,
-                                      'Next Study',
-                                      module.nextStudyDate!,
-                                      Icons.event,
-                                      isUpcoming: module.nextStudyDate!
-                                          .isBefore(
-                                            DateTime.now().add(
-                                              const Duration(days: 3),
-                                            ),
-                                          ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 24),
-
-                            // Study history section
-                            if (module.studyHistory != null &&
-                                module.studyHistory!.isNotEmpty)
-                              _buildStudyHistorySection(context),
-
-                            const SizedBox(height: 24),
-
-                            // Action buttons
-                            _buildActionButtons(context),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 1,
           ),
-        ),
+        ],
+      ),
+      constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle for dragging
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+
+          // Main content in a scrollable container
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Module title
+                  Row(
+                    children: [
+                      Expanded(
+                        child:
+                            heroTagPrefix != null
+                                ? Hero(
+                                  tag: '${heroTagPrefix}_${module.id}',
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: Text(
+                                      module.subject,
+                                      style: theme.textTheme.headlineSmall,
+                                    ),
+                                  ),
+                                )
+                                : Text(
+                                  module.subject,
+                                  style: theme.textTheme.headlineSmall,
+                                ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Book info
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.book,
+                        color: theme.colorScheme.primary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'From: ${module.book}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const Divider(height: 32),
+
+                  // Key details grid
+                  _buildDetailSectionTitle(context, 'Module Details'),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      _buildDetailItem(
+                        context,
+                        'Word Count',
+                        module.wordCount.toString(),
+                        Icons.text_fields,
+                      ),
+                      _buildDetailItem(
+                        context,
+                        'Progress',
+                        '${module.percentage}%',
+                        Icons.trending_up,
+                        progressValue: module.percentage / 100,
+                      ),
+                      _buildDetailItem(
+                        context,
+                        'Cycle',
+                        module.cyclesStudied != null
+                            ? CycleFormatter.format(module.cyclesStudied!)
+                            : 'Not started',
+                        Icons.loop,
+                        color:
+                            module.cyclesStudied != null
+                                ? Color(
+                                  CycleFormatter.getColorValue(
+                                    module.cyclesStudied!,
+                                  ),
+                                )
+                                : null,
+                      ),
+                      _buildDetailItem(
+                        context,
+                        'Tasks',
+                        module.taskCount?.toString() ?? 'None',
+                        Icons.assignment,
+                      ),
+                    ],
+                  ),
+
+                  const Divider(height: 32),
+
+                  // Vocabulary statistics
+                  _buildDetailSectionTitle(context, 'Vocabulary Statistics'),
+                  const SizedBox(height: 8),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildStatRow(
+                          context: context,
+                          label: 'Total Words',
+                          value: module.wordCount.toString(),
+                          icon: Icons.menu_book,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildStatRow(
+                          context: context,
+                          label: 'Words Learned',
+                          value: module.learnedWords.toString(),
+                          icon: Icons.spellcheck,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildStatRow(
+                          context: context,
+                          label: 'Remaining Words',
+                          value: module.remainingWords.toString(),
+                          icon: Icons.hourglass_bottom,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Progress bar for vocabulary completion
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                            value: module.percentage / 100,
+                            minHeight: 8,
+                            backgroundColor:
+                                theme.colorScheme.surfaceContainerHighest,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              module.percentage >= 90
+                                  ? Colors.green
+                                  : module.percentage >= 70
+                                  ? Colors.orange
+                                  : Colors.red,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Dates section
+                  _buildDetailSectionTitle(context, 'Important Dates'),
+                  const SizedBox(height: 8),
+
+                  // First learning date
+                  if (module.firstLearningDate != null)
+                    _buildDateItem(
+                      context,
+                      'First Learning',
+                      module.firstLearningDate!,
+                      Icons.play_circle,
+                    ),
+
+                  // Next study date
+                  if (module.nextStudyDate != null) ...[
+                    const SizedBox(height: 16),
+                    _buildDateItem(
+                      context,
+                      'Next Study',
+                      module.nextStudyDate!,
+                      Icons.event,
+                      isUpcoming: module.nextStudyDate!.isBefore(
+                        DateTime.now().add(const Duration(days: 3)),
+                      ),
+                    ),
+                  ],
+
+                  // Last study date if available
+                  if (module.lastStudyDate != null) ...[
+                    const SizedBox(height: 16),
+                    _buildDateItem(
+                      context,
+                      'Last Study',
+                      module.lastStudyDate!,
+                      Icons.history,
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Study history section
+                  if (module.studyHistory != null &&
+                      module.studyHistory!.isNotEmpty)
+                    _buildStudyHistorySection(context),
+
+                  const SizedBox(height: 24),
+
+                  // Action buttons
+                  _buildActionButtons(context),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  /// Build the module title section with hero animation
-  Widget _buildModuleTitle(ThemeData theme) {
-    return heroTagPrefix != null
-        ? Hero(
-          tag: '${heroTagPrefix}_${module.id}',
-          child: Material(
-            color: Colors.transparent,
-            child: Text(module.subject, style: theme.textTheme.headlineSmall),
+  /// Build a section title
+  Widget _buildDetailSectionTitle(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(Icons.info_outline, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
           ),
-        )
-        : Text(module.subject, style: theme.textTheme.headlineSmall);
+        ),
+      ],
+    );
   }
 
   /// Build a detail item tile
@@ -239,13 +296,13 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     final effectiveColor = color ?? theme.colorScheme.primary;
     final size = MediaQuery.of(context).size;
     final containerWidth =
-        size.width < 600 ? (size.width - 80) / 2 : (size.width - 96) / 3;
+        size.width < 600 ? (size.width - 64) / 2 : (size.width - 96) / 3;
 
     return Container(
       width: containerWidth,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: effectiveColor.withOpacity(0.2), width: 1),
       ),
@@ -293,6 +350,30 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  /// Build a statistics row item
+  Widget _buildStatRow({
+    required BuildContext context,
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 16),
+        Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+        Text(
+          value,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
@@ -363,18 +444,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.history, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
-            Text(
-              'Study History',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        _buildDetailSectionTitle(context, 'Study History'),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
@@ -447,8 +517,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             icon: const Icon(Icons.play_arrow),
             label: const Text('Start Learning'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
               foregroundColor: theme.colorScheme.onPrimary,
+              backgroundColor: theme.colorScheme.primary,
             ),
             onPressed: () {
               Navigator.pop(context);

@@ -26,8 +26,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   String? _errorMessage;
   bool _isInitialized = false;
 
-  // Scroll controllers for table scrolling
-  final ScrollController _horizontalScrollController = ScrollController();
+  // Scroll controller for table scrolling
   final ScrollController _verticalScrollController = ScrollController();
 
   // Debouncer for load data to prevent rapid successive calls
@@ -45,7 +44,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
 
   @override
   void dispose() {
-    _horizontalScrollController.dispose();
     _verticalScrollController.dispose();
     _loadDebouncer.dispose();
     super.dispose();
@@ -272,7 +270,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Learning Progress Overview'),
+        title: const Text('Learning Progress'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -287,65 +285,67 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
         ],
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: LearningFilterBar(
-                selectedBook: _selectedBook,
-                selectedDate: _selectedDate,
-                books: _getUniqueBooks(),
-                onBookChanged: (value) {
-                  if (value != null && mounted) {
-                    setState(() {
-                      _selectedBook = value;
-                    });
-                    _applyFilters();
-                  }
-                },
-                onDateSelected: _selectDate,
-                onDateCleared: _clearDateFilter,
-                totalCount: totalModules,
-                dueCount: dueModules,
-                completeCount: completedModules,
-              ),
+        child: Column(
+          children: [
+            // Filter bar
+            LearningFilterBar(
+              selectedBook: _selectedBook,
+              selectedDate: _selectedDate,
+              books: _getUniqueBooks(),
+              onBookChanged: (value) {
+                if (value != null && mounted) {
+                  setState(() {
+                    _selectedBook = value;
+                  });
+                  _applyFilters();
+                }
+              },
+              onDateSelected: _selectDate,
+              onDateCleared: _clearDateFilter,
+              totalCount: totalModules,
+              dueCount: dueModules,
+              completeCount: completedModules,
             ),
+
+            // Error message
             if (_errorMessage != null && !_isLoading)
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: theme.colorScheme.error),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: TextStyle(color: theme.colorScheme.error),
-                        ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: theme.colorScheme.error),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(color: theme.colorScheme.error),
                       ),
-                      TextButton(
-                        onPressed: _loadDataDebounced,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+                    ),
+                    TextButton(
+                      onPressed: _loadDataDebounced,
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
               ),
-            SliverFillRemaining(
-              hasScrollBody: true,
-              child: LearningModulesTable(
+
+            // Main content - simplified table
+            Expanded(
+              child: SimplifiedLearningModulesTable(
                 modules: _filteredModules,
                 isLoading: _isLoading,
-                horizontalScrollController: _horizontalScrollController,
                 verticalScrollController: _verticalScrollController,
               ),
             ),
-            SliverToBoxAdapter(
+
+            // Footer - takes full width
+            SizedBox(
+              width: double.infinity, // Ensure parent container is full width
               child: LearningFooter(
                 totalModules: totalModules,
                 completedModules: completedModules,

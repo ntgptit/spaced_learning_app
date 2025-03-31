@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Footer widget displayed at the bottom of the Learning Progress screen
-/// Enhanced with additional action options and improved accessibility
 class LearningFooter extends StatelessWidget {
   final int totalModules;
   final int completedModules;
@@ -31,11 +29,11 @@ class LearningFooter extends StatelessWidget {
             ? (completedModules / totalModules * 100).toStringAsFixed(1)
             : '0.0';
 
-    // Create semantic label for screen readers
     final progressSemanticLabel =
         'Completed $completedModules of $totalModules modules, $completionPercentage percent complete';
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -62,7 +60,6 @@ class LearningFooter extends StatelessWidget {
     );
   }
 
-  /// Build layout for small screens (stacked vertically)
   Widget _buildSmallScreenLayout(
     ThemeData theme,
     String completionPercentage,
@@ -72,7 +69,6 @@ class LearningFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Progress summary
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -108,30 +104,30 @@ class LearningFooter extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 8),
-
-        // Action buttons in a row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: _buildActionButtons(theme),
+        SizedBox(
+          width: double.infinity,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min, // Chỉ chiếm không gian cần thiết
+              children: _buildActionButtons(theme),
+            ),
           ),
         ),
       ],
     );
   }
 
-  /// Build layout for wide screens (row layout)
   Widget _buildWideScreenLayout(
     ThemeData theme,
     String completionPercentage,
     String progressSemanticLabel,
   ) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Progress summary
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,18 +165,17 @@ class LearningFooter extends StatelessWidget {
             ],
           ),
         ),
-
-        // Action buttons
-        ..._buildActionButtons(theme),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: _buildActionButtons(theme),
+        ),
       ],
     );
   }
 
-  /// Build all action buttons based on provided callbacks
   List<Widget> _buildActionButtons(ThemeData theme) {
     final buttons = <Widget>[];
 
-    // Export button
     if (onExportData != null) {
       buttons.add(
         Tooltip(
@@ -193,12 +188,11 @@ class LearningFooter extends StatelessWidget {
           ),
         ),
       );
-      buttons.add(const SizedBox(width: 8));
     }
 
-    // Settings button
     if (onSettingsPressed != null) {
-      buttons.add(
+      buttons.addAll([
+        const SizedBox(width: 8),
         Tooltip(
           message: 'Settings',
           child: IconButton(
@@ -207,12 +201,12 @@ class LearningFooter extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-      );
+      ]);
     }
 
-    // Feedback button
     if (onFeedbackPressed != null) {
-      buttons.add(
+      buttons.addAll([
+        const SizedBox(width: 8),
         Tooltip(
           message: 'Send feedback',
           child: IconButton(
@@ -221,12 +215,12 @@ class LearningFooter extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-      );
+      ]);
     }
 
-    // Help button
     if (onHelpPressed != null) {
-      buttons.add(
+      buttons.addAll([
+        const SizedBox(width: 8),
         Tooltip(
           message: 'Help',
           child: IconButton(
@@ -235,7 +229,7 @@ class LearningFooter extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
         ),
-      );
+      ]);
     }
 
     return buttons;

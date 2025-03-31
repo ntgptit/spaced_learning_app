@@ -1,6 +1,8 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/dashboard/enhanced_dashboard_screen.dart';
@@ -45,11 +47,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => serviceLocator<RepetitionViewModel>(),
         ),
-        // ChangeNotifierProvider(
-        //   create: (_) => serviceLocator<LearningStatsViewModel>(),
-        // ),
+        // Thêm LearningDataService provider
+        Provider<LearningDataService>(
+          create: (_) => serviceLocator<LearningDataService>(),
+        ),
         ChangeNotifierProvider(
-          create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
+          create: (context) => serviceLocator<EnhancedLearningStatsViewModel>(),
         ),
       ],
       child: const AppWithTheme(),
