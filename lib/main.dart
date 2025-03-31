@@ -1,12 +1,9 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
-import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/dashboard/enhanced_dashboard_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/home/integrated_home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
@@ -47,12 +44,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => serviceLocator<RepetitionViewModel>(),
         ),
-        // Thêm LearningDataService provider
-        Provider<LearningDataService>(
-          create: (_) => serviceLocator<LearningDataService>(),
-        ),
         ChangeNotifierProvider(
-          create: (context) => serviceLocator<EnhancedLearningStatsViewModel>(),
+          create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
         ),
       ],
       child: const AppWithTheme(),
@@ -77,13 +70,12 @@ class AppWithTheme extends StatelessWidget {
       // Start with the appropriate screen based on authentication status
       home:
           authViewModel.isAuthenticated
-              ? const EnhancedDashboardScreen()
+              ? const IntegratedHomeScreen()
               : const LoginScreen(),
 
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/dashboard': (context) => const EnhancedDashboardScreen(),
+        '/home': (context) => const IntegratedHomeScreen(),
         '/learning/progress': (context) => const LearningProgressScreen(),
       },
     );
