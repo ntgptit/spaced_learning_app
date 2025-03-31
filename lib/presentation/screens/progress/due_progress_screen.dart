@@ -1,4 +1,3 @@
-// lib/presentation/screens/progress/due_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +18,7 @@ class DueProgressScreen extends StatefulWidget {
 }
 
 class _DueProgressScreenState extends State<DueProgressScreen> {
+  // State variables
   DateTime? _selectedDate;
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
@@ -28,10 +28,10 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     _loadData();
   }
 
+  // Data operations
   Future<void> _loadData() async {
     final authViewModel = context.read<AuthViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
-
     if (authViewModel.currentUser != null) {
       await progressViewModel.loadDueProgress(
         authViewModel.currentUser!.id,
@@ -40,195 +40,169 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-
     if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-
-      _loadData();
+      setState(() => _selectedDate = picked);
+      await _loadData();
     }
   }
 
+  void _clearDateFilter() {
+    setState(() => _selectedDate = null);
+    _loadData();
+  }
+
+  // UI utilities
+  String _formatCycleStudied(CycleStudied cycle) {
+    return switch (cycle) {
+      CycleStudied.firstTime => 'Chu kỳ đầu tiên',
+      CycleStudied.firstReview => 'Chu kỳ ôn tập thứ nhất',
+      CycleStudied.secondReview => 'Chu kỳ ôn tập thứ hai',
+      CycleStudied.thirdReview => 'Chu kỳ ôn tập thứ ba',
+      CycleStudied.moreThanThreeReviews => 'Đã ôn tập nhiều hơn 3 chu kỳ',
+    };
+  }
+
+  bool _isDue(ProgressSummary progress) {
+    if (progress.nextStudyDate == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final nextDate = DateTime(
+      progress.nextStudyDate!.year,
+      progress.nextStudyDate!.month,
+      progress.nextStudyDate!.day,
+    );
+    final targetDate =
+        _selectedDate != null
+            ? DateTime(
+              _selectedDate!.year,
+              _selectedDate!.month,
+              _selectedDate!.day,
+            )
+            : today;
+    return nextDate.compareTo(targetDate) <= 0;
+  }
+
+  // Build methods
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final authViewModel = context.watch<AuthViewModel>();
-    final progressViewModel = context.watch<ProgressViewModel>();
-
     if (authViewModel.currentUser == null) {
       return const Center(child: Text('Please log in to view your due items'));
     }
+    return Scaffold(body: _buildBody());
+  }
 
-    return Scaffold(
-      body: Column(
+  Widget _buildBody() {
+    return Column(
+      children: [_buildDateFilter(), Expanded(child: _buildProgressList())],
+    );
+  }
+
+  Widget _buildDateFilter() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
         children: [
-          // Date filter
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _selectedDate == null
-                        ? 'Due Today'
-                        : 'Due by ${_dateFormat.format(_selectedDate!)}',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(_selectedDate == null ? 'Select Date' : 'Change'),
-                  onPressed: () => _selectDate(context),
-                ),
-                if (_selectedDate != null) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = null;
-                      });
-                      _loadData();
-                    },
-                    tooltip: 'Clear date filter',
-                  ),
-                ],
-              ],
+          Expanded(
+            child: Text(
+              _selectedDate == null
+                  ? 'Due Today'
+                  : 'Due by ${_dateFormat.format(_selectedDate!)}',
+              style: theme.textTheme.titleLarge,
             ),
           ),
-
-          // Progress list
-          Expanded(child: _buildProgressList(progressViewModel)),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.calendar_today),
+            label: Text(_selectedDate == null ? 'Select Date' : 'Change'),
+            onPressed: _selectDate,
+          ),
+          if (_selectedDate != null) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearDateFilter,
+              tooltip: 'Clear date filter',
+            ),
+          ],
         ],
       ),
     );
   }
 
-  /// Build the progress list based on loading state
-  Widget _buildProgressList(ProgressViewModel viewModel) {
-    if (viewModel.isLoading) {
+  Widget _buildProgressList() {
+    final progressViewModel = context.watch<ProgressViewModel>();
+    if (progressViewModel.isLoading)
       return const Center(child: AppLoadingIndicator());
-    }
-
-    if (viewModel.errorMessage != null) {
+    if (progressViewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(
-          message: viewModel.errorMessage!,
+          message: progressViewModel.errorMessage!,
           onRetry: _loadData,
         ),
       );
     }
-
-    if (viewModel.progressRecords.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.check_circle_outline,
-              size: 64,
-              color: Colors.green,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _selectedDate == null
-                  ? 'No modules due for review today!'
-                  : 'No modules due for review by ${_dateFormat.format(_selectedDate!)}',
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Great job keeping up with your studies!',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
+    if (progressViewModel.progressRecords.isEmpty) return _buildEmptyState();
 
     return RefreshIndicator(
       onRefresh: _loadData,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        itemCount: viewModel.progressRecords.length,
-        itemBuilder: (context, index) {
-          final progress = viewModel.progressRecords[index];
-          return _buildProgressItem(progress);
-        },
+        itemCount: progressViewModel.progressRecords.length,
+        itemBuilder:
+            (context, index) =>
+                _buildProgressItem(progressViewModel.progressRecords[index]),
       ),
     );
   }
 
-  /// Build a progress card for a single item
-  Widget _buildProgressItem(ProgressSummary progress) {
-    // Determine if this progress is due
-    bool isDue = false;
-    if (progress.nextStudyDate != null) {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final nextDate = DateTime(
-        progress.nextStudyDate!.year,
-        progress.nextStudyDate!.month,
-        progress.nextStudyDate!.day,
-      );
-
-      final targetDate =
-          _selectedDate != null
-              ? DateTime(
-                _selectedDate!.year,
-                _selectedDate!.month,
-                _selectedDate!.day,
-              )
-              : today;
-
-      isDue = nextDate.compareTo(targetDate) <= 0;
-    }
-
-    // In a real app, you would fetch the module title from a repository
-    // For this demo, we'll use a placeholder
-    const moduleTitle = 'Module';
-
-    // Format cycle studied for subtitle
-    final String cycleText = _formatCycleStudied(progress.cyclesStudied);
-
-    return ProgressCard(
-      progress: progress,
-      moduleTitle: moduleTitle,
-      isDue: isDue,
-      subtitle: 'Chu kỳ: $cycleText',
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProgressDetailScreen(progressId: progress.id),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.check_circle_outline, size: 64, color: Colors.green),
+          const SizedBox(height: 16),
+          Text(
+            _selectedDate == null
+                ? 'No modules due for review today!'
+                : 'No modules due for review by ${_dateFormat.format(_selectedDate!)}',
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
           ),
-        ).then((_) => _loadData()); // Refresh on return
-      },
+          const SizedBox(height: 8),
+          const Text(
+            'Great job keeping up with your studies!',
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
-  /// Format cycle studied enum to user-friendly string
-  String _formatCycleStudied(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'Chu kỳ đầu tiên';
-      case CycleStudied.firstReview:
-        return 'Chu kỳ ôn tập thứ nhất';
-      case CycleStudied.secondReview:
-        return 'Chu kỳ ôn tập thứ hai';
-      case CycleStudied.thirdReview:
-        return 'Chu kỳ ôn tập thứ ba';
-      case CycleStudied.moreThanThreeReviews:
-        return 'Đã ôn tập nhiều hơn 3 chu kỳ';
-    }
+  Widget _buildProgressItem(ProgressSummary progress) {
+    const moduleTitle = 'Module';
+    final cycleText = _formatCycleStudied(progress.cyclesStudied);
+    return ProgressCard(
+      progress: progress,
+      moduleTitle: moduleTitle,
+      isDue: _isDue(progress),
+      subtitle: 'Chu kỳ: $cycleText',
+      onTap:
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => ProgressDetailScreen(progressId: progress.id),
+            ),
+          ).then((_) => _loadData()),
+    );
   }
 }

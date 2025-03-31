@@ -17,9 +17,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Controllers
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // Error states
   String? _emailError;
   String? _passwordError;
 
@@ -30,32 +33,32 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // Validation methods
   void _validateEmail() {
     setState(() {
-      if (_emailController.text.isEmpty) {
-        _emailError = 'Email is required';
-      } else if (!RegExp(
-        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-      ).hasMatch(_emailController.text)) {
-        _emailError = 'Enter a valid email address';
-      } else {
-        _emailError = null;
-      }
+      _emailError =
+          _emailController.text.isEmpty
+              ? 'Email is required'
+              : !RegExp(
+                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+              ).hasMatch(_emailController.text)
+              ? 'Enter a valid email address'
+              : null;
     });
   }
 
   void _validatePassword() {
     setState(() {
-      if (_passwordController.text.isEmpty) {
-        _passwordError = 'Password is required';
-      } else if (_passwordController.text.length < 8) {
-        _passwordError = 'Password must be at least 8 characters';
-      } else {
-        _passwordError = null;
-      }
+      _passwordError =
+          _passwordController.text.isEmpty
+              ? 'Password is required'
+              : _passwordController.text.length < 8
+              ? 'Password must be at least 8 characters'
+              : null;
     });
   }
 
+  // Login handler
   Future<void> _login() async {
     _validateEmail();
     _validatePassword();
@@ -68,10 +71,105 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted && authViewModel.isAuthenticated) {
-        // Navigate to home screen
         Navigator.of(context).pushReplacementNamed('/home');
       }
     }
+  }
+
+  // UI Components
+  Widget _buildHeader(ThemeData theme) {
+    return Column(
+      children: [
+        Text(
+          AppConstants.appName,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Login to your account',
+          style: theme.textTheme.titleMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Widget _buildErrorDisplay(AuthViewModel authViewModel) {
+    return authViewModel.errorMessage != null
+        ? Column(
+          children: [
+            ErrorDisplay(
+              message: authViewModel.errorMessage!,
+              compact: true,
+              onRetry: authViewModel.clearError,
+            ),
+            const SizedBox(height: 16),
+          ],
+        )
+        : const SizedBox.shrink();
+  }
+
+  Widget _buildFormFields() {
+    return Column(
+      children: [
+        AppTextField(
+          label: 'Email',
+          hint: 'Enter your email',
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          errorText: _emailError,
+          prefixIcon: Icons.email,
+          onChanged: (_) => _emailError = null,
+          onEditingComplete: _validateEmail,
+        ),
+        const SizedBox(height: 16),
+        AppPasswordField(
+          label: 'Password',
+          hint: 'Enter your password',
+          controller: _passwordController,
+          errorText: _passwordError,
+          prefixIcon: const Icon(Icons.lock),
+          onChanged: (_) => _passwordError = null,
+          onEditingComplete: _validatePassword,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActions(BuildContext context, AuthViewModel authViewModel) {
+    return Column(
+      children: [
+        const SizedBox(height: 24),
+        AppButton(
+          text: 'Login',
+          onPressed: _login,
+          isLoading: authViewModel.isLoading,
+          isFullWidth: true,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Don't have an account? ",
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            TextButton(
+              onPressed:
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  ),
+              child: const Text('Register'),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -92,86 +190,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      AppConstants.appName,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Login to your account',
-                      style: theme.textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Error message if any
-                    if (authViewModel.errorMessage != null) ...[
-                      ErrorDisplay(
-                        message: authViewModel.errorMessage!,
-                        compact: true,
-                        onRetry: authViewModel.clearError,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Email field
-                    AppTextField(
-                      label: 'Email',
-                      hint: 'Enter your email',
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      errorText: _emailError,
-                      prefixIcon: Icons.email,
-                      onChanged: (_) => _emailError = null,
-                      onEditingComplete: _validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password field
-                    AppPasswordField(
-                      label: 'Password',
-                      hint: 'Enter your password',
-                      controller: _passwordController,
-                      errorText: _passwordError,
-                      prefixIcon: const Icon(Icons.lock),
-                      onChanged: (_) => _passwordError = null,
-                      onEditingComplete: _validatePassword,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Login button
-                    AppButton(
-                      text: 'Login',
-                      onPressed: _login,
-                      isLoading: authViewModel.isLoading,
-                      isFullWidth: true,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Register link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text('Register'),
-                        ),
-                      ],
-                    ),
+                    _buildHeader(theme),
+                    _buildErrorDisplay(authViewModel),
+                    _buildFormFields(),
+                    _buildActions(context, authViewModel),
                   ],
                 ),
               ),

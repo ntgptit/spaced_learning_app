@@ -17,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // State variables and controllers
   final TextEditingController _displayNameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
@@ -33,51 +34,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  // Data operations
   Future<void> _loadUserData() async {
     final userViewModel = context.read<UserViewModel>();
     await userViewModel.loadCurrentUser();
-
     if (userViewModel.currentUser != null) {
       _displayNameController.text =
           userViewModel.currentUser!.displayName ?? '';
     }
   }
 
-  void _toggleEditing() {
-    setState(() {
-      _isEditing = !_isEditing;
-      if (!_isEditing) {
-        // Reset form when canceling edit
-        final userViewModel = context.read<UserViewModel>();
-        if (userViewModel.currentUser != null) {
-          _displayNameController.text =
-              userViewModel.currentUser!.displayName ?? '';
-        }
-      }
-    });
-  }
-
   Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
       final userViewModel = context.read<UserViewModel>();
-
       final success = await userViewModel.updateProfile(
         displayName: _displayNameController.text,
       );
 
       if (success && mounted) {
-        // Reload user data after update
         await _loadUserData();
-
-        // Exit editing mode
-        setState(() {
-          _isEditing = false;
-        });
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
+        setState(() => _isEditing = false);
+        _showSuccessMessage();
       }
     }
   }
@@ -85,19 +62,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout() async {
     final authViewModel = context.read<AuthViewModel>();
     await authViewModel.logout();
-
     if (mounted && !authViewModel.isAuthenticated) {
-      // Navigate to login screen
       Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 
+  void _toggleEditing() {
+    setState(() {
+      _isEditing = !_isEditing;
+      if (!_isEditing) {
+        _resetForm();
+      }
+    });
+  }
+
+  void _resetForm() {
+    final userViewModel = context.read<UserViewModel>();
+    if (userViewModel.currentUser != null) {
+      _displayNameController.text =
+          userViewModel.currentUser!.displayName ?? '';
+    }
+  }
+
+  void _showSuccessMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully')),
+    );
+  }
+
+  // Build methods
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final authViewModel = context.watch<AuthViewModel>();
     final userViewModel = context.watch<UserViewModel>();
-    final themeViewModel = context.watch<ThemeViewModel>();
 
     if (authViewModel.currentUser == null) {
       return const Center(child: Text('Please log in to view your profile'));
@@ -110,104 +107,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _loadUserData,
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // Profile header
-            const SizedBox(height: 16),
-            Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: theme.colorScheme.primary,
-                child: Text(
-                  _getInitials(
-                    authViewModel.currentUser!.displayName ??
-                        authViewModel.currentUser!.email,
-                  ),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-              ),
+        child: _buildContent(authViewModel, userViewModel),
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    AuthViewModel authViewModel,
+    UserViewModel userViewModel,
+  ) {
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        const SizedBox(height: 16),
+        _buildAvatar(theme, authViewModel.currentUser),
+        const SizedBox(height: 16),
+        if (userViewModel.errorMessage != null)
+          _buildErrorDisplay(userViewModel),
+        _isEditing
+            ? _buildEditProfileForm()
+            : _buildProfileInfo(
+              theme,
+              userViewModel.currentUser ?? authViewModel.currentUser!,
             ),
-            const SizedBox(height: 16),
+        const SizedBox(height: 32),
+        _buildSettingsSection(theme),
+        const SizedBox(height: 24),
+        _buildLogoutButton(),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
 
-            // Display error if any
-            if (userViewModel.errorMessage != null)
-              ErrorDisplay(
-                message: userViewModel.errorMessage!,
-                compact: true,
-                onRetry: () {
-                  userViewModel.clearError();
-                  _loadUserData();
-                },
-              ),
-
-            // Profile info
-            _isEditing
-                ? _buildEditProfileForm()
-                : _buildProfileInfo(
-                  theme,
-                  userViewModel.currentUser ?? authViewModel.currentUser!,
-                ),
-
-            const SizedBox(height: 32),
-
-            // Settings section
-            Text('Settings', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 16),
-
-            // Dark mode toggle
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Icon(
-                      themeViewModel.isDarkMode
-                          ? Icons.dark_mode
-                          : Icons.light_mode,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        'Dark Mode',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                    Switch(
-                      value: themeViewModel.isDarkMode,
-                      onChanged: (value) {
-                        themeViewModel.setDarkMode(value);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Other settings cards can be added here
-            const SizedBox(height: 24),
-
-            // Logout button
-            AppButton(
-              text: 'Logout',
-              type: AppButtonType.outline,
-              prefixIcon: Icons.logout,
-              onPressed: _logout,
-              isFullWidth: true,
-            ),
-
-            const SizedBox(height: 24),
-          ],
+  Widget _buildAvatar(ThemeData theme, dynamic user) {
+    return Center(
+      child: CircleAvatar(
+        radius: 50,
+        backgroundColor: theme.colorScheme.primary,
+        child: Text(
+          _getInitials(user.displayName ?? user.email),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: theme.colorScheme.onPrimary,
+          ),
         ),
       ),
     );
   }
 
-  /// Build the user's profile information display
+  Widget _buildErrorDisplay(UserViewModel userViewModel) {
+    return ErrorDisplay(
+      message: userViewModel.errorMessage!,
+      compact: true,
+      onRetry: () {
+        userViewModel.clearError();
+        _loadUserData();
+      },
+    );
+  }
+
   Widget _buildProfileInfo(ThemeData theme, dynamic currentUser) {
     return Card(
       child: Padding(
@@ -215,21 +173,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Profile Information', style: theme.textTheme.titleLarge),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: _toggleEditing,
-                  tooltip: 'Edit Profile',
-                ),
-              ],
-            ),
+            _buildProfileHeader(theme),
             const Divider(),
             const SizedBox(height: 8),
-
-            // Display Name
             _buildInfoRow(
               theme,
               'Display Name',
@@ -237,11 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icons.person,
             ),
             const SizedBox(height: 16),
-
-            // Email
             _buildInfoRow(theme, 'Email', currentUser.email, Icons.email),
-
-            // Roles (if available)
             if (currentUser.roles != null && currentUser.roles!.isNotEmpty) ...[
               const SizedBox(height: 16),
               _buildInfoRow(
@@ -257,7 +199,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Build a single info row
+  Widget _buildProfileHeader(ThemeData theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Profile Information', style: theme.textTheme.titleLarge),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: _toggleEditing,
+          tooltip: 'Edit Profile',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditProfileForm() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildEditHeader(),
+              const Divider(),
+              const SizedBox(height: 16),
+              AppTextField(
+                label: 'Display Name',
+                hint: 'Enter your display name',
+                controller: _displayNameController,
+                prefixIcon: Icons.person,
+              ),
+              const SizedBox(height: 24),
+              _buildEditActions(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('Edit Profile', style: Theme.of(context).textTheme.titleLarge),
+        IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: _toggleEditing,
+          tooltip: 'Cancel',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditActions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        AppButton(
+          text: 'Cancel',
+          type: AppButtonType.text,
+          onPressed: _toggleEditing,
+        ),
+        const SizedBox(width: 8),
+        AppButton(
+          text: 'Save Changes',
+          type: AppButtonType.primary,
+          onPressed: _updateProfile,
+          isLoading: context.watch<UserViewModel>().isLoading,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsSection(ThemeData theme) {
+    final themeViewModel = context.watch<ThemeViewModel>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Settings', style: theme.textTheme.titleLarge),
+        const SizedBox(height: 16),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Icon(
+                  themeViewModel.isDarkMode
+                      ? Icons.dark_mode
+                      : Icons.light_mode,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text('Dark Mode', style: theme.textTheme.titleMedium),
+                ),
+                Switch(
+                  value: themeViewModel.isDarkMode,
+                  onChanged: themeViewModel.setDarkMode,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return AppButton(
+      text: 'Logout',
+      type: AppButtonType.outline,
+      prefixIcon: Icons.logout,
+      onPressed: _logout,
+      isFullWidth: true,
+    );
+  }
+
   Widget _buildInfoRow(
     ThemeData theme,
     String label,
@@ -282,82 +342,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Build the form for editing profile
-  Widget _buildEditProfileForm() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Edit Profile',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: _toggleEditing,
-                    tooltip: 'Cancel',
-                  ),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              // Display Name
-              AppTextField(
-                label: 'Display Name',
-                hint: 'Enter your display name',
-                controller: _displayNameController,
-                prefixIcon: Icons.person,
-              ),
-              const SizedBox(height: 24),
-
-              // Update button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  AppButton(
-                    text: 'Cancel',
-                    type: AppButtonType.text,
-                    onPressed: _toggleEditing,
-                  ),
-                  const SizedBox(width: 8),
-                  AppButton(
-                    text: 'Save Changes',
-                    type: AppButtonType.primary,
-                    onPressed: _updateProfile,
-                    isLoading: context.watch<UserViewModel>().isLoading,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Get initials from name or email
   String _getInitials(String text) {
     if (text.isEmpty) return '';
-
-    // For email, use first letter
-    if (text.contains('@')) {
-      return text[0].toUpperCase();
-    }
-
-    // For name, use first letter of each word (max 2)
+    if (text.contains('@')) return text[0].toUpperCase();
     final words = text.trim().split(' ');
-    if (words.length == 1) {
-      return words[0][0].toUpperCase();
-    }
-
-    return (words[0][0] + words[1][0]).toUpperCase();
+    return words.length == 1
+        ? words[0][0].toUpperCase()
+        : (words[0][0] + words[1][0]).toUpperCase();
   }
 }
