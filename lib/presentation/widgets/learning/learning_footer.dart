@@ -1,13 +1,14 @@
-// lib/presentation/widgets/learning/learning_footer.dart
 import 'package:flutter/material.dart';
 
 /// Footer widget displayed at the bottom of the Learning Progress screen
-/// Fixed to avoid overflow issues
+/// Enhanced with additional action options and improved accessibility
 class LearningFooter extends StatelessWidget {
   final int totalModules;
   final int completedModules;
   final VoidCallback? onExportData;
   final VoidCallback? onHelpPressed;
+  final VoidCallback? onSettingsPressed;
+  final VoidCallback? onFeedbackPressed;
 
   const LearningFooter({
     super.key,
@@ -15,6 +16,8 @@ class LearningFooter extends StatelessWidget {
     required this.completedModules,
     this.onExportData,
     this.onHelpPressed,
+    this.onSettingsPressed,
+    this.onFeedbackPressed,
   });
 
   @override
@@ -28,6 +31,10 @@ class LearningFooter extends StatelessWidget {
             ? (completedModules / totalModules * 100).toStringAsFixed(1)
             : '0.0';
 
+    // Create semantic label for screen readers
+    final progressSemanticLabel =
+        'Completed $completedModules of $totalModules modules, $completionPercentage percent complete';
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
@@ -40,127 +47,197 @@ class LearningFooter extends StatelessWidget {
           ),
         ],
       ),
-      // Use a more compact layout, especially for small screens
       child:
           isSmallScreen
-              ? _buildSmallScreenLayout(theme, completionPercentage)
-              : _buildWideScreenLayout(theme, completionPercentage),
+              ? _buildSmallScreenLayout(
+                theme,
+                completionPercentage,
+                progressSemanticLabel,
+              )
+              : _buildWideScreenLayout(
+                theme,
+                completionPercentage,
+                progressSemanticLabel,
+              ),
     );
   }
 
   /// Build layout for small screens (stacked vertically)
-  Widget _buildSmallScreenLayout(ThemeData theme, String completionPercentage) {
+  Widget _buildSmallScreenLayout(
+    ThemeData theme,
+    String completionPercentage,
+    String progressSemanticLabel,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Progress summary text - using shorter format
-        RichText(
-          text: TextSpan(
-            style: theme.textTheme.bodySmall,
-            children: [
-              TextSpan(
-                text: 'Completed: ',
-                style: TextStyle(color: theme.colorScheme.onSurface),
-              ),
-              TextSpan(
-                text: '$completedModules/$totalModules ',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              TextSpan(
-                text: '($completionPercentage%)',
-                style: TextStyle(color: theme.colorScheme.secondary),
-              ),
-            ],
-          ),
-        ),
-
-        // Action buttons in a row - use compact buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        // Progress summary
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Export button
-            if (onExportData != null)
-              TextButton.icon(
-                onPressed: onExportData,
-                icon: const Icon(Icons.download, size: 16),
-                label: const Text('Export'),
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 0,
+            Text('Learning Progress', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 4),
+            Semantics(
+              label: progressSemanticLabel,
+              child: ExcludeSemantics(
+                child: RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.bodySmall,
+                    children: [
+                      TextSpan(
+                        text: 'Completed: ',
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                      TextSpan(
+                        text: '$completedModules of $totalModules modules ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '($completionPercentage%)',
+                        style: TextStyle(color: theme.colorScheme.secondary),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
-            // Help button
-            if (onHelpPressed != null)
-              IconButton(
-                onPressed: onHelpPressed,
-                icon: const Icon(Icons.help_outline, size: 16),
-                tooltip: 'Help',
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(6),
-              ),
+            ),
           ],
+        ),
+
+        const SizedBox(height: 8),
+
+        // Action buttons in a row
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: _buildActionButtons(theme),
+          ),
         ),
       ],
     );
   }
 
   /// Build layout for wide screens (row layout)
-  Widget _buildWideScreenLayout(ThemeData theme, String completionPercentage) {
+  Widget _buildWideScreenLayout(
+    ThemeData theme,
+    String completionPercentage,
+    String progressSemanticLabel,
+  ) {
     return Row(
       children: [
         // Progress summary
         Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: theme.textTheme.bodySmall,
-              children: [
-                TextSpan(
-                  text: 'Completed: ',
-                  style: TextStyle(color: theme.colorScheme.onSurface),
-                ),
-                TextSpan(
-                  text: '$completedModules of $totalModules modules ',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Learning Progress', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 4),
+              Semantics(
+                label: progressSemanticLabel,
+                child: ExcludeSemantics(
+                  child: RichText(
+                    text: TextSpan(
+                      style: theme.textTheme.bodySmall,
+                      children: [
+                        TextSpan(
+                          text: 'Completed: ',
+                          style: TextStyle(color: theme.colorScheme.onSurface),
+                        ),
+                        TextSpan(
+                          text: '$completedModules of $totalModules modules ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '($completionPercentage%)',
+                          style: TextStyle(color: theme.colorScheme.secondary),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                TextSpan(
-                  text: '($completionPercentage%)',
-                  style: TextStyle(color: theme.colorScheme.secondary),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
 
-        // Export button
-        if (onExportData != null)
-          TextButton.icon(
+        // Action buttons
+        ..._buildActionButtons(theme),
+      ],
+    );
+  }
+
+  /// Build all action buttons based on provided callbacks
+  List<Widget> _buildActionButtons(ThemeData theme) {
+    final buttons = <Widget>[];
+
+    // Export button
+    if (onExportData != null) {
+      buttons.add(
+        Tooltip(
+          message: 'Export learning data',
+          child: TextButton.icon(
             onPressed: onExportData,
             icon: const Icon(Icons.download),
             label: const Text('Export'),
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
+        ),
+      );
+      buttons.add(const SizedBox(width: 8));
+    }
 
-        // Help button
-        if (onHelpPressed != null)
-          IconButton(
-            onPressed: onHelpPressed,
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Help',
+    // Settings button
+    if (onSettingsPressed != null) {
+      buttons.add(
+        Tooltip(
+          message: 'Settings',
+          child: IconButton(
+            onPressed: onSettingsPressed,
+            icon: const Icon(Icons.settings_outlined),
             visualDensity: VisualDensity.compact,
           ),
-      ],
-    );
+        ),
+      );
+    }
+
+    // Feedback button
+    if (onFeedbackPressed != null) {
+      buttons.add(
+        Tooltip(
+          message: 'Send feedback',
+          child: IconButton(
+            onPressed: onFeedbackPressed,
+            icon: const Icon(Icons.feedback_outlined),
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+      );
+    }
+
+    // Help button
+    if (onHelpPressed != null) {
+      buttons.add(
+        Tooltip(
+          message: 'Help',
+          child: IconButton(
+            onPressed: onHelpPressed,
+            icon: const Icon(Icons.help_outline),
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+      );
+    }
+
+    return buttons;
   }
 }

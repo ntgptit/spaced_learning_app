@@ -1,8 +1,9 @@
-// lib/presentation/screens/learning/learning_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
+import 'package:spaced_learning_app/core/utils/date_utils.dart';
+import 'package:spaced_learning_app/core/utils/debouncer.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer.dart';
@@ -29,17 +30,15 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   final ScrollController _horizontalScrollController = ScrollController();
   final ScrollController _verticalScrollController = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  // Debouncer for load data to prevent rapid successive calls
+  final Debouncer _loadDebouncer = Debouncer(milliseconds: 300);
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // First time initialization only
     if (!_isInitialized) {
-      _loadData();
+      _loadDataDebounced();
       _isInitialized = true;
     }
   }
@@ -48,7 +47,12 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   void dispose() {
     _horizontalScrollController.dispose();
     _verticalScrollController.dispose();
+    _loadDebouncer.dispose();
     super.dispose();
+  }
+
+  void _loadDataDebounced() {
+    _loadDebouncer.run(() => _loadData());
   }
 
   Future<void> _loadData() async {
@@ -60,7 +64,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     });
 
     try {
-      // Get service from provider
       final learningDataService = Provider.of<LearningDataService>(
         context,
         listen: false,
@@ -92,7 +95,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                 backgroundColor: Colors.red,
                 action: SnackBarAction(
                   label: 'Retry',
-                  onPressed: _loadData,
+                  onPressed: _loadDataDebounced,
                   textColor: Colors.white,
                 ),
               ),
@@ -106,28 +109,46 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   void _applyFilters() {
     if (!mounted) return;
 
-    setState(() {
-      _filteredModules =
-          _modules.where((module) {
-            // Filter by book
-            final bookMatch =
-                _selectedBook == 'All' || module.book == _selectedBook;
+    // Calculate new filtered modules
+    final newFilteredModules =
+        _modules.where((module) {
+          // Filter by book
+          final bookMatch =
+              _selectedBook == 'All' || module.book == _selectedBook;
 
-            // Filter by date
-            final dateMatch =
-                _selectedDate == null ||
-                (module.nextStudyDate != null &&
-                    _isSameDay(module.nextStudyDate!, _selectedDate!));
+          // Filter by date
+          final dateMatch =
+              _selectedDate == null ||
+              (module.nextStudyDate != null &&
+                  AppDateUtils.isSameDay(
+                    module.nextStudyDate!,
+                    _selectedDate!,
+                  ));
 
-            return bookMatch && dateMatch;
-          }).toList();
-    });
+          return bookMatch && dateMatch;
+        }).toList();
+
+    // Only update state if the filtered results have changed
+    if (_filteredModulesChanged(newFilteredModules)) {
+      setState(() {
+        _filteredModules = newFilteredModules;
+      });
+    }
   }
 
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
+  // Check if filtered modules have changed to avoid unnecessary setState
+  bool _filteredModulesChanged(List<LearningModule> newModules) {
+    if (_filteredModules.length != newModules.length) {
+      return true;
+    }
+
+    for (int i = 0; i < _filteredModules.length; i++) {
+      if (_filteredModules[i].id != newModules[i].id) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   List<String> _getUniqueBooks() {
@@ -152,8 +173,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     if (picked != null && picked != _selectedDate && mounted) {
       setState(() {
         _selectedDate = picked;
-        _applyFilters();
       });
+      _applyFilters();
     }
   }
 
@@ -162,8 +183,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
 
     setState(() {
       _selectedDate = null;
-      _applyFilters();
     });
+    _applyFilters();
   }
 
   void _exportData() async {
@@ -258,7 +279,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
+            onPressed: _loadDataDebounced,
             tooltip: 'Refresh data',
           ),
           IconButton(
@@ -268,7 +289,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
           ),
         ],
       ),
-      // Use LayoutBuilder to constrain the height properly
       body: SafeArea(
         child: Column(
           children: [
@@ -281,8 +301,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                 if (value != null && mounted) {
                   setState(() {
                     _selectedBook = value;
-                    _applyFilters();
                   });
+                  _applyFilters();
                 }
               },
               onDateSelected: _selectDate,
@@ -312,14 +332,14 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: _loadData,
+                      onPressed: _loadDataDebounced,
                       child: const Text('Retry'),
                     ),
                   ],
                 ),
               ),
 
-            // Data table - using Expanded to give it the remaining space
+            // Data table - we pass our scroll controllers to ensure consistent scrolling
             Expanded(
               child: LearningModulesTable(
                 modules: _filteredModules,
@@ -329,7 +349,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
               ),
             ),
 
-            // Footer - kept outside the Expanded to maintain fixed position
+            // Footer
             LearningFooter(
               totalModules: totalModules,
               completedModules: completedModules,
