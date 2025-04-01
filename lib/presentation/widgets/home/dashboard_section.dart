@@ -1,81 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/enhanced_learning_stats_card.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:spaced_learning_app/domain/models/learning_stats.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
 
-// /// Data class for module-related statistics
-// class ModuleStats {
-//   final int totalModules;
-//   final int completedModules;
-//   final int inProgressModules;
+part 'dashboard_section.freezed.dart';
 
-//   const ModuleStats({
-//     required this.totalModules,
-//     required this.completedModules,
-//     required this.inProgressModules,
-//   });
-// }
+/// Data class for module-related statistics
+@freezed
+abstract class ModuleStats with _$ModuleStats {
+  const factory ModuleStats({
+    required int totalModules,
+    required int completedModules,
+    required int inProgressModules,
+  }) = _ModuleStats;
+}
 
-// /// Data class for due learning statistics
-// class DueStats {
-//   final int dueToday;
-//   final int dueThisWeek;
-//   final int dueThisMonth;
-//   final int wordsDueToday;
-//   final int wordsDueThisWeek;
-//   final int wordsDueThisMonth;
+/// Data class for due learning statistics
+@freezed
+abstract class DueStats with _$DueStats {
+  const factory DueStats({
+    required int dueToday,
+    required int dueThisWeek,
+    required int dueThisMonth,
+    required int wordsDueToday,
+    required int wordsDueThisWeek,
+    required int wordsDueThisMonth,
+  }) = _DueStats;
+}
 
-//   const DueStats({
-//     required this.dueToday,
-//     required this.dueThisWeek,
-//     required this.dueThisMonth,
-//     required this.wordsDueToday,
-//     required this.wordsDueThisWeek,
-//     required this.wordsDueThisMonth,
-//   });
-// }
+/// Data class for completed learning statistics
+@freezed
+abstract class CompletionStats with _$CompletionStats {
+  const factory CompletionStats({
+    required int completedToday,
+    required int completedThisWeek,
+    required int completedThisMonth,
+    required int wordsCompletedToday,
+    required int wordsCompletedThisWeek,
+    required int wordsCompletedThisMonth,
+  }) = _CompletionStats;
+}
 
-// /// Data class for completed learning statistics
-// class CompletionStats {
-//   final int completedToday;
-//   final int completedThisWeek;
-//   final int completedThisMonth;
-//   final int wordsCompletedToday;
-//   final int wordsCompletedThisWeek;
-//   final int wordsCompletedThisMonth;
+/// Data class for learning streak statistics
+@freezed
+abstract class StreakStats with _$StreakStats {
+  const factory StreakStats({
+    required int streakDays,
+    required int streakWeeks,
+  }) = _StreakStats;
+}
 
-//   const CompletionStats({
-//     required this.completedToday,
-//     required this.completedThisWeek,
-//     required this.completedThisMonth,
-//     required this.wordsCompletedToday,
-//     required this.wordsCompletedThisWeek,
-//     required this.wordsCompletedThisMonth,
-//   });
-// }
-
-// /// Data class for learning streak statistics
-// class StreakStats {
-//   final int streakDays;
-//   final int streakWeeks;
-
-//   const StreakStats({required this.streakDays, required this.streakWeeks});
-// }
-
-// /// Data class for vocabulary statistics
-// class VocabularyStats {
-//   final int totalWords;
-//   final int learnedWords;
-//   final int pendingWords;
-//   final double vocabularyCompletionRate;
-//   final double weeklyNewWordsRate;
-
-//   const VocabularyStats({
-//     required this.totalWords,
-//     required this.learnedWords,
-//     required this.pendingWords,
-//     required this.vocabularyCompletionRate,
-//     required this.weeklyNewWordsRate,
-//   });
-// }
+/// Data class for vocabulary statistics
+@freezed
+abstract class VocabularyStats with _$VocabularyStats {
+  const factory VocabularyStats({
+    required int totalWords,
+    required int learnedWords,
+    required int pendingWords,
+    required double vocabularyCompletionRate,
+    required double weeklyNewWordsRate,
+  }) = _VocabularyStats;
+}
 
 /// Dashboard section for the home screen that displays learning statistics
 class DashboardSection extends StatelessWidget {
@@ -98,13 +83,37 @@ class DashboardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EnhancedLearningStatsCard(
-      moduleStats: moduleStats,
-      dueStats: dueStats,
-      completionStats: completionStats,
-      streakStats: streakStats,
-      vocabularyStats: vocabularyStats,
-      onViewProgress: onViewProgress,
+    final statsDTO = LearningStatsDTO(
+      totalModules: moduleStats.totalModules,
+      completedModules: moduleStats.completedModules,
+      inProgressModules: moduleStats.inProgressModules,
+      moduleCompletionRate:
+          moduleStats.totalModules > 0
+              ? (moduleStats.completedModules / moduleStats.totalModules * 100)
+              : 0.0,
+      dueToday: dueStats.dueToday,
+      dueThisWeek: dueStats.dueThisWeek,
+      dueThisMonth: dueStats.dueThisMonth,
+      wordsDueToday: dueStats.wordsDueToday,
+      wordsDueThisWeek: dueStats.wordsDueThisWeek,
+      wordsDueThisMonth: dueStats.wordsDueThisMonth,
+      completedToday: completionStats.completedToday,
+      wordsCompletedToday: completionStats.wordsCompletedToday,
+      streakDays: streakStats.streakDays,
+      streakWeeks: streakStats.streakWeeks,
+      longestStreakDays:
+          streakStats
+              .streakDays, // Assuming current streak is longest for simplicity
+      totalWords: vocabularyStats.totalWords,
+      learnedWords: vocabularyStats.learnedWords,
+      pendingWords: vocabularyStats.pendingWords,
+      vocabularyCompletionRate: vocabularyStats.vocabularyCompletionRate,
+      weeklyNewWordsRate: vocabularyStats.weeklyNewWordsRate,
+    );
+
+    return LearningStatsCard(
+      stats: statsDTO,
+      onViewDetailPressed: onViewProgress,
     );
   }
 }

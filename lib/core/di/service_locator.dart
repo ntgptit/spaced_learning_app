@@ -5,12 +5,14 @@ import 'package:spaced_learning_app/core/services/learning_data_service_impl.dar
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/data/repositories/auth_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/book_repository_impl.dart';
+import 'package:spaced_learning_app/data/repositories/learning_stats_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/module_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/progress_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/repetition_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/user_repository_impl.dart';
 import 'package:spaced_learning_app/domain/repositories/auth_repository.dart';
 import 'package:spaced_learning_app/domain/repositories/book_repository.dart';
+import 'package:spaced_learning_app/domain/repositories/learning_stats_repository.dart';
 import 'package:spaced_learning_app/domain/repositories/module_repository.dart';
 import 'package:spaced_learning_app/domain/repositories/progress_repository.dart';
 import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
@@ -18,6 +20,7 @@ import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/enhanced_learning_stats_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
@@ -56,6 +59,10 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(serviceLocator<ApiClient>()),
   );
+  // New repository registration
+  serviceLocator.registerLazySingleton<LearningStatsRepository>(
+    () => LearningStatsRepositoryImpl(serviceLocator<ApiClient>()),
+  );
 
   // ViewModels
   serviceLocator.registerFactory<AuthViewModel>(
@@ -90,6 +97,12 @@ Future<void> setupServiceLocator() async {
     () => EnhancedLearningStatsViewModel(
       progressRepository: serviceLocator<ProgressRepository>(),
       learningDataService: serviceLocator<LearningDataService>(),
+    ),
+  );
+  // New viewmodel registration
+  serviceLocator.registerFactory<LearningStatsViewModel>(
+    () => LearningStatsViewModel(
+      repository: serviceLocator<LearningStatsRepository>(),
     ),
   );
 }

@@ -52,4 +52,12 @@ class ApiEndpoints {
       '$basePath/repetitions/user/$userId/due';
   static String repetitionByOrder(String progressId, String order) =>
       '$basePath/repetitions/progress/$progressId/order/$order';
+
+  // Learning Statistics endpoints
+  static final String dashboardStats = '$basePath/stats/dashboard';
+  static String userDashboardStats(String userId) =>
+      '$basePath/stats/users/$userId/dashboard';
+  static final String learningInsights = '$basePath/stats/insights';
+  static String userLearningInsights(String userId) =>
+      '$basePath/stats/users/$userId/insights';
 }

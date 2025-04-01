@@ -4,11 +4,13 @@ import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/home/integrated_home_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/enhanced_learning_stats_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
@@ -48,6 +50,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
         ),
+        // Add the new LearningStatsViewModel
+        ChangeNotifierProvider(
+          create: (_) => serviceLocator<LearningStatsViewModel>(),
+        ),
         Provider<LearningDataService>(
           create: (_) => serviceLocator<LearningDataService>(),
         ),
@@ -81,6 +87,7 @@ class AppWithTheme extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const IntegratedHomeScreen(),
         '/learning/progress': (context) => const LearningProgressScreen(),
+        '/learning/stats': (context) => const LearningStatsScreen(),
       },
     );
   }
