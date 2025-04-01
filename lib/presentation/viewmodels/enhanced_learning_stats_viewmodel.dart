@@ -36,8 +36,15 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
   // Module counts
   int _totalModules = 0;
-  int _completedModules = 0;
-  int _inProgressModules = 0;
+  final Map<String, int> _cycleStats = {
+    'NOT_STUDIED': 0,
+    'FIRST_TIME': 0,
+    'FIRST_REVIEW': 0,
+    'SECOND_REVIEW': 0,
+    'THIRD_REVIEW': 0,
+    'MORE_THAN_THREE_REVIEWS': 0,
+  };
+  final int _inProgressModules = 0;
 
   // Learning streaks
   int _streakDays = 0;
@@ -78,7 +85,8 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
   // Module count getters
   int get totalModules => _totalModules;
-  int get completedModules => _completedModules;
+  Map<String, int> get cycleStats =>
+      _cycleStats; // Sửa từ int sang Map<String, int>
   int get inProgressModules => _inProgressModules;
 
   // Streak getters
@@ -99,7 +107,6 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
   /// Load all learning statistics data with enhanced metrics
   Future<void> loadLearningStats(String userId) async {
-    // Prevent multiple concurrent loading operations
     if (_isLoading) return;
 
     _setLoading(true);
@@ -126,7 +133,6 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
       // Mark as initialized
       _isInitialized = true;
 
-      // Now notify listeners once all calculations are done
       _setLoading(false);
     } on AppException catch (e) {
       _errorMessage = e.message;
@@ -167,11 +173,10 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
     // Calculate totals
     _totalModules = _modules.length;
-    _completedModules = learningDataService.countCompletedModules(_modules);
-    _inProgressModules = _totalModules - _completedModules;
+    // _completedModules = learningDataService.countCompletedModules(_modules);
+    // _inProgressModules = _totalModules - _completedModules;
 
     // For the purpose of the demo, set realistic values for completions
-    // In a real app, these would come from the repository
     _completedToday =
         (_dueToday * 0.7).round(); // Assume 70% completion rate for today
     _completedThisWeek =
@@ -187,26 +192,17 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
   /// Calculate vocabulary statistics without notifying listeners
   void _calculateVocabularyStatsWithoutNotifying() {
-    // Total words across all modules
     _totalWords = _modules.fold(0, (sum, module) => sum + module.wordCount);
-
-    // Learned words (based on completion percentage of each module)
     _learnedWords = _modules.fold(
       0,
       (sum, module) =>
           sum + ((module.wordCount * module.percentage / 100).round()),
     );
-
-    // Pending words
     _pendingWords = _totalWords - _learnedWords;
-
-    // Vocabulary completion rate
     _vocabularyCompletionRate =
         _totalWords > 0 ? (_learnedWords / _totalWords) * 100 : 0;
 
-    // Calculate a realistic weekly new words rate based on the data
     if (_modules.isNotEmpty) {
-      // Modules with first learning dates in the past 4 weeks
       final recentModules =
           _modules
               .where(
@@ -224,15 +220,9 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
           (sum, module) =>
               sum + ((module.wordCount * module.percentage / 100).round()),
         );
-
-        // What percentage of total words is this?
         _weeklyNewWordsRate =
-            _totalWords > 0
-                ? (totalWordsLearned / _totalWords) *
-                    25 // Adjust for a weekly rate
-                : 0;
+            _totalWords > 0 ? (totalWordsLearned / _totalWords) * 25 : 0;
       } else {
-        // Fallback to a reasonable default
         _weeklyNewWordsRate = 5.5;
       }
     } else {
@@ -242,21 +232,14 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
 
   /// Calculate the user's learning streak in days
   Future<int> _calculateStreakDays(String userId) async {
-    // In a real app, this would query the database to determine
-    // how many consecutive days the user has completed at least one module
-
-    // For this demo, derive a plausible streak from our generated data
     final modulesByRecency =
         _modules.where((m) => m.lastStudyDate != null).toList()
           ..sort((a, b) => b.lastStudyDate!.compareTo(a.lastStudyDate!));
 
     if (modulesByRecency.isEmpty) return 0;
 
-    // Check if studied today
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-
-    // Get most recent study date
     final lastStudyDate = modulesByRecency.first.lastStudyDate!;
     final lastStudyDay = DateTime(
       lastStudyDate.year,
@@ -264,30 +247,18 @@ class EnhancedLearningStatsViewModel extends ChangeNotifier {
       lastStudyDate.day,
     );
 
-    // If not studied today or yesterday, streak is broken
     if (lastStudyDay.isBefore(today.subtract(const Duration(days: 1)))) {
       return 0;
     }
 
-    // Count back from today to find consecutive study days
-    // In a real app, this would be from actual study records
-    // Here we'll use a plausible generated value between 1-21 days
     final random = DateTime.now().millisecondsSinceEpoch % 21;
     return random + 1;
   }
 
   /// Calculate the user's learning streak in weeks
   Future<int> _calculateStreakWeeks(String userId) async {
-    // In a real app, this would query the database to determine
-    // how many consecutive weeks the user has completed at least one module
-
-    // For this demo, derive from our day streak with some logic
     final dayStreak = await _calculateStreakDays(userId);
-
-    // If day streak is 0, week streak is also 0
     if (dayStreak == 0) return 0;
-
-    // Otherwise calculate a plausible week streak (roughly day streak / 7)
     return (dayStreak / 7).ceil();
   }
 

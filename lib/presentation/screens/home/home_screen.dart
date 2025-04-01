@@ -8,7 +8,6 @@ import 'package:spaced_learning_app/presentation/screens/learning/learning_stats
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/enhanced_learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
@@ -259,7 +258,7 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
 
   // Legacy dashboard section for compatibility
   Widget _buildLegacyDashboard() {
-    final enhancedViewModel = context.watch<EnhancedLearningStatsViewModel>();
+    final enhancedViewModel = context.watch<LearningStatsViewModel>();
     final theme = Theme.of(context);
 
     return enhancedViewModel.errorMessage != null
@@ -271,8 +270,7 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
         : DashboardSection(
           moduleStats: ModuleStats(
             totalModules: enhancedViewModel.totalModules,
-            completedModules: enhancedViewModel.completedModules,
-            inProgressModules: enhancedViewModel.inProgressModules,
+            cycleStats: enhancedViewModel.cycleStats,
           ),
           dueStats: DueStats(
             dueToday: enhancedViewModel.dueToday,

@@ -10,10 +10,17 @@ _LearningStatsDTO _$LearningStatsDTOFromJson(
   Map<String, dynamic> json,
 ) => _LearningStatsDTO(
   totalModules: (json['totalModules'] as num?)?.toInt() ?? 0,
-  completedModules: (json['completedModules'] as num?)?.toInt() ?? 0,
-  inProgressModules: (json['inProgressModules'] as num?)?.toInt() ?? 0,
-  moduleCompletionRate:
-      (json['moduleCompletionRate'] as num?)?.toDouble() ?? 0.0,
+  cycleStats:
+      (json['cycleStats'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toInt()),
+      ) ??
+      const {
+        'FIRST_TIME': 0,
+        'FIRST_REVIEW': 0,
+        'SECOND_REVIEW': 0,
+        'THIRD_REVIEW': 0,
+        'MORE_THAN_THREE_REVIEWS': 0,
+      },
   dueToday: (json['dueToday'] as num?)?.toInt() ?? 0,
   dueThisWeek: (json['dueThisWeek'] as num?)?.toInt() ?? 0,
   dueThisMonth: (json['dueThisMonth'] as num?)?.toInt() ?? 0,
@@ -54,9 +61,7 @@ _LearningStatsDTO _$LearningStatsDTOFromJson(
 Map<String, dynamic> _$LearningStatsDTOToJson(_LearningStatsDTO instance) =>
     <String, dynamic>{
       'totalModules': instance.totalModules,
-      'completedModules': instance.completedModules,
-      'inProgressModules': instance.inProgressModules,
-      'moduleCompletionRate': instance.moduleCompletionRate,
+      'cycleStats': instance.cycleStats,
       'dueToday': instance.dueToday,
       'dueThisWeek': instance.dueThisWeek,
       'dueThisMonth': instance.dueThisMonth,

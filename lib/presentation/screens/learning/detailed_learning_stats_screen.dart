@@ -69,13 +69,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         return _buildStreakDetails(context, stats);
       case StatCategory.vocabulary:
         return _buildVocabularyDetails(context, stats);
-      default:
-        return Center(
-          child: Text(
-            'Detail not available for this category',
-            style: theme.textTheme.titleMedium,
-          ),
-        );
     }
   }
 
@@ -90,7 +83,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         _buildProgressBar(
           context,
           'Overall Completion',
-          stats.completedModules,
+          100, // TODO
           stats.totalModules,
           Colors.blue,
         ),
@@ -106,7 +99,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         _buildStatCard(
           context,
           'Completed Modules',
-          stats.completedModules.toString(),
+          '100', // TODO
           Icons.check_circle,
           Colors.green,
           'Modules you have fully completed with 100% progress',
@@ -114,7 +107,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         _buildStatCard(
           context,
           'In Progress Modules',
-          stats.inProgressModules.toString(),
+          '100', // TODO
           Icons.pending_actions,
           Colors.orange,
           'Modules you have started but not yet completed',
@@ -122,7 +115,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         _buildStatCard(
           context,
           'Completion Rate',
-          '${stats.moduleCompletionRate.toStringAsFixed(1)}%',
+          '100%', //TODO
           Icons.trending_up,
           theme.colorScheme.primary,
           'Your overall progress through all modules',

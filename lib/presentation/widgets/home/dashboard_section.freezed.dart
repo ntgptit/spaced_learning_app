@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ModuleStats {
 
- int get totalModules; int get completedModules; int get inProgressModules;
+ int get totalModules; Map<String, int> get cycleStats;
 /// Create a copy of ModuleStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $ModuleStatsCopyWith<ModuleStats> get copyWith => _$ModuleStatsCopyWithImpl<Modu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ModuleStats&&(identical(other.totalModules, totalModules) || other.totalModules == totalModules)&&(identical(other.completedModules, completedModules) || other.completedModules == completedModules)&&(identical(other.inProgressModules, inProgressModules) || other.inProgressModules == inProgressModules));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ModuleStats&&(identical(other.totalModules, totalModules) || other.totalModules == totalModules)&&const DeepCollectionEquality().equals(other.cycleStats, cycleStats));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalModules,completedModules,inProgressModules);
+int get hashCode => Object.hash(runtimeType,totalModules,const DeepCollectionEquality().hash(cycleStats));
 
 @override
 String toString() {
-  return 'ModuleStats(totalModules: $totalModules, completedModules: $completedModules, inProgressModules: $inProgressModules)';
+  return 'ModuleStats(totalModules: $totalModules, cycleStats: $cycleStats)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $ModuleStatsCopyWith<$Res>  {
   factory $ModuleStatsCopyWith(ModuleStats value, $Res Function(ModuleStats) _then) = _$ModuleStatsCopyWithImpl;
 @useResult
 $Res call({
- int totalModules, int completedModules, int inProgressModules
+ int totalModules, Map<String, int> cycleStats
 });
 
 
@@ -63,12 +63,11 @@ class _$ModuleStatsCopyWithImpl<$Res>
 
 /// Create a copy of ModuleStats
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalModules = null,Object? completedModules = null,Object? inProgressModules = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalModules = null,Object? cycleStats = null,}) {
   return _then(_self.copyWith(
 totalModules: null == totalModules ? _self.totalModules : totalModules // ignore: cast_nullable_to_non_nullable
-as int,completedModules: null == completedModules ? _self.completedModules : completedModules // ignore: cast_nullable_to_non_nullable
-as int,inProgressModules: null == inProgressModules ? _self.inProgressModules : inProgressModules // ignore: cast_nullable_to_non_nullable
-as int,
+as int,cycleStats: null == cycleStats ? _self.cycleStats : cycleStats // ignore: cast_nullable_to_non_nullable
+as Map<String, int>,
   ));
 }
 
@@ -79,12 +78,17 @@ as int,
 
 
 class _ModuleStats implements ModuleStats {
-  const _ModuleStats({required this.totalModules, required this.completedModules, required this.inProgressModules});
+  const _ModuleStats({required this.totalModules, required final  Map<String, int> cycleStats}): _cycleStats = cycleStats;
   
 
 @override final  int totalModules;
-@override final  int completedModules;
-@override final  int inProgressModules;
+ final  Map<String, int> _cycleStats;
+@override Map<String, int> get cycleStats {
+  if (_cycleStats is EqualUnmodifiableMapView) return _cycleStats;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_cycleStats);
+}
+
 
 /// Create a copy of ModuleStats
 /// with the given fields replaced by the non-null parameter values.
@@ -96,16 +100,16 @@ _$ModuleStatsCopyWith<_ModuleStats> get copyWith => __$ModuleStatsCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ModuleStats&&(identical(other.totalModules, totalModules) || other.totalModules == totalModules)&&(identical(other.completedModules, completedModules) || other.completedModules == completedModules)&&(identical(other.inProgressModules, inProgressModules) || other.inProgressModules == inProgressModules));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ModuleStats&&(identical(other.totalModules, totalModules) || other.totalModules == totalModules)&&const DeepCollectionEquality().equals(other._cycleStats, _cycleStats));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalModules,completedModules,inProgressModules);
+int get hashCode => Object.hash(runtimeType,totalModules,const DeepCollectionEquality().hash(_cycleStats));
 
 @override
 String toString() {
-  return 'ModuleStats(totalModules: $totalModules, completedModules: $completedModules, inProgressModules: $inProgressModules)';
+  return 'ModuleStats(totalModules: $totalModules, cycleStats: $cycleStats)';
 }
 
 
@@ -116,7 +120,7 @@ abstract mixin class _$ModuleStatsCopyWith<$Res> implements $ModuleStatsCopyWith
   factory _$ModuleStatsCopyWith(_ModuleStats value, $Res Function(_ModuleStats) _then) = __$ModuleStatsCopyWithImpl;
 @override @useResult
 $Res call({
- int totalModules, int completedModules, int inProgressModules
+ int totalModules, Map<String, int> cycleStats
 });
 
 
@@ -133,12 +137,11 @@ class __$ModuleStatsCopyWithImpl<$Res>
 
 /// Create a copy of ModuleStats
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalModules = null,Object? completedModules = null,Object? inProgressModules = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalModules = null,Object? cycleStats = null,}) {
   return _then(_ModuleStats(
 totalModules: null == totalModules ? _self.totalModules : totalModules // ignore: cast_nullable_to_non_nullable
-as int,completedModules: null == completedModules ? _self.completedModules : completedModules // ignore: cast_nullable_to_non_nullable
-as int,inProgressModules: null == inProgressModules ? _self.inProgressModules : inProgressModules // ignore: cast_nullable_to_non_nullable
-as int,
+as int,cycleStats: null == cycleStats ? _self._cycleStats : cycleStats // ignore: cast_nullable_to_non_nullable
+as Map<String, int>,
   ));
 }
 

@@ -61,7 +61,7 @@ class LearningStatsCard extends StatelessWidget {
   }
 
   Widget _buildModuleSection(ThemeData theme) {
-    final completionRate = stats.moduleCompletionRate.toStringAsFixed(1);
+    // final completionRate = stats.moduleCompletionRate.toStringAsFixed(1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,28 +86,56 @@ class LearningStatsCard extends StatelessWidget {
               theme,
               'Total\nModules',
               stats.totalModules.toString(),
-              Icons.auto_stories,
+              Icons.auto_stories, // Icon sách cho tổng số modules
+              color: Colors.blue, // Màu xanh dương cơ bản
             ),
             _buildStatItem(
               theme,
-              'Completed',
-              stats.completedModules.toString(),
-              Icons.check_circle_outline,
-              color: Colors.green,
+              'Not\nStudied',
+              stats.cycleStats[''].toString(),
+              Icons.visibility_off, // Icon cho chưa học
+              color: Colors.grey, // Màu xám cho chưa hoàn thành
             ),
             _buildStatItem(
               theme,
-              'In Progress',
-              stats.inProgressModules.toString(),
-              Icons.pending_actions,
-              color: Colors.orange,
+              '1st\nTime',
+              stats.cycleStats['FIRST_TIME'].toString(),
+              Icons.play_circle, // Icon bắt đầu học
+              color: Colors.green, // Màu xanh lá cho lần đầu
             ),
             _buildStatItem(
               theme,
-              'Completion\nRate',
-              '$completionRate%',
-              Icons.trending_up,
-              color: theme.colorScheme.primary,
+              '1st\nReview',
+              stats.cycleStats['FIRST_REVIEW'].toString(),
+              Icons.replay, // Icon ôn tập
+              color: Colors.orange, // Màu cam cho đang tiến hành
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildStatItem(
+              theme,
+              '2nd\nReview',
+              stats.cycleStats['SECOND_REVIEW'].toString(),
+              Icons.replay_10, // Icon ôn tập lần 2
+              color: Colors.purple, // Màu tím cho lần ôn thứ 2
+            ),
+            _buildStatItem(
+              theme,
+              '3rd\nReview',
+              stats.cycleStats['THIRD_REVIEW'].toString(),
+              Icons.replay_30, // Icon ôn tập lần 3
+              color: Colors.teal, // Màu xanh ngọc cho lần ôn thứ 3
+            ),
+            _buildStatItem(
+              theme,
+              'More 3rd\nReviews',
+              stats.cycleStats['MORE_THAN_THREE_REVIEWS'].toString(),
+              Icons.loop, // Icon vòng lặp cho nhiều lần ôn
+              color: Colors.indigo, // Màu chàm cho các lần ôn tập thêm
             ),
           ],
         ),
@@ -331,7 +359,7 @@ class LearningStatsCard extends StatelessWidget {
           Text(
             additionalInfo,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: effectiveColor.withOpacity(0.7),
+              color: effectiveColor.withValues(alpha: 0.7),
               fontSize: 10,
             ),
           ),

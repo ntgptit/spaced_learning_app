@@ -10,8 +10,7 @@ part 'dashboard_section.freezed.dart';
 abstract class ModuleStats with _$ModuleStats {
   const factory ModuleStats({
     required int totalModules,
-    required int completedModules,
-    required int inProgressModules,
+    required Map<String, int> cycleStats,
   }) = _ModuleStats;
 }
 
@@ -85,12 +84,7 @@ class DashboardSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final statsDTO = LearningStatsDTO(
       totalModules: moduleStats.totalModules,
-      completedModules: moduleStats.completedModules,
-      inProgressModules: moduleStats.inProgressModules,
-      moduleCompletionRate:
-          moduleStats.totalModules > 0
-              ? (moduleStats.completedModules / moduleStats.totalModules * 100)
-              : 0.0,
+      cycleStats: moduleStats.cycleStats,
       dueToday: dueStats.dueToday,
       dueThisWeek: dueStats.dueThisWeek,
       dueThisMonth: dueStats.dueThisMonth,

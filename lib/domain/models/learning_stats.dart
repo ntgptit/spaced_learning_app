@@ -10,9 +10,14 @@ abstract class LearningStatsDTO with _$LearningStatsDTO {
   const factory LearningStatsDTO({
     // Module statistics
     @Default(0) int totalModules,
-    @Default(0) int completedModules,
-    @Default(0) int inProgressModules,
-    @Default(0.0) double moduleCompletionRate,
+    @Default({
+      'FIRST_TIME': 0,
+      'FIRST_REVIEW': 0,
+      'SECOND_REVIEW': 0,
+      'THIRD_REVIEW': 0,
+      'MORE_THAN_THREE_REVIEWS': 0,
+    })
+    Map<String, int> cycleStats,
 
     // Due sessions
     @Default(0) int dueToday,
