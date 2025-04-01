@@ -139,8 +139,9 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
 
   Widget _buildProgressList() {
     final progressViewModel = context.watch<ProgressViewModel>();
-    if (progressViewModel.isLoading)
+    if (progressViewModel.isLoading) {
       return const Center(child: AppLoadingIndicator());
+    }
     if (progressViewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(

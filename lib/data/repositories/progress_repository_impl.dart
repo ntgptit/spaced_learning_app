@@ -186,7 +186,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
     } on NotFoundException {
       // If not found, return null (this is expected)
       return null;
-    } on AppException catch (e) {
+    } on AppException {
       rethrow;
     } catch (e) {
       throw UnexpectedException('Failed to get current user progress: $e');

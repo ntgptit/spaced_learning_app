@@ -242,8 +242,9 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final theme = Theme.of(context);
     final progress = progressViewModel.selectedProgress;
 
-    if (progressViewModel.isLoading)
+    if (progressViewModel.isLoading) {
       return const Center(child: AppLoadingIndicator());
+    }
     if (progressViewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(
@@ -252,8 +253,9 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
         ),
       );
     }
-    if (progress == null)
+    if (progress == null) {
       return const Center(child: Text('Progress not found'));
+    }
 
     return ListView(
       padding: const EdgeInsets.all(16.0),
