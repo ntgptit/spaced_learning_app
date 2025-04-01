@@ -24,14 +24,14 @@ import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
 /// Integrated home screen with dashboard functionality
-class IntegratedHomeScreen extends StatefulWidget {
-  const IntegratedHomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<IntegratedHomeScreen> createState() => _IntegratedHomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   // State variables
   bool _isInitialized = false;
   int _currentIndex = 0;
@@ -68,12 +68,7 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
 
   Future<void> _loadLearningStats(LearningStatsViewModel viewModel) async {
     if (!viewModel.isInitialized) {
-      try {
-        await viewModel.loadAllStats();
-      } catch (e) {
-        debugPrint('Error loading learning stats: $e');
-        rethrow;
-      }
+      await viewModel.loadAllStats();
     }
   }
 
@@ -99,6 +94,12 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
         ),
       );
     }
+  }
+
+  void _navigateToLearningStats() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const LearningStatsScreen()),
+    );
   }
 
   // Build methods
@@ -200,34 +201,22 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
         WelcomeSection(user: authViewModel.currentUser!),
         const SizedBox(height: 24),
 
-        // Updated to use the new LearningStatsDTO
         if (hasLearningStats)
           LearningStatsCard(
             stats: learningStatsViewModel.stats!,
-            onViewDetailPressed:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LearningStatsScreen(),
-                  ),
-                ),
+            onViewDetailPressed: _navigateToLearningStats,
           )
         else
-          _buildLegacyDashboard(),
+          _buildLegacyDashboard(learningStatsViewModel),
 
         const SizedBox(height: 24),
         _buildDueTodaySection(theme, progressViewModel),
         const SizedBox(height: 24),
 
-        // Updated to use the new Learning Insights
         if (hasLearningStats && learningStatsViewModel.insights.isNotEmpty)
           LearningInsightsCard(
             insights: learningStatsViewModel.insights,
-            onViewMorePressed:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LearningStatsScreen(),
-                  ),
-                ),
+            onViewMorePressed: _navigateToLearningStats,
           )
         else
           _buildLegacyInsights(learningStatsViewModel.stats),
@@ -244,72 +233,67 @@ class _IntegratedHomeScreenState extends State<IntegratedHomeScreen> {
                   builder: (context) => const LearningProgressScreen(),
                 ),
               ),
-          onVocabularyStatsPressed:
-              () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LearningStatsScreen(),
-                ),
-              ),
+          onVocabularyStatsPressed: _navigateToLearningStats,
         ),
         const SizedBox(height: 24),
       ],
     );
   }
 
-  // Legacy dashboard section for compatibility
-  Widget _buildLegacyDashboard() {
-    final enhancedViewModel = context.watch<LearningStatsViewModel>();
-    final theme = Theme.of(context);
-
-    return enhancedViewModel.errorMessage != null
+  Widget _buildLegacyDashboard(LearningStatsViewModel viewModel) {
+    return viewModel.errorMessage != null
         ? ErrorDisplay(
-          message: enhancedViewModel.errorMessage!,
+          message: viewModel.errorMessage!,
           onRetry: _loadData,
           compact: true,
         )
         : DashboardSection(
           moduleStats: ModuleStats(
-            totalModules: enhancedViewModel.totalModules,
-            cycleStats: enhancedViewModel.cycleStats,
+            totalModules: viewModel.stats?.totalModules ?? 0,
+            cycleStats:
+                viewModel.stats?.cycleStats ??
+                const {
+                  'FIRST_TIME': 0,
+                  'FIRST_REVIEW': 0,
+                  'SECOND_REVIEW': 0,
+                  'THIRD_REVIEW': 0,
+                  'MORE_THAN_THREE_REVIEWS': 0,
+                },
           ),
           dueStats: DueStats(
-            dueToday: enhancedViewModel.dueToday,
-            dueThisWeek: enhancedViewModel.dueThisWeek,
-            dueThisMonth: enhancedViewModel.dueThisMonth,
-            wordsDueToday: enhancedViewModel.wordsDueToday,
-            wordsDueThisWeek: enhancedViewModel.wordsDueThisWeek,
-            wordsDueThisMonth: enhancedViewModel.wordsDueThisMonth,
+            dueToday: viewModel.stats?.dueToday ?? 0,
+            dueThisWeek: viewModel.stats?.dueThisWeek ?? 0,
+            dueThisMonth: viewModel.stats?.dueThisMonth ?? 0,
+            wordsDueToday: viewModel.stats?.wordsDueToday ?? 0,
+            wordsDueThisWeek: viewModel.stats?.wordsDueThisWeek ?? 0,
+            wordsDueThisMonth: viewModel.stats?.wordsDueThisMonth ?? 0,
           ),
           completionStats: CompletionStats(
-            completedToday: enhancedViewModel.completedToday,
-            completedThisWeek: enhancedViewModel.completedThisWeek,
-            completedThisMonth: enhancedViewModel.completedThisMonth,
-            wordsCompletedToday: enhancedViewModel.wordsCompletedToday,
-            wordsCompletedThisWeek: enhancedViewModel.wordsCompletedThisWeek,
-            wordsCompletedThisMonth: enhancedViewModel.wordsCompletedThisMonth,
+            completedToday: viewModel.stats?.completedToday ?? 0,
+            completedThisWeek: viewModel.stats?.completedThisWeek ?? 0,
+            completedThisMonth: viewModel.stats?.completedThisMonth ?? 0,
+            wordsCompletedToday: viewModel.stats?.wordsCompletedToday ?? 0,
+            wordsCompletedThisWeek:
+                viewModel.stats?.wordsCompletedThisWeek ?? 0,
+            wordsCompletedThisMonth:
+                viewModel.stats?.wordsCompletedThisMonth ?? 0,
           ),
           streakStats: StreakStats(
-            streakDays: enhancedViewModel.streakDays,
-            streakWeeks: enhancedViewModel.streakWeeks,
+            streakDays: viewModel.stats?.streakDays ?? 0,
+            streakWeeks: viewModel.stats?.streakWeeks ?? 0,
           ),
           vocabularyStats: VocabularyStats(
-            totalWords: enhancedViewModel.totalWords,
-            learnedWords: enhancedViewModel.learnedWords,
-            pendingWords: enhancedViewModel.pendingWords,
+            totalWords: viewModel.stats?.totalWords ?? 0,
+            learnedWords: viewModel.stats?.learnedWords ?? 0,
+            pendingWords: viewModel.stats?.pendingWords ?? 0,
             vocabularyCompletionRate:
-                enhancedViewModel.vocabularyCompletionRate,
-            weeklyNewWordsRate: enhancedViewModel.weeklyNewWordsRate,
+                viewModel.stats?.vocabularyCompletionRate ?? 0.0,
+            weeklyNewWordsRate: viewModel.stats?.weeklyNewWordsRate ?? 0.0,
           ),
-          onViewProgress:
-              () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LearningStatsScreen(),
-                ),
-              ),
+          onViewProgress: _navigateToLearningStats,
         );
   }
 
-  // Legacy insights for compatibility
   Widget _buildLegacyInsights(LearningStatsDTO? stats) {
     if (stats == null) {
       return const LearningInsightsWidget(

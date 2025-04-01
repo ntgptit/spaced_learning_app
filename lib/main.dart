@@ -9,7 +9,6 @@ import 'package:spaced_learning_app/presentation/screens/learning/learning_progr
 import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/enhanced_learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -47,9 +46,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => serviceLocator<RepetitionViewModel>(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
-        ),
+        // ChangeNotifierProvider(
+        //   create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
+        // ),
         // Add the new LearningStatsViewModel
         ChangeNotifierProvider(
           create: (_) => serviceLocator<LearningStatsViewModel>(),
@@ -80,12 +79,12 @@ class AppWithTheme extends StatelessWidget {
       // Start with the appropriate screen based on authentication status
       home:
           authViewModel.isAuthenticated
-              ? const IntegratedHomeScreen()
+              ? const HomeScreen()
               : const LoginScreen(),
 
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const IntegratedHomeScreen(),
+        '/home': (context) => const HomeScreen(),
         '/learning/progress': (context) => const LearningProgressScreen(),
         '/learning/stats': (context) => const LearningStatsScreen(),
       },
