@@ -1,4 +1,3 @@
-// lib/presentation/screens/progress/widgets/repetition_list_widget.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
@@ -26,9 +25,9 @@ class RepetitionListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final repetitionViewModel = context.watch<RepetitionViewModel>();
+    final viewModel = context.watch<RepetitionViewModel>();
 
-    if (repetitionViewModel.isLoading) {
+    if (viewModel.isLoading) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(24.0),
@@ -37,26 +36,23 @@ class RepetitionListWidget extends StatelessWidget {
       );
     }
 
-    if (repetitionViewModel.errorMessage != null) {
+    if (viewModel.errorMessage != null) {
       return ErrorDisplay(
-        message: repetitionViewModel.errorMessage!,
+        message: viewModel.errorMessage!,
         onRetry: () {
-          repetitionViewModel.loadRepetitionsByProgressId(progressId);
+          viewModel.loadRepetitionsByProgressId(progressId);
         },
         compact: true,
       );
     }
 
-    if (repetitionViewModel.repetitions.isEmpty) {
+    if (viewModel.repetitions.isEmpty) {
       return _buildEmptyState(context);
     }
 
-    // Tách repetitions thành các nhóm theo trạng thái
-    final List<Repetition> repetitions = List.of(
-      repetitionViewModel.repetitions,
-    );
+    final repetitions = List<Repetition>.from(viewModel.repetitions);
 
-    final pendingRepetitions =
+    final pending =
         repetitions
             .where((r) => r.status == RepetitionStatus.notStarted)
             .toList()
@@ -65,7 +61,7 @@ class RepetitionListWidget extends StatelessWidget {
                 a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
           );
 
-    final completedRepetitions =
+    final completed =
         repetitions
             .where((r) => r.status == RepetitionStatus.completed)
             .toList()
@@ -74,7 +70,7 @@ class RepetitionListWidget extends StatelessWidget {
                 a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
           );
 
-    final skippedRepetitions =
+    final skipped =
         repetitions.where((r) => r.status == RepetitionStatus.skipped).toList()
           ..sort(
             (a, b) =>
@@ -84,56 +80,48 @@ class RepetitionListWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Lịch ôn tập hiện tại (chưa hoàn thành)
-        if (pendingRepetitions.isNotEmpty)
+        if (pending.isNotEmpty)
           RepetitionSectionWidget(
-            title: 'Sắp tới',
+            title: 'Upcoming',
             color: Theme.of(context).colorScheme.primary,
-            repetitions: pendingRepetitions,
+            repetitions: pending,
             onMarkCompleted: onMarkCompleted,
             onMarkSkipped: onMarkSkipped,
             onReschedule: _showReschedulePicker,
           ),
-
-        // Lịch sử ôn tập (đã hoàn thành)
-        if (completedRepetitions.isNotEmpty)
+        if (completed.isNotEmpty)
           RepetitionSectionWidget(
-            title: 'Đã hoàn thành',
+            title: 'Completed',
             color: Colors.green,
-            repetitions: completedRepetitions,
+            repetitions: completed,
             isHistory: true,
           ),
-
-        // Lịch sử ôn tập bị bỏ qua
-        if (skippedRepetitions.isNotEmpty)
+        if (skipped.isNotEmpty)
           RepetitionSectionWidget(
-            title: 'Đã bỏ qua',
+            title: 'Skipped',
             color: Colors.orange,
-            repetitions: skippedRepetitions,
+            repetitions: skipped,
             isHistory: true,
           ),
-
-        // Khoảng cách ở dưới cùng của danh sách
         const SizedBox(height: 32),
       ],
     );
   }
 
-  /// Build empty state when no repetitions are available
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
       child: Center(
         child: Column(
           children: [
-            const Text('Chưa có lịch ôn tập nào cho mô-đun này'),
+            const Text('No review schedule found for this module'),
             const SizedBox(height: 8),
             AppButton(
-              text: 'Tạo lịch ôn tập',
+              text: 'Create Review Schedule',
               type: AppButtonType.primary,
               onPressed: () async {
-                final repetitionViewModel = context.read<RepetitionViewModel>();
-                await repetitionViewModel.createDefaultSchedule(progressId);
+                final viewModel = context.read<RepetitionViewModel>();
+                await viewModel.createDefaultSchedule(progressId);
                 await onReload();
               },
             ),
@@ -143,7 +131,6 @@ class RepetitionListWidget extends StatelessWidget {
     );
   }
 
-  /// Show date picker for rescheduling
   Future<void> _showReschedulePicker(
     BuildContext context,
     String repetitionId,

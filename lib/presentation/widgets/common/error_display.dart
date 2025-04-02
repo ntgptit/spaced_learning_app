@@ -19,65 +19,106 @@ class ErrorDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    return compact ? _buildCompactView(theme) : _buildFullView(theme);
+  }
 
-    if (compact) {
-      return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Icon(
-                icon ?? Icons.error_outline,
-                color: theme.colorScheme.error,
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(child: Text(message, style: theme.textTheme.bodyMedium)),
-              if (onRetry != null) ...[
-                const SizedBox(width: 10),
-                AppButton(
+  /// Builds a compact version of the error display
+  Widget _buildCompactView(ThemeData theme) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            _buildErrorIcon(theme, size: 20),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message, style: theme.textTheme.bodyMedium)),
+            if (onRetry != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: AppButton(
                   text: 'Retry',
                   type: AppButtonType.text,
                   onPressed: onRetry,
                 ),
-              ],
-            ],
-          ),
+              ),
+          ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    // Full version
+  /// Builds a full-screen version of the error display
+  Widget _buildFullView(ThemeData theme) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon ?? Icons.error_outline,
-              color: theme.colorScheme.error,
-              size: 48,
-            ),
+            _buildErrorIcon(theme, size: 48),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium,
             ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 24),
-              AppButton(
-                text: 'Try Again',
-                type: AppButtonType.outline,
-                onPressed: onRetry,
-                prefixIcon:
-                    Icons.refresh, // Changed from 'icon' to 'prefixIcon'
+            if (onRetry != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: AppButton(
+                  text: 'Try Again',
+                  type: AppButtonType.outline,
+                  prefixIcon: Icons.refresh,
+                  onPressed: onRetry,
+                ),
               ),
-            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// Builds the error icon with consistent styling
+  Widget _buildErrorIcon(ThemeData theme, {required double size}) {
+    return Icon(
+      icon ?? Icons.error_outline,
+      color: theme.colorScheme.error,
+      size: size,
+    );
+  }
+}
+
+/// Base class for snackbar helpers
+abstract class _SnackbarHelper {
+  static void _showSnackBar({
+    required BuildContext context,
+    required String message,
+    required Color backgroundColor,
+    required IconData icon,
+    Color? iconColor,
+    Color? textColor,
+    Duration? duration,
+    SnackBarAction? action,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: iconColor ?? Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: textColor ?? Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        duration: duration ?? const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        action: action,
       ),
     );
   }
@@ -87,35 +128,18 @@ class ErrorDisplay extends StatelessWidget {
 class ErrorSnackbar {
   static void show(BuildContext context, String message, {Duration? duration}) {
     final theme = Theme.of(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: theme.colorScheme.onError,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(color: theme.colorScheme.onError),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: theme.colorScheme.error,
-        duration: duration ?? const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Dismiss',
-          textColor: theme.colorScheme.onError,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
+    _SnackbarHelper._showSnackBar(
+      context: context,
+      message: message,
+      backgroundColor: theme.colorScheme.error,
+      icon: Icons.error_outline,
+      iconColor: theme.colorScheme.onError,
+      textColor: theme.colorScheme.onError,
+      duration: duration ?? const Duration(seconds: 4),
+      action: SnackBarAction(
+        label: 'Dismiss',
+        textColor: theme.colorScheme.onError,
+        onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
       ),
     );
   }
@@ -130,21 +154,11 @@ class SuccessSnackbar {
             ? Colors.green.shade700
             : Colors.green.shade600;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(message, style: const TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-        backgroundColor: backgroundColor,
-        duration: duration ?? const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
+    _SnackbarHelper._showSnackBar(
+      context: context,
+      message: message,
+      backgroundColor: backgroundColor,
+      icon: Icons.check_circle,
     );
   }
 }

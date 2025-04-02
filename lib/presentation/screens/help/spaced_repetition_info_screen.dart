@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Screen providing information about spaced repetition learning method
+/// Screen providing information about the spaced repetition learning method
 class SpacedRepetitionInfoScreen extends StatelessWidget {
   const SpacedRepetitionInfoScreen({super.key});
 
@@ -9,35 +9,34 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Phương pháp học ngắt quãng')),
+      appBar: AppBar(title: const Text('Spaced Repetition Method')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildSectionHeader(
             theme,
-            'Hiểu về chu kỳ học ngắt quãng',
+            'Understanding the Spaced Repetition Cycle',
             isMainTitle: true,
           ),
           _buildSection(
             theme,
-            'Phương pháp học ngắt quãng là gì?',
-            'Phương pháp học ngắt quãng (Spaced Repetition) là một kỹ thuật học tập dựa trên nghiên cứu khoa học, '
-                'giúp tối ưu hóa quá trình ghi nhớ thông qua việc ôn tập theo chu kỳ với khoảng thời gian tăng dần.',
+            'What is Spaced Repetition?',
+            'Spaced Repetition is a learning technique based on scientific research, '
+                'designed to optimize memory retention through scheduled reviews with increasing intervals.',
           ),
           _buildSection(
             theme,
-            'Chu kỳ học là gì?',
-            'Trong ứng dụng này, mỗi chu kỳ học bao gồm 5 lần ôn tập. Bạn cần hoàn thành tất cả 5 lần ôn tập '
-                'trước khi chuyển sang chu kỳ học tiếp theo. Mỗi chu kỳ sẽ giúp kiến thức được củng cố sâu hơn '
-                'trong trí nhớ dài hạn.',
+            'What is a Study Cycle?',
+            'In this app, each study cycle consists of 5 reviews. You must complete all 5 repetitions '
+                'before moving to the next cycle. Each cycle reinforces knowledge deeper into your long-term memory.',
           ),
           _buildCyclesSection(theme),
           _buildSection(
             theme,
-            'Thuật toán học ngắt quãng',
-            'Ứng dụng sử dụng thuật toán học ngắt quãng nâng cao, tính đến nhiều yếu tố như: '
-                'số từ trong module, tiến độ học tập, chu kỳ học hiện tại và số lần ôn tập đã hoàn thành '
-                'để tính toán khoảng thời gian tối ưu giữa các lần ôn tập.',
+            'The Spaced Repetition Algorithm',
+            'This app uses an advanced spaced repetition algorithm that takes into account various factors like: '
+                'number of words in the module, learning progress, current cycle, and number of completed repetitions '
+                'to calculate the optimal time between reviews.',
           ),
           _buildFormulaSection(theme),
         ],
@@ -45,7 +44,6 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
     );
   }
 
-  // UI Components
   Widget _buildSectionHeader(
     ThemeData theme,
     String title, {
@@ -82,32 +80,32 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Các chu kỳ học', style: theme.textTheme.titleLarge),
+        Text('Study Cycles', style: theme.textTheme.titleLarge),
         const SizedBox(height: 8),
         _buildCycleItem(
           theme,
-          'Chu kỳ đầu tiên',
-          'Đây là lần đầu tiên bạn học module này. Hoàn thành 5 lần ôn tập đầu tiên.',
+          'First Cycle',
+          'This is your first time studying this module. Complete the first 5 review sessions.',
         ),
         _buildCycleItem(
           theme,
-          'Chu kỳ ôn tập thứ nhất',
-          'Sau khi hoàn thành chu kỳ đầu tiên, bạn sẽ chuyển sang chu kỳ ôn tập thứ nhất với 5 lần ôn tập mới.',
+          'First Review Cycle',
+          'After completing the first cycle, you will move into the first review cycle with 5 new reviews.',
         ),
         _buildCycleItem(
           theme,
-          'Chu kỳ ôn tập thứ hai',
-          'Khoảng cách giữa các lần ôn tập sẽ xa hơn để thử thách trí nhớ của bạn.',
+          'Second Review Cycle',
+          'Review intervals become longer to challenge your memory retention.',
         ),
         _buildCycleItem(
           theme,
-          'Chu kỳ ôn tập thứ ba',
-          'Đến giai đoạn này, kiến thức đã được củng cố khá tốt trong trí nhớ dài hạn.',
+          'Third Review Cycle',
+          'By this point, the knowledge should be well embedded in your long-term memory.',
         ),
         _buildCycleItem(
           theme,
-          'Chu kỳ hơn 3 lần ôn tập',
-          'Bạn đã thuộc bài rất tốt! Các lần ôn tập tiếp theo chỉ để duy trì kiến thức.',
+          'More than 3 Cycles',
+          'You’ve mastered this module! Further reviews are just for retention.',
         ),
         const SizedBox(height: 24),
       ],
@@ -140,7 +138,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Công thức tính toán', style: theme.textTheme.titleLarge),
+        Text('Calculation Formula', style: theme.textTheme.titleLarge),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(16),
@@ -149,13 +147,13 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Text(
-            'Khoảng cách giữa các lần ôn tập được tính dựa trên công thức:\n\n'
-            '- Khoảng cách cơ bản = Hệ số từ × Min(31, Số chu kỳ × Hệ số lần ôn tập) × Hệ số tiến độ\n\n'
-            'Và các hệ số được tính dựa trên:\n'
-            '- Hệ số từ: phụ thuộc vào số lượng từ của module\n'
-            '- Số chu kỳ: dựa trên chu kỳ học hiện tại\n'
-            '- Hệ số lần ôn tập: tăng dần theo thứ tự lần ôn tập\n'
-            '- Hệ số tiến độ: phụ thuộc vào phần trăm hoàn thành',
+            'The interval between repetitions is calculated using the formula:\n\n'
+            '- Base Interval = Word Factor × Min(31, Cycle × Review Factor) × Progress Factor\n\n'
+            'And the factors are defined as:\n'
+            '- Word Factor: depends on the number of words in the module\n'
+            '- Cycle: based on the current study cycle\n'
+            '- Review Factor: increases with each repetition\n'
+            '- Progress Factor: based on completion percentage',
             style: TextStyle(fontFamily: 'monospace'),
           ),
         ),

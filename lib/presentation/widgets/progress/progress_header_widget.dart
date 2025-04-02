@@ -1,4 +1,3 @@
-// lib/presentation/screens/progress/widgets/progress_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +21,6 @@ class ProgressHeaderWidget extends StatelessWidget {
     final repetitionViewModel = context.watch<RepetitionViewModel>();
     final dateFormat = DateFormat('MMM dd, yyyy');
 
-    // Format dates
     final startDateText =
         progress.firstLearningDate != null
             ? dateFormat.format(progress.firstLearningDate!)
@@ -33,7 +31,6 @@ class ProgressHeaderWidget extends StatelessWidget {
             ? dateFormat.format(progress.nextStudyDate!)
             : 'Not scheduled';
 
-    // Calculate completed repetitions
     final completedCount =
         progress.repetitions
             .where((r) => r.status == RepetitionStatus.completed)
@@ -46,135 +43,141 @@ class ProgressHeaderWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Module title
-            Text(
-              progress.moduleTitle ?? 'Module',
-              style: theme.textTheme.titleLarge,
+            _buildTitle(theme),
+            const SizedBox(height: 16),
+            _buildOverallProgress(theme),
+            const SizedBox(height: 16),
+            _buildCycleProgress(
+              theme,
+              repetitionViewModel,
+              completedCount,
+              totalCount,
             ),
             const SizedBox(height: 16),
-
-            // Progress bar for overall completion
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tiến độ tổng thể',
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    Text(
-                      '${progress.percentComplete.toInt()}%',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress.percentComplete / 100,
-                    minHeight: 10,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Cycle progress section
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Chu kỳ học: ${_formatCycleStudied(progress.cyclesStudied)}',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-
-                // Show progress in current cycle
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: totalCount > 0 ? completedCount / totalCount : 0,
-                    minHeight: 10,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    color: theme.colorScheme.secondary,
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-                Text(
-                  '$completedCount/$totalCount lần ôn tập hoàn thành trong chu kỳ này',
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 8),
-
-                // Show cycle info
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(
-                      alpha: 0.5,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.lightbulb,
-                        color: theme.colorScheme.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          repetitionViewModel.getCycleInfo(
-                            progress.cyclesStudied,
-                          ),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Metadata
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoItem(
-                    theme,
-                    'Bắt đầu',
-                    startDateText,
-                    Icons.play_circle_outline,
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoItem(
-                    theme,
-                    'Ôn tập tiếp theo',
-                    nextDateText,
-                    Icons.event,
-                  ),
-                ),
-              ],
-            ),
+            _buildMetadata(theme, startDateText, nextDateText),
           ],
         ),
       ),
     );
   }
 
-  /// Build an info item
+  Widget _buildTitle(ThemeData theme) {
+    return Text(
+      progress.moduleTitle ?? 'Module',
+      style: theme.textTheme.titleLarge,
+    );
+  }
+
+  Widget _buildOverallProgress(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          theme,
+          'Overall Progress',
+          '${progress.percentComplete.toInt()}%',
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: progress.percentComplete / 100,
+            minHeight: 10,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCycleProgress(
+    ThemeData theme,
+    RepetitionViewModel viewModel,
+    int completed,
+    int total,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Study Cycle: ${_formatCycleStudied(progress.cyclesStudied)}',
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: total > 0 ? completed / total : 0,
+            minHeight: 10,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            color: theme.colorScheme.secondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '$completed/$total repetitions completed in this cycle',
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+        _buildCycleInfoCard(
+          theme,
+          viewModel.getCycleInfo(progress.cyclesStudied),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCycleInfoCard(ThemeData theme, String infoText) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withAlpha(50),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.lightbulb, color: theme.colorScheme.primary, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              infoText,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadata(
+    ThemeData theme,
+    String startDateText,
+    String nextDateText,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildInfoItem(
+            theme,
+            'Start Date',
+            startDateText,
+            Icons.play_circle_outline,
+          ),
+        ),
+        Expanded(
+          child: _buildInfoItem(
+            theme,
+            'Next Review',
+            nextDateText,
+            Icons.event,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInfoItem(
     ThemeData theme,
     String label,
@@ -206,19 +209,33 @@ class ProgressHeaderWidget extends StatelessWidget {
     );
   }
 
-  /// Format cycle studied enum to user-friendly string
+  Widget _buildSectionHeader(ThemeData theme, String title, String trailing) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: theme.textTheme.titleMedium),
+        Text(
+          trailing,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      ],
+    );
+  }
+
   String _formatCycleStudied(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return 'Chu kỳ đầu tiên';
+        return 'First Cycle';
       case CycleStudied.firstReview:
-        return 'Chu kỳ ôn tập thứ nhất';
+        return 'First Review Cycle';
       case CycleStudied.secondReview:
-        return 'Chu kỳ ôn tập thứ hai';
+        return 'Second Review Cycle';
       case CycleStudied.thirdReview:
-        return 'Chu kỳ ôn tập thứ ba';
+        return 'Third Review Cycle';
       case CycleStudied.moreThanThreeReviews:
-        return 'Đã ôn tập nhiều hơn 3 chu kỳ';
+        return 'More than 3 Review Cycles';
     }
   }
 }
