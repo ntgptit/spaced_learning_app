@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- String get id; String get email; String? get displayName;@JsonKey(name: 'firstName') String? get firstName;@JsonKey(name: 'lastName') String? get lastName;@JsonKey(name: 'createdAt') DateTime? get createdAt; List<String>? get roles;
+ String get id; String get email; String get username; String? get displayName;@JsonKey(name: 'firstName') String? get firstName;@JsonKey(name: 'lastName') String? get lastName;@JsonKey(name: 'createdAt') DateTime? get createdAt; List<String>? get roles;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.roles, roles));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.roles, roles));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,firstName,lastName,createdAt,const DeepCollectionEquality().hash(roles));
+int get hashCode => Object.hash(runtimeType,id,email,username,displayName,firstName,lastName,createdAt,const DeepCollectionEquality().hash(roles));
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, displayName: $displayName, firstName: $firstName, lastName: $lastName, createdAt: $createdAt, roles: $roles)';
+  return 'User(id: $id, email: $email, username: $username, displayName: $displayName, firstName: $firstName, lastName: $lastName, createdAt: $createdAt, roles: $roles)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
 $Res call({
- String id, String email, String? displayName,@JsonKey(name: 'firstName') String? firstName,@JsonKey(name: 'lastName') String? lastName,@JsonKey(name: 'createdAt') DateTime? createdAt, List<String>? roles
+ String id, String email, String username, String? displayName,@JsonKey(name: 'firstName') String? firstName,@JsonKey(name: 'lastName') String? lastName,@JsonKey(name: 'createdAt') DateTime? createdAt, List<String>? roles
 });
 
 
@@ -66,10 +66,11 @@ class _$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? displayName = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? createdAt = freezed,Object? roles = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? username = null,Object? displayName = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? createdAt = freezed,Object? roles = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
@@ -86,11 +87,12 @@ as List<String>?,
 @JsonSerializable()
 
 class _User implements User {
-  const _User({required this.id, required this.email, this.displayName, @JsonKey(name: 'firstName') this.firstName, @JsonKey(name: 'lastName') this.lastName, @JsonKey(name: 'createdAt') this.createdAt, final  List<String>? roles}): _roles = roles;
+  const _User({required this.id, required this.email, required this.username, this.displayName, @JsonKey(name: 'firstName') this.firstName, @JsonKey(name: 'lastName') this.lastName, @JsonKey(name: 'createdAt') this.createdAt, final  List<String>? roles}): _roles = roles;
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override final  String id;
 @override final  String email;
+@override final  String username;
 @override final  String? displayName;
 @override@JsonKey(name: 'firstName') final  String? firstName;
 @override@JsonKey(name: 'lastName') final  String? lastName;
@@ -118,16 +120,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._roles, _roles));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.username, username) || other.username == username)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._roles, _roles));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,displayName,firstName,lastName,createdAt,const DeepCollectionEquality().hash(_roles));
+int get hashCode => Object.hash(runtimeType,id,email,username,displayName,firstName,lastName,createdAt,const DeepCollectionEquality().hash(_roles));
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, displayName: $displayName, firstName: $firstName, lastName: $lastName, createdAt: $createdAt, roles: $roles)';
+  return 'User(id: $id, email: $email, username: $username, displayName: $displayName, firstName: $firstName, lastName: $lastName, createdAt: $createdAt, roles: $roles)';
 }
 
 
@@ -138,7 +140,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String email, String? displayName,@JsonKey(name: 'firstName') String? firstName,@JsonKey(name: 'lastName') String? lastName,@JsonKey(name: 'createdAt') DateTime? createdAt, List<String>? roles
+ String id, String email, String username, String? displayName,@JsonKey(name: 'firstName') String? firstName,@JsonKey(name: 'lastName') String? lastName,@JsonKey(name: 'createdAt') DateTime? createdAt, List<String>? roles
 });
 
 
@@ -155,10 +157,11 @@ class __$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? displayName = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? createdAt = freezed,Object? roles = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? username = null,Object? displayName = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? createdAt = freezed,Object? roles = freezed,}) {
   return _then(_User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable

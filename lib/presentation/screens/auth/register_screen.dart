@@ -17,6 +17,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   // Controllers
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -26,6 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // Error states
+  String? _usernameError;
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
@@ -34,6 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -43,6 +46,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // Validation methods
+  void _validateUsername() {
+    setState(() {
+      _usernameError =
+          _usernameController.text.isEmpty
+              ? 'Username is required'
+              : _usernameController.text.length < 3
+              ? 'Username must be at least 3 characters'
+              : !RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(_usernameController.text)
+              ? 'Username can only contain letters, numbers, dots, underscores and hyphens'
+              : null;
+    });
+  }
+
   void _validateEmail() {
     setState(() {
       _emailError =
@@ -94,19 +110,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // Register handler
   Future<void> _register() async {
+    _validateUsername();
     _validateEmail();
     _validatePassword();
     _validateConfirmPassword();
     _validateFirstName();
     _validateLastName();
 
-    if (_emailError == null &&
+    if (_usernameError == null &&
+        _emailError == null &&
         _passwordError == null &&
         _confirmPasswordError == null &&
         _firstNameError == null &&
         _lastNameError == null) {
       final authViewModel = context.read<AuthViewModel>();
       final success = await authViewModel.register(
+        _usernameController.text,
         _emailController.text,
         _passwordController.text,
         _firstNameController.text,
@@ -188,6 +207,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildAuthFields() {
     return Column(
       children: [
+        AppTextField(
+          label: 'Username',
+          hint: 'Enter your username',
+          controller: _usernameController,
+          keyboardType: TextInputType.text,
+          errorText: _usernameError,
+          prefixIcon: Icons.account_circle,
+          onChanged: (_) => _usernameError = null,
+          onEditingComplete: _validateUsername,
+        ),
+        const SizedBox(height: 16),
         AppTextField(
           label: 'Email',
           hint: 'Enter your email',

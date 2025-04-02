@@ -18,31 +18,28 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   // Controllers
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameOrEmailController =
+      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // Error states
-  String? _emailError;
+  String? _usernameOrEmailError;
   String? _passwordError;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameOrEmailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   // Validation methods
-  void _validateEmail() {
+  void _validateUsernameOrEmail() {
     setState(() {
-      _emailError =
-          _emailController.text.isEmpty
-              ? 'Email is required'
-              : !RegExp(
-                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-              ).hasMatch(_emailController.text)
-              ? 'Enter a valid email address'
+      _usernameOrEmailError =
+          _usernameOrEmailController.text.isEmpty
+              ? 'Username or email is required'
               : null;
     });
   }
@@ -60,13 +57,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Login handler
   Future<void> _login() async {
-    _validateEmail();
+    _validateUsernameOrEmail();
     _validatePassword();
 
-    if (_emailError == null && _passwordError == null) {
+    if (_usernameOrEmailError == null && _passwordError == null) {
       final authViewModel = context.read<AuthViewModel>();
       final success = await authViewModel.login(
-        _emailController.text,
+        _usernameOrEmailController.text,
         _passwordController.text,
       );
 
@@ -118,14 +115,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: [
         AppTextField(
-          label: 'Email',
-          hint: 'Enter your email',
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          errorText: _emailError,
-          prefixIcon: Icons.email,
-          onChanged: (_) => _emailError = null,
-          onEditingComplete: _validateEmail,
+          label: 'Username or Email',
+          hint: 'Enter your username or email',
+          controller: _usernameOrEmailController,
+          keyboardType: TextInputType.text,
+          errorText: _usernameOrEmailError,
+          prefixIcon: Icons.person,
+          onChanged: (_) => _usernameOrEmailError = null,
+          onEditingComplete: _validateUsernameOrEmail,
         ),
         const SizedBox(height: 16),
         AppPasswordField(

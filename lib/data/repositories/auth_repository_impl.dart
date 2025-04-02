@@ -12,12 +12,12 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._apiClient);
 
   @override
-  Future<AuthResponse> login(String email, String password) async {
+  Future<AuthResponse> login(String usernameOrEmail, String password) async {
     try {
-      final data = {'email': email, 'password': password};
+      final data = {'usernameOrEmail': usernameOrEmail, 'password': password};
 
       // Debug trước khi gọi API
-      debugPrint('Calling login API with email: $email');
+      debugPrint('Calling login API with usernameOrEmail: $usernameOrEmail');
 
       final response = await _apiClient.post(ApiEndpoints.login, data: data);
 
@@ -50,6 +50,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthResponse> register(
+    String username,
     String email,
     String password,
     String firstName,
@@ -57,6 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final data = {
+        'username': username,
         'email': email,
         'password': password,
         'firstName': firstName,

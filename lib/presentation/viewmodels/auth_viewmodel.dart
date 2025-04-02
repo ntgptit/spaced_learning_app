@@ -53,13 +53,13 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Login with email and password
-  Future<bool> login(String email, String password) async {
+  /// Login with username/email and password
+  Future<bool> login(String usernameOrEmail, String password) async {
     _setLoading(true);
     _errorMessage = null;
 
     try {
-      final response = await authRepository.login(email, password);
+      final response = await authRepository.login(usernameOrEmail, password);
       await _handleAuthResponse(response);
       return true;
     } on AppException catch (e) {
@@ -75,6 +75,7 @@ class AuthViewModel extends ChangeNotifier {
 
   /// Register a new user
   Future<bool> register(
+    String username,
     String email,
     String password,
     String firstName,
@@ -85,6 +86,7 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       final response = await authRepository.register(
+        username,
         email,
         password,
         firstName,
