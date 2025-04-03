@@ -3,8 +3,6 @@ import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
 
 class RepetitionSectionWidget extends StatelessWidget {
-  final String title;
-  final Color color;
   final List<Repetition> repetitions;
   final bool isHistory;
   final Future<void> Function(String)? onMarkCompleted;
@@ -13,8 +11,6 @@ class RepetitionSectionWidget extends StatelessWidget {
 
   const RepetitionSectionWidget({
     super.key,
-    required this.title,
-    required this.color,
     required this.repetitions,
     this.isHistory = false,
     this.onMarkCompleted,
@@ -24,44 +20,17 @@ class RepetitionSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 24),
-        _buildHeader(theme),
-        const SizedBox(height: 8),
-        _buildRepetitionList(context),
-      ],
+    // Sort repetitions by repetitionOrder
+    final sortedRepetitions = List<Repetition>.from(repetitions)..sort(
+      (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
     );
-  }
 
-  Widget _buildHeader(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        title,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRepetitionList(BuildContext context) {
-    // Using ListView.builder for better performance with many items
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: repetitions.length,
+      itemCount: sortedRepetitions.length,
       itemBuilder: (context, index) {
-        final repetition = repetitions[index];
+        final repetition = sortedRepetitions[index];
         return RepetitionCard(
           key: ValueKey(repetition.id),
           repetition: repetition,

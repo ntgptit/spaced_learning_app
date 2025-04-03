@@ -304,6 +304,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
         const SizedBox(height: 8),
         RepetitionListWidget(
           progressId: widget.progressId,
+          currentCycleStudied: progress.cyclesStudied,
           onMarkCompleted: _markRepetitionCompleted,
           onMarkSkipped: _markRepetitionSkipped,
           onReschedule: _rescheduleRepetition,
