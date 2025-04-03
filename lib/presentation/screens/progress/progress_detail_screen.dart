@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -9,6 +8,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_header_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/repetition_list_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog_content.dart';
 
 /// Screen displaying detailed view of a specific progress record
 class ProgressDetailScreen extends StatefulWidget {
@@ -53,46 +53,26 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
 
-    final updatedProgress = await progressViewModel.updateProgress(
-      widget.progressId,
-      percentComplete: score,
-    );
-
-    if (!mounted) return;
-    if (updatedProgress == null) {
-      final errorMsg = progressViewModel.errorMessage;
-      _showSnackBar(
-        errorMsg != null
-            ? 'Failed to update progress: $errorMsg'
-            : 'Failed to update progress. Please try again.',
-        backgroundColor: Colors.red,
-      );
-      return;
-    }
-
     final updatedRepetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.completed,
     );
 
-    if (!mounted) return;
-    if (updatedRepetition == null) {
-      final errorMsg = repetitionViewModel.errorMessage;
-      _showSnackBar(
-        errorMsg != null
-            ? 'Failed to mark repetition complete: $errorMsg'
-            : 'Failed to mark repetition complete. Progress was updated, but status may be inconsistent.',
-        backgroundColor: Colors.orange,
-      );
-      return;
-    }
+    if (!mounted || updatedRepetition == null) return;
+
+    await progressViewModel.updateProgress(
+      widget.progressId,
+      percentComplete: score,
+    );
 
     if (!mounted) return;
+
     final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
       updatedRepetition.moduleProgressId,
     );
 
     if (!mounted) return;
+
     if (allCompleted) {
       _showCycleCompletionSnackBar();
       await _reloadData();
@@ -264,27 +244,12 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   // Build Methods
   @override
   Widget build(BuildContext context) {
-    final progressViewModel =
-        context.read<ProgressViewModel>(); // Dùng read ở cấp cao
+    final progressViewModel = context.watch<ProgressViewModel>();
     return Scaffold(
       appBar: _buildAppBar(progressViewModel.selectedProgress?.moduleTitle),
       body: RefreshIndicator(
         onRefresh: _loadInitialData,
-        child: Selector<ProgressViewModel, (bool, String?, ProgressDetail?)>(
-          selector:
-              (context, vm) => (
-                vm.isLoading,
-                vm.errorMessage,
-                vm.selectedProgress,
-              ),
-          builder: (context, data, child) {
-            return _buildScreenContentWithData(
-              isLoading: data.$1,
-              errorMessage: data.$2,
-              progress: data.$3,
-            );
-          },
-        ),
+        child: _buildScreenContent(progressViewModel),
       ),
     );
   }
@@ -308,19 +273,19 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     );
   }
 
-  Widget _buildScreenContentWithData({
-    required bool isLoading,
-    required String? errorMessage,
-    required ProgressDetail? progress,
-  }) {
+  Widget _buildScreenContent(ProgressViewModel progressViewModel) {
     final theme = Theme.of(context);
+    final progress = progressViewModel.selectedProgress;
 
-    if (isLoading) {
+    if (progressViewModel.isLoading) {
       return const Center(child: AppLoadingIndicator());
     }
-    if (errorMessage != null) {
+    if (progressViewModel.errorMessage != null) {
       return Center(
-        child: ErrorDisplay(message: errorMessage, onRetry: _loadInitialData),
+        child: ErrorDisplay(
+          message: progressViewModel.errorMessage!,
+          onRetry: _loadInitialData,
+        ),
       );
     }
     if (progress == null) {
@@ -345,114 +310,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           onReload: _reloadData,
         ),
       ],
-    );
-  }
-}
-
-// Score Input Dialog Content Widget
-class ScoreInputDialogContent extends StatelessWidget {
-  final double currentScore;
-  final TextEditingController controller;
-  final ValueChanged<double> onScoreChanged;
-
-  const ScoreInputDialogContent({
-    super.key,
-    required this.currentScore,
-    required this.controller,
-    required this.onScoreChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          'Enter the score from your test on Quizlet or another tool:',
-          style: TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          '${currentScore.toInt()}%',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.green,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Slider(
-          value: currentScore,
-          min: 0,
-          max: 100,
-          divisions: 20,
-          label: '${currentScore.toInt()}%',
-          onChanged: onScoreChanged,
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            const Text('Enter exact score: '),
-            Expanded(
-              child: TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  suffixText: '%',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  final intValue = int.tryParse(value);
-                  if (intValue != null && intValue >= 0 && intValue <= 100) {
-                    onScoreChanged(intValue.toDouble());
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children:
-              [
-                0,
-                25,
-                50,
-                75,
-                100,
-              ].map((score) => _buildScoreButton(score)).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScoreButton(int score) {
-    final isSelected = currentScore.toInt() == score;
-    return InkWell(
-      onTap: () => onScoreChanged(score.toDouble()),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.green : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Colors.green.shade700 : Colors.grey.shade400,
-          ),
-        ),
-        child: Text(
-          '$score%',
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
     );
   }
 }

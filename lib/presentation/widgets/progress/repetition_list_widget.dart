@@ -25,86 +25,93 @@ class RepetitionListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<RepetitionViewModel>();
-
-    if (viewModel.isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: AppLoadingIndicator(),
-        ),
-      );
-    }
-
-    if (viewModel.errorMessage != null) {
-      return ErrorDisplay(
-        message: viewModel.errorMessage!,
-        onRetry: () {
-          viewModel.loadRepetitionsByProgressId(progressId);
-        },
-        compact: true,
-      );
-    }
-
-    if (viewModel.repetitions.isEmpty) {
-      return _buildEmptyState(context);
-    }
-
-    final repetitions = List<Repetition>.from(viewModel.repetitions);
-
-    final pending =
-        repetitions
-            .where((r) => r.status == RepetitionStatus.notStarted)
-            .toList()
-          ..sort(
-            (a, b) =>
-                a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+    return Consumer<RepetitionViewModel>(
+      builder: (context, viewModel, _) {
+        if (viewModel.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: AppLoadingIndicator(),
+            ),
           );
+        }
 
-    final completed =
-        repetitions
-            .where((r) => r.status == RepetitionStatus.completed)
-            .toList()
-          ..sort(
-            (a, b) =>
-                a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+        if (viewModel.errorMessage != null) {
+          return ErrorDisplay(
+            message: viewModel.errorMessage!,
+            onRetry: () {
+              viewModel.loadRepetitionsByProgressId(progressId);
+            },
+            compact: true,
           );
+        }
 
-    final skipped =
-        repetitions.where((r) => r.status == RepetitionStatus.skipped).toList()
-          ..sort(
-            (a, b) =>
-                a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
-          );
+        if (viewModel.repetitions.isEmpty) {
+          return _buildEmptyState(context);
+        }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (pending.isNotEmpty)
-          RepetitionSectionWidget(
-            title: 'Upcoming',
-            color: Theme.of(context).colorScheme.primary,
-            repetitions: pending,
-            onMarkCompleted: onMarkCompleted,
-            onMarkSkipped: onMarkSkipped,
-            onReschedule: _showReschedulePicker,
-          ),
-        if (completed.isNotEmpty)
-          RepetitionSectionWidget(
-            title: 'Completed',
-            color: Colors.green,
-            repetitions: completed,
-            isHistory: true,
-          ),
-        if (skipped.isNotEmpty)
-          RepetitionSectionWidget(
-            title: 'Skipped',
-            color: Colors.orange,
-            repetitions: skipped,
-            isHistory: true,
-          ),
-        const SizedBox(height: 32),
-      ],
+        final repetitions = List<Repetition>.from(viewModel.repetitions);
+
+        // Các repetition đang chờ (chưa hoàn thành)
+        final pending =
+            repetitions
+                .where((r) => r.status == RepetitionStatus.notStarted)
+                .toList()
+              ..sort(
+                (a, b) =>
+                    a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+              );
+
+        // Các repetition đã hoàn thành
+        final completed =
+            repetitions
+                .where((r) => r.status == RepetitionStatus.completed)
+                .toList()
+              ..sort(
+                (a, b) =>
+                    a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+              );
+
+        // Các repetition đã bỏ qua
+        final skipped =
+            repetitions
+                .where((r) => r.status == RepetitionStatus.skipped)
+                .toList()
+              ..sort(
+                (a, b) =>
+                    a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+              );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (pending.isNotEmpty)
+              RepetitionSectionWidget(
+                title: 'Upcoming',
+                color: Theme.of(context).colorScheme.primary,
+                repetitions: pending,
+                onMarkCompleted: onMarkCompleted,
+                onMarkSkipped: onMarkSkipped,
+                onReschedule: _showReschedulePicker,
+              ),
+            if (completed.isNotEmpty)
+              RepetitionSectionWidget(
+                title: 'Completed',
+                color: Colors.green,
+                repetitions: completed,
+                isHistory: true,
+              ),
+            if (skipped.isNotEmpty)
+              RepetitionSectionWidget(
+                title: 'Skipped',
+                color: Colors.orange,
+                repetitions: skipped,
+                isHistory: true,
+              ),
+            const SizedBox(height: 32),
+          ],
+        );
+      },
     );
   }
 

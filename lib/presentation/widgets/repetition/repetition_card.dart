@@ -94,6 +94,8 @@ class RepetitionCard extends StatelessWidget {
     String dateText,
     String timeIndicator,
   ) {
+    final indicatorColor = _getTimeIndicatorColor(repetition.reviewDate, theme);
+
     return Row(
       children: [
         Icon(Icons.quiz, color: theme.colorScheme.primary, size: 16),
@@ -104,7 +106,7 @@ class RepetitionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: _getTimeIndicatorColor(repetition.reviewDate, theme),
+              color: indicatorColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

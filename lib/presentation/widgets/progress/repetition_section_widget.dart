@@ -55,6 +55,7 @@ class RepetitionSectionWidget extends StatelessWidget {
   }
 
   Widget _buildRepetitionList(BuildContext context) {
+    // Using ListView.builder for better performance with many items
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -62,6 +63,7 @@ class RepetitionSectionWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         final repetition = repetitions[index];
         return RepetitionCard(
+          key: ValueKey(repetition.id),
           repetition: repetition,
           isHistory: isHistory,
           onMarkCompleted:
