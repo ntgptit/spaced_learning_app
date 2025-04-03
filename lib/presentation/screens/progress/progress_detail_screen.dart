@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -52,26 +53,46 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
 
-    final updatedRepetition = await repetitionViewModel.updateRepetition(
-      repetitionId,
-      status: RepetitionStatus.completed,
-    );
-
-    if (!mounted || updatedRepetition == null) return;
-
-    await progressViewModel.updateProgress(
+    final updatedProgress = await progressViewModel.updateProgress(
       widget.progressId,
       percentComplete: score,
     );
 
     if (!mounted) return;
+    if (updatedProgress == null) {
+      final errorMsg = progressViewModel.errorMessage;
+      _showSnackBar(
+        errorMsg != null
+            ? 'Failed to update progress: $errorMsg'
+            : 'Failed to update progress. Please try again.',
+        backgroundColor: Colors.red,
+      );
+      return;
+    }
 
+    final updatedRepetition = await repetitionViewModel.updateRepetition(
+      repetitionId,
+      status: RepetitionStatus.completed,
+    );
+
+    if (!mounted) return;
+    if (updatedRepetition == null) {
+      final errorMsg = repetitionViewModel.errorMessage;
+      _showSnackBar(
+        errorMsg != null
+            ? 'Failed to mark repetition complete: $errorMsg'
+            : 'Failed to mark repetition complete. Progress was updated, but status may be inconsistent.',
+        backgroundColor: Colors.orange,
+      );
+      return;
+    }
+
+    if (!mounted) return;
     final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
       updatedRepetition.moduleProgressId,
     );
 
     if (!mounted) return;
-
     if (allCompleted) {
       _showCycleCompletionSnackBar();
       await _reloadData();
@@ -243,12 +264,27 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   // Build Methods
   @override
   Widget build(BuildContext context) {
-    final progressViewModel = context.watch<ProgressViewModel>();
+    final progressViewModel =
+        context.read<ProgressViewModel>(); // Dùng read ở cấp cao
     return Scaffold(
       appBar: _buildAppBar(progressViewModel.selectedProgress?.moduleTitle),
       body: RefreshIndicator(
         onRefresh: _loadInitialData,
-        child: _buildScreenContent(progressViewModel),
+        child: Selector<ProgressViewModel, (bool, String?, ProgressDetail?)>(
+          selector:
+              (context, vm) => (
+                vm.isLoading,
+                vm.errorMessage,
+                vm.selectedProgress,
+              ),
+          builder: (context, data, child) {
+            return _buildScreenContentWithData(
+              isLoading: data.$1,
+              errorMessage: data.$2,
+              progress: data.$3,
+            );
+          },
+        ),
       ),
     );
   }
@@ -272,19 +308,19 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     );
   }
 
-  Widget _buildScreenContent(ProgressViewModel progressViewModel) {
+  Widget _buildScreenContentWithData({
+    required bool isLoading,
+    required String? errorMessage,
+    required ProgressDetail? progress,
+  }) {
     final theme = Theme.of(context);
-    final progress = progressViewModel.selectedProgress;
 
-    if (progressViewModel.isLoading) {
+    if (isLoading) {
       return const Center(child: AppLoadingIndicator());
     }
-    if (progressViewModel.errorMessage != null) {
+    if (errorMessage != null) {
       return Center(
-        child: ErrorDisplay(
-          message: progressViewModel.errorMessage!,
-          onRetry: _loadInitialData,
-        ),
+        child: ErrorDisplay(message: errorMessage, onRetry: _loadInitialData),
       );
     }
     if (progress == null) {
@@ -399,7 +435,7 @@ class ScoreInputDialogContent extends StatelessWidget {
     final isSelected = currentScore.toInt() == score;
     return InkWell(
       onTap: () => onScoreChanged(score.toDouble()),
-      borderRadius: BorderRadius.circular(8), // Sửa lỗi cú pháp
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(

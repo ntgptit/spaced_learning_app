@@ -18,7 +18,6 @@ class ProgressHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final repetitionViewModel = context.watch<RepetitionViewModel>();
     final dateFormat = DateFormat('MMM dd, yyyy');
 
     final startDateText =
@@ -47,11 +46,17 @@ class ProgressHeaderWidget extends StatelessWidget {
             const SizedBox(height: 16),
             _buildOverallProgress(theme),
             const SizedBox(height: 16),
-            _buildCycleProgress(
-              theme,
-              repetitionViewModel,
-              completedCount,
-              totalCount,
+            Selector<RepetitionViewModel, String>(
+              selector:
+                  (context, vm) => vm.getCycleInfo(progress.cyclesStudied),
+              builder: (context, cycleInfo, child) {
+                return _buildCycleProgress(
+                  theme,
+                  cycleInfo,
+                  completedCount,
+                  totalCount,
+                );
+              },
             ),
             const SizedBox(height: 16),
             _buildMetadata(theme, startDateText, nextDateText),
@@ -92,7 +97,7 @@ class ProgressHeaderWidget extends StatelessWidget {
 
   Widget _buildCycleProgress(
     ThemeData theme,
-    RepetitionViewModel viewModel,
+    String cycleInfo,
     int completed,
     int total,
   ) {
@@ -119,10 +124,7 @@ class ProgressHeaderWidget extends StatelessWidget {
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
-        _buildCycleInfoCard(
-          theme,
-          viewModel.getCycleInfo(progress.cyclesStudied),
-        ),
+        _buildCycleInfoCard(theme, cycleInfo),
       ],
     );
   }
