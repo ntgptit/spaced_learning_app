@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
@@ -61,7 +60,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
 
         final repetitions = List<Repetition>.from(viewModel.repetitions);
 
-        // 1. Đầu tiên, phân chia theo trạng thái
+        // 1. Phân chia theo trạng thái
         final notStarted =
             repetitions
                 .where((r) => r.status == RepetitionStatus.notStarted)
@@ -127,40 +126,58 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   ) {
     final Map<String, List<Repetition>> groupedByCycle = {};
 
-    for (final repetition in repetitions) {
-      // Sử dụng thời gian tạo (createdAt) làm key để nhóm
-      final createdAtKey =
-          repetition.createdAt != null
-              ? DateFormat(
-                'yyyy-MM-dd HH:mm:ss',
-              ).format(repetition.createdAt!.toLocal()).substring(0, 16)
-              : 'unknown';
+    // Trước tiên, sắp xếp theo createdAt
+    repetitions.sort((a, b) {
+      if (a.createdAt == null && b.createdAt == null) return 0;
+      if (a.createdAt == null) return 1;
+      if (b.createdAt == null) return -1;
+      return a.createdAt!.compareTo(b.createdAt!);
+    });
 
-      if (!groupedByCycle.containsKey(createdAtKey)) {
-        groupedByCycle[createdAtKey] = [];
+    // Phân loại thành các nhóm 5 repetitions
+    int cycleIndex = 1;
+    int currentGroupCount = 0;
+    String currentKey = '';
+
+    for (int i = 0; i < repetitions.length; i++) {
+      final rep = repetitions[i];
+
+      if (currentGroupCount == 0 ||
+          (currentGroupCount < 5 &&
+              rep.createdAt != null &&
+              i > 0 &&
+              repetitions[i - 1].createdAt != null &&
+              rep.createdAt!
+                      .difference(repetitions[i - 1].createdAt!)
+                      .inMinutes <
+                  10)) {
+        if (currentGroupCount == 0) {
+          currentKey = 'Cycle $cycleIndex';
+          groupedByCycle[currentKey] = [];
+        }
+
+        groupedByCycle[currentKey]!.add(rep);
+        currentGroupCount++;
+
+        if (currentGroupCount >= 5) {
+          cycleIndex++;
+          currentGroupCount = 0;
+        }
+      } else {
+        currentKey = 'Cycle $cycleIndex';
+        groupedByCycle[currentKey] = [rep];
+        currentGroupCount = 1;
       }
-
-      groupedByCycle[createdAtKey]!.add(repetition);
     }
 
-    // Sắp xếp các key theo thứ tự thời gian (mới nhất lên đầu)
-    final sortedKeys =
-        groupedByCycle.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    // Tạo map mới với thứ tự đã sắp xếp
-    final sortedMap = <String, List<Repetition>>{};
-    for (final key in sortedKeys) {
-      // Sắp xếp các repetition trong mỗi cycle theo thứ tự
-      final sortedRepetitions =
-          groupedByCycle[key]!..sort(
-            (a, b) =>
-                a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
-          );
-
-      sortedMap[key] = sortedRepetitions;
+    // Sắp xếp các repetition trong mỗi nhóm theo order
+    for (final key in groupedByCycle.keys) {
+      groupedByCycle[key]!.sort(
+        (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+      );
     }
 
-    return sortedMap;
+    return groupedByCycle;
   }
 
   // Xây dựng section cho một trạng thái (Pending, Completed, Skipped)
@@ -176,7 +193,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header cho trạng thái
         Container(
           margin: const EdgeInsets.only(top: 16, bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -192,8 +208,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
             ),
           ),
         ),
-
-        // Hiển thị từng nhóm cycle
         for (final entry in cycleGroups.entries)
           _buildCycleGroup(context, entry.key, entry.value, isHistory),
       ],
@@ -203,23 +217,28 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   // Xây dựng UI cho một nhóm cycle cụ thể
   Widget _buildCycleGroup(
     BuildContext context,
-    String cycleTimeKey,
+    String cycleKey,
     List<Repetition> repetitions,
     bool isHistory,
   ) {
     final theme = Theme.of(context);
     final isCurrentCycle = _isCurrentCycle(repetitions);
 
-    // Xác định cycle number dựa vào thứ tự (ví dụ: Cycle 1, Cycle 2, v.v.)
-    // Bạn có thể thay logic này bằng logic thực tế từ dữ liệu của bạn
-    final cycleNumber = _getCycleNumber(repetitions, cycleTimeKey);
+    // Lấy cycle number từ key (nếu cần làm fallback)
+    final cycleNumber = int.tryParse(cycleKey.replaceAll('Cycle ', '')) ?? 1;
+
+    // Sử dụng widget.currentCycleStudied để xác định chu kỳ hiện tại
+    final CycleStudied cycleName =
+        isCurrentCycle
+            ? widget
+                .currentCycleStudied // Ưu tiên chu kỳ hiện tại từ Progress
+            : _mapNumberToCycleStudied(cycleNumber);
 
     return Container(
       margin: const EdgeInsets.only(left: 12, bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header cho cycle
           Container(
             margin: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -230,11 +249,11 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getCycleColor(cycleNumber),
+                    color: _getCycleColor(cycleName),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Cycle $cycleNumber',
+                    _formatCycleStudied(cycleName),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -264,8 +283,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
               ],
             ),
           ),
-
-          // Danh sách các repetition trong cycle
           for (final repetition in repetitions)
             RepetitionCard(
               repetition: repetition,
@@ -288,35 +305,25 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
 
   // Xác định xem đây có phải là cycle hiện tại không
   bool _isCurrentCycle(List<Repetition> repetitions) {
-    // Logic thực tế: so sánh với cycle hiện tại từ Progress
-    // Đơn giản tạm thời: nếu có bất kỳ repetition nào có status là notStarted
-    return repetitions.any((r) => r.status == RepetitionStatus.notStarted);
+    // Kiểm tra xem danh sách repetitions này có khớp với chu kỳ hiện tại không
+    return repetitions.any((r) => r.status == RepetitionStatus.notStarted) &&
+        widget.currentCycleStudied != CycleStudied.firstTime;
   }
 
-  // Xác định số thứ tự của cycle dựa vào dữ liệu
-  int _getCycleNumber(List<Repetition> repetitions, String cycleTimeKey) {
-    // Logic giả định: xác định cycle number dựa vào thời gian tạo
-    // Trong thực tế, bạn cần logic phức tạp hơn dựa vào dữ liệu thực
-
-    // Ví dụ đơn giản: So sánh với cycleStudied hiện tại
-    if (_isCurrentCycle(repetitions)) {
-      switch (widget.currentCycleStudied) {
-        case CycleStudied.firstTime:
-          return 1;
-        case CycleStudied.firstReview:
-          return 2;
-        case CycleStudied.secondReview:
-          return 3;
-        case CycleStudied.thirdReview:
-          return 4;
-        case CycleStudied.moreThanThreeReviews:
-          return 5;
-      }
+  // Chuyển đổi số thứ tự cycle thành CycleStudied (dùng làm fallback)
+  CycleStudied _mapNumberToCycleStudied(int number) {
+    switch (number) {
+      case 1:
+        return CycleStudied.firstTime;
+      case 2:
+        return CycleStudied.firstReview;
+      case 3:
+        return CycleStudied.secondReview;
+      case 4:
+        return CycleStudied.thirdReview;
+      default:
+        return CycleStudied.moreThanThreeReviews;
     }
-
-    // Nếu không phải cycle hiện tại, lấy từ vị trí trong danh sách
-    // Logic này cần được điều chỉnh cho phù hợp với dữ liệu thực tế
-    return int.tryParse(cycleTimeKey.split('-').first) ?? 0;
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -358,18 +365,33 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     }
   }
 
-  // Màu sắc cho từng cycle
-  Color _getCycleColor(int cycleNumber) {
-    switch (cycleNumber) {
-      case 1:
+  // Helper methods
+  String _formatCycleStudied(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return 'Initial';
+      case CycleStudied.firstReview:
+        return 'Review 1';
+      case CycleStudied.secondReview:
+        return 'Review 2';
+      case CycleStudied.thirdReview:
+        return 'Review 3';
+      case CycleStudied.moreThanThreeReviews:
+        return 'Review 4+';
+    }
+  }
+
+  Color _getCycleColor(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
         return Colors.indigo;
-      case 2:
+      case CycleStudied.firstReview:
         return Colors.green;
-      case 3:
+      case CycleStudied.secondReview:
         return Colors.teal;
-      case 4:
+      case CycleStudied.thirdReview:
         return Colors.blue;
-      default:
+      case CycleStudied.moreThanThreeReviews:
         return Colors.deepPurple;
     }
   }
