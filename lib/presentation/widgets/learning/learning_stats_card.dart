@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/learning_stats.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Assuming AppDimens exists
+import 'package:spaced_learning_app/domain/models/learning_stats.dart'; // Assuming LearningStatsDTO exists
 
 /// An enhanced card widget that displays comprehensive learning statistics using grid layouts
 class LearningStatsCard extends StatelessWidget {
@@ -31,17 +31,45 @@ class LearningStatsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(theme),
+            _buildCardHeader(theme), // Renamed for clarity
             SizedBox(
               height: isSmallScreen ? AppDimens.spaceM : AppDimens.spaceL,
             ),
-            _buildModuleSection(theme, isSmallScreen),
+            // Use the generalized section builder
+            _buildStatsSection(
+              theme: theme,
+              sectionIcon: Icons.auto_stories,
+              sectionTitle: 'Module Progress',
+              sectionColor: theme.colorScheme.secondary,
+              gridContent: _buildModuleStatsGrid(theme, isSmallScreen),
+            ),
             const Divider(height: AppDimens.spaceXXL),
-            _buildDueSection(theme, isSmallScreen),
+            _buildStatsSection(
+              theme: theme,
+              sectionIcon: Icons.calendar_today,
+              sectionTitle: 'Due Sessions',
+              sectionColor: theme.colorScheme.error,
+              gridContent: _buildDueStatsGrid(theme, isSmallScreen),
+            ),
             const Divider(height: AppDimens.spaceXXL),
-            _buildStreakSection(theme, isSmallScreen),
+            _buildStatsSection(
+              theme: theme,
+              sectionIcon: Icons.local_fire_department,
+              sectionTitle: 'Streaks',
+              sectionColor: Colors.deepOrange,
+              gridContent: _buildStreakStatsGrid(theme, isSmallScreen),
+            ),
             const Divider(height: AppDimens.spaceXXL),
-            _buildVocabularySection(theme, isSmallScreen),
+            _buildStatsSection(
+              theme: theme,
+              sectionIcon: Icons.menu_book,
+              sectionTitle: 'Vocabulary',
+              sectionColor: Colors.teal,
+              gridContent: _buildVocabularyStatsGrid(
+                theme,
+                isSmallScreen,
+              ), // Renamed grid builder
+            ),
             if (onViewDetailPressed != null) ...[
               const SizedBox(height: AppDimens.spaceL),
               Align(
@@ -59,7 +87,8 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  // Header for the entire card
+  Widget _buildCardHeader(ThemeData theme) {
     return Row(
       children: [
         Icon(Icons.book_online, color: theme.colorScheme.primary),
@@ -69,34 +98,34 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Xây dựng phần Module Progress
-  Widget _buildModuleSection(ThemeData theme, bool isSmallScreen) {
+  /// Builds a generic statistics section with a header and grid content.
+  Widget _buildStatsSection({
+    required ThemeData theme,
+    required IconData sectionIcon,
+    required String sectionTitle,
+    required Color sectionColor,
+    required Widget gridContent,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(
-              Icons.auto_stories,
-              size: AppDimens.iconM,
-              color: theme.colorScheme.secondary,
-            ),
+            Icon(sectionIcon, size: AppDimens.iconM, color: sectionColor),
             const SizedBox(width: AppDimens.spaceS),
             Text(
-              'Module Progress',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.secondary,
-              ),
+              sectionTitle,
+              style: theme.textTheme.titleMedium?.copyWith(color: sectionColor),
             ),
           ],
         ),
         const SizedBox(height: AppDimens.spaceM),
-        _buildModuleStatsGrid(theme, isSmallScreen),
+        gridContent, // Pass the specific grid widget here
       ],
     );
   }
 
-  /// Xây dựng grid cho phần Module Progress
+  /// Builds the grid for the Module Progress section
   Widget _buildModuleStatsGrid(ThemeData theme, bool isSmallScreen) {
     final cycleStats = stats.cycleStats;
     final notStudied = cycleStats['NOT_STUDIED'] ?? 0;
@@ -106,7 +135,7 @@ class LearningStatsCard extends StatelessWidget {
     final thirdReview = cycleStats['THIRD_REVIEW'] ?? 0;
     final moreThanThree = cycleStats['MORE_THAN_THREE_REVIEWS'] ?? 0;
 
-    // Danh sách các mục module để tái sử dụng cho cả 2 kích thước màn hình
+    // List of module items
     final moduleItems = [
       _buildGridItem(
         theme,
@@ -125,7 +154,7 @@ class LearningStatsCard extends StatelessWidget {
       _buildGridItem(
         theme,
         firstTime.toString(),
-        '1st\nTime',
+        '1st\nTime', // Or 'Completed'? Based on DTO definition
         Icons.play_circle_fill,
         Colors.green,
       ),
@@ -144,14 +173,7 @@ class LearningStatsCard extends StatelessWidget {
         Colors.purple,
       ),
       _buildGridItem(
-        theme,
-        thirdReview.toString(),
-        '3rd\nReview',
-        Icons.change_circle,
-        Colors.teal,
-      ),
-      // Tiếp tục lib/presentation/widgets/learning/learning_stats_card.dart
-      _buildGridItem(
+        // Only one '3rd Review' item now
         theme,
         thirdReview.toString(),
         '3rd\nReview',
@@ -167,15 +189,24 @@ class LearningStatsCard extends StatelessWidget {
       ),
     ];
 
-    // Thêm ô trống cho màn hình lớn để cân bằng
-    // if (!isSmallScreen) {
-    //   moduleItems.add(const SizedBox());
-    // }
+    // Add placeholder(s) if needed for alignment on larger screens
+    // Example: Ensure the grid has a multiple of `crossAxisCount` items
+    const largeScreenCrossAxisCount = 4;
+    if (!isSmallScreen && moduleItems.length % largeScreenCrossAxisCount != 0) {
+      final placeholdersNeeded =
+          largeScreenCrossAxisCount -
+          (moduleItems.length % largeScreenCrossAxisCount);
+      for (int i = 0; i < placeholdersNeeded; i++) {
+        moduleItems.add(
+          const SizedBox.shrink(),
+        ); // Use SizedBox.shrink for empty space
+      }
+    }
 
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: isSmallScreen ? 3 : 4,
+      crossAxisCount: isSmallScreen ? 3 : largeScreenCrossAxisCount,
       childAspectRatio: isSmallScreen ? 0.85 : 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: isSmallScreen ? AppDimens.spaceXS : AppDimens.spaceS,
@@ -183,36 +214,8 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 
-  /// Xây dựng phần Due Sessions
-  Widget _buildDueSection(ThemeData theme, bool isSmallScreen) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.calendar_today,
-              size: AppDimens.iconM,
-              color: theme.colorScheme.error,
-            ),
-            const SizedBox(width: AppDimens.spaceS),
-            Text(
-              'Due Sessions',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.error,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimens.spaceM),
-        _buildDueStatsGrid(theme, isSmallScreen),
-      ],
-    );
-  }
-
-  /// Xây dựng grid cho phần Due Sessions
+  /// Builds the grid for the Due Sessions section
   Widget _buildDueStatsGrid(ThemeData theme, bool isSmallScreen) {
-    // Danh sách các mục due cho cả hai kích thước màn hình
     final dueItems = [
       _buildGridItem(
         theme,
@@ -252,43 +255,15 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: 1.0,
+      childAspectRatio: 1.0, // Consistent aspect ratio for this grid
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: dueItems,
     );
   }
 
-  /// Xây dựng phần Streaks
-  Widget _buildStreakSection(ThemeData theme, bool isSmallScreen) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.local_fire_department,
-              size: AppDimens.iconM,
-              color: Colors.deepOrange,
-            ),
-            const SizedBox(width: AppDimens.spaceS),
-            Text(
-              'Streaks',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.deepOrange,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimens.spaceM),
-        _buildStreakStatsGrid(theme, isSmallScreen),
-      ],
-    );
-  }
-
-  /// Xây dựng grid cho phần Streaks
+  /// Builds the grid for the Streaks section
   Widget _buildStreakStatsGrid(ThemeData theme, bool isSmallScreen) {
-    // Danh sách các mục streak
     final streakItems = [
       _buildGridItem(
         theme,
@@ -316,58 +291,28 @@ class LearningStatsCard extends StatelessWidget {
       ),
     ];
 
-    // Thêm ô trống cho màn hình lớn để cân bằng
+    // Add placeholder for alignment on larger screens
+    const largeScreenCrossAxisCount = 4;
     if (!isSmallScreen) {
-      streakItems.add(const SizedBox());
+      streakItems.add(const SizedBox.shrink()); // Use SizedBox.shrink
     }
 
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: isSmallScreen ? 3 : 4,
-      childAspectRatio: 1.0,
+      crossAxisCount: isSmallScreen ? 3 : largeScreenCrossAxisCount,
+      childAspectRatio: 1.0, // Consistent aspect ratio
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: streakItems,
     );
   }
 
-  /// Xây dựng phần Vocabulary
-  Widget _buildVocabularySection(ThemeData theme, bool isSmallScreen) {
+  /// Builds the grid for the Vocabulary section (Renamed from _buildVocabStatsGrid)
+  Widget _buildVocabularyStatsGrid(ThemeData theme, bool isSmallScreen) {
     final completionRate = stats.vocabularyCompletionRate.toStringAsFixed(1);
     final weeklyRate = stats.weeklyNewWordsRate.toStringAsFixed(1);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.menu_book,
-              size: AppDimens.iconM,
-              color: Colors.teal,
-            ),
-            const SizedBox(width: AppDimens.spaceS),
-            Text(
-              'Vocabulary',
-              style: theme.textTheme.titleMedium?.copyWith(color: Colors.teal),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimens.spaceM),
-        _buildVocabStatsGrid(theme, isSmallScreen, completionRate, weeklyRate),
-      ],
-    );
-  }
-
-  /// Xây dựng grid cho phần Vocabulary
-  Widget _buildVocabStatsGrid(
-    ThemeData theme,
-    bool isSmallScreen,
-    String completionRate,
-    String weeklyRate,
-  ) {
-    // Danh sách các mục vocabulary cho cả hai kích thước màn hình
     final vocabItems = [
       _buildGridItem(
         theme,
@@ -405,14 +350,14 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: 1.0,
+      childAspectRatio: 1.0, // Consistent aspect ratio
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: vocabItems,
     );
   }
 
-  /// Widget xây dựng một item trong grid
+  /// Widget builder for a single item within any grid. (No changes needed here)
   Widget _buildGridItem(
     ThemeData theme,
     String value,
@@ -455,6 +400,8 @@ class LearningStatsCard extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: color,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         if (additionalInfo != null)
           Text(
@@ -463,11 +410,15 @@ class LearningStatsCard extends StatelessWidget {
               color: color.withOpacity(AppDimens.opacityHigh),
               fontSize: AppDimens.fontXS,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         Text(
           label,
           style: theme.textTheme.bodySmall,
           textAlign: TextAlign.center,
+          maxLines: 2, // Allow label to wrap to two lines
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
