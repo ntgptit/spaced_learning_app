@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Import AppDimens
 
 class AppTypography {
   static TextTheme getTextTheme(Brightness brightness) {
     // Assuming GoogleFonts is correctly imported in pubspec.yaml
-    // final baseTextTheme = GoogleFonts.interTextTheme(); // Use this if available
-    final baseTextTheme =
-        brightness == Brightness.light
-            ? Typography.material2021().black
-            : Typography.material2021().white; // Fallback
+    final baseTextTheme = GoogleFonts.interTextTheme(); // Use this if available
+    // final baseTextTheme =
+    //     brightness == Brightness.light
+    //         ? Typography.material2021().black
+    //         : Typography.material2021().white; // Fallback
 
     final isLight = brightness == Brightness.light;
     // Use onSurface color from theme eventually, but define base color here
