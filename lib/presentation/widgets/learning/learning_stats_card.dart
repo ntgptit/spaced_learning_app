@@ -168,9 +168,9 @@ class LearningStatsCard extends StatelessWidget {
     ];
 
     // Thêm ô trống cho màn hình lớn để cân bằng
-    if (!isSmallScreen) {
-      moduleItems.add(const SizedBox());
-    }
+    // if (!isSmallScreen) {
+    //   moduleItems.add(const SizedBox());
+    // }
 
     return GridView.count(
       shrinkWrap: true,
