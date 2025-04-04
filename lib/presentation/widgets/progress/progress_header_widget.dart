@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
@@ -38,14 +39,14 @@ class ProgressHeaderWidget extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTitle(theme),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             _buildOverallProgress(theme),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             Selector<RepetitionViewModel, String>(
               selector:
                   (context, vm) => vm.getCycleInfo(progress.cyclesStudied),
@@ -58,7 +59,7 @@ class ProgressHeaderWidget extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             _buildMetadata(theme, startDateText, nextDateText),
           ],
         ),
@@ -82,12 +83,12 @@ class ProgressHeaderWidget extends StatelessWidget {
           'Overall Progress',
           '${progress.percentComplete.toInt()}%',
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
           child: LinearProgressIndicator(
             value: progress.percentComplete / 100,
-            minHeight: 10,
+            minHeight: AppDimens.lineProgressHeightL,
             backgroundColor: theme.colorScheme.surfaceContainerHighest,
           ),
         ),
@@ -108,22 +109,22 @@ class ProgressHeaderWidget extends StatelessWidget {
           'Study Cycle: ${_formatCycleStudied(progress.cyclesStudied)}',
           style: theme.textTheme.titleMedium,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
           child: LinearProgressIndicator(
             value: total > 0 ? completed / total : 0,
-            minHeight: 10,
+            minHeight: AppDimens.lineProgressHeightL,
             backgroundColor: theme.colorScheme.surfaceContainerHighest,
             color: theme.colorScheme.secondary,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppDimens.spaceXS),
         Text(
           '$completed/$total repetitions completed in this cycle',
           style: theme.textTheme.bodySmall,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         _buildCycleInfoCard(theme, cycleInfo),
       ],
     );
@@ -131,15 +132,19 @@ class ProgressHeaderWidget extends StatelessWidget {
 
   Widget _buildCycleInfoCard(ThemeData theme, String infoText) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer.withAlpha(50),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
       ),
       child: Row(
         children: [
-          Icon(Icons.lightbulb, color: theme.colorScheme.primary, size: 20),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.lightbulb,
+            color: theme.colorScheme.primary,
+            size: AppDimens.iconM,
+          ),
+          const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: Text(
               infoText,
@@ -189,8 +194,8 @@ class ProgressHeaderWidget extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
+        Icon(icon, size: AppDimens.iconS, color: theme.colorScheme.primary),
+        const SizedBox(width: AppDimens.spaceS),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

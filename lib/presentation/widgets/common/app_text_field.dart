@@ -1,6 +1,7 @@
 // lib/presentation/widgets/app_text_field.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class AppTextField extends StatefulWidget {
   final String? label;
@@ -88,16 +89,16 @@ class _AppTextFieldState extends State<AppTextField> {
     if (widget.suffixIcon != null) {
       suffixIconWidget = InkWell(
         onTap: widget.onSuffixIconTap,
-        borderRadius: BorderRadius.circular(48),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(AppDimens.paddingS),
           child: Icon(
             widget.suffixIcon,
             color:
                 widget.errorText != null
                     ? colorScheme.error
                     : colorScheme.primary,
-            size: 20,
+            size: AppDimens.iconM,
           ),
         ),
       );
@@ -108,15 +109,15 @@ class _AppTextFieldState extends State<AppTextField> {
             _passwordVisible = !_passwordVisible;
           });
         },
-        borderRadius: BorderRadius.circular(48),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(AppDimens.paddingS),
           child: Icon(
             _passwordVisible
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
-            color: colorScheme.onSurface.withValues(alpha: 0.6),
-            size: 20,
+            color: colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
+            size: AppDimens.iconM,
           ),
         ),
       );
@@ -148,7 +149,7 @@ class _AppTextFieldState extends State<AppTextField> {
         color:
             widget.enabled
                 ? colorScheme.onSurface
-                : colorScheme.onSurface.withValues(alpha: 0.6),
+                : colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
       ),
       decoration: InputDecoration(
         labelText: widget.label,
@@ -159,11 +160,16 @@ class _AppTextFieldState extends State<AppTextField> {
         fillColor:
             widget.fillColor ??
             (theme.brightness == Brightness.dark
-                ? colorScheme.onSurface.withValues(alpha: 0.08)
-                : colorScheme.onSurface.withValues(alpha: 0.04)),
+                ? colorScheme.onSurface.withOpacity(AppDimens.opacityLight)
+                : colorScheme.onSurface.withOpacity(
+                  AppDimens.opacityLight * 0.8,
+                )),
         contentPadding:
             widget.contentPadding ??
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingL,
+              vertical: AppDimens.paddingL,
+            ),
         prefixIcon:
             widget.prefixIcon != null
                 ? Icon(
@@ -171,40 +177,42 @@ class _AppTextFieldState extends State<AppTextField> {
                   color:
                       widget.errorText != null
                           ? colorScheme.error
-                          : colorScheme.onSurface.withValues(alpha: 0.6),
-                  size: 20,
+                          : colorScheme.onSurface.withOpacity(
+                            AppDimens.opacityHigh,
+                          ),
+                  size: AppDimens.iconM,
                 )
                 : widget.prefix,
         suffixIcon: suffixIconWidget ?? widget.suffix,
         counterText: widget.showCounter ? null : '',
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(
-            color: colorScheme.onSurface.withValues(alpha: 0.2),
+            color: colorScheme.onSurface.withOpacity(AppDimens.opacitySemi),
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(
-            color: colorScheme.onSurface.withValues(alpha: 0.2),
+            color: colorScheme.onSurface.withOpacity(AppDimens.opacitySemi),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(color: colorScheme.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(
-            color: colorScheme.onSurface.withValues(alpha: 0.1),
+            color: colorScheme.onSurface.withOpacity(AppDimens.opacityMedium),
           ),
         ),
       ),

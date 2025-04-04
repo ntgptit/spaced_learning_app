@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 
 /// An enhanced card widget that displays comprehensive learning statistics using grid layouts
@@ -16,27 +17,33 @@ class LearningStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
+    final isSmallScreen = size.width < AppDimens.breakpointXS;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Padding(
-        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+        padding: EdgeInsets.all(
+          isSmallScreen ? AppDimens.paddingM : AppDimens.paddingL,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(theme),
-            SizedBox(height: isSmallScreen ? 12 : 16),
+            SizedBox(
+              height: isSmallScreen ? AppDimens.spaceM : AppDimens.spaceL,
+            ),
             _buildModuleSection(theme, isSmallScreen),
-            const Divider(height: 32),
+            const Divider(height: AppDimens.spaceXXL),
             _buildDueSection(theme, isSmallScreen),
-            const Divider(height: 32),
+            const Divider(height: AppDimens.spaceXXL),
             _buildStreakSection(theme, isSmallScreen),
-            const Divider(height: 32),
+            const Divider(height: AppDimens.spaceXXL),
             _buildVocabularySection(theme, isSmallScreen),
             if (onViewDetailPressed != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppDimens.spaceL),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
@@ -56,7 +63,7 @@ class LearningStatsCard extends StatelessWidget {
     return Row(
       children: [
         Icon(Icons.book_online, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppDimens.spaceS),
         Text('Learning Statistics', style: theme.textTheme.titleLarge),
       ],
     );
@@ -71,10 +78,10 @@ class LearningStatsCard extends StatelessWidget {
           children: [
             Icon(
               Icons.auto_stories,
-              size: 20,
+              size: AppDimens.iconM,
               color: theme.colorScheme.secondary,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDimens.spaceS),
             Text(
               'Module Progress',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -83,7 +90,7 @@ class LearningStatsCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppDimens.spaceM),
         _buildModuleStatsGrid(theme, isSmallScreen),
       ],
     );
@@ -143,6 +150,14 @@ class LearningStatsCard extends StatelessWidget {
         Icons.change_circle,
         Colors.teal,
       ),
+      // Tiếp tục lib/presentation/widgets/learning/learning_stats_card.dart
+      _buildGridItem(
+        theme,
+        thirdReview.toString(),
+        '3rd\nReview',
+        Icons.change_circle,
+        Colors.teal,
+      ),
       _buildGridItem(
         theme,
         moreThanThree.toString(),
@@ -162,8 +177,8 @@ class LearningStatsCard extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 3 : 4,
       childAspectRatio: isSmallScreen ? 0.85 : 1.0,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: isSmallScreen ? 4 : 8,
+      mainAxisSpacing: AppDimens.spaceS,
+      crossAxisSpacing: isSmallScreen ? AppDimens.spaceXS : AppDimens.spaceS,
       children: moduleItems,
     );
   }
@@ -177,10 +192,10 @@ class LearningStatsCard extends StatelessWidget {
           children: [
             Icon(
               Icons.calendar_today,
-              size: 20,
+              size: AppDimens.iconM,
               color: theme.colorScheme.error,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDimens.spaceS),
             Text(
               'Due Sessions',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -189,7 +204,7 @@ class LearningStatsCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppDimens.spaceM),
         _buildDueStatsGrid(theme, isSmallScreen),
       ],
     );
@@ -238,8 +253,8 @@ class LearningStatsCard extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
       childAspectRatio: 1.0,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
+      mainAxisSpacing: AppDimens.spaceS,
+      crossAxisSpacing: AppDimens.spaceS,
       children: dueItems,
     );
   }
@@ -253,10 +268,10 @@ class LearningStatsCard extends StatelessWidget {
           children: [
             const Icon(
               Icons.local_fire_department,
-              size: 20,
+              size: AppDimens.iconM,
               color: Colors.deepOrange,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDimens.spaceS),
             Text(
               'Streaks',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -265,7 +280,7 @@ class LearningStatsCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppDimens.spaceM),
         _buildStreakStatsGrid(theme, isSmallScreen),
       ],
     );
@@ -311,8 +326,8 @@ class LearningStatsCard extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 3 : 4,
       childAspectRatio: 1.0,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
+      mainAxisSpacing: AppDimens.spaceS,
+      crossAxisSpacing: AppDimens.spaceS,
       children: streakItems,
     );
   }
@@ -327,15 +342,19 @@ class LearningStatsCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.menu_book, size: 20, color: Colors.teal),
-            const SizedBox(width: 8),
+            const Icon(
+              Icons.menu_book,
+              size: AppDimens.iconM,
+              color: Colors.teal,
+            ),
+            const SizedBox(width: AppDimens.spaceS),
             Text(
               'Vocabulary',
               style: theme.textTheme.titleMedium?.copyWith(color: Colors.teal),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppDimens.spaceM),
         _buildVocabStatsGrid(theme, isSmallScreen, completionRate, weeklyRate),
       ],
     );
@@ -387,8 +406,8 @@ class LearningStatsCard extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
       childAspectRatio: 1.0,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
+      mainAxisSpacing: AppDimens.spaceS,
+      crossAxisSpacing: AppDimens.spaceS,
       children: vocabItems,
     );
   }
@@ -409,23 +428,27 @@ class LearningStatsCard extends StatelessWidget {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            Icon(iconData, color: color, size: 24),
+            Icon(iconData, color: color, size: AppDimens.iconL),
             if (showStar)
               Positioned(
-                top: -5,
-                right: -5,
+                top: -AppDimens.paddingXS - 1,
+                right: -AppDimens.paddingXS - 1,
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(AppDimens.paddingXXS),
                   decoration: const BoxDecoration(
                     color: Colors.amber,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.star, color: Colors.white, size: 10),
+                  child: const Icon(
+                    Icons.star,
+                    color: Colors.white,
+                    size: AppDimens.iconXXS,
+                  ),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppDimens.spaceXS),
         Text(
           value,
           style: theme.textTheme.titleMedium?.copyWith(
@@ -437,8 +460,8 @@ class LearningStatsCard extends StatelessWidget {
           Text(
             additionalInfo,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: color.withOpacity(0.7),
-              fontSize: 10,
+              color: color.withOpacity(AppDimens.opacityHigh),
+              fontSize: AppDimens.fontXS,
             ),
           ),
         Text(

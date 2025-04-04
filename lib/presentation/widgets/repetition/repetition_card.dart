@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 
 class RepetitionCard extends StatelessWidget {
@@ -32,16 +33,16 @@ class RepetitionCard extends StatelessWidget {
     final timeIndicator = _getTimeIndicator(repetition.reviewDate);
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: isHistory ? 1 : 2,
+      margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+      elevation: isHistory ? AppDimens.elevationXS : AppDimens.elevationS,
       color: isHistory ? theme.cardColor.withAlpha(180) : theme.cardColor,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(theme, orderText, statusColor),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimens.spaceM),
             _buildDateRow(context, theme, dateText, timeIndicator),
             if (!isHistory && repetition.status == RepetitionStatus.notStarted)
               _buildActions(context),
@@ -62,10 +63,13 @@ class RepetitionCard extends StatelessWidget {
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingM,
+            vertical: AppDimens.paddingXS,
+          ),
           decoration: BoxDecoration(
             color: statusColor.withAlpha(50),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -78,8 +82,8 @@ class RepetitionCard extends StatelessWidget {
                 ),
               ),
               if (repetition.status == RepetitionStatus.completed) ...[
-                const SizedBox(width: 4),
-                Icon(Icons.quiz, size: 12, color: statusColor),
+                const SizedBox(width: AppDimens.spaceXS),
+                Icon(Icons.quiz, size: AppDimens.iconXS, color: statusColor),
               ],
             ],
           ),
@@ -98,16 +102,23 @@ class RepetitionCard extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(Icons.quiz, color: theme.colorScheme.primary, size: 16),
-        const SizedBox(width: 8),
+        Icon(
+          Icons.quiz,
+          color: theme.colorScheme.primary,
+          size: AppDimens.iconS,
+        ),
+        const SizedBox(width: AppDimens.spaceS),
         Text(dateText),
         const Spacer(),
         if (repetition.reviewDate != null && !isHistory)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingS,
+              vertical: AppDimens.paddingXXS,
+            ),
             decoration: BoxDecoration(
               color: indicatorColor,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppDimens.radiusS),
             ),
             child: Text(
               timeIndicator,
@@ -120,7 +131,7 @@ class RepetitionCard extends StatelessWidget {
 
   Widget _buildActions(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: AppDimens.paddingL),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -131,10 +142,10 @@ class RepetitionCard extends StatelessWidget {
               Colors.blue,
               onReschedule!,
             ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppDimens.spaceS),
           if (onSkip != null)
             _buildActionButton('Skip', Icons.skip_next, Colors.orange, onSkip!),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppDimens.spaceS),
           if (onMarkCompleted != null)
             _buildActionButton(
               'Complete',
@@ -156,23 +167,30 @@ class RepetitionCard extends StatelessWidget {
     bool showScoreIndicator = false,
   }) {
     return SizedBox(
-      height: 36,
+      height: AppDimens.buttonHeightM,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon, size: 16, color: color),
+        icon: Icon(icon, size: AppDimens.iconS, color: color),
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label, style: TextStyle(color: color, fontSize: 12)),
+            Text(
+              label,
+              style: TextStyle(color: color, fontSize: AppDimens.fontS),
+            ),
             if (showScoreIndicator) ...[
-              const SizedBox(width: 3),
+              const SizedBox(width: AppDimens.spaceXXS + 1),
               Container(
-                padding: const EdgeInsets.all(2),
+                padding: const EdgeInsets.all(AppDimens.paddingXXS),
                 decoration: BoxDecoration(
                   color: color.withAlpha(30),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusXS),
                 ),
-                child: Icon(Icons.percent, size: 10, color: color),
+                child: Icon(
+                  Icons.percent,
+                  size: AppDimens.iconXXS,
+                  color: color,
+                ),
               ),
             ],
           ],
@@ -180,9 +198,9 @@ class RepetitionCard extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: color.withAlpha(120)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
         ),
       ),
     );

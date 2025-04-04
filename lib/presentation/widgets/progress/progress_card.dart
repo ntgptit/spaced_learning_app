@@ -1,6 +1,7 @@
 // lib/presentation/widgets/progress/progress_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 /// A card widget displaying progress summary for a module
@@ -24,18 +25,21 @@ class ProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+      margin: const EdgeInsets.symmetric(
+        vertical: AppDimens.spaceXS + 2,
+        horizontal: AppDimens.spaceXXS,
+      ),
       color: isDue ? theme.colorScheme.primaryContainer : null,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeaderRow(theme),
               if (progress.repetitionCount > 0) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimens.spaceS),
                 _buildRepetitionCountBadge(theme),
               ],
             ],
@@ -51,7 +55,7 @@ class ProgressCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildProgressIndicator(theme),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppDimens.spaceL),
         _buildProgressDetails(theme),
         if (isDue) _buildDueIndicator(),
       ],
@@ -63,7 +67,7 @@ class ProgressCard extends StatelessWidget {
     return CircularProgressIndicator(
       value: progress.percentComplete / 100,
       backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      strokeWidth: 5,
+      strokeWidth: AppDimens.lineProgressHeight,
     );
   }
 
@@ -86,10 +90,10 @@ class ProgressCard extends StatelessWidget {
             ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: AppDimens.spaceXS),
             Text(subtitle!, style: theme.textTheme.bodyMedium),
           ],
-          const SizedBox(height: 4),
+          const SizedBox(height: AppDimens.spaceXS),
           Text(
             'Next study: $nextStudyText',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -97,7 +101,7 @@ class ProgressCard extends StatelessWidget {
               fontWeight: isDue ? FontWeight.bold : null,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppDimens.spaceXS),
           Text(
             'Progress: ${progress.percentComplete.toInt()}%',
             style: theme.textTheme.bodySmall,
@@ -115,10 +119,13 @@ class ProgressCard extends StatelessWidget {
   /// Builds the repetition count badge
   Widget _buildRepetitionCountBadge(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingXS,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
       ),
       child: Text(
         'Repetitions: ${progress.repetitionCount}',

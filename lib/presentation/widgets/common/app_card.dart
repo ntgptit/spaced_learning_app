@@ -1,5 +1,6 @@
-// lib/presentation/widgets/app_card.dart
+// lib/presentation/widgets/common/app_card.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class AppCard extends StatelessWidget {
   final Widget? title;
@@ -25,10 +26,10 @@ class AppCard extends StatelessWidget {
     this.content,
     this.actions,
     this.onTap,
-    this.padding = const EdgeInsets.all(16.0),
-    this.margin = const EdgeInsets.symmetric(vertical: 8.0),
+    this.padding = const EdgeInsets.all(AppDimens.paddingL),
+    this.margin = const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
     this.elevation,
-    this.borderRadius = 16.0,
+    this.borderRadius = AppDimens.radiusL,
     this.backgroundColor,
     this.highlightColor,
   });
@@ -40,7 +41,11 @@ class AppCard extends StatelessWidget {
 
     return Card(
       margin: margin,
-      elevation: elevation ?? (theme.brightness == Brightness.dark ? 1.0 : 2.0),
+      elevation:
+          elevation ??
+          (theme.brightness == Brightness.dark
+              ? AppDimens.elevationXS
+              : AppDimens.elevationS),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius),
       ),
@@ -49,8 +54,9 @@ class AppCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         highlightColor:
-            highlightColor ?? colorScheme.primary.withValues(alpha: 0.1),
-        splashColor: colorScheme.primary.withValues(alpha: 0.1),
+            highlightColor ??
+            colorScheme.primary.withOpacity(AppDimens.opacityMedium),
+        splashColor: colorScheme.primary.withOpacity(AppDimens.opacityMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -66,7 +72,9 @@ class AppCard extends StatelessWidget {
                   children: [
                     if (leading != null)
                       Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
+                        padding: const EdgeInsets.only(
+                          right: AppDimens.paddingL,
+                        ),
                         child: leading,
                       ),
                     if (title != null || subtitle != null)
@@ -81,12 +89,12 @@ class AppCard extends StatelessWidget {
                                 child: title!,
                               ),
                             if (title != null && subtitle != null)
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppDimens.spaceXS),
                             if (subtitle != null)
                               DefaultTextStyle(
                                 style: theme.textTheme.bodyMedium!.copyWith(
-                                  color: colorScheme.onSurface.withValues(
-                                    alpha: 0.7,
+                                  color: colorScheme.onSurface.withOpacity(
+                                    AppDimens.opacityHigh,
                                   ),
                                 ),
                                 child: subtitle!,
@@ -96,7 +104,9 @@ class AppCard extends StatelessWidget {
                       ),
                     if (trailing != null)
                       Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: const EdgeInsets.only(
+                          left: AppDimens.paddingS,
+                        ),
                         child: trailing,
                       ),
                   ],
@@ -113,29 +123,35 @@ class AppCard extends StatelessWidget {
                           left:
                               padding is EdgeInsets
                                   ? (padding as EdgeInsets).left
-                                  : 16.0,
+                                  : AppDimens.paddingL,
                           right:
                               padding is EdgeInsets
                                   ? (padding as EdgeInsets).right
-                                  : 16.0,
+                                  : AppDimens.paddingL,
                           bottom:
                               padding is EdgeInsets
                                   ? (padding as EdgeInsets).bottom
-                                  : 16.0,
+                                  : AppDimens.paddingL,
                         )
                         : padding,
                 child: content,
               ),
             if (actions != null && actions!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                padding: const EdgeInsets.only(
+                  left: AppDimens.paddingS,
+                  right: AppDimens.paddingS,
+                  bottom: AppDimens.paddingS,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children:
                       actions!.map((action) {
                         final int index = actions!.indexOf(action);
                         return Padding(
-                          padding: EdgeInsets.only(left: index > 0 ? 8.0 : 0),
+                          padding: EdgeInsets.only(
+                            left: index > 0 ? AppDimens.paddingS : 0,
+                          ),
                           child: action,
                         );
                       }).toList(),

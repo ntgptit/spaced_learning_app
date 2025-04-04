@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
 /// Widget to display error messages with optional retry action
@@ -25,17 +26,20 @@ class ErrorDisplay extends StatelessWidget {
   /// Builds a compact version of the error display
   Widget _buildCompactView(ThemeData theme) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingS,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppDimens.paddingM),
         child: Row(
           children: [
-            _buildErrorIcon(theme, size: 20),
-            const SizedBox(width: 10),
+            _buildErrorIcon(theme, size: AppDimens.iconM),
+            const SizedBox(width: AppDimens.spaceM),
             Expanded(child: Text(message, style: theme.textTheme.bodyMedium)),
             if (onRetry != null)
               Padding(
-                padding: const EdgeInsets.only(left: 10),
+                padding: const EdgeInsets.only(left: AppDimens.paddingM),
                 child: AppButton(
                   text: 'Retry',
                   type: AppButtonType.text,
@@ -52,12 +56,12 @@ class ErrorDisplay extends StatelessWidget {
   Widget _buildFullView(ThemeData theme) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppDimens.paddingXL),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildErrorIcon(theme, size: 48),
-            const SizedBox(height: 16),
+            _buildErrorIcon(theme, size: AppDimens.iconXXL),
+            const SizedBox(height: AppDimens.spaceL),
             Text(
               message,
               textAlign: TextAlign.center,
@@ -65,7 +69,7 @@ class ErrorDisplay extends StatelessWidget {
             ),
             if (onRetry != null)
               Padding(
-                padding: const EdgeInsets.only(top: 24),
+                padding: const EdgeInsets.only(top: AppDimens.paddingXL),
                 child: AppButton(
                   text: 'Try Again',
                   type: AppButtonType.outline,
@@ -105,8 +109,8 @@ abstract class _SnackbarHelper {
       SnackBar(
         content: Row(
           children: [
-            Icon(icon, color: iconColor ?? Colors.white, size: 20),
-            const SizedBox(width: 10),
+            Icon(icon, color: iconColor ?? Colors.white, size: AppDimens.iconM),
+            const SizedBox(width: AppDimens.spaceM),
             Expanded(
               child: Text(
                 message,

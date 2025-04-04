@@ -1,5 +1,6 @@
 // lib/presentation/widgets/app_progress_indicator.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 enum ProgressType { linear, circular }
 
@@ -18,8 +19,8 @@ class AppProgressIndicator extends StatelessWidget {
     super.key,
     this.type = ProgressType.circular,
     this.value,
-    this.size = 40.0,
-    this.strokeWidth = 4.0,
+    this.size = AppDimens.circularProgressSizeL,
+    this.strokeWidth = AppDimens.lineProgressHeight,
     this.backgroundColor,
     this.foregroundColor,
     this.child,
@@ -36,8 +37,8 @@ class AppProgressIndicator extends StatelessWidget {
     final effectiveBackgroundColor =
         backgroundColor ??
         (theme.brightness == Brightness.dark
-            ? colorScheme.surface.withValues(alpha: 0.2)
-            : colorScheme.primary.withValues(alpha: 0.2));
+            ? colorScheme.surface.withOpacity(AppDimens.opacitySemi)
+            : colorScheme.primary.withOpacity(AppDimens.opacitySemi));
 
     Widget progressIndicator;
 
@@ -76,13 +77,15 @@ class AppProgressIndicator extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           progressIndicator,
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimens.spaceS),
           Text(
             label!,
             style:
                 labelStyle ??
                 theme.textTheme.bodyMedium!.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: colorScheme.onSurface.withOpacity(
+                    AppDimens.opacityHigh,
+                  ),
                 ),
           ),
         ],

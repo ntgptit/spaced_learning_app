@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Loading indicator with different sizes and styles
 class AppLoadingIndicator extends StatelessWidget {
@@ -9,7 +10,7 @@ class AppLoadingIndicator extends StatelessWidget {
 
   const AppLoadingIndicator({
     super.key,
-    this.size = 40.0,
+    this.size = AppDimens.circularProgressSizeL,
     this.color,
     this.type = LoadingIndicatorType.threeBounce,
   });
@@ -57,14 +58,19 @@ class FullScreenLoading extends StatelessWidget {
 
     return Container(
       color:
-          backgroundColor ?? theme.colorScheme.surface.withValues(alpha: 0.7),
+          backgroundColor ??
+          theme.colorScheme.surface.withOpacity(AppDimens.opacityHigh),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AppLoadingIndicator(color: indicatorColor, type: type, size: 50),
+            AppLoadingIndicator(
+              color: indicatorColor,
+              type: type,
+              size: AppDimens.circularProgressSizeL,
+            ),
             if (message != null) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: AppDimens.spaceL),
               Text(
                 message!,
                 style: theme.textTheme.bodyLarge,

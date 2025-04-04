@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
@@ -15,7 +16,10 @@ class BookCard extends StatelessWidget {
     required this.book,
     this.onTap,
     this.onStartPressed,
-    this.margin = const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+    this.margin = const EdgeInsets.symmetric(
+      vertical: AppDimens.paddingS,
+      horizontal: AppDimens.paddingL,
+    ),
   });
 
   @override
@@ -50,17 +54,16 @@ class BookCard extends StatelessWidget {
   // UI Components
   Widget _buildModuleCountBadge(ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      width: 36, // Giảm từ 40 xuống 36
-      height: 36,
+      width: AppDimens.moduleIndicatorSize,
+      height: AppDimens.moduleIndicatorSize,
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.15),
+        color: colorScheme.primary.withOpacity(AppDimens.opacityMedium),
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Text(
           '${book.moduleCount}',
           style: theme.textTheme.titleSmall!.copyWith(
-            // Dùng titleSmall thay titleMedium
             color: colorScheme.primary,
             fontWeight: FontWeight.bold,
           ),
@@ -73,10 +76,10 @@ class BookCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8), // Giảm từ 12 xuống 8
+        const SizedBox(height: AppDimens.spaceS),
         Wrap(
-          spacing: 6,
-          runSpacing: 4, // Giảm từ 6 xuống 4
+          spacing: AppDimens.spaceXS + 2, // 6
+          runSpacing: AppDimens.spaceXS, // 4
           children: [
             _buildStatusBadge(theme),
             if (_buildDifficultyBadge(theme) != null)
@@ -161,19 +164,19 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 6,
-        vertical: 2,
-      ), // Giảm padding từ 8/4 xuống 6/2
+        horizontal: AppDimens.paddingXS + 2, // 6
+        vertical: AppDimens.paddingXXS, // 2
+      ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12), // Giảm từ 16 xuống 12
+        color: color.withOpacity(AppDimens.opacityMedium),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 12, color: color), // Giảm từ 14 xuống 12
-            const SizedBox(width: 2), // Giảm từ 4 xuống 2
+            Icon(icon, size: AppDimens.iconXS, color: color),
+            const SizedBox(width: AppDimens.spaceXXS), // 2
           ],
           Text(text, style: textStyle),
         ],
