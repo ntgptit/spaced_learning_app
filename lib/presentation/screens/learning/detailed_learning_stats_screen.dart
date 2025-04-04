@@ -25,7 +25,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
-    final learningStatsVM = context.watch<LearningStatsViewModel>();
+    final learningStatsVM = context.read<LearningStatsViewModel>();
 
     if (learningStatsVM.isLoading) {
       return const Center(
@@ -72,53 +72,103 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     }
   }
 
+  // --- Widget with English Labels and Descriptions ---
   Widget _buildModuleDetails(BuildContext context, LearningStatsDTO stats) {
     final theme = Theme.of(context);
 
+    // Safely calculate values, handling cases where keys might be missing
+    final notStudiedCount = stats.cycleStats['NOT_STUDIED'] ?? 0;
+    final firstTimeCount =
+        stats.cycleStats['FIRST_TIME'] ??
+        0; // Could be "Completed" or "1st Review"
+    final secondReviewCount = stats.cycleStats['SECOND_REVIEW'] ?? 0;
+    final thirdReviewCount = stats.cycleStats['THIRD_REVIEW'] ?? 0;
+    final moreThanThreeReviewsCount =
+        stats.cycleStats['MORE_THAN_THREE_REVIEWS'] ?? 0;
+
+    // You might want a more general "In Progress" calculation:
+    // final inProgressCount = stats.totalModules - notStudiedCount - firstTimeCount; // This logic depends on the precise definition of FIRST_TIME
+
+    // If you want to display the actual completion rate (e.g., based on FIRST_TIME meaning completed)
+    // calculate it separately:
+    final completionRate =
+        (stats.totalModules > 0)
+            ? '${((firstTimeCount / stats.totalModules) * 100).toStringAsFixed(1)}%'
+            : 'N/A';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Module Statistics', style: theme.textTheme.headlineSmall),
+        Text(
+          'Module Statistics',
+          style: theme.textTheme.headlineSmall,
+        ), // Main label
         const SizedBox(height: 16),
-        _buildProgressBar(
-          context,
-          'Overall Completion',
-          100, // TODO
-          stats.totalModules,
-          Colors.blue,
-        ),
-        const SizedBox(height: 24),
+
         _buildStatCard(
           context,
-          'Total Modules',
+          'Total Modules', // English label
           stats.totalModules.toString(),
-          Icons.auto_stories,
+          Icons.library_books, // Suitable icon
           Colors.indigo,
-          'The total number of modules in your learning plan',
+          'The total number of modules in your learning plan.', // English description
         ),
+
         _buildStatCard(
           context,
-          'Completed Modules',
-          '100', // TODO
-          Icons.check_circle,
+          'Not Studied', // English label
+          notStudiedCount.toString(), // Use correct value
+          Icons.book_outlined, // Suitable icon
+          Colors.grey, // Suitable color
+          'The number of modules you haven\'t started learning yet.', // English description
+        ),
+
+        _buildStatCard(
+          context,
+          // This label depends on the actual meaning of 'FIRST_TIME'
+          // If completed: 'Completed' or 'Completed First Time'
+          // If review cycle: '1st Review Cycle'
+          'Completed / 1st Review', // English label (needs business logic confirmation)
+          firstTimeCount.toString(),
+          Icons.check_circle_outline, // Suitable icon for "first time"
           Colors.green,
-          'Modules you have fully completed with 100% progress',
+          // Description should match the label's meaning
+          'Modules completed for the first time or currently in the first review cycle.', // English description
         ),
+
         _buildStatCard(
           context,
-          'In Progress Modules',
-          '100', // TODO
-          Icons.pending_actions,
+          '2nd Review Cycle', // English label
+          secondReviewCount.toString(),
+          Icons.history_toggle_off, // Suitable icon for review
           Colors.orange,
-          'Modules you have started but not yet completed',
+          'The number of modules currently in the second review cycle.', // English description
         ),
+
+        _buildStatCard(
+          context,
+          '3rd Review Cycle', // English label (instead of Completion Rate)
+          thirdReviewCount.toString(),
+          Icons.replay_circle_filled, // Different icon for 3rd review
+          Colors.blue, // Different color
+          'The number of modules currently in the third review cycle.', // English description
+        ),
+
+        _buildStatCard(
+          context,
+          'Frequent Review (>3)', // English label (instead of Completion Rate)
+          moreThanThreeReviewsCount.toString(),
+          Icons.warning_amber_rounded, // Warning icon for many reviews
+          Colors.redAccent, // Emphasizing color
+          'Modules that have been reviewed more than three times, potentially requiring more attention.', // English description
+        ),
+
         _buildStatCard(
           context,
           'Completion Rate',
-          '100%', //TODO
+          completionRate,
           Icons.trending_up,
           theme.colorScheme.primary,
-          'Your overall progress through all modules',
+          'The percentage of modules you have completed (based on first-time completion).',
         ),
       ],
     );
