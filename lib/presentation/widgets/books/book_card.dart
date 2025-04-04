@@ -78,8 +78,8 @@ class BookCard extends StatelessWidget {
       children: [
         const SizedBox(height: AppDimens.spaceS),
         Wrap(
-          spacing: AppDimens.spaceXS + 2, // 6
-          runSpacing: AppDimens.spaceXS, // 4
+          spacing: AppDimens.spaceS, // Thay 6.0 bằng 8.0
+          runSpacing: AppDimens.spaceXS,
           children: [
             _buildStatusBadge(theme),
             if (_buildDifficultyBadge(theme) != null)
@@ -164,19 +164,19 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingXS + 2, // 6
-        vertical: AppDimens.paddingXXS, // 2
+        horizontal: AppDimens.paddingS, // Thay 6.0 bằng 8.0
+        vertical: AppDimens.paddingXXS,
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(AppDimens.opacityMedium),
-        borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
             Icon(icon, size: AppDimens.iconXS, color: color),
-            const SizedBox(width: AppDimens.spaceXXS), // 2
+            const SizedBox(width: AppDimens.spaceXXS),
           ],
           Text(text, style: textStyle),
         ],

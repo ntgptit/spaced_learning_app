@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Widget to display learning insights on the home screen
 class LearningInsightsWidget extends StatelessWidget {
@@ -22,12 +23,12 @@ class LearningInsightsWidget extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(theme),
-            const Divider(),
+            const Divider(height: AppDimens.dividerThickness),
             _buildInsightsList(context),
           ],
         ),
@@ -39,8 +40,12 @@ class LearningInsightsWidget extends StatelessWidget {
   Widget _buildHeader(ThemeData theme) {
     return Row(
       children: [
-        Icon(Icons.insights, color: theme.colorScheme.tertiary),
-        const SizedBox(width: 8),
+        Icon(
+          Icons.insights,
+          color: theme.colorScheme.tertiary,
+          size: AppDimens.iconM,
+        ),
+        const SizedBox(width: AppDimens.spaceS),
         Text('Learning Insights', style: theme.textTheme.titleLarge),
       ],
     );
@@ -84,11 +89,11 @@ class LearningInsightsWidget extends StatelessWidget {
     Color color,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 12),
+          Icon(icon, color: color, size: AppDimens.iconM),
+          const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
           ),

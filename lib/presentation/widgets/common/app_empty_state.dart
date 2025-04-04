@@ -1,5 +1,5 @@
-// lib/presentation/widgets/app_empty_state.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
 class AppEmptyState extends StatelessWidget {
@@ -17,7 +17,7 @@ class AppEmptyState extends StatelessWidget {
     this.message,
     this.buttonText,
     this.onButtonPressed,
-    this.iconSize = 80,
+    this.iconSize = AppDimens.avatarSizeXXL, // Thay 80 bằng giá trị gần nhất
   });
 
   @override
@@ -27,7 +27,7 @@ class AppEmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppDimens.paddingXXL),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -37,9 +37,11 @@ class AppEmptyState extends StatelessWidget {
               Icon(
                 icon,
                 size: iconSize,
-                color: colorScheme.primary.withValues(alpha: 0.8),
+                color: colorScheme.primary.withValues(
+                  alpha: AppDimens.opacityHigh,
+                ),
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimens.spaceXL),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -48,17 +50,19 @@ class AppEmptyState extends StatelessWidget {
               ),
             ),
             if (message != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimens.spaceS),
               Text(
                 message!,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium!.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: colorScheme.onSurface.withValues(
+                    alpha: AppDimens.opacityHigh,
+                  ),
                 ),
               ),
             ],
             if (buttonText != null && onButtonPressed != null) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: AppDimens.spaceXL),
               AppButton(
                 text: buttonText!,
                 onPressed: onButtonPressed,

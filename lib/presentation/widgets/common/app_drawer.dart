@@ -1,6 +1,6 @@
-// lib/presentation/widgets/navigation/app_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Thêm import
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -37,7 +37,7 @@ class AppDrawer extends StatelessWidget {
 
           // Navigation items
           ListTile(
-            leading: const Icon(Icons.home),
+            leading: const Icon(Icons.home, size: AppDimens.iconL),
             title: const Text('Home'),
             onTap: () {
               Navigator.pop(context); // Close drawer
@@ -47,7 +47,10 @@ class AppDrawer extends StatelessWidget {
 
           // New item for Learning Progress Overview
           ListTile(
-            leading: const Icon(Icons.analytics_outlined),
+            leading: const Icon(
+              Icons.analytics_outlined,
+              size: AppDimens.iconL,
+            ),
             title: const Text('Learning Overview'),
             onTap: () {
               Navigator.pop(context); // Close drawer
@@ -56,7 +59,7 @@ class AppDrawer extends StatelessWidget {
           ),
 
           ListTile(
-            leading: const Icon(Icons.book),
+            leading: const Icon(Icons.book, size: AppDimens.iconL),
             title: const Text('Books'),
             onTap: () {
               Navigator.pop(context); // Close drawer
@@ -65,7 +68,7 @@ class AppDrawer extends StatelessWidget {
           ),
 
           ListTile(
-            leading: const Icon(Icons.person),
+            leading: const Icon(Icons.person, size: AppDimens.iconL),
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context); // Close drawer
@@ -73,10 +76,10 @@ class AppDrawer extends StatelessWidget {
             },
           ),
 
-          const Divider(),
+          const Divider(height: AppDimens.dividerThickness),
 
           ListTile(
-            leading: const Icon(Icons.help_outline),
+            leading: const Icon(Icons.help_outline, size: AppDimens.iconL),
             title: const Text('Help'),
             onTap: () {
               Navigator.pop(context); // Close drawer
@@ -88,9 +91,12 @@ class AppDrawer extends StatelessWidget {
 
           // Logout button at the bottom
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingL,
+              vertical: AppDimens.paddingS,
+            ),
             child: ListTile(
-              leading: const Icon(Icons.logout),
+              leading: const Icon(Icons.logout, size: AppDimens.iconL),
               title: const Text('Logout'),
               onTap: () async {
                 Navigator.pop(context); // Close drawer
@@ -104,7 +110,7 @@ class AppDrawer extends StatelessWidget {
 
           // App version at the bottom
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Text('Version 1.0.0', style: theme.textTheme.bodySmall),
           ),
         ],

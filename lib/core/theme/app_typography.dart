@@ -1,6 +1,6 @@
-// lib/core/theme/app_typography.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Import AppDimens
 
 class AppTypography {
   static TextTheme getTextTheme(Brightness brightness) {
@@ -11,20 +11,20 @@ class AppTypography {
     return TextTheme(
       // Display styles
       displayLarge: baseTextTheme.displayLarge!.copyWith(
-        fontSize: 57,
+        fontSize: AppDimens.fontDisplayL, // 57.0
         fontWeight: FontWeight.w400,
         letterSpacing: -0.25,
         color: textColor,
         height: 1.2,
       ),
       displayMedium: baseTextTheme.displayMedium!.copyWith(
-        fontSize: 45,
+        fontSize: AppDimens.fontDisplayM, // 45.0
         fontWeight: FontWeight.w400,
         color: textColor,
         height: 1.2,
       ),
       displaySmall: baseTextTheme.displaySmall!.copyWith(
-        fontSize: 36,
+        fontSize: AppDimens.fontDisplayS, // 36.0
         fontWeight: FontWeight.w400,
         color: textColor,
         height: 1.2,
@@ -32,19 +32,19 @@ class AppTypography {
 
       // Headline styles
       headlineLarge: baseTextTheme.headlineLarge!.copyWith(
-        fontSize: 32,
+        fontSize: AppDimens.fontHeadlineL, // 32.0
         fontWeight: FontWeight.w600,
         color: textColor,
         height: 1.25,
       ),
       headlineMedium: baseTextTheme.headlineMedium!.copyWith(
-        fontSize: 28,
+        fontSize: AppDimens.fontHeadlineM, // 28.0
         fontWeight: FontWeight.w600,
         color: textColor,
         height: 1.25,
       ),
       headlineSmall: baseTextTheme.headlineSmall!.copyWith(
-        fontSize: 24,
+        fontSize: AppDimens.fontHeadlineS, // 24.0
         fontWeight: FontWeight.w600,
         color: textColor,
         height: 1.25,
@@ -52,19 +52,19 @@ class AppTypography {
 
       // Title styles
       titleLarge: baseTextTheme.titleLarge!.copyWith(
-        fontSize: 22,
+        fontSize: AppDimens.fontTitle, // 22.0
         fontWeight: FontWeight.w600,
         color: textColor,
         letterSpacing: 0.15,
       ),
       titleMedium: baseTextTheme.titleMedium!.copyWith(
-        fontSize: 16,
+        fontSize: AppDimens.fontXL, // 16.0
         fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
         color: textColor,
       ),
       titleSmall: baseTextTheme.titleSmall!.copyWith(
-        fontSize: 14,
+        fontSize: AppDimens.fontL, // 14.0
         fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
         color: textColor,
@@ -72,21 +72,21 @@ class AppTypography {
 
       // Body styles
       bodyLarge: baseTextTheme.bodyLarge!.copyWith(
-        fontSize: 16,
+        fontSize: AppDimens.fontXL, // 16.0
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
         color: textColor,
         height: 1.5,
       ),
       bodyMedium: baseTextTheme.bodyMedium!.copyWith(
-        fontSize: 14,
+        fontSize: AppDimens.fontL, // 14.0
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
         color: textColor,
         height: 1.5,
       ),
       bodySmall: baseTextTheme.bodySmall!.copyWith(
-        fontSize: 12,
+        fontSize: AppDimens.fontM, // 12.0
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
         color: textColor.withValues(alpha: 0.9),
@@ -95,19 +95,19 @@ class AppTypography {
 
       // Label styles with improved readability
       labelLarge: baseTextTheme.labelLarge!.copyWith(
-        fontSize: 14,
+        fontSize: AppDimens.fontL, // 14.0
         fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
         color: textColor,
       ),
       labelMedium: baseTextTheme.labelMedium!.copyWith(
-        fontSize: 12,
+        fontSize: AppDimens.fontM, // 12.0
         fontWeight: FontWeight.w600,
         letterSpacing: 0.5,
         color: textColor,
       ),
       labelSmall: baseTextTheme.labelSmall!.copyWith(
-        fontSize: 11,
+        fontSize: AppDimens.fontS, // 11.0
         fontWeight: FontWeight.w600,
         letterSpacing: 0.5,
         color: textColor,

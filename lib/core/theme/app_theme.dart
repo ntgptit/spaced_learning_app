@@ -1,6 +1,6 @@
-// lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Import AppDimens
 import 'package:spaced_learning_app/core/theme/app_typography.dart';
 
 class AppTheme {
@@ -52,9 +52,9 @@ class AppTheme {
       textTheme: AppTypography.getTextTheme(colorScheme.brightness),
       scaffoldBackgroundColor: colorScheme.surface,
 
-      // AppBar theme - enhanced for better clarity
+      // AppBar theme
       appBarTheme: AppBarTheme(
-        elevation: 0,
+        elevation: AppDimens.elevationNone, // 0.0
         centerTitle: false,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -64,26 +64,32 @@ class AppTheme {
         iconTheme: IconThemeData(color: colorScheme.onSurface),
       ),
 
-      // Card theme - improved aesthetics with softer borders
+      // Card theme
       cardTheme: CardThemeData(
-        elevation: 2.0,
+        elevation: AppDimens.elevationS, // 2.0
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(AppDimens.radiusL), // 16.0
         ),
         color: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+        margin: const EdgeInsets.symmetric(
+          vertical: AppDimens.paddingS, // 8.0
+          horizontal: 0,
+        ),
         shadowColor: isDark ? Colors.black : Colors.black26,
       ),
 
-      // Button themes - enhanced appearance
+      // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          elevation: AppDimens.elevationS, // 2.0
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingXL, // 20.0
+            vertical: AppDimens.paddingM, // 12.0 (gần với 14)
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
           ),
           foregroundColor: colorScheme.onPrimary,
           backgroundColor: colorScheme.primary,
@@ -96,11 +102,17 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingXL, // 20.0
+            vertical: AppDimens.paddingM, // 12.0 (gần với 14)
           ),
-          side: BorderSide(color: colorScheme.primary, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
+          ),
+          side: BorderSide(
+            color: colorScheme.primary,
+            width: AppDimens.dividerThickness * 1.5, // 1.5 (gần đúng)
+          ),
           foregroundColor: colorScheme.primary,
           textStyle: const TextStyle(
             fontWeight: FontWeight.w600,
@@ -112,8 +124,13 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingL, // 16.0
+            vertical: AppDimens.paddingM, // 12.0
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusS), // 8.0
+          ),
           textStyle: const TextStyle(
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -121,50 +138,69 @@ class AppTheme {
         ),
       ),
 
-      // Input decoration theme - enhanced for better user interaction
+      // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor:
             isDark
-                ? colorScheme.onSurface.withValues(alpha: 0.08)
-                : colorScheme.onSurface.withValues(alpha: 0.04),
-
+                ? colorScheme.onSurface.withValues(
+                  alpha: AppDimens.opacityLight,
+                ) // 0.04
+                : colorScheme.onSurface.withValues(
+                  alpha: AppDimens.opacityLight,
+                ), // 0.04
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 16,
+          horizontal: AppDimens.paddingXL, // 20.0
+          vertical: AppDimens.paddingL, // 16.0
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
           borderSide: BorderSide(
-            color: colorScheme.onSurface.withValues(alpha: 0.2),
+            color: colorScheme.onSurface.withValues(
+              alpha: AppDimens.opacitySemi,
+            ), // 0.20
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
           borderSide: BorderSide(
-            color: colorScheme.onSurface.withValues(alpha: 0.2),
+            color: colorScheme.onSurface.withValues(
+              alpha: AppDimens.opacitySemi,
+            ), // 0.20
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: AppDimens.elevationS, // 2.0
+          ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.error, width: 1),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
+          borderSide: BorderSide(
+            color: colorScheme.error,
+            width: AppDimens.dividerThickness, // 1.0
+          ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.error, width: 2),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM), // 12.0
+          borderSide: BorderSide(
+            color: colorScheme.error,
+            width: AppDimens.elevationS, // 2.0
+          ),
         ),
         labelStyle: TextStyle(
-          color: colorScheme.onSurface.withValues(alpha: 0.7),
+          color: colorScheme.onSurface.withValues(
+            alpha: AppDimens.opacityHigh,
+          ), // 0.70
           fontWeight: FontWeight.w500,
         ),
         hintStyle: TextStyle(
-          color: colorScheme.onSurface.withValues(alpha: 0.5),
+          color: colorScheme.onSurface.withValues(
+            alpha: 0.5,
+          ), // Không có giá trị chính xác, giữ nguyên
         ),
-
         errorStyle: TextStyle(
           color: colorScheme.error,
           fontWeight: FontWeight.w500,
@@ -177,25 +213,33 @@ class AppTheme {
 
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: colorScheme.onSurface.withValues(alpha: 0.12),
-
-        thickness: 1,
-        space: 1,
+        color: colorScheme.onSurface.withValues(
+          alpha: AppDimens.opacityMedium,
+        ), // 0.12
+        thickness: AppDimens.dividerThickness, // 1.0
+        space: AppDimens.dividerThickness, // 1.0
       ),
 
-      // Dialog theme - more refined
+      // Dialog theme
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surface,
-        elevation: 24,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: AppDimens.elevationXXL, // 24.0
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusXL), // 20.0
+        ),
       ),
 
       // ListTile theme
       listTileTheme: ListTileThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        minLeadingWidth: 24,
-        minVerticalPadding: 16,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusS), // 8.0
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingL, // 16.0
+          vertical: AppDimens.paddingS, // 8.0
+        ),
+        minLeadingWidth: AppDimens.iconL, // 24.0
+        minVerticalPadding: AppDimens.paddingL, // 16.0
         iconColor: colorScheme.primary,
         textColor: colorScheme.onSurface,
       ),
@@ -203,9 +247,14 @@ class AppTheme {
       // Chip theme
       chipTheme: ChipThemeData(
         backgroundColor: colorScheme.surface,
-        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+        selectedColor: colorScheme.primary.withValues(
+          alpha: AppDimens.opacitySemi,
+        ), // 0.20
         secondarySelectedColor: colorScheme.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingM, // 12.0
+          vertical: AppDimens.paddingS, // 8.0
+        ),
         labelStyle: TextStyle(
           color: colorScheme.onSurface,
           fontWeight: FontWeight.w500,
@@ -215,37 +264,50 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+          borderRadius: BorderRadius.circular(AppDimens.radiusXL), // 20.0
+          side: BorderSide(
+            color: colorScheme.primary.withValues(
+              alpha: 0.5,
+            ), // Không có giá trị chính xác, giữ nguyên
+          ),
         ),
       ),
 
       // Icon theme
       iconTheme: IconThemeData(
-        color: colorScheme.onSurface.withValues(alpha: 0.8),
-        size: 24,
+        color: colorScheme.onSurface.withValues(
+          alpha: 0.8,
+        ), // Không có giá trị chính xác, giữ nguyên
+        size: AppDimens.iconL, // 24.0
       ),
 
       // Bottom navigation theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurface.withValues(alpha: 0.6),
+        unselectedItemColor: colorScheme.onSurface.withValues(
+          alpha: 0.6,
+        ), // Không có giá trị chính xác, giữ nguyên
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: AppDimens.elevationL, // 8.0
       ),
 
       // Tab bar theme
       tabBarTheme: TabBarThemeData(
         labelColor: colorScheme.primary,
-        unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.7),
+        unselectedLabelColor: colorScheme.onSurface.withValues(
+          alpha: AppDimens.opacityHigh,
+        ), // 0.70
         labelStyle: const TextStyle(fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
         indicator: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: colorScheme.primary, width: 3),
+            bottom: BorderSide(
+              color: colorScheme.primary,
+              width: 3.0, // Không có giá trị chính xác, giữ nguyên
+            ),
           ),
         ),
       ),

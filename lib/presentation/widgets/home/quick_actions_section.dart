@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Widget for displaying quick action buttons on the home screen
 class QuickActionsSection extends StatelessWidget {
@@ -21,8 +22,8 @@ class QuickActionsSection extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
+      crossAxisSpacing: AppDimens.gridSpacingL,
+      mainAxisSpacing: AppDimens.gridSpacingL,
       children: _buildActionItems(context),
     );
   }
@@ -70,20 +71,26 @@ class QuickActionsSection extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     return Card(
-      elevation: 2,
-      color: color?.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: AppDimens.elevationS,
+      color: color?.withValues(alpha: AppDimens.opacityMedium),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: color ?? theme.colorScheme.primary),
-              const SizedBox(height: 8),
+              Icon(
+                icon,
+                size: AppDimens.iconXL,
+                color: color ?? theme.colorScheme.primary,
+              ),
+              const SizedBox(height: AppDimens.spaceS),
               Text(
                 title,
                 style: theme.textTheme.titleMedium,
