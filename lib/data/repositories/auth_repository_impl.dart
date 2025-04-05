@@ -21,9 +21,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final response = await _apiClient.post(ApiEndpoints.login, data: data);
 
-      // Log để debug
-      debugPrint('Full login response: $response');
-
       if (response == null) {
         throw AuthenticationException('Login failed: No response received');
       }
