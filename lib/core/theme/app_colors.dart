@@ -2,195 +2,174 @@
 import 'package:flutter/material.dart';
 
 /// Defines the color palette for the application themes.
-/// Inspired by Material Design 3 principles with Green as primary.
+/// Designed considering Fire element (Mệnh Hỏa) principles with diversity.
 class AppColors {
-  // --- Material Design 3 Inspired Palette ---
+  // --- Material Design 3 Inspired Palette - Adapted for Fire Element ---
 
-  // --- Light Theme Colors ---
+  // --- Light Theme Colors (Fire: Red/Orange/Pink + Wood: Green) ---
   static const Color lightPrimary = Color(
-    0xFF388E3C,
-  ); // Green 600 - Main action color
+    0xFFD32F2F,
+  ); // Red 700 (Hỏa - Mạnh mẽ)
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color lightPrimaryContainer = Color(
-    0xFFC8E6C9,
-  ); // Green 100 - Lighter background for primary elements
+  static const Color lightPrimaryContainer = Color(0xFFFFCDD2); // Light Red
   static const Color lightOnPrimaryContainer = Color(
-    0xFF0A3918,
-  ); // Dark Green - Text/icons on primary container
+    0xFF4E0002,
+  ); // Dark Red for text on container
 
   static const Color lightSecondary = Color(
-    0xFF1976D2,
-  ); // Blue 700 - Secondary actions/highlights
+    0xFF388E3C,
+  ); // Green 700 (Mộc - Tương sinh, đậm hơn)
   static const Color lightOnSecondary = Color(0xFFFFFFFF);
-  static const Color lightSecondaryContainer = Color(
-    0xFFBBDEFB,
-  ); // Blue 100 - Lighter background for secondary elements
+  static const Color lightSecondaryContainer = Color(0xFFC8E6C9); // Light Green
   static const Color lightOnSecondaryContainer = Color(
-    0xFF002A6F,
-  ); // Dark Blue - Text/icons on secondary container
+    0xFF0A3918,
+  ); // Dark Green for text on container
 
   static const Color lightTertiary = Color(
-    0xFFFFA000,
-  ); // Amber 700 - Tertiary accents
-  static const Color lightOnTertiary = Color(0xFF000000);
-  static const Color lightTertiaryContainer = Color(
-    0xFFFFECB3,
-  ); // Amber 100 - Lighter background for tertiary elements
+    0xFFEC407A,
+  ); // Pink 400 (Hỏa - Tươi tắn)
+  static const Color lightOnTertiary = Color(0xFFFFFFFF);
+  static const Color lightTertiaryContainer = Color(0xFFFCE4EC); // Light Pink
   static const Color lightOnTertiaryContainer = Color(
-    0xFF4C3B00,
-  ); // Dark Amber - Text/icons on tertiary container
+    0xFF5C002B,
+  ); // Dark Pink for text on container
 
+  // Accent màu Vàng (Bổ sung, có thể dùng cho highlight)
+  static const Color lightAccentYellow = Color(0xFFFFC107); // Amber 500
+  static const Color lightOnAccentYellow = Color(0xFF000000); // Black for text
+
+  // Nền và Surface: Màu trắng ngà ấm, tách biệt nhẹ
   static const Color lightBackground = Color(
-    0xFFFAFDF6,
-  ); // Slightly off-white with a hint of green
-  static const Color lightOnBackground = Color(
-    0xFF1A1C19,
-  ); // Near-black for text on background
+    0xFFFFF8F6,
+  ); // Very light warm off-white (Nền chính)
   static const Color lightSurface = Color(
-    0xFFFAFDF6,
-  ); // Can be same as background or slightly different (e.g., white)
-  static const Color lightOnSurface = Color(
-    0xFF1A1C19,
-  ); // Near-black for text on surface
+    0xFFFFFBF9,
+  ); // Slightly lighter/brighter than background (Cho Card, Dialog)
+  static const Color lightOnBackground = Color(0xFF201A18); // Near-black warm
+  static const Color lightOnSurface = Color(0xFF201A18); // Near-black warm
 
   static const Color lightSurfaceVariant = Color(
-    0xFFE0E3DD,
-  ); // Subtle gray/greenish background variant
+    0xFFF0E0DB,
+  ); // Light warm gray/beige
   static const Color lightOnSurfaceVariant = Color(
-    0xFF434840,
-  ); // Text/icons on surface variant
-  static const Color lightOutline = Color(0xFF747970); // Borders, dividers
+    0xFF504441,
+  ); // Dark warm gray
+  static const Color lightOutline = Color(0xFF827470); // Medium warm gray
 
-  static const Color lightError = Color(0xFFBA1A1A); // M3 Error Red
+  // Màu Error (Giữ màu đỏ tiêu chuẩn)
+  static const Color lightError = Color(0xFFBA1A1A);
   static const Color lightOnError = Color(0xFFFFFFFF);
-  static const Color lightErrorContainer = Color(
-    0xFFFFDAD6,
-  ); // Background for error messages/elements
-  static const Color lightOnErrorContainer = Color(
-    0xFF410002,
-  ); // Text/icons on error container
+  static const Color lightErrorContainer = Color(0xFFFFDAD6);
+  static const Color lightOnErrorContainer = Color(0xFF410002);
 
-  // --- Dark Theme Colors ---
-  static const Color darkPrimary = Color(
-    0xFF81C784,
-  ); // Green 300 - Brighter Green for dark mode
-  static const Color darkOnPrimary = Color(0xFF003A1A); // Dark Green
-  static const Color darkPrimaryContainer = Color(
-    0xFF2E7D32,
-  ); // Green 700 - Background for primary elements
-  static const Color darkOnPrimaryContainer = Color(
-    0xFFC8E6C9,
-  ); // Light Green - Text/icons on primary container
-
-  static const Color darkSecondary = Color(
-    0xFF82B1FF,
-  ); // Blue A100 - Brighter Blue
-  static const Color darkOnSecondary = Color(0xFF002F6C); // Dark Blue
-  static const Color darkSecondaryContainer = Color(
-    0xFF1565C0,
-  ); // Blue 800 - Background for secondary elements
-  static const Color darkOnSecondaryContainer = Color(
-    0xFFBBDEFB,
-  ); // Light Blue - Text/icons on secondary container
-
-  static const Color darkTertiary = Color(
-    0xFFFFD54F,
-  ); // Amber 300 - Brighter Amber
-  static const Color darkOnTertiary = Color(0xFF4C3B00); // Dark Amber
-  static const Color darkTertiaryContainer = Color(
-    0xFFFFB300,
-  ); // Amber 800 - Background for tertiary elements
-  static const Color darkOnTertiaryContainer = Color(
-    0xFF4C3B00,
-  ); // Dark Amber (Can adjust if needed contrast)
-
+  // --- Dark Theme Colors (Fire: Bright Red/Orange/Pink + Wood: Green) ---
+  // Nền và Surface: Màu tối ấm, tách biệt nhẹ, tránh xanh dương/đen
   static const Color darkBackground = Color(
-    0xFF1A1C19,
-  ); // Very dark (near black) green tint
-  static const Color darkOnBackground = Color(
-    0xFFE2E3DD,
-  ); // Light Gray for text on background
+    0xFF1F1A18,
+  ); // Very dark warm gray/brownish
   static const Color darkSurface = Color(
-    0xFF1A1C19,
-  ); // Can be same as background or slightly lighter M3 gray like #252823
-  static const Color darkOnSurface = Color(
-    0xFFE2E3DD,
-  ); // Light Gray for text on surface
+    0xFF2A2422,
+  ); // Slightly lighter warm gray
 
-  static const Color darkSurfaceVariant = Color(
-    0xFF434840,
-  ); // Darker gray/greenish background variant
-  static const Color darkOnSurfaceVariant = Color(
-    0xFFC4C8BE,
-  ); // Text/icons on dark surface variant
-  static const Color darkOutline = Color(
-    0xFF8D9289,
-  ); // Borders, dividers in dark mode
+  // Màu chữ/icon chính trên nền/surface tối
+  static const Color darkOnBackground = Color(0xFFECE0DD); // Light warm gray
+  static const Color darkOnSurface = Color(0xFFECE0DD); // Light warm gray
 
-  static const Color darkError = Color(
-    0xFFFFB4AB,
-  ); // Lighter Error Red for dark mode
-  static const Color darkOnError = Color(0xFF690005); // Dark Red
-  static const Color darkErrorContainer = Color(
-    0xFF93000A,
-  ); // Background for error messages/elements
-  static const Color darkOnErrorContainer = Color(
+  // Màu Primary: Đỏ sáng
+  static const Color darkPrimary = Color(0xFFFF8A80); // Red A100 (Bright Red)
+  static const Color darkOnPrimary = Color(0xFF5F0F0A); // Dark Red for text
+  static const Color darkPrimaryContainer = Color(
+    0xFF9B211B,
+  ); // Darker Red container
+  static const Color darkOnPrimaryContainer = Color(
     0xFFFFDAD6,
-  ); // Light Red - Text/icons on error container
+  ); // Light Red text
 
-  // --- Semantic Colors (Consistent naming with previous version) ---
-  // Using primary/tertiary colors for consistency with M3 roles
+  // Màu Secondary: Xanh lá cây sáng
+  static const Color darkSecondary = Color(0xFF81C784); // Green 300
+  static const Color darkOnSecondary = Color(0xFF0A3918); // Dark Green for text
+  static const Color darkSecondaryContainer = Color(
+    0xFF2E7D32,
+  ); // Green 700 container
+  static const Color darkOnSecondaryContainer = Color(
+    0xFFC8E6C9,
+  ); // Light Green text
 
-  // Success (Using Primary Tones)
-  static const Color successLight = lightPrimary; // Green 600
-  static const Color successDark = darkPrimary; // Green 300
-  static const Color onSuccessLight = lightOnPrimary;
-  static const Color onSuccessDark = darkOnPrimary;
-  static const Color successContainerLight = lightPrimaryContainer;
-  static const Color successContainerDark = darkPrimaryContainer;
-  static const Color onSuccessContainerLight = lightOnPrimaryContainer;
-  static const Color onSuccessContainerDark = darkOnPrimaryContainer;
+  // Màu Tertiary: Hồng sáng
+  static const Color darkTertiary = Color(0xFFF48FB1); // Pink 200
+  static const Color darkOnTertiary = Color(0xFF5C002B); // Dark Pink for text
+  static const Color darkTertiaryContainer = Color(
+    0xFFAD1457,
+  ); // Pink 700 container
+  static const Color darkOnTertiaryContainer = Color(
+    0xFFFCE4EC,
+  ); // Light Pink text
 
-  // Warning (Using Tertiary Tones - Amber)
-  static const Color warningLight = lightTertiary; // Amber 700
-  static const Color warningDark = darkTertiary; // Amber 300
-  static const Color onWarningLight = lightOnTertiary;
-  static const Color onWarningDark = darkOnTertiary;
-  static const Color warningContainerLight = lightTertiaryContainer;
-  static const Color warningContainerDark = darkTertiaryContainer;
-  static const Color onWarningContainerLight = lightOnTertiaryContainer;
-  static const Color onWarningContainerDark = darkOnTertiaryContainer;
+  // Accent màu Vàng sáng
+  static const Color darkAccentYellow = Color(0xFFFFD54F); // Amber 300
+  static const Color darkOnAccentYellow = Color(
+    0xFF453000,
+  ); // Dark Amber for text
 
-  // Info (Using Secondary Tones - Blue)
-  static const Color infoLight = lightSecondary; // Blue 700
-  static const Color infoDark = darkSecondary; // Blue A100
-  static const Color onInfoLight = lightOnSecondary;
-  static const Color onInfoDark = darkOnSecondary;
-  static const Color infoContainerLight = lightSecondaryContainer;
-  static const Color infoContainerDark = darkSecondaryContainer;
-  static const Color onInfoContainerLight = lightOnSecondaryContainer;
-  static const Color onInfoContainerDark = darkOnSecondaryContainer;
+  // Các màu khác
+  static const Color darkSurfaceVariant = Color(0xFF504441); // Dark warm gray
+  static const Color darkOnSurfaceVariant = Color(
+    0xFFD4C3BE,
+  ); // Medium-light warm gray
+  static const Color darkOutline = Color(0xFF9C8D89); // Medium warm gray
+
+  // Màu Error (Giữ màu đỏ tiêu chuẩn cho dark mode)
+  static const Color darkError = Color(0xFFFFB4AB);
+  static const Color darkOnError = Color(0xFF690005);
+  static const Color darkErrorContainer = Color(0xFF93000A);
+  static const Color darkOnErrorContainer = Color(0xFFFFDAD6);
+
+  // --- Semantic Colors (Ánh xạ phù hợp mệnh Hỏa) ---
+  // Success -> Green (Mộc sinh Hỏa)
+  // Warning -> Red (Hỏa)
+  // Info -> Pink (Hỏa)
+
+  // Success (Dùng tông Green - Mộc Tương Sinh)
+  static const Color successLight = lightSecondary; // Green 700
+  static const Color successDark = darkSecondary; // Green 300
+  static const Color onSuccessLight = lightOnSecondary; // White
+  static const Color onSuccessDark = darkOnSecondary; // Dark Green
+  static const Color successContainerLight =
+      lightSecondaryContainer; // Light Green
+  static const Color successContainerDark = darkSecondaryContainer; // Green 700
+  static const Color onSuccessContainerLight =
+      lightOnSecondaryContainer; // Dark Green
+  static const Color onSuccessContainerDark =
+      darkOnSecondaryContainer; // Light Green
+
+  // Warning (Dùng tông Primary - Hỏa Tương Hợp)
+  static const Color warningLight = lightPrimary; // Red 700
+  static const Color warningDark = darkPrimary; // Red A100
+  static const Color onWarningLight = lightOnPrimary; // White
+  static const Color onWarningDark = darkOnPrimary; // Dark Red
+  static const Color warningContainerLight = lightPrimaryContainer; // Light Red
+  static const Color warningContainerDark = darkPrimaryContainer; // Darker Red
+  static const Color onWarningContainerLight =
+      lightOnPrimaryContainer; // Dark Red text
+  static const Color onWarningContainerDark =
+      darkOnPrimaryContainer; // Light Red text
+
+  // Info (Dùng tông Tertiary - Hỏa Tương Hợp)
+  static const Color infoLight = lightTertiary; // Pink 400
+  static const Color infoDark = darkTertiary; // Pink 200
+  static const Color onInfoLight = lightOnTertiary; // White
+  static const Color onInfoDark = darkOnTertiary; // Dark Pink
+  static const Color infoContainerLight = lightTertiaryContainer; // Light Pink
+  static const Color infoContainerDark = darkTertiaryContainer; // Pink 700
+  static const Color onInfoContainerLight =
+      lightOnTertiaryContainer; // Dark Pink text
+  static const Color onInfoContainerDark =
+      darkOnTertiaryContainer; // Light Pink text
 
   // --- Neutral Grays ---
-  static const Color grayLight = Color(0xFFF1F3F4); // Light neutral gray
-  static const Color grayMedium = Color(0xFFADB5BD); // Medium neutral gray
-  static const Color grayDark = Color(0xFF495057); // Dark neutral gray
+  static const Color grayLight = Color(0xFFF1F3F4);
+  static const Color grayMedium = Color(0xFFADB5BD);
+  static const Color grayDark = Color(0xFF495057);
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
-
-  // Deprecated/Legacy (Can be removed if not used, kept for compatibility check)
-  // static const Color lightPrimaryVariant = Color(0xFF1B5E20); // Replaced by Containers
-  // static const Color lightSecondaryVariant = Color(0xFF0D47A1); // Replaced by Containers
-  // static const Color darkPrimaryVariant = Color(0xFF4CAF50); // Replaced by Containers
-  // static const Color darkSecondaryVariant = Color(0xFF64B5F6); // Replaced by Containers
-}
-
-// Helper extension (Keep if used, otherwise remove and use .withOpacity directly)
-extension ColorAlpha on Color {
-  Color withValues({double? alpha}) {
-    if (alpha != null) {
-      return withValues(alpha: alpha);
-    }
-    return this;
-  }
 }
