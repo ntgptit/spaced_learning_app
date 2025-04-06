@@ -260,8 +260,6 @@ class _ModuleHeader extends StatelessWidget {
   }
 
   Widget _buildStatsCard(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
