@@ -29,7 +29,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: AppDimens.opacityMedium),
+            color: Colors.black.withOpacity(AppDimens.opacityMedium),
             blurRadius: AppDimens.shadowRadiusL,
             spreadRadius: AppDimens.shadowOffsetS,
           ),
@@ -78,8 +78,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         width: AppDimens.moduleIndicatorSize,
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurfaceVariant.withValues(
-            alpha: AppDimens.opacitySemi,
+          color: theme.colorScheme.onSurfaceVariant.withOpacity(
+            AppDimens.opacitySemi,
           ),
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
@@ -314,16 +314,18 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     return Container(
       key: key,
       width: containerWidth,
+      constraints: const BoxConstraints(minHeight: AppDimens.thumbnailSizeM),
       padding: const EdgeInsets.all(AppDimens.paddingL),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: effectiveColor.withValues(alpha: AppDimens.opacitySemi),
+          color: effectiveColor.withOpacity(AppDimens.opacitySemi),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -347,8 +349,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               color: effectiveColor,
             ),
           ),
-          if (progressValue != null) ...[
-            const SizedBox(height: AppDimens.spaceXXS),
+          const SizedBox(height: AppDimens.spaceXXS),
+          if (progressValue != null)
             LinearProgressIndicator(
               value: progressValue,
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
@@ -361,8 +363,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(AppDimens.radiusXXS),
               minHeight: AppDimens.lineProgressHeight,
-            ),
-          ],
+            )
+          else
+            const SizedBox(
+              height: AppDimens.lineProgressHeight,
+            ), // Placeholder để đồng bộ chiều cao
         ],
       ),
     );
@@ -430,15 +435,15 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 date.day == today.day;
             final bgColor =
                 isToday
-                    ? theme.colorScheme.primary.withValues(
-                      alpha: AppDimens.opacitySemi,
+                    ? theme.colorScheme.primary.withOpacity(
+                      AppDimens.opacitySemi,
                     )
                     : theme.colorScheme.surfaceContainerHighest;
             final borderColor =
                 isToday
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outline.withValues(
-                      alpha: AppDimens.opacitySemi,
+                    : theme.colorScheme.outline.withOpacity(
+                      AppDimens.opacitySemi,
                     );
 
             return Tooltip(
@@ -489,7 +494,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           icon: const Icon(Icons.play_arrow),
           label: const Text('Start Studying'),
           onPressed: () {
-            // Placeholder for study action
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Starting study session...')),
             );
