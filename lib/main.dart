@@ -9,6 +9,7 @@ import 'package:spaced_learning_app/presentation/screens/learning/learning_progr
 import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -55,6 +56,10 @@ class MyApp extends StatelessWidget {
         ),
         Provider<LearningDataService>(
           create: (_) => serviceLocator<LearningDataService>(),
+        ),
+        // Add the LearningProgressViewModel
+        ChangeNotifierProvider(
+          create: (_) => serviceLocator<LearningProgressViewModel>(),
         ),
       ],
       child: const AppWithTheme(),

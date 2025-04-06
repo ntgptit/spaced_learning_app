@@ -1,3 +1,4 @@
+// lib/domain/models/learning_module.dart
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 /// Model representing a learning module in the learning progress interface
@@ -31,6 +32,88 @@ class LearningModule {
     this.lastStudyDate,
     this.studyHistory,
   });
+
+  /// Factory method to create a LearningModule from JSON
+  factory LearningModule.fromJson(Map<String, dynamic> json) {
+    List<DateTime>? studyHistoryList;
+    if (json['studyHistory'] != null) {
+      studyHistoryList =
+          (json['studyHistory'] as List)
+              .map((dateStr) => DateTime.parse(dateStr.toString()))
+              .toList();
+    }
+
+    return LearningModule(
+      id: json['id'] as String,
+      book: json['bookName'] as String,
+      subject: json['title'] as String,
+      wordCount: json['wordCount'] as int,
+      cyclesStudied:
+          json['cyclesStudied'] != null
+              ? _parseCycleStudied(json['cyclesStudied'].toString())
+              : null,
+      firstLearningDate:
+          json['firstLearningDate'] != null
+              ? DateTime.parse(json['firstLearningDate'].toString())
+              : null,
+      percentage:
+          json['percentComplete'] != null
+              ? (json['percentComplete'] is int)
+                  ? json['percentComplete']
+                  : (json['percentComplete'] as double).round()
+              : 0,
+      nextStudyDate:
+          json['nextStudyDate'] != null
+              ? DateTime.parse(json['nextStudyDate'].toString())
+              : null,
+      taskCount: json['pendingRepetitions'] as int?,
+      learnedWords: json['learnedWords'] as int? ?? 0,
+      lastStudyDate:
+          json['lastStudyDate'] != null
+              ? DateTime.parse(json['lastStudyDate'].toString())
+              : null,
+      studyHistory: studyHistoryList,
+    );
+  }
+
+  /// Helper method to parse CycleStudied from string
+  static CycleStudied? _parseCycleStudied(String? value) {
+    if (value == null) return null;
+
+    switch (value.toUpperCase()) {
+      case 'FIRST_TIME':
+        return CycleStudied.firstTime;
+      case 'FIRST_REVIEW':
+        return CycleStudied.firstReview;
+      case 'SECOND_REVIEW':
+        return CycleStudied.secondReview;
+      case 'THIRD_REVIEW':
+        return CycleStudied.thirdReview;
+      case 'MORE_THAN_THREE_REVIEWS':
+        return CycleStudied.moreThanThreeReviews;
+      default:
+        return null;
+    }
+  }
+
+  /// Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'bookName': book,
+      'title': subject,
+      'wordCount': wordCount,
+      'cyclesStudied': cyclesStudied?.toString().split('.').last.toUpperCase(),
+      'firstLearningDate': firstLearningDate?.toIso8601String(),
+      'percentComplete': percentage,
+      'nextStudyDate': nextStudyDate?.toIso8601String(),
+      'pendingRepetitions': taskCount,
+      'learnedWords': learnedWords,
+      'lastStudyDate': lastStudyDate?.toIso8601String(),
+      'studyHistory':
+          studyHistory?.map((date) => date.toIso8601String()).toList(),
+    };
+  }
 
   /// Calculate the number of learned words based on completion percentage
   int get actualLearnedWords {

@@ -60,4 +60,12 @@ class ApiEndpoints {
   static final String learningInsights = '$basePath/stats/insights';
   static String userLearningInsights(String userId) =>
       '$basePath/stats/users/$userId/insights';
+
+  // Learning Progress endpoints
+  static final String learningModules = '$basePath/learning/modules';
+  static final String dueModules = '$basePath/learning/modules/due';
+  static final String completedModules = '$basePath/learning/modules/completed';
+  static final String uniqueBooks = '$basePath/learning/books';
+  static final String bookStats = '$basePath/learning/books/{book}/stats';
+  static final String exportData = '$basePath/learning/export';
 }

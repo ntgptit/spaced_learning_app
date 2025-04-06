@@ -1,3 +1,4 @@
+// lib/core/services/learning_data_service.dart
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 
 /// Service interface for learning data operations
@@ -40,4 +41,16 @@ abstract class LearningDataService {
 
   /// Get all modules due this month
   List<LearningModule> getDueThisMonth(List<LearningModule> modules);
+
+  /// Get book statistics by name
+  Future<Map<String, dynamic>> getBookStats(String bookName);
+
+  /// Get dashboard statistics with optional filters
+  Future<Map<String, dynamic>> getDashboardStats({
+    String? book,
+    DateTime? date,
+  });
+
+  /// Reset any cached data to force fresh data fetch
+  void resetCache();
 }
