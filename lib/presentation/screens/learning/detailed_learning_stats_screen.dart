@@ -68,8 +68,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryDetails(BuildContext context, LearningStatsDTO stats) {
-    final theme = Theme.of(context);
-
     switch (category) {
       case StatCategory.modules:
         return _buildModuleDetails(context, stats);
