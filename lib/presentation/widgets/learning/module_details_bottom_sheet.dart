@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
+import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
 class ModuleDetailsBottomSheet extends StatelessWidget {
@@ -494,10 +495,13 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           icon: const Icon(Icons.play_arrow),
           label: const Text('Start Studying'),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Starting study session...')),
-            );
             Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ModuleDetailScreen(moduleId: module.id),
+              ),
+            );
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
