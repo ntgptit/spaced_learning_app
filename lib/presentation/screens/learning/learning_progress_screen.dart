@@ -20,9 +20,15 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   final ScrollController _verticalScrollController = ScrollController();
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Initialize the viewModel when dependencies change
+  void initState() {
+    super.initState();
+    // Move initialization to after the first frame to avoid build-time errors
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeViewModel();
+    });
+  }
+
+  void _initializeViewModel() {
     final viewModel = Provider.of<LearningProgressViewModel>(
       context,
       listen: false,
@@ -48,7 +54,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
       firstDate: DateTime(2024),
       lastDate: DateTime(2026),
     );
-    if (picked != null && picked != viewModel.selectedDate) {
+    if (picked != null && picked != viewModel.selectedDate && mounted) {
       viewModel.setSelectedDate(picked);
     }
   }
@@ -66,6 +72,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     VoidCallback? retryAction,
     Duration? duration,
   }) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -102,17 +110,19 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   }
 
   AppBar _buildAppBar() {
-    final viewModel = Provider.of<LearningProgressViewModel>(
-      context,
-      listen: false,
-    );
-
     return AppBar(
       title: const Text('Learning Progress'),
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh),
-          onPressed: () => viewModel.refreshData(),
+          onPressed: () {
+            // Get the viewModel without listening to avoid build errors
+            final viewModel = Provider.of<LearningProgressViewModel>(
+              context,
+              listen: false,
+            );
+            viewModel.refreshData();
+          },
           tooltip: 'Refresh data',
         ),
         IconButton(
@@ -127,6 +137,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   Widget _buildBody() {
     return Consumer<LearningProgressViewModel>(
       builder: (context, viewModel, _) {
+        // Compute values outside of widget build for cleaner code
         final dueModules = viewModel.getDueModulesCount();
         final totalModules = viewModel.filteredModules.length;
         final completedModules = viewModel.getCompletedModulesCount();

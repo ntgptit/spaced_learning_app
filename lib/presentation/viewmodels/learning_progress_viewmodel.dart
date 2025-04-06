@@ -43,8 +43,8 @@ class LearningProgressViewModel extends ChangeNotifier {
     try {
       final modules = await _learningDataService.getModules();
       _modules = modules;
-      applyFilters();
-      setLoading(false);
+      _applyFiltersWithoutNotify(); // Use private method that doesn't notify
+      setLoading(false); // This will trigger notification
     } catch (e) {
       handleLoadError(e.toString());
     }
@@ -58,24 +58,29 @@ class LearningProgressViewModel extends ChangeNotifier {
 
   /// Apply book and date filters to the module list
   void applyFilters() {
-    final newFilteredModules =
-        _modules.where((module) {
-          final bookMatch =
-              _selectedBook == 'All' || module.book == _selectedBook;
-          final dateMatch =
-              _selectedDate == null ||
-              (module.nextStudyDate != null &&
-                  AppDateUtils.isSameDay(
-                    module.nextStudyDate!,
-                    _selectedDate!,
-                  ));
-          return bookMatch && dateMatch;
-        }).toList();
+    final newFilteredModules = _getFilteredModules();
 
     if (_filteredModulesChanged(newFilteredModules)) {
       _filteredModules = newFilteredModules;
       notifyListeners();
     }
+  }
+
+  /// Apply filters without triggering notification
+  void _applyFiltersWithoutNotify() {
+    _filteredModules = _getFilteredModules();
+  }
+
+  /// Get filtered modules based on current filters
+  List<LearningModule> _getFilteredModules() {
+    return _modules.where((module) {
+      final bookMatch = _selectedBook == 'All' || module.book == _selectedBook;
+      final dateMatch =
+          _selectedDate == null ||
+          (module.nextStudyDate != null &&
+              AppDateUtils.isSameDay(module.nextStudyDate!, _selectedDate!));
+      return bookMatch && dateMatch;
+    }).toList();
   }
 
   /// Check if filtered modules list has changed
@@ -116,8 +121,8 @@ class LearningProgressViewModel extends ChangeNotifier {
       setLoading(false);
       return success;
     } catch (e) {
-      setLoading(false);
       setErrorMessage('Error exporting data: $e');
+      setLoading(false);
       return false;
     }
   }
@@ -145,7 +150,10 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Set the error message
   void setErrorMessage(String? message) {
     _errorMessage = message;
-    notifyListeners();
+    if (message != null) {
+      // Only notify if there's an actual error
+      notifyListeners();
+    }
   }
 
   /// Get count of modules due within 7 days
