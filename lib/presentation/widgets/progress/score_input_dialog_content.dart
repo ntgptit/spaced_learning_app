@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Dialog content for inputting test scores
 class ScoreInputDialogContent extends StatelessWidget {
@@ -15,23 +16,25 @@ class ScoreInputDialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
+        Text(
           'Enter the score from your test on Quizlet or another tool:',
-          style: TextStyle(fontSize: 16),
+          style: theme.textTheme.bodyLarge,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppDimens.spaceL),
         Text(
           '${currentScore.toInt()}%',
           style: const TextStyle(
-            fontSize: 24,
+            fontSize: AppDimens.fontHeadlineS,
             fontWeight: FontWeight.bold,
             color: Colors.green,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppDimens.spaceL),
         Slider(
           value: currentScore,
           min: 0,
@@ -40,21 +43,23 @@ class ScoreInputDialogContent extends StatelessWidget {
           label: '${currentScore.toInt()}%',
           onChanged: onScoreChanged,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppDimens.spaceM),
         Row(
           children: [
-            const Text('Enter exact score: '),
+            Text('Enter exact score: ', style: theme.textTheme.bodyMedium),
             Expanded(
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   suffixText: '%',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingM,
+                    vertical: AppDimens.paddingS,
                   ),
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                  ),
                 ),
                 onChanged: (value) {
                   final intValue = int.tryParse(value);
@@ -66,16 +71,16 @@ class ScoreInputDialogContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppDimens.spaceM),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _buildScoreButtons(),
+          children: _buildScoreButtons(theme),
         ),
       ],
     );
   }
 
-  List<Widget> _buildScoreButtons() {
+  List<Widget> _buildScoreButtons(ThemeData theme) {
     // Pre-defined score options
     const scoreOptions = [0, 25, 50, 75, 100];
 
@@ -104,22 +109,40 @@ class _ScoreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppDimens.radiusS),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingS,
+          vertical: AppDimens.paddingXS,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(8),
+          color:
+              isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
           border: Border.all(
-            color: isSelected ? Colors.green.shade700 : Colors.grey.shade400,
+            color:
+                isSelected
+                    ? theme.colorScheme.primary.withOpacity(
+                      AppDimens.opacityHigh,
+                    )
+                    : theme.colorScheme.outline.withOpacity(
+                      AppDimens.opacityMedium,
+                    ),
           ),
         ),
         child: Text(
           '$score%',
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
+            color:
+                isSelected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.onSurface,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),

@@ -134,7 +134,9 @@ class ProgressHeaderWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withAlpha(50),
+        color: theme.colorScheme.primaryContainer.withOpacity(
+          AppDimens.opacityMedium,
+        ),
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
       ),
       child: Row(

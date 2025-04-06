@@ -35,7 +35,10 @@ class RepetitionCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
       elevation: isHistory ? AppDimens.elevationXS : AppDimens.elevationS,
-      color: isHistory ? theme.cardColor.withAlpha(180) : theme.cardColor,
+      color:
+          isHistory
+              ? theme.cardColor.withOpacity(AppDimens.opacityVeryHigh)
+              : theme.cardColor,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -68,7 +71,7 @@ class RepetitionCard extends StatelessWidget {
             vertical: AppDimens.paddingXS,
           ),
           decoration: BoxDecoration(
-            color: statusColor.withAlpha(50),
+            color: statusColor.withOpacity(AppDimens.opacityMedium),
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Row(
@@ -179,11 +182,11 @@ class RepetitionCard extends StatelessWidget {
               style: TextStyle(color: color, fontSize: AppDimens.fontS),
             ),
             if (showScoreIndicator) ...[
-              const SizedBox(width: AppDimens.spaceXXS + 1),
+              const SizedBox(width: AppDimens.spaceXXS),
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingXXS),
                 decoration: BoxDecoration(
-                  color: color.withAlpha(30),
+                  color: color.withOpacity(AppDimens.opacityMedium),
                   borderRadius: BorderRadius.circular(AppDimens.radiusXS),
                 ),
                 child: Icon(
@@ -196,7 +199,9 @@ class RepetitionCard extends StatelessWidget {
           ],
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: color.withAlpha(120)),
+          side: BorderSide(
+            color: color.withOpacity(AppDimens.opacityMediumHigh),
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL),
           ),
@@ -263,9 +268,9 @@ class RepetitionCard extends StatelessWidget {
     final target = DateTime(date.year, date.month, date.day);
     final difference = target.difference(today).inDays;
 
-    if (difference < 0) return Colors.red;
+    if (difference < 0) return theme.colorScheme.error;
     if (difference == 0) return Colors.green;
     if (difference <= 3) return Colors.orange;
-    return Colors.blue;
+    return theme.colorScheme.primary;
   }
 }

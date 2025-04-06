@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/module_details_bottom_sheet.dart';
 
@@ -111,7 +112,10 @@ class _SimplifiedLearningModulesTableState
         // Table header
         Container(
           color: theme.colorScheme.surfaceContainerHigh,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppDimens.paddingS,
+            horizontal: AppDimens.paddingXS,
+          ),
           child: Row(
             children: [
               // Index (#) column
@@ -183,7 +187,10 @@ class _SimplifiedLearningModulesTableState
       child: InkWell(
         onTap: onSort,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingS,
+            vertical: AppDimens.paddingXS,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -198,7 +205,7 @@ class _SimplifiedLearningModulesTableState
               if (isActive)
                 Icon(
                   _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                  size: 16,
+                  size: AppDimens.iconXS,
                   color: theme.colorScheme.primary,
                 ),
             ],
@@ -233,21 +240,28 @@ class _SimplifiedLearningModulesTableState
       child: InkWell(
         onTap: () => _showModuleDetails(context, module),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppDimens.paddingM,
+            horizontal: AppDimens.paddingXS,
+          ),
           child: Row(
             children: [
               // Index column
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingS,
+                  ),
                   child: Center(
                     child: Container(
-                      width: 28,
-                      height: 28,
+                      width: AppDimens.moduleIndicatorSize,
+                      height: AppDimens.moduleIndicatorSize,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withOpacity(
+                          AppDimens.opacityMedium,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -266,7 +280,9 @@ class _SimplifiedLearningModulesTableState
               Expanded(
                 flex: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingS,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -294,7 +310,9 @@ class _SimplifiedLearningModulesTableState
               Expanded(
                 flex: 3,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingS,
+                  ),
                   child:
                       module.nextStudyDate != null
                           ? Text(
@@ -314,7 +332,9 @@ class _SimplifiedLearningModulesTableState
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingS,
+                  ),
                   child:
                       module.taskCount != null
                           ? Row(
@@ -322,14 +342,16 @@ class _SimplifiedLearningModulesTableState
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
+                                  horizontal: AppDimens.paddingS,
+                                  vertical: AppDimens.paddingXXS,
                                 ),
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.primary.withOpacity(
-                                    0.1,
+                                    AppDimens.opacityMedium,
                                   ),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(
+                                    AppDimens.radiusM,
+                                  ),
                                 ),
                                 child: Text(
                                   module.taskCount.toString(),

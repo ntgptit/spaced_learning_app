@@ -17,7 +17,8 @@ class AppEmptyState extends StatelessWidget {
     this.message,
     this.buttonText,
     this.onButtonPressed,
-    this.iconSize = AppDimens.avatarSizeXXL, // Thay 80 bằng giá trị gần nhất
+    this.iconSize =
+        AppDimens.iconXXL, // Sử dụng AppDimens thay vì giá trị cố định
   });
 
   @override
@@ -37,9 +38,7 @@ class AppEmptyState extends StatelessWidget {
               Icon(
                 icon,
                 size: iconSize,
-                color: colorScheme.primary.withValues(
-                  alpha: AppDimens.opacityHigh,
-                ),
+                color: colorScheme.primary.withOpacity(AppDimens.opacityHigh),
               ),
             const SizedBox(height: AppDimens.spaceXL),
             Text(
@@ -55,8 +54,8 @@ class AppEmptyState extends StatelessWidget {
                 message!,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium!.copyWith(
-                  color: colorScheme.onSurface.withValues(
-                    alpha: AppDimens.opacityHigh,
+                  color: colorScheme.onSurface.withOpacity(
+                    AppDimens.opacityHigh,
                   ),
                 ),
               ),

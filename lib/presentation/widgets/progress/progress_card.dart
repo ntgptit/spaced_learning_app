@@ -1,4 +1,3 @@
-// lib/presentation/widgets/progress/progress_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -26,7 +25,7 @@ class ProgressCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(
-        vertical: AppDimens.spaceXS + 2,
+        vertical: AppDimens.spaceXS,
         horizontal: AppDimens.spaceXXS,
       ),
       color: isDue ? theme.colorScheme.primaryContainer : null,

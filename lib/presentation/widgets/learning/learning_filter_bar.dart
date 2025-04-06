@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Filter bar for learning screen with book and date selection
 class LearningFilterBar extends StatefulWidget {
@@ -72,19 +73,20 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+    final isSmallScreen =
+        MediaQuery.of(context).size.width < AppDimens.breakpointXS;
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(theme),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimens.spaceS),
           isSmallScreen
               ? _buildSmallScreenFilters(theme)
               : _buildWideScreenFilters(theme),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDimens.spaceL),
           _buildStatsRow(theme),
         ],
       ),
@@ -126,7 +128,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
         Row(
           children: [
             Expanded(child: _buildBookDropdown(theme)),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppDimens.spaceM),
             Expanded(child: _buildDateFilter(theme)),
           ],
         ),
@@ -140,13 +142,13 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
       children: [
         if (_showSearch) _buildSearchField(theme),
         SizedBox(
-          height: 48,
+          height: AppDimens.buttonHeightL,
           width: double.infinity,
           child: _buildBookDropdown(theme),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         SizedBox(
-          height: 48,
+          height: AppDimens.buttonHeightL,
           width: double.infinity,
           child: _buildDateFilter(theme),
         ),
@@ -156,7 +158,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
 
   Widget _buildSearchField(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
       child: TextField(
         controller: _bookSearchController,
         decoration: InputDecoration(
@@ -173,7 +175,9 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
                     },
                   )
                   : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusS),
+          ),
         ),
         onChanged: _filterBooks,
       ),
@@ -182,11 +186,13 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
 
   Widget _buildBookDropdown(ThemeData theme) {
     return Container(
-      height: 48,
+      height: AppDimens.buttonHeightL,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(AppDimens.opacitySemi),
+        ),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -195,9 +201,9 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
                   ? widget.selectedBook
                   : widget.books.first,
           isExpanded: true,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
           icon: const Icon(Icons.arrow_drop_down),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
           items:
               _filteredBooks
                   .map(
@@ -223,32 +229,36 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   Widget _buildDateFilter(ThemeData theme) {
     return widget.selectedDate == null
         ? OutlinedButton.icon(
-          icon: const Icon(Icons.calendar_today, size: 18),
+          icon: const Icon(Icons.calendar_today, size: AppDimens.iconS),
           label: const Text('Select Date'),
           onPressed: widget.onDateSelected,
           style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: const Size.fromHeight(AppDimens.buttonHeightL),
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppDimens.radiusS),
             ),
           ),
         )
         : Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          height: AppDimens.buttonHeightL,
+          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(AppDimens.radiusS),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(
+                AppDimens.opacitySemi,
+              ),
+            ),
           ),
           child: Row(
             children: [
               const Tooltip(
                 message: 'Selected date filter',
-                child: Icon(Icons.calendar_today, size: 18),
+                child: Icon(Icons.calendar_today, size: AppDimens.iconS),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppDimens.spaceS),
               Expanded(
                 child: Text(
                   DateFormat('MMM dd, yyyy').format(widget.selectedDate!),
@@ -257,7 +267,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.clear, size: 18),
+                icon: const Icon(Icons.clear, size: AppDimens.iconS),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: widget.onDateCleared,
@@ -270,10 +280,10 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
 
   Widget _buildStatsRow(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -300,7 +310,11 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   }
 
   Widget _buildDivider() {
-    return Container(height: 30, width: 1, color: Colors.grey.withOpacity(0.3));
+    return Container(
+      height: AppDimens.listTileHeightS - AppDimens.paddingL,
+      width: AppDimens.dividerThickness,
+      color: Colors.grey.withOpacity(AppDimens.opacityMedium),
+    );
   }
 
   Widget _buildStatItem(
@@ -321,8 +335,8 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 4),
+              Icon(icon, size: AppDimens.iconXS, color: color),
+              const SizedBox(width: AppDimens.spaceXXS),
               Text(label, style: theme.textTheme.bodySmall),
             ],
           ),
