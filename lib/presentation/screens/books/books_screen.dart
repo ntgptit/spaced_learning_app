@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -60,7 +62,10 @@ class _BooksScreenState extends State<BooksScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.lightError,
+          ),
         );
       }
     }
@@ -110,7 +115,14 @@ class _BooksScreenState extends State<BooksScreen> {
     final bookViewModel = context.watch<BookViewModel>();
 
     if (authViewModel.currentUser == null) {
-      return const Center(child: Text('Please log in to browse books'));
+      return Center(
+        child: Text(
+          'Please log in to browse books',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: AppColors.textPrimaryLight,
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -118,7 +130,7 @@ class _BooksScreenState extends State<BooksScreen> {
         children: [
           // Search bar
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -138,14 +150,14 @@ class _BooksScreenState extends State<BooksScreen> {
                             )
                             : null,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusS),
                     ),
                   ),
                   onChanged: _searchBooks,
                 ),
 
                 // Filter row
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimens.spaceS),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -161,7 +173,7 @@ class _BooksScreenState extends State<BooksScreen> {
 
                       // Active filters
                       if (_selectedCategory != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppDimens.spaceS),
                         Chip(
                           label: Text(_selectedCategory!),
                           onDeleted: () {
@@ -174,7 +186,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       ],
 
                       if (_selectedStatus != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppDimens.spaceS),
                         Chip(
                           label: Text(_formatStatus(_selectedStatus!)),
                           onDeleted: () {
@@ -187,7 +199,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       ],
 
                       if (_selectedDifficulty != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppDimens.spaceS),
                         Chip(
                           label: Text(_formatDifficulty(_selectedDifficulty!)),
                           onDeleted: () {
@@ -203,7 +215,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       if (_selectedCategory != null ||
                           _selectedStatus != null ||
                           _selectedDifficulty != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppDimens.spaceS),
                         TextButton(
                           onPressed: _resetFilters,
                           child: const Text('Reset'),
@@ -229,7 +241,6 @@ class _BooksScreenState extends State<BooksScreen> {
           authViewModel.currentUser?.roles?.contains('ADMIN') == true
               ? FloatingActionButton(
                 onPressed: () {
-                  // Navigate to book creation screen
                   Navigator.of(context).pushNamed('/books/create');
                 },
                 child: const Icon(Icons.add),
@@ -258,8 +269,12 @@ class _BooksScreenState extends State<BooksScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.book, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
+            const Icon(
+              Icons.book,
+              size: AppDimens.iconXXL,
+              color: AppColors.textDisabledLight,
+            ),
+            const SizedBox(height: AppDimens.spaceL),
             Text(
               _isSearching
                   ? 'No books found matching your search'
@@ -275,12 +290,17 @@ class _BooksScreenState extends State<BooksScreen> {
     return RefreshIndicator(
       onRefresh: _loadData,
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80), // Extra padding for FAB
-        itemCount: viewModel.books.length + 1, // +1 for the header
+        padding: const EdgeInsets.only(bottom: AppDimens.paddingXXXL),
+        itemCount: viewModel.books.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimens.paddingL,
+                0,
+                AppDimens.paddingL,
+                AppDimens.paddingS,
+              ),
               child: Text(
                 '$title (${viewModel.books.length})',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -311,13 +331,15 @@ class _BooksScreenState extends State<BooksScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDimens.radiusL),
+        ),
       ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppDimens.paddingL),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -327,16 +349,16 @@ class _BooksScreenState extends State<BooksScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppDimens.spaceL),
 
                   // Categories
                   Text(
                     'Category',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimens.spaceS),
                   Wrap(
-                    spacing: 8,
+                    spacing: AppDimens.spaceS,
                     children: [
                       for (final category in _categories)
                         ChoiceChip(
@@ -350,16 +372,16 @@ class _BooksScreenState extends State<BooksScreen> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppDimens.spaceL),
 
                   // Status
                   Text(
                     'Status',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimens.spaceS),
                   Wrap(
-                    spacing: 8,
+                    spacing: AppDimens.spaceS,
                     children: [
                       for (final status in BookStatus.values)
                         ChoiceChip(
@@ -373,16 +395,16 @@ class _BooksScreenState extends State<BooksScreen> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppDimens.spaceL),
 
                   // Difficulty
                   Text(
                     'Difficulty',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimens.spaceS),
                   Wrap(
-                    spacing: 8,
+                    spacing: AppDimens.spaceS,
                     children: [
                       for (final difficulty in DifficultyLevel.values)
                         ChoiceChip(
@@ -397,7 +419,7 @@ class _BooksScreenState extends State<BooksScreen> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppDimens.spaceXL),
 
                   // Apply button
                   ElevatedButton(
@@ -407,7 +429,7 @@ class _BooksScreenState extends State<BooksScreen> {
                     },
                     child: const Text('Apply Filters'),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimens.spaceS),
 
                   // Reset button
                   TextButton(

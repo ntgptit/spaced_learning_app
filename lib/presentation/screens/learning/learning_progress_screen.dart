@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/core/utils/date_utils.dart';
 import 'package:spaced_learning_app/core/utils/debouncer.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
@@ -18,7 +20,6 @@ class LearningProgressScreen extends StatefulWidget {
 }
 
 class _LearningProgressScreenState extends State<LearningProgressScreen> {
-  // State variables and controllers
   final List<LearningModule> _modules = [];
   List<LearningModule> _filteredModules = [];
   String _selectedBook = 'All';
@@ -45,7 +46,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     super.dispose();
   }
 
-  // Data operations
   void _loadDataDebounced() => _loadDebouncer.run(_loadData);
 
   Future<void> _loadData() async {
@@ -132,12 +132,11 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        _showSnackBar('Error exporting data: $e', Colors.red);
+        _showSnackBar('Error exporting data: $e', AppColors.lightError);
       }
     }
   }
 
-  // UI utilities
   List<String> _getUniqueBooks() {
     if (_modules.isEmpty) return ['All'];
     final books =
@@ -155,7 +154,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
       if (mounted) {
         _showSnackBar(
           'Error loading data: $error',
-          Colors.red,
+          AppColors.lightError,
           retryAction: _loadDataDebounced,
         );
       }
@@ -169,7 +168,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
           success
               ? 'Data exported successfully. The file was saved to your downloads folder.'
               : 'Failed to export data. Please try again.',
-          success ? Colors.green : Colors.red,
+          success ? AppColors.successLight : AppColors.lightError,
           duration: const Duration(seconds: 3),
         );
       }
@@ -207,7 +206,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     );
   }
 
-  // Build methods
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -285,16 +283,16 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   Widget _buildErrorDisplay() {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
+      margin: const EdgeInsets.all(AppDimens.paddingL),
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Row(
         children: [
           Icon(Icons.error_outline, color: theme.colorScheme.error),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: Text(
               _errorMessage!,

@@ -1,5 +1,6 @@
 // lib/presentation/widgets/module_card.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
@@ -26,13 +27,16 @@ class ModuleCard extends StatelessWidget {
 
     return AppCard(
       onTap: onTap,
-      title: Text('Module ${module.moduleNo}: ${module.title}'),
+      title: Text(
+        'Module ${module.moduleNo}: ${module.title}',
+        style: theme.textTheme.titleMedium,
+      ),
       leading: Container(
-        width: 50,
-        height: 50,
+        width: AppDimens.avatarSizeL,
+        height: AppDimens.avatarSizeL,
         decoration: BoxDecoration(
           color: colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
         child: Center(
           child: Text(
@@ -46,23 +50,26 @@ class ModuleCard extends StatelessWidget {
       ),
       subtitle:
           module.wordCount != null && module.wordCount! > 0
-              ? Text('${module.wordCount} words')
+              ? Text(
+                '${module.wordCount} words',
+                style: theme.textTheme.bodyMedium,
+              )
               : null,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (progress != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             Row(
               children: [
                 Expanded(
                   child: AppProgressIndicator(
                     type: ProgressType.linear,
                     value: progress,
-                    strokeWidth: 8,
+                    strokeWidth: AppDimens.lineProgressHeightL,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppDimens.spaceL),
                 Text(
                   '${(progress! * 100).toInt()}%',
                   style: theme.textTheme.bodyMedium!.copyWith(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -10,7 +12,6 @@ import 'package:spaced_learning_app/presentation/widgets/progress/progress_heade
 import 'package:spaced_learning_app/presentation/widgets/progress/repetition_list_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog_content.dart';
 
-/// Screen displaying detailed view of a specific progress record
 class ProgressDetailScreen extends StatefulWidget {
   final String progressId;
 
@@ -27,7 +28,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     _loadInitialData();
   }
 
-  // Data Operations
   Future<void> _loadInitialData() async {
     await _fetchProgressAndRepetitions();
   }
@@ -122,8 +122,10 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     await progressViewModel.loadProgressDetails(widget.progressId);
   }
 
-  // UI Utilities
-  void _showSnackBar(String message, {Color backgroundColor = Colors.grey}) {
+  void _showSnackBar(
+    String message, {
+    Color backgroundColor = AppColors.lightSurfaceVariant,
+  }) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: backgroundColor),
@@ -142,7 +144,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           content: const Text(
             'Congratulations! You have completed this learning cycle.',
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.successLight,
           duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: 'Details',
@@ -165,11 +167,11 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('You have completed all repetitions in this cycle.'),
-                SizedBox(height: 8),
+                SizedBox(height: AppDimens.spaceM),
                 Text(
                   'The system has automatically scheduled a new review cycle with adjusted intervals based on your learning performance.',
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: AppDimens.spaceM),
                 Text(
                   'Keep up with regular reviews to maximize your learning efficiency.',
                 ),
@@ -241,7 +243,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     );
   }
 
-  // Build Methods
   @override
   Widget build(BuildContext context) {
     final progressViewModel = context.watch<ProgressViewModel>();
@@ -293,15 +294,15 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
       children: [
         ProgressHeaderWidget(
           progress: progress,
           onCycleCompleteDialogRequested: _showCycleCompletionDialog,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXXL),
         Text('Review Schedule', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceM),
         RepetitionListWidget(
           progressId: widget.progressId,
           currentCycleStudied: progress.cyclesStudied,

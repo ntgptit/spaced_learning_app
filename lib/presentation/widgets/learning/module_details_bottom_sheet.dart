@@ -1,31 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
-/// Bottom sheet hiển thị thông tin chi tiết về một module học tập
-/// Được tối ưu cho giao diện mobile với đầy đủ chi tiết không hiển thị trong bảng đơn giản
 class ModuleDetailsBottomSheet extends StatelessWidget {
-  // Properties
   final LearningModule module;
   final String? heroTagPrefix;
 
-  // Constructor
   const ModuleDetailsBottomSheet({
     super.key,
     required this.module,
     this.heroTagPrefix,
   });
 
-  // Build method
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
-      decoration: _buildContainerDecoration(theme),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppDimens.radiusL),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(AppDimens.opacityMedium),
+            blurRadius: AppDimens.shadowRadiusL,
+            spreadRadius: AppDimens.shadowOffsetS,
+          ),
+        ],
+      ),
       constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -48,7 +56,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                     _buildStudyHistorySection(theme),
                   ],
                   const SizedBox(height: AppDimens.spaceXL),
-                  _buildActionButtons(context, theme),
+                  _buildActionButtons(context),
                 ],
               ),
             ),
@@ -58,24 +66,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  // Container decoration
-  Decoration _buildContainerDecoration(ThemeData theme) {
-    return BoxDecoration(
-      color: theme.colorScheme.surface,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppDimens.radiusL),
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(AppDimens.opacityMedium),
-          blurRadius: AppDimens.shadowRadiusL,
-          spreadRadius: AppDimens.shadowOffsetS,
-        ),
-      ],
-    );
-  }
-
-  // UI Components
   Widget _buildDragHandle(ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -176,7 +166,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               color:
                   module.cyclesStudied != null
                       ? Color(
-                        CycleFormatter.getColorValue(module.cyclesStudied!),
+                        CycleFormatter.getColor(module.cyclesStudied!) as int,
                       )
                       : null,
             ),
@@ -240,13 +230,18 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         _buildHistoryItems(theme),
         if ((module.studyHistory?.length ?? 0) > 8) ...[
           const SizedBox(height: AppDimens.spaceXXS),
-          _buildMoreSessionsIndicator(theme),
+          Text(
+            '+ ${module.studyHistory!.length - 8} more sessions',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ],
     );
   }
 
-  // Helper Widgets
   Widget _buildSectionTitle(ThemeData theme, String title) {
     return Row(
       children: [
@@ -277,13 +272,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     Color? color,
   }) {
     final effectiveColor = color ?? theme.colorScheme.primary;
-    // Sử dụng View.of(context) thay vì WidgetsBinding.instance.window
-    final size =
-        View.of(context).physicalSize / View.of(context).devicePixelRatio;
+    final width = MediaQuery.of(context).size.width;
     final containerWidth =
-        size.width < AppDimens.breakpointXS
-            ? (size.width - AppDimens.spaceXXL * 2) / 2
-            : (size.width - AppDimens.spaceXXL * 3) / 3;
+        width < AppDimens.breakpointXS
+            ? (width - AppDimens.spaceXXL * 2) / 2
+            : (width - AppDimens.spaceXXL * 3) / 3;
 
     return Container(
       width: containerWidth,
@@ -293,7 +286,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
           color: effectiveColor.withOpacity(AppDimens.opacitySemi),
-          width: AppDimens.dividerThickness,
         ),
       ),
       child: Column(
@@ -328,10 +320,10 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(
                 progressValue >= 0.9
-                    ? Colors.green
+                    ? AppColors.successLight
                     : progressValue >= 0.7
-                    ? Colors.orange
-                    : Colors.red,
+                    ? AppColors.warningLight
+                    : AppColors.lightError,
               ),
               borderRadius: BorderRadius.circular(AppDimens.radiusXXS),
               minHeight: AppDimens.lineProgressHeight,
@@ -349,9 +341,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     IconData icon, {
     bool isUpcoming = false,
   }) {
-    final dateFormat = DateFormat('EEEE, MMMM d, yyyy');
-    final color =
-        isUpcoming ? theme.colorScheme.error : theme.colorScheme.primary;
+    final color = isUpcoming ? AppColors.lightError : theme.colorScheme.primary;
 
     return Row(
       children: [
@@ -361,32 +351,27 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(label, style: theme.textTheme.bodyMedium),
               Text(
-                label,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                dateFormat.format(date),
+                DateFormat('EEEE, MMMM d, yyyy').format(date),
                 style: theme.textTheme.titleMedium?.copyWith(
+                  color: isUpcoming ? AppColors.lightError : null,
                   fontWeight: isUpcoming ? FontWeight.bold : null,
-                  color: isUpcoming ? theme.colorScheme.error : null,
                 ),
               ),
             ],
           ),
         ),
         if (isUpcoming)
-          Chip(
+          const Chip(
             label: Text(
               'Due Soon',
               style: TextStyle(
-                color: theme.colorScheme.onError,
+                color: AppColors.lightOnError,
                 fontSize: AppDimens.fontS,
               ),
             ),
-            backgroundColor: theme.colorScheme.error,
+            backgroundColor: AppColors.lightError,
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
           ),
@@ -395,9 +380,9 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildHistoryItems(ThemeData theme) {
-    final dateFormat = DateFormat('MMM d');
     final studyHistory = List<DateTime>.from(module.studyHistory!)
       ..sort((a, b) => b.compareTo(a));
+    final today = DateTime.now();
 
     return Wrap(
       spacing: AppDimens.spaceXS,
@@ -405,9 +390,22 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
       children:
           studyHistory.take(7).map((date) {
             final isToday =
-                date.day == DateTime.now().day &&
-                date.month == DateTime.now().month &&
-                date.year == DateTime.now().year;
+                date.year == today.year &&
+                date.month == today.month &&
+                date.day == today.day;
+            final bgColor =
+                isToday
+                    ? theme.colorScheme.primary.withOpacity(
+                      AppDimens.opacitySemi,
+                    )
+                    : theme.colorScheme.surfaceContainerHighest;
+            final borderColor =
+                isToday
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline.withOpacity(
+                      AppDimens.opacitySemi,
+                    );
+
             return Tooltip(
               message: DateFormat('MMMM d, yyyy').format(date),
               child: Container(
@@ -416,24 +414,12 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                   vertical: AppDimens.paddingXXS,
                 ),
                 decoration: BoxDecoration(
-                  color:
-                      isToday
-                          ? theme.colorScheme.primary.withOpacity(
-                            AppDimens.opacitySemi,
-                          )
-                          : theme.colorScheme.surfaceContainerHighest,
+                  color: bgColor,
                   borderRadius: BorderRadius.circular(AppDimens.radiusXS),
-                  border: Border.all(
-                    color:
-                        isToday
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.outline.withOpacity(
-                              AppDimens.opacitySemi,
-                            ),
-                  ),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Text(
-                  dateFormat.format(date),
+                  DateFormat('MMM d').format(date),
                   style: TextStyle(
                     fontSize: AppDimens.fontM,
                     fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
@@ -449,17 +435,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildMoreSessionsIndicator(ThemeData theme) {
-    return Text(
-      '+ ${module.studyHistory!.length - 8} more sessions',
-      style: theme.textTheme.bodySmall?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
-        fontStyle: FontStyle.italic,
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context, ThemeData theme) {
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart';
@@ -32,6 +34,8 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         child: AppProgressIndicator(
           type: ProgressType.circular,
           label: 'Loading details...',
+          size: AppDimens.circularProgressSize,
+          color: AppColors.lightPrimary,
         ),
       );
     }
@@ -47,12 +51,18 @@ class DetailedLearningStatsScreen extends StatelessWidget {
 
     final stats = learningStatsVM.stats;
     if (stats == null) {
-      return const Center(child: Text('No statistics available'));
+      return Center(
+        child: Text(
+          'No statistics available',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(color: AppColors.textPrimaryLight),
+        ),
+      );
     }
 
-    // Build the appropriate detail widget based on the category
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
       child: _buildCategoryDetails(context, stats),
     );
   }
@@ -72,96 +82,74 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     }
   }
 
-  // --- Widget with English Labels and Descriptions ---
   Widget _buildModuleDetails(BuildContext context, LearningStatsDTO stats) {
     final theme = Theme.of(context);
 
-    // Safely calculate values, handling cases where keys might be missing
     final notStudiedCount = stats.cycleStats['NOT_STUDIED'] ?? 0;
-    final firstTimeCount =
-        stats.cycleStats['FIRST_TIME'] ??
-        0; // Could be "Completed" or "1st Review"
+    final firstTimeCount = stats.cycleStats['FIRST_TIME'] ?? 0;
     final secondReviewCount = stats.cycleStats['SECOND_REVIEW'] ?? 0;
     final thirdReviewCount = stats.cycleStats['THIRD_REVIEW'] ?? 0;
     final moreThanThreeReviewsCount =
         stats.cycleStats['MORE_THAN_THREE_REVIEWS'] ?? 0;
 
-    // You might want a more general "In Progress" calculation:
-    // final inProgressCount = stats.totalModules - notStudiedCount - firstTimeCount; // This logic depends on the precise definition of FIRST_TIME
-
-    // If you want to display the actual completion rate (e.g., based on FIRST_TIME meaning completed)
-    // calculate it separately:
     final completionRate =
         (stats.totalModules > 0)
             ? '${((firstTimeCount / stats.totalModules) * 100).toStringAsFixed(1)}%'
             : 'N/A';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Module Statistics',
-          style: theme.textTheme.headlineSmall,
-        ), // Main label
-        const SizedBox(height: 16),
-
+        Text('Module Statistics', style: theme.textTheme.headlineSmall),
+        const SizedBox(height: AppDimens.spaceL),
         _buildStatCard(
           context,
-          'Total Modules', // English label
+          'Total Modules',
           stats.totalModules.toString(),
-          Icons.library_books, // Suitable icon
-          Colors.indigo,
-          'The total number of modules in your learning plan.', // English description
+          Icons.library_books,
+          AppColors.accentPurple,
+          'The total number of modules in your learning plan.',
         ),
-
         _buildStatCard(
           context,
-          'Not Studied', // English label
-          notStudiedCount.toString(), // Use correct value
-          Icons.book_outlined, // Suitable icon
-          Colors.grey, // Suitable color
-          'The number of modules you haven\'t started learning yet.', // English description
+          'Not Studied',
+          notStudiedCount.toString(),
+          Icons.book_outlined,
+          AppColors.neutralMedium,
+          'The number of modules you haven\'t started learning yet.',
         ),
-
         _buildStatCard(
           context,
-          // This label depends on the actual meaning of 'FIRST_TIME'
-          // If completed: 'Completed' or 'Completed First Time'
-          // If review cycle: '1st Review Cycle'
-          'Completed / 1st Review', // English label (needs business logic confirmation)
+          'Completed / 1st Review',
           firstTimeCount.toString(),
-          Icons.check_circle_outline, // Suitable icon for "first time"
-          Colors.green,
-          // Description should match the label's meaning
-          'Modules completed for the first time or currently in the first review cycle.', // English description
+          Icons.check_circle_outline,
+          AppColors.successLight,
+          'Modules completed for the first time or currently in the first review cycle.',
         ),
-
         _buildStatCard(
           context,
-          '2nd Review Cycle', // English label
+          '2nd Review Cycle',
           secondReviewCount.toString(),
-          Icons.history_toggle_off, // Suitable icon for review
-          Colors.orange,
-          'The number of modules currently in the second review cycle.', // English description
+          Icons.history_toggle_off,
+          AppColors.accentOrange,
+          'The number of modules currently in the second review cycle.',
         ),
-
         _buildStatCard(
           context,
-          '3rd Review Cycle', // English label (instead of Completion Rate)
+          '3rd Review Cycle',
           thirdReviewCount.toString(),
-          Icons.replay_circle_filled, // Different icon for 3rd review
-          Colors.blue, // Different color
-          'The number of modules currently in the third review cycle.', // English description
+          Icons.replay_circle_filled,
+          AppColors.infoLight,
+          'The number of modules currently in the third review cycle.',
         ),
-
         _buildStatCard(
           context,
-          'Frequent Review (>3)', // English label (instead of Completion Rate)
+          'Frequent Review (>3)',
           moreThanThreeReviewsCount.toString(),
-          Icons.warning_amber_rounded, // Warning icon for many reviews
-          Colors.redAccent, // Emphasizing color
-          'Modules that have been reviewed more than three times, potentially requiring more attention.', // English description
+          Icons.warning_amber_rounded,
+          AppColors.accentRed,
+          'Modules that have been reviewed more than three times, potentially requiring more attention.',
         ),
-
         _buildStatCard(
           context,
           'Completion Rate',
@@ -184,7 +172,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Due Sessions', style: theme.textTheme.headlineSmall),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         Row(
           children: [
             Expanded(
@@ -193,20 +181,20 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 'Due Today',
                 stats.dueToday.toString(),
                 Icons.today,
-                Colors.red,
+                AppColors.accentRed,
                 'Sessions that are due to be completed today',
                 showSecondaryInfo: true,
                 secondaryInfo: '${stats.wordsDueToday} words',
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: _buildStatCard(
                 context,
                 'Completed Today',
                 stats.completedToday.toString(),
                 Icons.check_circle,
-                Colors.green,
+                AppColors.successLight,
                 'Sessions you have already completed today',
                 showSecondaryInfo: true,
                 secondaryInfo: '${stats.wordsCompletedToday} words',
@@ -214,17 +202,17 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             ),
           ],
         ),
-        const Divider(height: 32),
+        const Divider(height: AppDimens.spaceXXL),
         Text('Weekly Overview', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         _buildProgressBar(
           context,
           'This Week Completion',
           stats.completedThisWeek,
           stats.dueThisWeek,
-          Colors.orange,
+          AppColors.accentOrange,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         Row(
           children: [
             Expanded(
@@ -233,20 +221,20 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 'Due This Week',
                 stats.dueThisWeek.toString(),
                 Icons.view_week,
-                Colors.orange,
+                AppColors.accentOrange,
                 'Sessions that are scheduled for this week',
                 showSecondaryInfo: true,
                 secondaryInfo: '${stats.wordsDueThisWeek} words',
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: _buildStatCard(
                 context,
                 'Completed This Week',
                 stats.completedThisWeek.toString(),
                 Icons.task_alt,
-                Colors.green,
+                AppColors.successLight,
                 'Sessions you have completed this week',
                 showSecondaryInfo: true,
                 secondaryInfo: '${stats.wordsCompletedThisWeek} words',
@@ -254,9 +242,9 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             ),
           ],
         ),
-        const Divider(height: 32),
+        const Divider(height: AppDimens.spaceXXL),
         Text('Monthly Overview', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         _buildProgressBar(
           context,
           'This Month Completion',
@@ -264,7 +252,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
           stats.dueThisMonth,
           theme.colorScheme.primary,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         Row(
           children: [
             Expanded(
@@ -279,14 +267,14 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 secondaryInfo: '${stats.wordsDueThisMonth} words',
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: _buildStatCard(
                 context,
                 'Completed This Month',
                 stats.completedThisMonth.toString(),
                 Icons.verified,
-                Colors.green,
+                AppColors.successLight,
                 'Sessions you have completed this month',
                 showSecondaryInfo: true,
                 secondaryInfo: '${stats.wordsCompletedThisMonth} words',
@@ -305,13 +293,13 @@ class DetailedLearningStatsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Learning Streaks', style: theme.textTheme.headlineSmall),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         _buildStatCard(
           context,
           'Current Day Streak',
           stats.streakDays.toString(),
           Icons.local_fire_department,
-          Colors.deepOrange,
+          AppColors.accentOrange,
           'Number of consecutive days with completed learning sessions',
           expanded: true,
           showSecondaryInfo: true,
@@ -325,7 +313,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
           'Week Streak',
           stats.streakWeeks.toString(),
           Icons.date_range,
-          Colors.purple,
+          AppColors.accentPurple,
           'Number of consecutive weeks with completed learning sessions',
           expanded: true,
           showSecondaryInfo: true,
@@ -339,7 +327,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
           'Longest Streak',
           stats.longestStreakDays.toString(),
           Icons.emoji_events,
-          Colors.amber.shade800,
+          AppColors.warningLight,
           'Your longest consecutive days streak since you started',
           expanded: true,
           showSecondaryInfo: true,
@@ -348,12 +336,12 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                   ? 'You\'re currently at your best streak!'
                   : 'Keep going to beat your record.',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXL),
         Text('Streak Benefits', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -363,13 +351,16 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                const SizedBox(height: AppDimens.spaceS),
+                Text(
                   '• Builds consistent learning habits\n'
                   '• Improves long-term memory retention\n'
                   '• Motivates continued progress\n'
                   '• Increases effectiveness of spaced repetition\n'
                   '• Helps achieve learning goals faster',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textPrimaryLight,
+                  ),
                 ),
               ],
             ),
@@ -386,15 +377,15 @@ class DetailedLearningStatsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Vocabulary Progress', style: theme.textTheme.headlineSmall),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         _buildProgressBar(
           context,
           'Vocabulary Mastery',
           stats.learnedWords,
           stats.totalWords,
-          Colors.teal,
+          AppColors.accentGreen,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXL),
         Row(
           children: [
             Expanded(
@@ -403,18 +394,18 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 'Total Words',
                 stats.totalWords.toString(),
                 Icons.library_books,
-                Colors.teal,
+                AppColors.accentGreen,
                 'Total vocabulary words across all modules',
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: _buildStatCard(
                 context,
                 'Learned Words',
                 stats.learnedWords.toString(),
                 Icons.spellcheck,
-                Colors.green,
+                AppColors.successLight,
                 'Words you have successfully learned',
               ),
             ),
@@ -428,27 +419,27 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 'Pending Words',
                 stats.pendingWords.toString(),
                 Icons.hourglass_bottom,
-                Colors.amber.shade800,
+                AppColors.warningLight,
                 'Words you still need to learn',
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: _buildStatCard(
                 context,
                 'Weekly Rate',
                 '${stats.weeklyNewWordsRate.toStringAsFixed(1)}%',
                 Icons.trending_up,
-                Colors.blue,
+                AppColors.infoLight,
                 'Percentage of new words you learn each week',
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXL),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -458,13 +449,16 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                const SizedBox(height: AppDimens.spaceS),
+                Text(
                   '• Use new vocabulary in sentences\n'
                   '• Associate words with images or situations\n'
                   '• Practice regularly with spaced repetition\n'
                   '• Group related words together\n'
                   '• Review right before sleep for better retention',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textPrimaryLight,
+                  ),
                 ),
               ],
             ),
@@ -501,14 +495,14 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           child: LinearProgressIndicator(
             value: percentage,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            backgroundColor: AppColors.neutralLight,
             valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 10,
+            minHeight: AppDimens.lineProgressHeightL,
           ),
         ),
       ],
@@ -529,22 +523,22 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppDimens.spaceL),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: color, size: 24),
-                const SizedBox(width: 8),
+                Icon(icon, color: color, size: AppDimens.iconL),
+                const SizedBox(width: AppDimens.spaceS),
                 Expanded(
                   child: Text(title, style: theme.textTheme.titleMedium),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.spaceS),
             Text(
               value,
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -553,19 +547,21 @@ class DetailedLearningStatsScreen extends StatelessWidget {
               ),
             ),
             if (showSecondaryInfo && secondaryInfo.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: AppDimens.spaceXS),
               Text(
                 secondaryInfo,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: color.withOpacity(0.8),
+                  color: color.withOpacity(AppDimens.opacityVeryHigh),
                 ),
               ),
             ],
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.spaceS),
             Text(
               description,
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textPrimaryLight,
+              ),
               maxLines: expanded ? null : 2,
               overflow: expanded ? null : TextOverflow.ellipsis,
             ),

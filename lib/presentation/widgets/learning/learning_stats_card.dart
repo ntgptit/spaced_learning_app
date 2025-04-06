@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Assuming AppDimens exists
-import 'package:spaced_learning_app/domain/models/learning_stats.dart'; // Assuming LearningStatsDTO exists
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 
-/// An enhanced card widget that displays comprehensive learning statistics using grid layouts
 class LearningStatsCard extends StatelessWidget {
   final LearningStatsDTO stats;
   final VoidCallback? onViewDetailPressed;
@@ -31,16 +31,15 @@ class LearningStatsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildCardHeader(theme), // Renamed for clarity
+            _buildCardHeader(theme),
             SizedBox(
               height: isSmallScreen ? AppDimens.spaceM : AppDimens.spaceL,
             ),
-            // Use the generalized section builder
             _buildStatsSection(
               theme: theme,
               sectionIcon: Icons.auto_stories,
               sectionTitle: 'Module Progress',
-              sectionColor: theme.colorScheme.secondary,
+              sectionColor: AppColors.accentOrange,
               gridContent: _buildModuleStatsGrid(theme, isSmallScreen),
             ),
             const Divider(height: AppDimens.spaceXXL),
@@ -48,7 +47,7 @@ class LearningStatsCard extends StatelessWidget {
               theme: theme,
               sectionIcon: Icons.calendar_today,
               sectionTitle: 'Due Sessions',
-              sectionColor: theme.colorScheme.error,
+              sectionColor: AppColors.warningLight,
               gridContent: _buildDueStatsGrid(theme, isSmallScreen),
             ),
             const Divider(height: AppDimens.spaceXXL),
@@ -56,7 +55,7 @@ class LearningStatsCard extends StatelessWidget {
               theme: theme,
               sectionIcon: Icons.local_fire_department,
               sectionTitle: 'Streaks',
-              sectionColor: Colors.deepOrange,
+              sectionColor: AppColors.accentRed,
               gridContent: _buildStreakStatsGrid(theme, isSmallScreen),
             ),
             const Divider(height: AppDimens.spaceXXL),
@@ -64,11 +63,8 @@ class LearningStatsCard extends StatelessWidget {
               theme: theme,
               sectionIcon: Icons.menu_book,
               sectionTitle: 'Vocabulary',
-              sectionColor: Colors.teal,
-              gridContent: _buildVocabularyStatsGrid(
-                theme,
-                isSmallScreen,
-              ), // Renamed grid builder
+              sectionColor: AppColors.accentPurple,
+              gridContent: _buildVocabularyStatsGrid(theme, isSmallScreen),
             ),
             if (onViewDetailPressed != null) ...[
               const SizedBox(height: AppDimens.spaceL),
@@ -87,18 +83,16 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 
-  // Header for the entire card
   Widget _buildCardHeader(ThemeData theme) {
     return Row(
       children: [
-        Icon(Icons.book_online, color: theme.colorScheme.primary),
+        const Icon(Icons.book_online, color: AppColors.iconPrimaryLight),
         const SizedBox(width: AppDimens.spaceS),
         Text('Learning Statistics', style: theme.textTheme.titleLarge),
       ],
     );
   }
 
-  /// Builds a generic statistics section with a header and grid content.
   Widget _buildStatsSection({
     required ThemeData theme,
     required IconData sectionIcon,
@@ -120,244 +114,205 @@ class LearningStatsCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppDimens.spaceM),
-        gridContent, // Pass the specific grid widget here
+        gridContent,
       ],
     );
   }
 
-  /// Builds the grid for the Module Progress section
   Widget _buildModuleStatsGrid(ThemeData theme, bool isSmallScreen) {
     final cycleStats = stats.cycleStats;
-    final notStudied = cycleStats['NOT_STUDIED'] ?? 0;
-    final firstTime = cycleStats['FIRST_TIME'] ?? 0;
-    final firstReview = cycleStats['FIRST_REVIEW'] ?? 0;
-    final secondReview = cycleStats['SECOND_REVIEW'] ?? 0;
-    final thirdReview = cycleStats['THIRD_REVIEW'] ?? 0;
-    final moreThanThree = cycleStats['MORE_THAN_THREE_REVIEWS'] ?? 0;
-
-    // List of module items
-    final moduleItems = [
+    final items = [
       _buildGridItem(
         theme,
         stats.totalModules.toString(),
         'Total\nModules',
         Icons.menu_book,
-        Colors.blue,
+        AppColors.accentOrange,
       ),
       _buildGridItem(
         theme,
-        notStudied.toString(),
+        '${cycleStats['NOT_STUDIED'] ?? 0}',
         'Not\nStudied',
         Icons.visibility_off,
-        Colors.grey,
+        AppColors.neutralMedium,
       ),
       _buildGridItem(
         theme,
-        firstTime.toString(),
-        '1st\nTime', // Or 'Completed'? Based on DTO definition
+        '${cycleStats['FIRST_TIME'] ?? 0}',
+        '1st\nTime',
         Icons.play_circle_fill,
-        Colors.green,
+        AppColors.successLight,
       ),
       _buildGridItem(
         theme,
-        firstReview.toString(),
+        '${cycleStats['FIRST_REVIEW'] ?? 0}',
         '1st\nReview',
         Icons.rotate_right,
-        Colors.orange,
+        AppColors.warningLight,
       ),
       _buildGridItem(
         theme,
-        secondReview.toString(),
+        '${cycleStats['SECOND_REVIEW'] ?? 0}',
         '2nd\nReview',
         Icons.rotate_90_degrees_ccw,
-        Colors.purple,
+        AppColors.infoLight,
       ),
       _buildGridItem(
-        // Only one '3rd Review' item now
         theme,
-        thirdReview.toString(),
+        '${cycleStats['THIRD_REVIEW'] ?? 0}',
         '3rd\nReview',
         Icons.change_circle,
-        Colors.teal,
+        AppColors.accentPurple,
       ),
       _buildGridItem(
         theme,
-        moreThanThree.toString(),
+        '${cycleStats['MORE_THAN_THREE_REVIEWS'] ?? 0}',
         '4th+\nReviews',
         Icons.loop,
-        Colors.indigo,
+        AppColors.darkTertiary,
       ),
     ];
-
-    // Add placeholder(s) if needed for alignment on larger screens
-    // Example: Ensure the grid has a multiple of `crossAxisCount` items
-    const largeScreenCrossAxisCount = 4;
-    if (!isSmallScreen && moduleItems.length % largeScreenCrossAxisCount != 0) {
-      final placeholdersNeeded =
-          largeScreenCrossAxisCount -
-          (moduleItems.length % largeScreenCrossAxisCount);
-      for (int i = 0; i < placeholdersNeeded; i++) {
-        moduleItems.add(
-          const SizedBox.shrink(),
-        ); // Use SizedBox.shrink for empty space
-      }
-    }
 
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: isSmallScreen ? 3 : largeScreenCrossAxisCount,
-      childAspectRatio: isSmallScreen ? 0.85 : 1.0,
+      crossAxisCount: isSmallScreen ? 3 : 4,
+      childAspectRatio: 0.95,
       mainAxisSpacing: AppDimens.spaceS,
-      crossAxisSpacing: isSmallScreen ? AppDimens.spaceXS : AppDimens.spaceS,
-      children: moduleItems,
+      crossAxisSpacing: AppDimens.spaceS,
+      children: items,
     );
   }
 
-  /// Builds the grid for the Due Sessions section
   Widget _buildDueStatsGrid(ThemeData theme, bool isSmallScreen) {
-    final dueItems = [
-      _buildGridItem(
-        theme,
-        stats.dueToday.toString(),
-        'Due\nToday',
-        Icons.today,
-        theme.colorScheme.error,
-        additionalInfo: '${stats.wordsDueToday} words',
-      ),
-      _buildGridItem(
-        theme,
-        stats.dueThisWeek.toString(),
-        'Due\nThis Week',
-        Icons.view_week,
-        Colors.orange,
-        additionalInfo: '${stats.wordsDueThisWeek} words',
-      ),
-      _buildGridItem(
-        theme,
-        stats.dueThisMonth.toString(),
-        'Due\nThis Month',
-        Icons.calendar_month,
-        theme.colorScheme.primary,
-        additionalInfo: '${stats.wordsDueThisMonth} words',
-      ),
-      _buildGridItem(
-        theme,
-        stats.completedToday.toString(),
-        'Completed\nToday',
-        Icons.check_circle,
-        Colors.green,
-        additionalInfo: '${stats.wordsCompletedToday} words',
-      ),
-    ];
-
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: 1.0, // Consistent aspect ratio for this grid
+      childAspectRatio: 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
-      children: dueItems,
+      children: [
+        _buildGridItem(
+          theme,
+          '${stats.dueToday}',
+          'Due\nToday',
+          Icons.today,
+          AppColors.warningLight,
+          additionalInfo: '${stats.wordsDueToday} words',
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.dueThisWeek}',
+          'Due\nThis Week',
+          Icons.view_week,
+          AppColors.warningDark,
+          additionalInfo: '${stats.wordsDueThisWeek} words',
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.dueThisMonth}',
+          'Due\nThis Month',
+          Icons.calendar_month,
+          AppColors.lightPrimary,
+          additionalInfo: '${stats.wordsDueThisMonth} words',
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.completedToday}',
+          'Completed\nToday',
+          Icons.check_circle,
+          AppColors.successLight,
+          additionalInfo: '${stats.wordsCompletedToday} words',
+        ),
+      ],
     );
   }
 
-  /// Builds the grid for the Streaks section
   Widget _buildStreakStatsGrid(ThemeData theme, bool isSmallScreen) {
-    final streakItems = [
-      _buildGridItem(
-        theme,
-        stats.streakDays.toString(),
-        'Day\nStreak',
-        Icons.local_fire_department,
-        Colors.deepOrange,
-        showStar: stats.streakDays >= 7,
-      ),
-      _buildGridItem(
-        theme,
-        stats.streakWeeks.toString(),
-        'Week\nStreak',
-        Icons.date_range,
-        Colors.deepPurple,
-        showStar: stats.streakWeeks >= 4,
-      ),
-      _buildGridItem(
-        theme,
-        stats.longestStreakDays.toString(),
-        'Longest\nStreak',
-        Icons.emoji_events,
-        Colors.amber,
-        additionalInfo: 'days',
-      ),
-    ];
-
-    // Add placeholder for alignment on larger screens
-    const largeScreenCrossAxisCount = 4;
-    if (!isSmallScreen) {
-      streakItems.add(const SizedBox.shrink()); // Use SizedBox.shrink
-    }
-
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: isSmallScreen ? 3 : largeScreenCrossAxisCount,
-      childAspectRatio: 1.0, // Consistent aspect ratio
+      crossAxisCount: isSmallScreen ? 3 : 4,
+      childAspectRatio: 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
-      children: streakItems,
+      children: [
+        _buildGridItem(
+          theme,
+          '${stats.streakDays}',
+          'Day\nStreak',
+          Icons.local_fire_department,
+          AppColors.accentRed,
+          showStar: stats.streakDays >= 7,
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.streakWeeks}',
+          'Week\nStreak',
+          Icons.date_range,
+          AppColors.accentPink,
+          showStar: stats.streakWeeks >= 4,
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.longestStreakDays}',
+          'Longest\nStreak',
+          Icons.emoji_events,
+          AppColors.warningLight,
+          additionalInfo: 'days',
+        ),
+        const SizedBox.shrink(),
+      ],
     );
   }
 
-  /// Builds the grid for the Vocabulary section (Renamed from _buildVocabStatsGrid)
   Widget _buildVocabularyStatsGrid(ThemeData theme, bool isSmallScreen) {
     final completionRate = stats.vocabularyCompletionRate.toStringAsFixed(1);
     final weeklyRate = stats.weeklyNewWordsRate.toStringAsFixed(1);
 
-    final vocabItems = [
-      _buildGridItem(
-        theme,
-        stats.totalWords.toString(),
-        'Total\nWords',
-        Icons.library_books,
-        Colors.teal,
-      ),
-      _buildGridItem(
-        theme,
-        stats.learnedWords.toString(),
-        'Learned\nWords',
-        Icons.spellcheck,
-        Colors.green,
-        additionalInfo: '$completionRate%',
-      ),
-      _buildGridItem(
-        theme,
-        stats.pendingWords.toString(),
-        'Pending\nWords',
-        Icons.hourglass_bottom,
-        Colors.amber.shade800,
-      ),
-      _buildGridItem(
-        theme,
-        weeklyRate,
-        'Weekly\nRate',
-        Icons.trending_up,
-        Colors.blue,
-        additionalInfo: 'percent',
-      ),
-    ];
-
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: 1.0, // Consistent aspect ratio
+      childAspectRatio: 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
-      children: vocabItems,
+      children: [
+        _buildGridItem(
+          theme,
+          '${stats.totalWords}',
+          'Total\nWords',
+          Icons.library_books,
+          AppColors.accentGreen,
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.learnedWords}',
+          'Learned\nWords',
+          Icons.spellcheck,
+          AppColors.successLight,
+          additionalInfo: '$completionRate%',
+        ),
+        _buildGridItem(
+          theme,
+          '${stats.pendingWords}',
+          'Pending\nWords',
+          Icons.hourglass_bottom,
+          AppColors.warningDark,
+        ),
+        _buildGridItem(
+          theme,
+          weeklyRate,
+          'Weekly\nRate',
+          Icons.trending_up,
+          AppColors.infoLight,
+          additionalInfo: 'percent',
+        ),
+      ],
     );
   }
 
-  /// Widget builder for a single item within any grid. (No changes needed here)
   Widget _buildGridItem(
     ThemeData theme,
     String value,
@@ -400,8 +355,6 @@ class LearningStatsCard extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: color,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         if (additionalInfo != null)
           Text(
@@ -410,15 +363,11 @@ class LearningStatsCard extends StatelessWidget {
               color: color.withOpacity(AppDimens.opacityHigh),
               fontSize: AppDimens.fontXS,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         Text(
           label,
           style: theme.textTheme.bodySmall,
           textAlign: TextAlign.center,
-          maxLines: 2, // Allow label to wrap to two lines
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

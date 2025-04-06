@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/detailed_learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart';
@@ -7,7 +9,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_insights_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
 
-/// Screen that displays detailed learning statistics
 class LearningStatsScreen extends StatefulWidget {
   const LearningStatsScreen({super.key});
 
@@ -73,7 +74,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
       onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -86,14 +87,14 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
                     StatCategory.modules,
                   ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             LearningInsightsCard(
               insights: viewModel.insights,
               title: 'Personal Insights',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             _buildCategoryCards(context),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
           ],
         ),
       ),
@@ -107,7 +108,10 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingS,
+            vertical: AppDimens.paddingM,
+          ),
           child: Text(
             'Detailed Statistics',
             style: theme.textTheme.headlineSmall,
@@ -115,8 +119,8 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
         ),
         GridView.count(
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: AppDimens.spaceL,
+          mainAxisSpacing: AppDimens.spaceL,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
@@ -124,7 +128,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Modules',
               Icons.auto_stories,
-              Colors.blue,
+              AppColors.infoLight,
               'View detailed module completion statistics',
               () => _navigateToDetailedStats(
                 context,
@@ -136,7 +140,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Due Sessions',
               Icons.calendar_today,
-              Colors.red,
+              AppColors.warningLight,
               'View upcoming and completed sessions',
               () => _navigateToDetailedStats(
                 context,
@@ -148,7 +152,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Streaks',
               Icons.local_fire_department,
-              Colors.orange,
+              AppColors.darkPrimary,
               'View learning streak information',
               () => _navigateToDetailedStats(
                 context,
@@ -160,7 +164,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Vocabulary',
               Icons.menu_book,
-              Colors.teal,
+              AppColors.successLight,
               'View vocabulary learning progress',
               () => _navigateToDetailedStats(
                 context,
@@ -185,25 +189,28 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
     final theme = Theme.of(context);
 
     return Card(
-      elevation: 2,
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(height: 8),
+              Icon(icon, color: color, size: AppDimens.iconXL),
+              const SizedBox(height: AppDimens.spaceS),
               Text(
                 title,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppDimens.spaceXS),
               Text(
                 description,
                 style: theme.textTheme.bodySmall,

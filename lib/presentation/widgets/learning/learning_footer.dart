@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class LearningFooter extends StatelessWidget {
-  // Properties
   final int totalModules;
   final int completedModules;
   final VoidCallback? onExportData;
@@ -9,7 +9,6 @@ class LearningFooter extends StatelessWidget {
   final VoidCallback? onSettingsPressed;
   final VoidCallback? onFeedbackPressed;
 
-  // Constructor
   const LearningFooter({
     super.key,
     required this.totalModules,
@@ -20,12 +19,11 @@ class LearningFooter extends StatelessWidget {
     this.onFeedbackPressed,
   });
 
-  // Build method
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
+    final isSmallScreen = size.width < AppDimens.breakpointS;
     final completionPercentage = _calculateCompletionPercentage();
     final progressSemanticLabel = _buildProgressSemanticLabel(
       completionPercentage,
@@ -33,13 +31,16 @@ class LearningFooter extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppDimens.paddingM,
+        horizontal: AppDimens.paddingL,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(AppDimens.opacityMedium),
+            blurRadius: AppDimens.shadowRadiusM,
             offset: const Offset(0, -2),
           ),
         ],
@@ -59,7 +60,6 @@ class LearningFooter extends StatelessWidget {
     );
   }
 
-  // Helper methods
   String _calculateCompletionPercentage() {
     return totalModules > 0
         ? (completedModules / totalModules * 100).toStringAsFixed(1)
@@ -70,7 +70,6 @@ class LearningFooter extends StatelessWidget {
     return 'Completed $completedModules of $totalModules modules, $completionPercentage percent complete';
   }
 
-  // Layout builders
   Widget _buildSmallScreenLayout(
     ThemeData theme,
     String completionPercentage,
@@ -85,14 +84,13 @@ class LearningFooter extends StatelessWidget {
           completionPercentage,
           progressSemanticLabel,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         SizedBox(
           width: double.infinity,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
               children: _buildActionButtons(theme),
             ),
           ),
@@ -134,7 +132,7 @@ class LearningFooter extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text('Learning Progress', style: theme.textTheme.titleSmall),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppDimens.spaceXS),
         Semantics(
           label: progressSemanticLabel,
           child: ExcludeSemantics(
@@ -166,7 +164,6 @@ class LearningFooter extends StatelessWidget {
     );
   }
 
-  // Action buttons builder
   List<Widget> _buildActionButtons(ThemeData theme) {
     return [
       if (onExportData != null)
@@ -174,40 +171,40 @@ class LearningFooter extends StatelessWidget {
           message: 'Export learning data',
           child: TextButton.icon(
             onPressed: onExportData,
-            icon: const Icon(Icons.download),
+            icon: const Icon(Icons.download, size: AppDimens.iconS),
             label: const Text('Export'),
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ),
       if (onSettingsPressed != null) ...[
-        const SizedBox(width: 8),
+        const SizedBox(width: AppDimens.spaceS),
         Tooltip(
           message: 'Settings',
           child: IconButton(
             onPressed: onSettingsPressed,
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined, size: AppDimens.iconM),
             visualDensity: VisualDensity.compact,
           ),
         ),
       ],
       if (onFeedbackPressed != null) ...[
-        const SizedBox(width: 8),
+        const SizedBox(width: AppDimens.spaceS),
         Tooltip(
           message: 'Send feedback',
           child: IconButton(
             onPressed: onFeedbackPressed,
-            icon: const Icon(Icons.feedback_outlined),
+            icon: const Icon(Icons.feedback_outlined, size: AppDimens.iconM),
             visualDensity: VisualDensity.compact,
           ),
         ),
       ],
       if (onHelpPressed != null) ...[
-        const SizedBox(width: 8),
+        const SizedBox(width: AppDimens.spaceS),
         Tooltip(
           message: 'Help',
           child: IconButton(
             onPressed: onHelpPressed,
-            icon: const Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline, size: AppDimens.iconM),
             visualDensity: VisualDensity.compact,
           ),
         ),

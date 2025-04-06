@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
@@ -8,7 +9,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-/// Profile screen displaying user information and settings
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -17,7 +17,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // State variables and controllers
   final TextEditingController _displayNameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
@@ -34,7 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  // Data operations
   Future<void> _loadUserData() async {
     final userViewModel = context.read<UserViewModel>();
     await userViewModel.loadCurrentUser();
@@ -90,7 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Build methods
   @override
   Widget build(BuildContext context) {
     final authViewModel = context.watch<AuthViewModel>();
@@ -118,11 +115,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     final theme = Theme.of(context);
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
       children: [
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         _buildAvatar(theme, authViewModel.currentUser),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         if (userViewModel.errorMessage != null)
           _buildErrorDisplay(userViewModel),
         _isEditing
@@ -131,11 +128,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               theme,
               userViewModel.currentUser ?? authViewModel.currentUser!,
             ),
-        const SizedBox(height: 32),
+        const SizedBox(height: AppDimens.spaceXXL),
         _buildSettingsSection(theme),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXL),
         _buildLogoutButton(),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXL),
       ],
     );
   }
@@ -143,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildAvatar(ThemeData theme, dynamic user) {
     return Center(
       child: CircleAvatar(
-        radius: 50,
+        radius: AppDimens.avatarSizeL,
         backgroundColor: theme.colorScheme.primary,
         child: Text(
           _getInitials(user.displayName ?? user.email),
@@ -169,23 +166,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileInfo(ThemeData theme, dynamic currentUser) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildProfileHeader(theme),
             const Divider(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.spaceM),
             _buildInfoRow(
               theme,
               'Display Name',
               currentUser.displayName ?? 'Not set',
               Icons.person,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             _buildInfoRow(theme, 'Email', currentUser.email, Icons.email),
             if (currentUser.roles != null && currentUser.roles!.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppDimens.spaceL),
               _buildInfoRow(
                 theme,
                 'Roles',
@@ -216,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildEditProfileForm() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Form(
           key: _formKey,
           child: Column(
@@ -224,14 +221,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               _buildEditHeader(),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppDimens.spaceL),
               AppTextField(
                 label: 'Display Name',
                 hint: 'Enter your display name',
                 controller: _displayNameController,
                 prefixIcon: Icons.person,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppDimens.spaceXL),
               _buildEditActions(),
             ],
           ),
@@ -263,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           type: AppButtonType.text,
           onPressed: _toggleEditing,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppDimens.spaceM),
         AppButton(
           text: 'Save Changes',
           type: AppButtonType.primary,
@@ -280,10 +277,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Settings', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Row(
               children: [
                 Icon(
@@ -292,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : Icons.light_mode,
                   color: theme.colorScheme.primary,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppDimens.spaceL),
                 Expanded(
                   child: Text('Dark Mode', style: theme.textTheme.titleMedium),
                 ),
@@ -327,8 +324,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
-        const SizedBox(width: 16),
+        Icon(icon, size: AppDimens.iconM, color: theme.colorScheme.primary),
+        const SizedBox(width: AppDimens.spaceL),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
@@ -28,7 +29,10 @@ class ProgressCard extends StatelessWidget {
         vertical: AppDimens.spaceXS,
         horizontal: AppDimens.spaceXXS,
       ),
-      color: isDue ? theme.colorScheme.primaryContainer : null,
+      color:
+          isDue
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.surface,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -56,17 +60,22 @@ class ProgressCard extends StatelessWidget {
         _buildProgressIndicator(theme),
         const SizedBox(width: AppDimens.spaceL),
         _buildProgressDetails(theme),
-        if (isDue) _buildDueIndicator(),
+        if (isDue) _buildDueIndicator(theme),
       ],
     );
   }
 
   /// Builds the circular progress indicator
   Widget _buildProgressIndicator(ThemeData theme) {
-    return CircularProgressIndicator(
-      value: progress.percentComplete / 100,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      strokeWidth: AppDimens.lineProgressHeight,
+    return SizedBox(
+      width: AppDimens.circularProgressSizeL,
+      height: AppDimens.circularProgressSizeL,
+      child: CircularProgressIndicator(
+        value: progress.percentComplete / 100,
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        strokeWidth: AppDimens.lineProgressHeight,
+        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+      ),
     );
   }
 
@@ -111,8 +120,11 @@ class ProgressCard extends StatelessWidget {
   }
 
   /// Builds the due indicator icon
-  Widget _buildDueIndicator() {
-    return const Icon(Icons.notifications_active, color: Colors.amber);
+  Widget _buildDueIndicator(ThemeData theme) {
+    return const Icon(
+      Icons.notifications_active,
+      color: AppColors.warningLight,
+    );
   }
 
   /// Builds the repetition count badge

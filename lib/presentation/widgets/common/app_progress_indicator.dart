@@ -1,4 +1,3 @@
-// lib/presentation/widgets/app_progress_indicator.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
@@ -9,6 +8,7 @@ class AppProgressIndicator extends StatelessWidget {
   final double? value;
   final double size;
   final double strokeWidth;
+  final Color? color; // ✅ NEW
   final Color? backgroundColor;
   final Color? foregroundColor;
   final Widget? child;
@@ -21,6 +21,7 @@ class AppProgressIndicator extends StatelessWidget {
     this.value,
     this.size = AppDimens.circularProgressSizeL,
     this.strokeWidth = AppDimens.lineProgressHeight,
+    this.color, // ✅ NEW
     this.backgroundColor,
     this.foregroundColor,
     this.child,
@@ -33,7 +34,8 @@ class AppProgressIndicator extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final effectiveForegroundColor = foregroundColor ?? colorScheme.primary;
+    final effectiveForegroundColor =
+        foregroundColor ?? color ?? colorScheme.primary;
     final effectiveBackgroundColor =
         backgroundColor ??
         (theme.brightness == Brightness.dark
@@ -62,19 +64,19 @@ class AppProgressIndicator extends StatelessWidget {
             strokeWidth: strokeWidth,
           ),
         );
+        if (child != null) {
+          progressIndicator = Stack(
+            alignment: Alignment.center,
+            children: [progressIndicator, child!],
+          );
+        }
         break;
-    }
-
-    if (child != null && type == ProgressType.circular) {
-      progressIndicator = Stack(
-        alignment: Alignment.center,
-        children: [progressIndicator, child!],
-      );
     }
 
     if (label != null) {
       return Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           progressIndicator,
           const SizedBox(height: AppDimens.spaceS),
@@ -83,10 +85,12 @@ class AppProgressIndicator extends StatelessWidget {
             style:
                 labelStyle ??
                 theme.textTheme.bodyMedium!.copyWith(
-                  color: colorScheme.onSurface.withOpacity(
-                    AppDimens.opacityHigh,
-                  ),
+                  color:
+                      color ??
+                      foregroundColor ??
+                      colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
                 ),
+            textAlign: TextAlign.center,
           ),
         ],
       );

@@ -1,5 +1,5 @@
-// lib/presentation/widgets/common/app_button.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 enum AppButtonType {
@@ -37,6 +37,7 @@ class AppButton extends StatelessWidget {
   final Color? textColor;
   final Color? iconColor;
   final Color? borderColor;
+  final Color? loadingColor;
   final double? elevation;
   final BorderRadius? customBorderRadius;
 
@@ -57,6 +58,7 @@ class AppButton extends StatelessWidget {
     this.textColor,
     this.iconColor,
     this.borderColor,
+    this.loadingColor,
     this.elevation,
     this.customBorderRadius,
   });
@@ -64,7 +66,6 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     // Get size dimensions
     EdgeInsets padding;
@@ -149,52 +150,52 @@ class AppButton extends StatelessWidget {
 
     switch (type) {
       case AppButtonType.primary:
-        defaultBackgroundColor = colorScheme.primary;
-        defaultTextColor = colorScheme.onPrimary;
+        defaultBackgroundColor = AppColors.lightPrimary;
+        defaultTextColor = AppColors.lightOnPrimary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.secondary:
-        defaultBackgroundColor = colorScheme.secondary;
-        defaultTextColor = colorScheme.onSecondary;
+        defaultBackgroundColor = AppColors.lightSecondary;
+        defaultTextColor = AppColors.lightOnSecondary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.outline:
         defaultBackgroundColor = Colors.transparent;
-        defaultTextColor = colorScheme.primary;
-        defaultBorderColor = colorScheme.primary;
+        defaultTextColor = AppColors.lightPrimary;
+        defaultBorderColor = AppColors.lightOutline;
         defaultElevation = 0;
         break;
       case AppButtonType.text:
         defaultBackgroundColor = Colors.transparent;
-        defaultTextColor = colorScheme.primary;
+        defaultTextColor = AppColors.lightPrimary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
         break;
       case AppButtonType.ghost:
-        defaultBackgroundColor = colorScheme.primary.withOpacity(
+        defaultBackgroundColor = AppColors.lightPrimary.withOpacity(
           AppDimens.opacityLight,
         );
-        defaultTextColor = colorScheme.primary;
+        defaultTextColor = AppColors.lightPrimary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
         break;
       case AppButtonType.error:
-        defaultBackgroundColor = colorScheme.error;
-        defaultTextColor = colorScheme.onError;
+        defaultBackgroundColor = AppColors.lightError;
+        defaultTextColor = AppColors.lightOnError;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.success:
-        defaultBackgroundColor = Colors.green;
-        defaultTextColor = Colors.white;
+        defaultBackgroundColor = AppColors.successLight;
+        defaultTextColor = AppColors.onSuccessLight;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.warning:
-        defaultBackgroundColor = Colors.amber;
-        defaultTextColor = Colors.black87;
+        defaultBackgroundColor = AppColors.warningLight;
+        defaultTextColor = AppColors.onWarningLight;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
@@ -205,6 +206,7 @@ class AppButton extends StatelessWidget {
     final effectiveTextColor = textColor ?? defaultTextColor;
     final effectiveIconColor = iconColor ?? effectiveTextColor;
     final effectiveBorderColor = borderColor ?? defaultBorderColor;
+    final effectiveLoadingColor = loadingColor ?? effectiveTextColor;
     final effectiveElevation = elevation ?? defaultElevation;
     final effectiveBorderRadius =
         customBorderRadius ?? BorderRadius.circular(borderRadius);
@@ -231,18 +233,15 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             elevation: effectiveElevation,
-            disabledBackgroundColor: theme.disabledColor.withOpacity(
-              AppDimens.opacityMedium,
-            ),
-            disabledForegroundColor: theme.disabledColor.withOpacity(
-              AppDimens.opacityDisabled,
-            ),
+            disabledBackgroundColor: AppColors.textDisabledLight,
+            disabledForegroundColor: AppColors.textDisabledLight,
             shadowColor:
                 type == AppButtonType.ghost ? Colors.transparent : null,
           ),
           child: _buildContent(
             effectiveTextColor,
             effectiveIconColor,
+            effectiveLoadingColor,
             iconSize,
             textStyle,
           ),
@@ -259,13 +258,12 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: theme.disabledColor.withOpacity(
-              AppDimens.opacityDisabled,
-            ),
+            disabledForegroundColor: AppColors.textDisabledLight,
           ),
           child: _buildContent(
             effectiveTextColor,
             effectiveIconColor,
+            effectiveLoadingColor,
             iconSize,
             textStyle,
           ),
@@ -281,13 +279,12 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: theme.disabledColor.withOpacity(
-              AppDimens.opacityDisabled,
-            ),
+            disabledForegroundColor: AppColors.textDisabledLight,
           ),
           child: _buildContent(
             effectiveTextColor,
             effectiveIconColor,
+            effectiveLoadingColor,
             iconSize,
             textStyle,
           ),
@@ -307,6 +304,7 @@ class AppButton extends StatelessWidget {
   Widget _buildContent(
     Color textColor,
     Color iconColor,
+    Color loadingColor,
     double iconSize,
     TextStyle baseTextStyle,
   ) {
@@ -325,7 +323,7 @@ class AppButton extends StatelessWidget {
               size == AppButtonSize.tiny || size == AppButtonSize.small
                   ? AppDimens.lineProgressHeight / 2
                   : AppDimens.lineProgressHeight * 0.625,
-          valueColor: AlwaysStoppedAnimation<Color>(textColor),
+          valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
         ),
       );
     }

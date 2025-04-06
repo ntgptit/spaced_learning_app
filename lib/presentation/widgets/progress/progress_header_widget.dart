@@ -38,6 +38,7 @@ class ProgressHeaderWidget extends StatelessWidget {
     final totalCount = progress.repetitions.length;
 
     return Card(
+      color: theme.colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -90,6 +91,7 @@ class ProgressHeaderWidget extends StatelessWidget {
             value: progress.percentComplete / 100,
             minHeight: AppDimens.lineProgressHeightL,
             backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
           ),
         ),
       ],
@@ -116,7 +118,7 @@ class ProgressHeaderWidget extends StatelessWidget {
             value: total > 0 ? completed / total : 0,
             minHeight: AppDimens.lineProgressHeightL,
             backgroundColor: theme.colorScheme.surfaceContainerHighest,
-            color: theme.colorScheme.secondary,
+            valueColor: AlwaysStoppedAnimation(theme.colorScheme.secondary),
           ),
         ),
         const SizedBox(height: AppDimens.spaceXS),

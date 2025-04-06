@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
@@ -146,14 +147,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           AppConstants.appName,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: AppColors.lightPrimary,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
           'Create your account',
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimaryLight,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 32),
@@ -169,6 +172,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               message: authViewModel.errorMessage!,
               compact: true,
               onRetry: authViewModel.clearError,
+              backgroundColor: AppColors.lightErrorContainer,
+              textColor: AppColors.lightOnErrorContainer,
             ),
             const SizedBox(height: 16),
           ],
@@ -188,6 +193,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           prefixIcon: Icons.person,
           onChanged: (_) => _firstNameError = null,
           onEditingComplete: _validateFirstName,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
         const SizedBox(height: 16),
         AppTextField(
@@ -199,6 +208,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           prefixIcon: Icons.person,
           onChanged: (_) => _lastNameError = null,
           onEditingComplete: _validateLastName,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
       ],
     );
@@ -216,6 +229,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           prefixIcon: Icons.account_circle,
           onChanged: (_) => _usernameError = null,
           onEditingComplete: _validateUsername,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
         const SizedBox(height: 16),
         AppTextField(
@@ -227,6 +244,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           prefixIcon: Icons.email,
           onChanged: (_) => _emailError = null,
           onEditingComplete: _validateEmail,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
         const SizedBox(height: 16),
         AppPasswordField(
@@ -235,7 +256,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           controller: _passwordController,
           textInputAction: TextInputAction.next,
           errorText: _passwordError,
-          prefixIcon: const Icon(Icons.lock),
+          prefixIcon: const Icon(Icons.lock, color: AppColors.iconPrimaryLight),
           onChanged: (_) {
             _passwordError = null;
             if (_confirmPasswordController.text.isNotEmpty) {
@@ -243,6 +264,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             }
           },
           onEditingComplete: _validatePassword,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
         const SizedBox(height: 16),
         AppPasswordField(
@@ -250,9 +275,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           hint: 'Confirm your password',
           controller: _confirmPasswordController,
           errorText: _confirmPasswordError,
-          prefixIcon: const Icon(Icons.lock_outline),
+          prefixIcon: const Icon(
+            Icons.lock_outline,
+            color: AppColors.iconPrimaryLight,
+          ),
           onChanged: (_) => _confirmPasswordError = null,
           onEditingComplete: _validateConfirmPassword,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
       ],
     );
@@ -267,6 +299,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           onPressed: _register,
           isLoading: authViewModel.isLoading,
           isFullWidth: true,
+          backgroundColor: AppColors.lightPrimary,
+          textColor: AppColors.lightOnPrimary,
+          loadingColor: AppColors.lightOnPrimary,
         ),
         const SizedBox(height: 16),
         Row(
@@ -274,11 +309,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             Text(
               'Already have an account? ',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondaryLight,
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Login'),
+              child: const Text(
+                'Login',
+                style: TextStyle(color: AppColors.accentPink),
+              ),
             ),
           ],
         ),
@@ -292,7 +332,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authViewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(
+        title: const Text('Register'),
+        backgroundColor: AppColors.lightBackground,
+      ),
+      backgroundColor: AppColors.lightBackground,
       body: LoadingOverlay(
         isLoading: authViewModel.isLoading,
         child: SafeArea(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Widget to display learning insights on the home screen
@@ -36,7 +37,6 @@ class LearningInsightsWidget extends StatelessWidget {
     );
   }
 
-  // UI Components
   Widget _buildHeader(ThemeData theme) {
     return Row(
       children: [
@@ -58,25 +58,25 @@ class LearningInsightsWidget extends StatelessWidget {
           context,
           'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
           Icons.trending_up,
-          Colors.blue,
+          AppColors.accentPurple,
         ),
         _buildInsightItem(
           context,
           'Your current streak is $streakDays days - keep going!',
           Icons.local_fire_department,
-          Colors.orange,
+          AppColors.warningLight,
         ),
         _buildInsightItem(
           context,
           'You have $pendingWords words pending to learn',
           Icons.menu_book,
-          Colors.teal,
+          AppColors.accentGreen,
         ),
         _buildInsightItem(
           context,
           'Complete today\'s $dueToday sessions to maintain your streak',
           Icons.today,
-          Colors.red,
+          AppColors.lightPrimary,
         ),
       ],
     );

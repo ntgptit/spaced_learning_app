@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -9,7 +11,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
-/// Screen displaying progress items due for review
 class DueProgressScreen extends StatefulWidget {
   const DueProgressScreen({super.key});
 
@@ -18,7 +19,6 @@ class DueProgressScreen extends StatefulWidget {
 }
 
 class _DueProgressScreenState extends State<DueProgressScreen> {
-  // State variables
   DateTime? _selectedDate;
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
@@ -28,7 +28,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     _loadData();
   }
 
-  // Data operations
   Future<void> _loadData() async {
     final authViewModel = context.read<AuthViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
@@ -58,7 +57,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     _loadData();
   }
 
-  // UI utilities
   String _formatCycleStudied(CycleStudied cycle) {
     return switch (cycle) {
       CycleStudied.firstTime => 'Chu kỳ đầu tiên',
@@ -89,7 +87,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     return nextDate.compareTo(targetDate) <= 0;
   }
 
-  // Build methods
   @override
   Widget build(BuildContext context) {
     final authViewModel = context.watch<AuthViewModel>();
@@ -108,7 +105,7 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   Widget _buildDateFilter() {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
       child: Row(
         children: [
           Expanded(
@@ -125,7 +122,7 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
             onPressed: _selectDate,
           ),
           if (_selectedDate != null) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDimens.spaceM),
             IconButton(
               icon: const Icon(Icons.clear),
               onPressed: _clearDateFilter,
@@ -155,7 +152,10 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     return RefreshIndicator(
       onRefresh: _loadData,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingM,
+          vertical: AppDimens.paddingS,
+        ),
         itemCount: progressViewModel.progressRecords.length,
         itemBuilder:
             (context, index) =>
@@ -169,8 +169,12 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle_outline, size: 64, color: Colors.green),
-          const SizedBox(height: 16),
+          const Icon(
+            Icons.check_circle_outline,
+            size: AppDimens.iconXXL,
+            color: AppColors.successLight,
+          ),
+          const SizedBox(height: AppDimens.spaceL),
           Text(
             _selectedDate == null
                 ? 'No modules due for review today!'
@@ -178,7 +182,7 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimens.spaceM),
           const Text(
             'Great job keeping up with your studies!',
             textAlign: TextAlign.center,

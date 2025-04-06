@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 
 /// Welcome section for the home screen displaying user information
@@ -15,15 +16,14 @@ class WelcomeSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _buildGreeting(theme),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppDimens.spaceXS), // Changed from 4
         _buildUserName(theme),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS), // Changed from 8
         _buildMotivationalText(theme),
       ],
     );
   }
 
-  // UI Components
   Widget _buildGreeting(ThemeData theme) {
     return Text(
       'Welcome back,',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 
@@ -25,7 +26,7 @@ class RepetitionCard extends StatelessWidget {
     final dateFormat = DateFormat('dd MMM yyyy');
 
     final orderText = _formatRepetitionOrder(repetition.repetitionOrder);
-    final statusColor = _getStatusColor(repetition.status, theme);
+    final statusColor = _getStatusColor(repetition.status);
     final dateText =
         repetition.reviewDate != null
             ? dateFormat.format(repetition.reviewDate!)
@@ -37,8 +38,8 @@ class RepetitionCard extends StatelessWidget {
       elevation: isHistory ? AppDimens.elevationXS : AppDimens.elevationS,
       color:
           isHistory
-              ? theme.cardColor.withOpacity(AppDimens.opacityVeryHigh)
-              : theme.cardColor,
+              ? theme.colorScheme.surface.withOpacity(AppDimens.opacityVeryHigh)
+              : theme.colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -142,18 +143,23 @@ class RepetitionCard extends StatelessWidget {
             _buildActionButton(
               'Reschedule',
               Icons.calendar_month,
-              Colors.blue,
+              AppColors.primaryBlue,
               onReschedule!,
             ),
           const SizedBox(width: AppDimens.spaceS),
           if (onSkip != null)
-            _buildActionButton('Skip', Icons.skip_next, Colors.orange, onSkip!),
+            _buildActionButton(
+              'Skip',
+              Icons.skip_next,
+              AppColors.warningLight,
+              onSkip!,
+            ),
           const SizedBox(width: AppDimens.spaceS),
           if (onMarkCompleted != null)
             _buildActionButton(
               'Complete',
               Icons.check_circle,
-              Colors.green,
+              AppColors.successLight,
               onMarkCompleted!,
               showScoreIndicator: true,
             ),
@@ -237,14 +243,14 @@ class RepetitionCard extends StatelessWidget {
     }
   }
 
-  Color _getStatusColor(RepetitionStatus status, ThemeData theme) {
+  Color _getStatusColor(RepetitionStatus status) {
     switch (status) {
       case RepetitionStatus.notStarted:
-        return theme.colorScheme.primary;
+        return AppColors.primaryBlue;
       case RepetitionStatus.completed:
-        return Colors.green;
+        return AppColors.successLight;
       case RepetitionStatus.skipped:
-        return Colors.orange;
+        return AppColors.warningLight;
     }
   }
 
@@ -262,15 +268,15 @@ class RepetitionCard extends StatelessWidget {
   }
 
   Color _getTimeIndicatorColor(DateTime? date, ThemeData theme) {
-    if (date == null) return Colors.grey;
+    if (date == null) return theme.colorScheme.outline;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(date.year, date.month, date.day);
     final difference = target.difference(today).inDays;
 
-    if (difference < 0) return theme.colorScheme.error;
-    if (difference == 0) return Colors.green;
-    if (difference <= 3) return Colors.orange;
-    return theme.colorScheme.primary;
+    if (difference < 0) return AppColors.errorDark;
+    if (difference == 0) return AppColors.successDark;
+    if (difference <= 3) return AppColors.warningLight;
+    return AppColors.primaryBlueDark;
   }
 }

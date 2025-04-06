@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
@@ -8,6 +9,8 @@ class ErrorDisplay extends StatelessWidget {
   final VoidCallback? onRetry;
   final IconData? icon;
   final bool compact;
+  final Color? backgroundColor;
+  final Color? textColor;
 
   const ErrorDisplay({
     super.key,
@@ -15,6 +18,8 @@ class ErrorDisplay extends StatelessWidget {
     this.onRetry,
     this.icon,
     this.compact = false,
+    this.backgroundColor,
+    this.textColor,
   });
 
   @override
@@ -26,6 +31,7 @@ class ErrorDisplay extends StatelessWidget {
   /// Builds a compact version of the error display
   Widget _buildCompactView(ThemeData theme) {
     return Card(
+      color: backgroundColor ?? AppColors.lightErrorContainer,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
         vertical: AppDimens.paddingS,
@@ -36,7 +42,14 @@ class ErrorDisplay extends StatelessWidget {
           children: [
             _buildErrorIcon(theme, size: AppDimens.iconM),
             const SizedBox(width: AppDimens.spaceM),
-            Expanded(child: Text(message, style: theme.textTheme.bodyMedium)),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: textColor ?? AppColors.lightOnErrorContainer,
+                ),
+              ),
+            ),
             if (onRetry != null)
               Padding(
                 padding: const EdgeInsets.only(left: AppDimens.paddingM),
@@ -44,6 +57,7 @@ class ErrorDisplay extends StatelessWidget {
                   text: 'Retry',
                   type: AppButtonType.text,
                   onPressed: onRetry,
+                  textColor: AppColors.accentOrange,
                 ),
               ),
           ],
@@ -65,7 +79,9 @@ class ErrorDisplay extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.textPrimaryLight,
+              ),
             ),
             if (onRetry != null)
               Padding(
@@ -75,6 +91,8 @@ class ErrorDisplay extends StatelessWidget {
                   type: AppButtonType.outline,
                   prefixIcon: Icons.refresh,
                   onPressed: onRetry,
+                  textColor: AppColors.accentOrange,
+                  borderColor: AppColors.lightOutline,
                 ),
               ),
           ],
@@ -87,7 +105,7 @@ class ErrorDisplay extends StatelessWidget {
   Widget _buildErrorIcon(ThemeData theme, {required double size}) {
     return Icon(
       icon ?? Icons.error_outline,
-      color: theme.colorScheme.error,
+      color: AppColors.lightError,
       size: size,
     );
   }
@@ -109,12 +127,16 @@ abstract class _SnackbarHelper {
       SnackBar(
         content: Row(
           children: [
-            Icon(icon, color: iconColor ?? Colors.white, size: AppDimens.iconM),
+            Icon(
+              icon,
+              color: iconColor ?? AppColors.white,
+              size: AppDimens.iconM,
+            ),
             const SizedBox(width: AppDimens.spaceM),
             Expanded(
               child: Text(
                 message,
-                style: TextStyle(color: textColor ?? Colors.white),
+                style: TextStyle(color: textColor ?? AppColors.white),
               ),
             ),
           ],
@@ -131,18 +153,17 @@ abstract class _SnackbarHelper {
 /// Snackbar helper for showing error messages
 class ErrorSnackbar {
   static void show(BuildContext context, String message, {Duration? duration}) {
-    final theme = Theme.of(context);
     _SnackbarHelper._showSnackBar(
       context: context,
       message: message,
-      backgroundColor: theme.colorScheme.error,
+      backgroundColor: AppColors.lightError,
       icon: Icons.error_outline,
-      iconColor: theme.colorScheme.onError,
-      textColor: theme.colorScheme.onError,
+      iconColor: AppColors.lightOnError,
+      textColor: AppColors.lightOnError,
       duration: duration ?? const Duration(seconds: 4),
       action: SnackBarAction(
         label: 'Dismiss',
-        textColor: theme.colorScheme.onError,
+        textColor: AppColors.lightOnError,
         onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
       ),
     );
@@ -152,17 +173,13 @@ class ErrorSnackbar {
 /// Snackbar helper for showing success messages
 class SuccessSnackbar {
   static void show(BuildContext context, String message, {Duration? duration}) {
-    final theme = Theme.of(context);
-    final backgroundColor =
-        theme.brightness == Brightness.dark
-            ? Colors.green.shade700
-            : Colors.green.shade600;
-
     _SnackbarHelper._showSnackBar(
       context: context,
       message: message,
-      backgroundColor: backgroundColor,
+      backgroundColor: AppColors.successLight,
       icon: Icons.check_circle,
+      iconColor: AppColors.onSuccessLight,
+      textColor: AppColors.onSuccessLight,
     );
   }
 }

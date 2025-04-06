@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/register_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
@@ -81,14 +82,16 @@ class _LoginScreenState extends State<LoginScreen> {
           AppConstants.appName,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: AppColors.lightPrimary,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
           'Login to your account',
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimaryLight,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 32),
@@ -104,6 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
               message: authViewModel.errorMessage!,
               compact: true,
               onRetry: authViewModel.clearError,
+              backgroundColor: AppColors.lightErrorContainer,
+              textColor: AppColors.lightOnErrorContainer,
             ),
             const SizedBox(height: 16),
           ],
@@ -123,6 +128,10 @@ class _LoginScreenState extends State<LoginScreen> {
           prefixIcon: Icons.person,
           onChanged: (_) => _usernameOrEmailError = null,
           onEditingComplete: _validateUsernameOrEmail,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
         const SizedBox(height: 16),
         AppPasswordField(
@@ -130,9 +139,13 @@ class _LoginScreenState extends State<LoginScreen> {
           hint: 'Enter your password',
           controller: _passwordController,
           errorText: _passwordError,
-          prefixIcon: const Icon(Icons.lock),
+          prefixIcon: const Icon(Icons.lock, color: AppColors.iconPrimaryLight),
           onChanged: (_) => _passwordError = null,
           onEditingComplete: _validatePassword,
+          labelColor: AppColors.textPrimaryLight,
+          hintColor: AppColors.textSecondaryLight,
+          errorColor: AppColors.lightError,
+          borderColor: AppColors.lightOutline,
         ),
       ],
     );
@@ -147,6 +160,9 @@ class _LoginScreenState extends State<LoginScreen> {
           onPressed: _login,
           isLoading: authViewModel.isLoading,
           isFullWidth: true,
+          backgroundColor: AppColors.lightPrimary,
+          textColor: AppColors.lightOnPrimary,
+          loadingColor: AppColors.lightOnPrimary,
         ),
         const SizedBox(height: 16),
         Row(
@@ -154,14 +170,19 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Text(
               "Don't have an account? ",
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondaryLight,
+              ),
             ),
             TextButton(
               onPressed:
                   () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const RegisterScreen()),
                   ),
-              child: const Text('Register'),
+              child: const Text(
+                'Register',
+                style: TextStyle(color: AppColors.accentPink),
+              ),
             ),
           ],
         ),
@@ -175,6 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authViewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
+      backgroundColor: AppColors.lightBackground,
       body: LoadingOverlay(
         isLoading: authViewModel.isLoading,
         child: SafeArea(

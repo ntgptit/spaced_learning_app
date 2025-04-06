@@ -262,6 +262,48 @@ class AppColors {
   static const Color neutralDark = Color(0xFF52443C); // Dark earthy brown
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF3E2723); // Warm dark brown
+
+  // --- Extended Palette (Used in UI Widgets like LearningInsightsCard etc.) ---
+
+  // Primary Blue Group (cool blue tone)
+  static const Color primaryBlue = Color(0xFF2196F3); // Blue 500
+  static const Color primaryBlueDark = Color(0xFF1976D2); // Blue 700
+  static const Color primaryBlueLight = Color(0xFFBBDEFB); // Blue 100
+  static const Color onPrimaryBlue = Color(0xFFFFFFFF); // White
+  static const Color onPrimaryBlueDark = Color(
+    0xFFE3F2FD,
+  ); // Light BG for dark mode
+
+  // Extended Error group
+  static const Color errorDark = Color(0xFFB71C1C); // Red 900
+  static const Color errorBright = Color(0xFFFF5252); // Red A200
+  static const Color errorLight = Color(0xFFFFCDD2); // Red 100
+  static const Color onErrorDark = Color(0xFFFFDADA);
+  static const Color onErrorLight = Color(0xFF450A0A);
+
+  // Surface container elevations
+  static const Color surfaceContainerLowest = Color(0xFFFFFFFF); // White
+  static const Color surfaceContainerLow = Color(0xFFF7F4F3); // Very light warm
+  static const Color surfaceContainer = Color(0xFFECE5E3); // Base container
+  static const Color surfaceContainerHigh = Color(
+    0xFFDED5D2,
+  ); // Slightly darker
+  static const Color surfaceContainerHighest = Color(
+    0xFFEBE3E0,
+  ); // For cards/panels
+
+  // Chip and tag backgrounds
+  static const Color chipBackground = Color(0xFFF1E6E6); // Neutral pinkish base
+  static const Color chipSelectedBackground = Color(0xFFE1BEE7); // Light purple
+  static const Color chipSuccessBackground = Color(0xFFC8E6C9); // Green 100
+  static const Color chipErrorBackground = Color(0xFFFFEBEE); // Red 50
+  static const Color chipWarningBackground = Color(0xFFFFF3E0); // Orange 50
+
+  // Additional UI element helpers
+  static const Color dividerLight = Color(0xFFEEE0DA); // Very soft beige
+  static const Color tooltipBackground = Color(0xFF3E2723); // Dark brown
+  static const Color scrollbarThumb = Color(0xFFBCAAA4); // Muted brown
+  static const Color highlightOverlay = Color(0x33E53935); // Red overlay 20%
 }
 
 extension ColorAlpha on Color {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 /// Custom AppBar for the Home screen with theme toggle and notifications
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -13,30 +14,41 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AppBar(
-      title: const Text('Spaced Learning'),
-      actions: [_buildThemeToggleButton(), _buildNotificationsButton(context)],
+      title: Text('Spaced Learning', style: theme.textTheme.titleLarge),
+      actions: [
+        _buildThemeToggleButton(theme),
+        _buildNotificationsButton(context, theme),
+      ],
     );
   }
 
-  // UI Components
-  Widget _buildThemeToggleButton() {
+  Widget _buildThemeToggleButton(ThemeData theme) {
     return IconButton(
-      icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+      icon: Icon(
+        isDarkMode ? Icons.light_mode : Icons.dark_mode,
+        size: AppDimens.iconL,
+        color: theme.iconTheme.color,
+      ),
       onPressed: onThemeToggle,
       tooltip: 'Toggle theme',
     );
   }
 
-  Widget _buildNotificationsButton(BuildContext context) {
+  Widget _buildNotificationsButton(BuildContext context, ThemeData theme) {
     return IconButton(
-      icon: const Icon(Icons.notifications_outlined),
+      icon: Icon(
+        Icons.notifications_outlined,
+        size: AppDimens.iconL,
+        color: theme.iconTheme.color,
+      ),
       onPressed: () => _showNotificationsSnackBar(context),
       tooltip: 'Notifications',
     );
   }
 
-  // Helper Methods
   void _showNotificationsSnackBar(BuildContext context) {
     ScaffoldMessenger.of(
       context,

@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 /// Tiện ích để định dạng enum CycleStudied thành chuỗi thân thiện với người dùng
@@ -34,19 +37,19 @@ class CycleFormatter {
     }
   }
 
-  /// Trả về màu gợi ý cho từng chu kỳ học tập
-  static int getColorValue(CycleStudied cycle) {
+  /// Trả về màu gợi ý cho từng chu kỳ học tập từ AppColors
+  static Color getColor(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return 0xFF3F51B5; // Indigo
+        return AppColors.infoLight; // Purple (Info)
       case CycleStudied.firstReview:
-        return 0xFF4CAF50; // Green
+        return AppColors.successLight; // Green (Success)
       case CycleStudied.secondReview:
-        return 0xFF009688; // Teal
+        return AppColors.accentGreen; // Accent Green
       case CycleStudied.thirdReview:
-        return 0xFF2196F3; // Blue
+        return AppColors.infoDark; // Lighter Purple
       case CycleStudied.moreThanThreeReviews:
-        return 0xFF673AB7; // Deep Purple
+        return AppColors.darkTertiary; // Purple 200
     }
   }
 }

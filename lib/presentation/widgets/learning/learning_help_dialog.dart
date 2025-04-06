@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
 /// Dialog hiển thị thông tin trợ giúp về màn hình Learning Progress
-/// Phiên bản cải tiến tránh lỗi overflow
 class LearningHelpDialog extends StatelessWidget {
   const LearningHelpDialog({super.key});
 
@@ -12,13 +12,14 @@ class LearningHelpDialog extends StatelessWidget {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
-    // Adjust content based on screen size
-    final bool isSmallScreen = size.width < 600;
+    final bool isSmallScreen = size.width < AppDimens.breakpointS;
     final double maxDialogWidth = isSmallScreen ? size.width * 0.95 : 500.0;
     final double maxDialogHeight = size.height * 0.7;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Container(
         constraints: BoxConstraints(
           maxWidth: maxDialogWidth,
@@ -27,13 +28,12 @@ class LearningHelpDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Dialog header
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppDimens.paddingL),
               child: Row(
                 children: [
                   Icon(Icons.help_outline, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDimens.spaceS),
                   Expanded(
                     child: Text(
                       'Learning Progress Help',
@@ -49,21 +49,20 @@ class LearningHelpDialog extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(height: 1),
-
-            // Dialog content - with scrolling for overflow safety
+            const Divider(height: AppDimens.dividerThickness),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(AppDimens.paddingL),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'This screen shows your learning progress across all modules.',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-
+                    const SizedBox(height: AppDimens.spaceL),
                     _buildHelpSection(context, 'Features', [
                       '• Use the Book filter to view modules from a specific book',
                       '• Use the Date filter to see modules due on a specific date',
@@ -72,16 +71,12 @@ class LearningHelpDialog extends StatelessWidget {
                       '• Due dates highlighted in red are approaching soon',
                       '• Export your data using the Export button in the footer',
                     ]),
-
-                    const SizedBox(height: 16),
-
+                    const SizedBox(height: AppDimens.spaceL),
                     _buildHelpSection(context, 'Learning Cycles', [
                       for (final cycle in CycleStudied.values)
                         '• ${CycleFormatter.format(cycle)}: ${CycleFormatter.getDescription(cycle)}',
                     ]),
-
-                    const SizedBox(height: 16),
-
+                    const SizedBox(height: AppDimens.spaceL),
                     _buildHelpSection(context, 'Tips', [
                       '• Review your learning material according to the spaced repetition schedule',
                       '• Focus on modules that are due soon',
@@ -92,11 +87,9 @@ class LearningHelpDialog extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Dialog footer
-            const Divider(height: 1),
+            const Divider(height: AppDimens.dividerThickness),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(AppDimens.paddingM),
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Close'),
@@ -108,7 +101,6 @@ class LearningHelpDialog extends StatelessWidget {
     );
   }
 
-  /// Widget hiển thị một phần trong dialog trợ giúp với mức độ nén tùy chỉnh
   Widget _buildHelpSection(
     BuildContext context,
     String title,
@@ -116,7 +108,7 @@ class LearningHelpDialog extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    final isCompact = size.width < 360; // Extra compact for very small screens
+    final isCompact = size.width < AppDimens.breakpointXS;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,12 +120,12 @@ class LearningHelpDialog extends StatelessWidget {
             color: theme.colorScheme.primary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceXS),
         ...items.map(
           (item) => Padding(
             padding: EdgeInsets.only(
-              bottom: isCompact ? 2 : 4,
-              left: isCompact ? 0 : 4,
+              bottom: isCompact ? AppDimens.spaceXXS : AppDimens.spaceXS,
+              left: isCompact ? 0 : AppDimens.paddingXS,
             ),
             child: Text(
               item,

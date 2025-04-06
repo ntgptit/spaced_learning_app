@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Screen providing information about the spaced repetition learning method
 class SpacedRepetitionInfoScreen extends StatelessWidget {
   const SpacedRepetitionInfoScreen({super.key});
 
@@ -11,7 +11,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Spaced Repetition Method')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         children: [
           _buildSectionHeader(
             theme,
@@ -59,7 +59,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
                   ? theme.textTheme.headlineSmall
                   : theme.textTheme.titleLarge,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
       ],
     );
   }
@@ -69,9 +69,9 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         Text(content, style: theme.textTheme.bodyMedium),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXXL),
       ],
     );
   }
@@ -81,7 +81,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Study Cycles', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         _buildCycleItem(
           theme,
           'First Cycle',
@@ -107,19 +107,23 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
           'More than 3 Cycles',
           'You’ve mastered this module! Further reviews are just for retention.',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDimens.spaceXXL),
       ],
     );
   }
 
   Widget _buildCycleItem(ThemeData theme, String title, String description) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.circle, size: 12, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.circle,
+            size: AppDimens.iconXS,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,12 +143,12 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Calculation Formula', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppDimens.paddingL),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: const Text(
             'The interval between repetitions is calculated using the formula:\n\n'

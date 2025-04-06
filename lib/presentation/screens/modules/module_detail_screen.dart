@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
@@ -11,7 +13,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
-/// Screen for detailed module information
 class ModuleDetailScreen extends StatefulWidget {
   final String moduleId;
 
@@ -28,7 +29,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     _loadData();
   }
 
-  /// Loads module details and user progress
   Future<void> _loadData() async {
     final moduleViewModel = context.read<ModuleViewModel>();
     final authViewModel = context.read<AuthViewModel>();
@@ -43,7 +43,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     }
   }
 
-  /// Handles the start learning action
   Future<void> _startLearning() async {
     final authViewModel = context.read<AuthViewModel>();
     final moduleViewModel = context.read<ModuleViewModel>();
@@ -75,12 +74,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     }
   }
 
-  /// Checks if the user is authenticated
   bool _isAuthenticated(AuthViewModel authViewModel) {
     return authViewModel.isAuthenticated && authViewModel.currentUser != null;
   }
 
-  /// Shows a login required snackbar
   void _showLoginSnackBar() {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +86,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     }
   }
 
-  /// Creates a new progress record
   Future<ProgressDetail?> _createNewProgress(
     ProgressViewModel progressViewModel,
     AuthViewModel authViewModel,
@@ -103,7 +99,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     );
   }
 
-  /// Navigates to the progress detail screen
   void _navigateToProgress(String progressId) {
     if (mounted) {
       Navigator.push(
@@ -147,7 +142,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 }
 
-/// Builds the body of the screen based on state
 class _BodyBuilder extends StatelessWidget {
   final ThemeData theme;
   final ModuleDetail? module;
@@ -172,7 +166,6 @@ class _BodyBuilder extends StatelessWidget {
     return _buildContent(context);
   }
 
-  /// Determines the appropriate content to display based on state
   Widget _buildContent(BuildContext context) {
     if (isLoading) {
       return const Center(child: AppLoadingIndicator());
@@ -180,10 +173,7 @@ class _BodyBuilder extends StatelessWidget {
 
     if (errorMessage != null) {
       return Center(
-        child: ErrorDisplay(
-          message: errorMessage!, // Safe due to prior null check
-          onRetry: onRefresh,
-        ),
+        child: ErrorDisplay(message: errorMessage!, onRetry: onRefresh),
       );
     }
 
@@ -191,18 +181,17 @@ class _BodyBuilder extends StatelessWidget {
       return const Center(child: Text('Module not found'));
     }
 
-    return _buildModuleView(context, module!); // Safe due to prior null check
+    return _buildModuleView(context, module!);
   }
 
-  /// Builds the main module view with refresh capability
   Widget _buildModuleView(BuildContext context, ModuleDetail module) {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         children: [
           _ModuleHeader(theme: theme, module: module),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppDimens.spaceXXL),
           if (userProgress != null) ...[
             _ProgressSection(
               theme: theme,
@@ -210,17 +199,16 @@ class _BodyBuilder extends StatelessWidget {
               moduleTitle: module.title,
               onTap: onProgressTap,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimens.spaceXXL),
           ],
           _ContentSection(theme: theme, module: module),
-          const SizedBox(height: 80), // Space for FAB
+          const SizedBox(height: 80),
         ],
       ),
     );
   }
 }
 
-/// Displays the module header
 class _ModuleHeader extends StatelessWidget {
   final ThemeData theme;
   final ModuleDetail module;
@@ -233,11 +221,11 @@ class _ModuleHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(module.title, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceM),
         Row(
           children: [
             _buildModuleTag(),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: Text(
                 'Book: ${module.bookName ?? "Unknown"}',
@@ -248,7 +236,7 @@ class _ModuleHeader extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         _buildStatsCard(),
       ],
     );
@@ -256,10 +244,13 @@ class _ModuleHeader extends StatelessWidget {
 
   Widget _buildModuleTag() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingS,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXL),
       ),
       child: Text(
         'Module ${module.moduleNo}',
@@ -274,7 +265,7 @@ class _ModuleHeader extends StatelessWidget {
   Widget _buildStatsCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -308,7 +299,7 @@ class _ModuleHeader extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return Container(height: 40, width: 1, color: Colors.grey.withOpacity(0.3));
+    return Container(height: 40, width: 1, color: AppColors.lightDivider);
   }
 
   String _estimateReadingTime(int? wordCount) {
@@ -319,7 +310,6 @@ class _ModuleHeader extends StatelessWidget {
   }
 }
 
-/// Displays the user progress section
 class _ProgressSection extends StatelessWidget {
   final ThemeData theme;
   final ProgressDetail progress;
@@ -339,7 +329,7 @@ class _ProgressSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Your Progress', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceM),
         ProgressCard(
           progress: ProgressSummary(
             id: progress.id,
@@ -356,7 +346,7 @@ class _ProgressSection extends StatelessWidget {
           moduleTitle: moduleTitle,
           onTap: () => onTap(progress.id),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         Center(
           child: AppButton(
             text: 'View Detailed Progress',
@@ -370,7 +360,6 @@ class _ProgressSection extends StatelessWidget {
   }
 }
 
-/// Displays the module content section
 class _ContentSection extends StatelessWidget {
   final ThemeData theme;
   final ModuleDetail module;
@@ -383,10 +372,10 @@ class _ContentSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Content Overview', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceM),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -394,21 +383,21 @@ class _ContentSection extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(Icons.format_size),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppDimens.spaceM),
                       Text(
                         'Word Count: ${module.wordCount}',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppDimens.spaceM),
                 ],
                 const Text(
                   'This is where the module content would be displayed. '
                   'In a complete application, this would include text, '
                   'images, videos, and other learning materials.',
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDimens.spaceL),
                 _buildStudyTips(),
               ],
             ),
@@ -420,10 +409,10 @@ class _ContentSection extends StatelessWidget {
 
   Widget _buildStudyTips() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,7 +420,7 @@ class _ContentSection extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.lightbulb, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppDimens.spaceM),
               Text(
                 'Study Tips',
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -440,7 +429,7 @@ class _ContentSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimens.spaceM),
           const Text(
             '• Review this module regularly using the spaced repetition schedule\n'
             '• Take notes while studying\n'

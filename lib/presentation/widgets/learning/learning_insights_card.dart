@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_insight.dart';
 
 /// Card widget that displays learning insights
@@ -18,31 +20,31 @@ class LearningInsightsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Sort insights by priority, show only top 4 if more
     final sortedInsights = List<LearningInsightDTO>.from(insights)
       ..sort((a, b) => a.priority.compareTo(b.priority));
-
     final displayInsights =
         sortedInsights.length > 4
             ? sortedInsights.sublist(0, 4)
             : sortedInsights;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(theme),
-            const SizedBox(height: 8),
-            const Divider(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.spaceS),
+            const Divider(height: AppDimens.dividerThickness),
+            const SizedBox(height: AppDimens.spaceS),
             if (displayInsights.isEmpty)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  padding: EdgeInsets.symmetric(vertical: AppDimens.paddingL),
                   child: Text('No insights available'),
                 ),
               )
@@ -50,9 +52,8 @@ class LearningInsightsCard extends StatelessWidget {
               ...displayInsights.map(
                 (insight) => _buildInsightItem(context, insight),
               ),
-
             if (onViewMorePressed != null && insights.length > 4) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimens.spaceS),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -70,8 +71,12 @@ class LearningInsightsCard extends StatelessWidget {
   Widget _buildHeader(ThemeData theme) {
     return Row(
       children: [
-        Icon(Icons.lightbulb_outline, color: Colors.amber.shade700),
-        const SizedBox(width: 8),
+        const Icon(
+          Icons.lightbulb_outline,
+          color: AppColors.warningDark,
+          size: AppDimens.iconM,
+        ),
+        const SizedBox(width: AppDimens.spaceS),
         Text(title ?? 'Learning Insights', style: theme.textTheme.titleLarge),
       ],
     );
@@ -83,12 +88,12 @@ class LearningInsightsCard extends StatelessWidget {
     final IconData icon = _getIconFromString(insight.icon);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 12),
+          Icon(icon, color: color, size: AppDimens.iconM),
+          const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: Text(insight.message, style: theme.textTheme.bodyMedium),
           ),
@@ -100,21 +105,21 @@ class LearningInsightsCard extends StatelessWidget {
   Color _getColorFromString(String colorName) {
     switch (colorName.toLowerCase()) {
       case 'blue':
-        return Colors.blue;
+        return AppColors.primaryBlue;
       case 'red':
-        return Colors.red;
+        return AppColors.errorDark;
       case 'green':
-        return Colors.green;
+        return AppColors.successLight;
       case 'orange':
-        return Colors.orange;
+        return AppColors.warningDark;
       case 'purple':
-        return Colors.purple;
+        return AppColors.accentPurple;
       case 'teal':
-        return Colors.teal;
+        return AppColors.accentGreen;
       case 'amber':
-        return Colors.amber;
+        return AppColors.warningLight;
       case 'indigo':
-        return Colors.indigo;
+        return AppColors.infoDark;
       default:
         return Colors.grey;
     }
