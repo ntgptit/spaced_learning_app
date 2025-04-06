@@ -8,7 +8,6 @@ import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -174,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
         isLoading,
       ),
       1 => const BooksScreen(),
-      2 => const DueProgressScreen(),
+      2 => const LearningProgressScreen(),
       3 => const ProfileScreen(),
       // Default case, can redirect to home or show an error
       _ => _buildHomeTab(
@@ -198,7 +197,10 @@ class _HomeScreenState extends State<HomeScreen> {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Books'),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Due'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.assignment),
+          label: 'Learning Overview',
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );
