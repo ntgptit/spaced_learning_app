@@ -165,9 +165,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               Icons.loop,
               color:
                   module.cyclesStudied != null
-                      ? Color(
-                        CycleFormatter.getColor(module.cyclesStudied!) as int,
-                      )
+                      ? CycleFormatter.getColor(module.cyclesStudied!)
                       : null,
             ),
             _buildDetailItem(

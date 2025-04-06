@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
@@ -114,7 +113,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final moduleViewModel = context.watch<ModuleViewModel>();
     final progressViewModel = context.watch<ProgressViewModel>();
     final module = moduleViewModel.selectedModule;
@@ -122,7 +120,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(module?.title ?? 'Module Details')),
       body: _BodyBuilder(
-        theme: theme,
         module: module,
         isLoading: moduleViewModel.isLoading,
         errorMessage: moduleViewModel.errorMessage,
@@ -143,7 +140,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 }
 
 class _BodyBuilder extends StatelessWidget {
-  final ThemeData theme;
   final ModuleDetail? module;
   final bool isLoading;
   final String? errorMessage;
@@ -152,7 +148,6 @@ class _BodyBuilder extends StatelessWidget {
   final void Function(String) onProgressTap;
 
   const _BodyBuilder({
-    required this.theme,
     required this.module,
     required this.isLoading,
     required this.errorMessage,
@@ -190,18 +185,17 @@ class _BodyBuilder extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         children: [
-          _ModuleHeader(theme: theme, module: module),
+          _ModuleHeader(module: module),
           const SizedBox(height: AppDimens.spaceXXL),
           if (userProgress != null) ...[
             _ProgressSection(
-              theme: theme,
               progress: userProgress!,
               moduleTitle: module.title,
               onTap: onProgressTap,
             ),
             const SizedBox(height: AppDimens.spaceXXL),
           ],
-          _ContentSection(theme: theme, module: module),
+          _ContentSection(module: module),
           const SizedBox(height: 80),
         ],
       ),
@@ -210,13 +204,14 @@ class _BodyBuilder extends StatelessWidget {
 }
 
 class _ModuleHeader extends StatelessWidget {
-  final ThemeData theme;
   final ModuleDetail module;
 
-  const _ModuleHeader({required this.theme, required this.module});
+  const _ModuleHeader({required this.module});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -224,7 +219,7 @@ class _ModuleHeader extends StatelessWidget {
         const SizedBox(height: AppDimens.spaceM),
         Row(
           children: [
-            _buildModuleTag(),
+            _buildModuleTag(context),
             const SizedBox(width: AppDimens.spaceL),
             Expanded(
               child: Text(
@@ -237,12 +232,14 @@ class _ModuleHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppDimens.spaceL),
-        _buildStatsCard(),
+        _buildStatsCard(context),
       ],
     );
   }
 
-  Widget _buildModuleTag() {
+  Widget _buildModuleTag(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -262,18 +259,29 @@ class _ModuleHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCard() {
+  Widget _buildStatsCard(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem(module.progress.length.toString(), 'Students'),
-            _buildDivider(),
-            _buildStatItem(module.wordCount?.toString() ?? 'N/A', 'Words'),
-            _buildDivider(),
             _buildStatItem(
+              context,
+              module.progress.length.toString(),
+              'Students',
+            ),
+            _buildDivider(context),
+            _buildStatItem(
+              context,
+              module.wordCount?.toString() ?? 'N/A',
+              'Words',
+            ),
+            _buildDivider(context),
+            _buildStatItem(
+              context,
               _estimateReadingTime(module.wordCount),
               'Reading Time',
             ),
@@ -283,7 +291,9 @@ class _ModuleHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String value, String label) {
+  Widget _buildStatItem(BuildContext context, String value, String label) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         Text(
@@ -298,8 +308,11 @@ class _ModuleHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return Container(height: 40, width: 1, color: AppColors.lightDivider);
+  Widget _buildDivider(BuildContext context) {
+    final theme = Theme.of(context);
+    final dividerColor = theme.colorScheme.outline.withOpacity(0.5);
+
+    return Container(height: 40, width: 1, color: dividerColor);
   }
 
   String _estimateReadingTime(int? wordCount) {
@@ -311,13 +324,11 @@ class _ModuleHeader extends StatelessWidget {
 }
 
 class _ProgressSection extends StatelessWidget {
-  final ThemeData theme;
   final ProgressDetail progress;
   final String moduleTitle;
   final void Function(String) onTap;
 
   const _ProgressSection({
-    required this.theme,
     required this.progress,
     required this.moduleTitle,
     required this.onTap,
@@ -325,6 +336,8 @@ class _ProgressSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -361,13 +374,14 @@ class _ProgressSection extends StatelessWidget {
 }
 
 class _ContentSection extends StatelessWidget {
-  final ThemeData theme;
   final ModuleDetail module;
 
-  const _ContentSection({required this.theme, required this.module});
+  const _ContentSection({required this.module});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -398,7 +412,7 @@ class _ContentSection extends StatelessWidget {
                   'images, videos, and other learning materials.',
                 ),
                 const SizedBox(height: AppDimens.spaceL),
-                _buildStudyTips(),
+                _buildStudyTips(context),
               ],
             ),
           ),
@@ -407,7 +421,9 @@ class _ContentSection extends StatelessWidget {
     );
   }
 
-  Widget _buildStudyTips() {
+  Widget _buildStudyTips(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
