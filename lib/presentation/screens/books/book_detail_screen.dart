@@ -1,9 +1,10 @@
+// lib/presentation/screens/books/book_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
-import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
@@ -52,9 +53,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit' && book != null) {
-                  Navigator.of(
-                    context,
-                  ).pushNamed('/books/edit', arguments: book.id);
+                  // Cập nhật sử dụng GoRouter
+                  GoRouter.of(context).push('/books/edit/${book.id}');
                 } else if (value == 'delete' && book != null) {
                   _showDeleteConfirmation(context, book);
                 }
@@ -95,9 +95,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   book != null
               ? FloatingActionButton(
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).pushNamed('/modules/create', arguments: book.id);
+                  // Cập nhật sử dụng GoRouter
+                  GoRouter.of(context).push('/modules/create/${book.id}');
                 },
                 backgroundColor: AppColors.lightPrimary,
                 child: const Icon(Icons.add, color: AppColors.lightOnPrimary),
@@ -370,12 +369,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       color: AppColors.lightSurface,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ModuleDetailScreen(moduleId: module.id),
-            ),
-          );
+          // Sử dụng đường dẫn tương đối thay vì tuyệt đối
+          GoRouter.of(context).push('modules/${module.id}');
+          // Hoặc sử dụng đường dẫn tuyệt đối đảm bảo vẫn nằm trong tab Books
+          // GoRouter.of(context).push('/books/${widget.bookId}/modules/${module.id}');
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -470,8 +467,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   final bookViewModel = context.read<BookViewModel>();
                   final success = await bookViewModel.deleteBook(book.id);
 
-                  if (success && mounted) {
-                    Navigator.of(context).pop(); // Return to books list
+                  if (success && context.mounted) {
+                    // Cập nhật sử dụng GoRouter
+                    GoRouter.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(

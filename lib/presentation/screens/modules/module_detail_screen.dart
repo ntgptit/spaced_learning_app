@@ -1,9 +1,10 @@
+// lib/presentation/screens/modules/module_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
-import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -100,14 +101,8 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
   void _navigateToProgress(String progressId) {
     if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProgressDetailScreen(progressId: progressId),
-        ),
-      ).then((_) {
-        if (mounted) _loadData();
-      });
+      // Cập nhật điều hướng với GoRouter
+      GoRouter.of(context).push('/learning/progress/$progressId');
     }
   }
 

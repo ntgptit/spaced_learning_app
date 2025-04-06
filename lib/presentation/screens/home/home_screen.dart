@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Assuming AppDimens is in this path
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
@@ -37,15 +36,31 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isInitialized = false;
   int _currentIndex = 0;
 
+  // Track the last time data was loaded to prevent excessive refreshes
+  DateTime? _lastLoadTime;
+
   @override
   void initState() {
     super.initState();
     // Use WidgetsBinding.instance.addPostFrameCallback for safety
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _loadData(forceRefresh: true),
+    );
   }
 
-  // Data loading
-  Future<void> _loadData() async {
+  // Data loading with optional force refresh parameter
+  Future<void> _loadData({bool forceRefresh = false}) async {
+    // Prevent excessive refreshes (only refresh if it's been more than 5 seconds since last refresh)
+    final now = DateTime.now();
+    if (!forceRefresh &&
+        _lastLoadTime != null &&
+        now.difference(_lastLoadTime!).inSeconds < 5) {
+      return;
+    }
+
+    // Update last load time
+    _lastLoadTime = now;
+
     // Ensure the widget is still mounted before proceeding
     if (!mounted) return;
 
@@ -56,9 +71,16 @@ class _HomeScreenState extends State<HomeScreen> {
       final learningStatsViewModel = context.read<LearningStatsViewModel>();
 
       if (authViewModel.currentUser != null) {
+        // Reset any cache in view models before loading fresh data
+        progressViewModel.clearError(); // Reset any previous errors
+        learningStatsViewModel.clearError();
+
         // Load data concurrently
         await Future.wait([
-          _loadLearningStats(learningStatsViewModel),
+          _loadLearningStats(
+            learningStatsViewModel,
+            forceRefresh: forceRefresh,
+          ),
           _loadDueProgress(authViewModel, progressViewModel),
           // Add other data loading futures here if needed
         ]);
@@ -74,15 +96,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadLearningStats(LearningStatsViewModel viewModel) async {
-    // Avoid unnecessary loads if already initialized or loading
-    if (!viewModel.isInitialized && !viewModel.isLoading) {
-      try {
-        await viewModel.loadAllStats();
-      } catch (e) {
-        debugPrint('Error loading learning stats: $e');
-        // Optionally propagate or handle error specifically for this load
-      }
+  Future<void> _loadLearningStats(
+    LearningStatsViewModel viewModel, {
+    bool forceRefresh = false,
+  }) async {
+    // Always load fresh data if force refresh is requested
+    try {
+      await viewModel.loadAllStats(refreshCache: forceRefresh);
+    } catch (e) {
+      debugPrint('Error loading learning stats: $e');
+      // Optionally propagate or handle error specifically for this load
     }
   }
 
@@ -90,8 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
     AuthViewModel authViewModel,
     ProgressViewModel progressViewModel,
   ) async {
-    // Avoid unnecessary loads
-    if (!progressViewModel.isLoading && authViewModel.currentUser != null) {
+    // Always load fresh data for due progress
+    if (authViewModel.currentUser != null) {
       try {
         await progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
       } catch (e) {
@@ -109,18 +132,28 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Error loading data. Please try again. ($error)',
-          ), // User-friendly message
+            'Error loading data. Please try again. (${error.toString().split('\n').first})',
+          ), // More user-friendly message
           backgroundColor: Colors.redAccent,
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: () => _loadData(forceRefresh: true),
+            textColor: Colors.white,
+          ),
         ),
       );
     }
   }
 
   void _navigateToLearningStats() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const LearningStatsScreen()),
-    );
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(builder: (context) => const LearningStatsScreen()),
+        )
+        .then((_) {
+          // Reload data when returning from Learning Stats screen
+          _loadData();
+        });
   }
 
   // Build methods
@@ -137,15 +170,25 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: HomeAppBar(
-        isDarkMode: themeViewModel.isDarkMode,
-        onThemeToggle: themeViewModel.toggleTheme,
-        // Pass other necessary parameters if any
+    // Use WillPopScope to refresh data when returning to this screen
+    return WillPopScope(
+      onWillPop: () async {
+        // If we're on the home tab and popping back to this screen
+        if (_currentIndex == 0) {
+          _loadData();
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: HomeAppBar(
+          isDarkMode: themeViewModel.isDarkMode,
+          onThemeToggle: themeViewModel.toggleTheme,
+          // Pass other necessary parameters if any
+        ),
+        drawer: const AppDrawer(),
+        body: _buildBody(), // Delegate body building
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      drawer: const AppDrawer(),
-      body: _buildBody(), // Delegate body building
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -189,7 +232,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     return BottomNavigationBar(
       currentIndex: _currentIndex,
-      onTap: (index) => setState(() => _currentIndex = index),
+      onTap: (index) {
+        // Refresh data when:
+        // 1. Tapping home tab while already on home tab (pull-to-refresh behavior)
+        // 2. Switching to home tab from another tab
+        if ((index == 0 && _currentIndex == 0) ||
+            (index == 0 && _currentIndex != 0)) {
+          _loadData();
+        }
+        setState(() => _currentIndex = index);
+      },
       type: BottomNavigationBarType.fixed, // Good for 4+ items
       selectedItemColor: theme.colorScheme.primary,
       // Use a defined opacity or keep 0.6 if standard opacities don't match
@@ -214,7 +266,10 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isLoading,
   ) {
     return RefreshIndicator(
-      onRefresh: _loadData, // Trigger data reload on pull-to-refresh
+      onRefresh:
+          () => _loadData(
+            forceRefresh: true,
+          ), // Trigger data reload on pull-to-refresh
       child:
           isLoading
               ? const Center(
@@ -285,11 +340,13 @@ class _HomeScreenState extends State<HomeScreen> {
           onBrowseBooksPressed: () => setState(() => _currentIndex = 1),
           onTodaysLearningPressed: () => setState(() => _currentIndex = 2),
           onProgressReportPressed:
-              () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LearningProgressScreen(),
-                ),
-              ),
+              () => Navigator.of(context)
+                  .push(
+                    MaterialPageRoute(
+                      builder: (context) => const LearningProgressScreen(),
+                    ),
+                  )
+                  .then((_) => _loadData()), // Reload data when returning
           onVocabularyStatsPressed: _navigateToLearningStats,
         ),
         const SizedBox(
@@ -305,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (viewModel.errorMessage != null) {
       return ErrorDisplay(
         message: viewModel.errorMessage!,
-        onRetry: _loadData,
+        onRetry: () => _loadData(forceRefresh: true),
         compact: true, // Assuming this is appropriate here
       );
     }
@@ -449,7 +506,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (progressViewModel.errorMessage != null) {
       return ErrorDisplay(
         message: progressViewModel.errorMessage!,
-        onRetry: _loadData, // Allow retrying the entire data load
+        onRetry:
+            () => _loadData(
+              forceRefresh: true,
+            ), // Allow retrying the entire data load
         compact: true,
       );
     }
@@ -499,9 +559,9 @@ class _HomeScreenState extends State<HomeScreen> {
           moduleTitle: 'Module', // Placeholder - need actual data if possible
           isDue: true,
           onTap:
-              () => Navigator.of(
-                context,
-              ).pushNamed('/progress/detail', arguments: progress.id),
+              () => Navigator.of(context)
+                  .pushNamed('/progress/detail', arguments: progress.id)
+                  .then((_) => _loadData()), // Reload data when returning
         );
       },
     );

@@ -1,5 +1,9 @@
+// lib/presentation/screens/help/spaced_repetition_info_screen.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/progress.dart';
+import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
 class SpacedRepetitionInfoScreen extends StatelessWidget {
   const SpacedRepetitionInfoScreen({super.key});
@@ -9,159 +13,186 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Spaced Repetition Method')),
-      body: ListView(
+      appBar: AppBar(title: const Text('Spaced Repetition')),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimens.paddingL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'How Spaced Repetition Works',
+              style: theme.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+
+            // Introduction
+            Text(
+              'Spaced repetition is a learning technique that incorporates increasing intervals of time between subsequent review of previously learned material to exploit the psychological spacing effect.',
+              style: theme.textTheme.bodyLarge,
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+
+            // The Science
+            _buildSection(
+              context,
+              'The Science Behind It',
+              'Spaced repetition takes advantage of the psychological spacing effect, which demonstrates that learning is more effective when study sessions are spaced out over time, rather than crammed into a single session. This technique directly addresses the "forgetting curve" - our natural tendency to forget information over time.',
+              Icons.psychology,
+              AppColors.accentPurple,
+            ),
+
+            // How it works in this app
+            _buildSection(
+              context,
+              'How It Works In This App',
+              'Our app schedules your learning into optimal review intervals. After initial learning, you\'ll review the material at gradually increasing intervals: 1 day, 7 days, 16 days, and 35 days. This schedule is optimized for long-term retention.',
+              Icons.schedule,
+              AppColors.accentOrange,
+            ),
+
+            // Learning Cycles
+            Text('Learning Cycles', style: theme.textTheme.titleLarge),
+            const SizedBox(height: AppDimens.spaceM),
+
+            // Display info for each cycle
+            _buildCycleTable(context),
+
+            const SizedBox(height: AppDimens.spaceXL),
+
+            // Tips
+            _buildSection(
+              context,
+              'Tips for Effective Learning',
+              '• Complete all repetitions in a cycle to maximize learning\n'
+                  '• Be consistent with your study schedule\n'
+                  '• Actively recall information before checking answers\n'
+                  '• Connect new information to things you already know\n'
+                  '• Take brief notes during each study session\n'
+                  '• Review right before sleep to improve memory consolidation',
+              Icons.tips_and_updates,
+              AppColors.successLight,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon,
+    Color color,
+  ) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppDimens.spaceXL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(
-            theme,
-            'Understanding the Spaced Repetition Cycle',
-            isMainTitle: true,
+          Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: AppDimens.spaceM),
+              Text(
+                title,
+                style: theme.textTheme.titleLarge?.copyWith(color: color),
+              ),
+            ],
           ),
-          _buildSection(
-            theme,
-            'What is Spaced Repetition?',
-            'Spaced Repetition is a learning technique based on scientific research, '
-                'designed to optimize memory retention through scheduled reviews with increasing intervals.',
-          ),
-          _buildSection(
-            theme,
-            'What is a Study Cycle?',
-            'In this app, each study cycle consists of 5 reviews. You must complete all 5 repetitions '
-                'before moving to the next cycle. Each cycle reinforces knowledge deeper into your long-term memory.',
-          ),
-          _buildCyclesSection(theme),
-          _buildSection(
-            theme,
-            'The Spaced Repetition Algorithm',
-            'This app uses an advanced spaced repetition algorithm that takes into account various factors like: '
-                'number of words in the module, learning progress, current cycle, and number of completed repetitions '
-                'to calculate the optimal time between reviews.',
-          ),
-          _buildFormulaSection(theme),
+          const SizedBox(height: AppDimens.spaceM),
+          Text(content, style: theme.textTheme.bodyMedium),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(
-    ThemeData theme,
-    String title, {
-    bool isMainTitle = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style:
-              isMainTitle
-                  ? theme.textTheme.headlineSmall
-                  : theme.textTheme.titleLarge,
+  Widget _buildCycleTable(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.paddingL),
+        child: Column(
+          children: [
+            // Table header
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Cycle',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Description',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: AppDimens.spaceXL),
+
+            // Cycle rows
+            ...CycleStudied.values.map(
+              (cycle) => _buildCycleRow(context, cycle),
+            ),
+          ],
         ),
-        const SizedBox(height: AppDimens.spaceL),
-      ],
+      ),
     );
   }
 
-  Widget _buildSection(ThemeData theme, String title, String content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceS),
-        Text(content, style: theme.textTheme.bodyMedium),
-        const SizedBox(height: AppDimens.spaceXXL),
-      ],
-    );
-  }
+  Widget _buildCycleRow(BuildContext context, CycleStudied cycle) {
+    final theme = Theme.of(context);
+    final color = CycleFormatter.getColor(cycle);
 
-  Widget _buildCyclesSection(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Study Cycles', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceS),
-        _buildCycleItem(
-          theme,
-          'First Cycle',
-          'This is your first time studying this module. Complete the first 5 review sessions.',
-        ),
-        _buildCycleItem(
-          theme,
-          'First Review Cycle',
-          'After completing the first cycle, you will move into the first review cycle with 5 new reviews.',
-        ),
-        _buildCycleItem(
-          theme,
-          'Second Review Cycle',
-          'Review intervals become longer to challenge your memory retention.',
-        ),
-        _buildCycleItem(
-          theme,
-          'Third Review Cycle',
-          'By this point, the knowledge should be well embedded in your long-term memory.',
-        ),
-        _buildCycleItem(
-          theme,
-          'More than 3 Cycles',
-          'You’ve mastered this module! Further reviews are just for retention.',
-        ),
-        const SizedBox(height: AppDimens.spaceXXL),
-      ],
-    );
-  }
-
-  Widget _buildCycleItem(ThemeData theme, String title, String description) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+      padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.circle,
-            size: AppDimens.iconXS,
-            color: theme.colorScheme.primary,
-          ),
-          const SizedBox(width: AppDimens.spaceS),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleMedium),
-                Text(description, style: theme.textTheme.bodyMedium),
-              ],
+            flex: 2,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+                vertical: AppDimens.paddingXXS,
+              ),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                border: Border.all(color: color),
+              ),
+              child: Text(
+                CycleFormatter.format(cycle),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppDimens.spaceM),
+          Expanded(
+            flex: 3,
+            child: Text(
+              CycleFormatter.getDescription(cycle),
+              style: theme.textTheme.bodyMedium,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildFormulaSection(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Calculation Formula', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceS),
-        Container(
-          padding: const EdgeInsets.all(AppDimens.paddingL),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          ),
-          child: const Text(
-            'The interval between repetitions is calculated using the formula:\n\n'
-            '- Base Interval = Word Factor × Min(31, Cycle × Review Factor) × Progress Factor\n\n'
-            'And the factors are defined as:\n'
-            '- Word Factor: depends on the number of words in the module\n'
-            '- Cycle: based on the current study cycle\n'
-            '- Review Factor: increases with each repetition\n'
-            '- Progress Factor: based on completion percentage',
-            style: TextStyle(fontFamily: 'monospace'),
-          ),
-        ),
-      ],
     );
   }
 }

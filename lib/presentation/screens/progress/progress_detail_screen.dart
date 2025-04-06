@@ -1,9 +1,10 @@
+// lib/presentation/screens/progress/progress_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
-import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
@@ -262,13 +263,10 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
         IconButton(
           icon: const Icon(Icons.help_outline),
           tooltip: 'Learn about repetition cycles',
-          onPressed:
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const SpacedRepetitionInfoScreen(),
-                ),
-              ),
+          onPressed: () {
+            // Cập nhật điều hướng với GoRouter
+            GoRouter.of(context).push('/help/spaced-repetition');
+          },
         ),
       ],
     );

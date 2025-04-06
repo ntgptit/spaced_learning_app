@@ -1,12 +1,10 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:spaced_learning_app/core/navigation/router.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/theme/app_theme.dart';
-import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
@@ -47,52 +45,39 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => serviceLocator<RepetitionViewModel>(),
         ),
-        // ChangeNotifierProvider(
-        //   create: (_) => serviceLocator<EnhancedLearningStatsViewModel>(),
-        // ),
-        // Add the new LearningStatsViewModel
         ChangeNotifierProvider(
           create: (_) => serviceLocator<LearningStatsViewModel>(),
         ),
-        Provider<LearningDataService>(
-          create: (_) => serviceLocator<LearningDataService>(),
-        ),
-        // Add the LearningProgressViewModel
         ChangeNotifierProvider(
           create: (_) => serviceLocator<LearningProgressViewModel>(),
         ),
+
+        Provider<LearningDataService>(
+          create: (_) => serviceLocator<LearningDataService>(),
+        ),
       ],
-      child: const AppWithTheme(),
+      child: const AppWithRouter(),
     );
   }
 }
 
-class AppWithTheme extends StatelessWidget {
-  const AppWithTheme({super.key});
+class AppWithRouter extends StatelessWidget {
+  const AppWithRouter({super.key});
 
   @override
   Widget build(BuildContext context) {
     final themeViewModel = context.watch<ThemeViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
 
-    return MaterialApp(
+    // Tạo router với auth view model
+    final appRouter = AppRouter(authViewModel);
+
+    return MaterialApp.router(
       title: 'Spaced Learning App',
       theme: AppTheme.getLightTheme(),
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: themeViewModel.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-
-      // Start with the appropriate screen based on authentication status
-      home:
-          authViewModel.isAuthenticated
-              ? const HomeScreen()
-              : const LoginScreen(),
-
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/learning/progress': (context) => const LearningProgressScreen(),
-        '/learning/stats': (context) => const LearningStatsScreen(),
-      },
+      routerConfig: appRouter.router,
     );
   }
 }

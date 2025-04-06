@@ -53,18 +53,18 @@ class LearningStatsCard extends StatelessWidget {
             const Divider(height: AppDimens.spaceXXL),
             _buildStatsSection(
               theme: theme,
-              sectionIcon: Icons.local_fire_department,
-              sectionTitle: 'Streaks',
-              sectionColor: AppColors.accentRed,
-              gridContent: _buildStreakStatsGrid(theme, isSmallScreen),
-            ),
-            const Divider(height: AppDimens.spaceXXL),
-            _buildStatsSection(
-              theme: theme,
               sectionIcon: Icons.menu_book,
               sectionTitle: 'Vocabulary',
               sectionColor: AppColors.accentPurple,
               gridContent: _buildVocabularyStatsGrid(theme, isSmallScreen),
+            ),
+            const Divider(height: AppDimens.spaceXXL),
+            _buildStatsSection(
+              theme: theme,
+              sectionIcon: Icons.local_fire_department,
+              sectionTitle: 'Streaks',
+              sectionColor: AppColors.accentRed,
+              gridContent: _buildStreakStatsGrid(theme, isSmallScreen),
             ),
             if (onViewDetailPressed != null) ...[
               const SizedBox(height: AppDimens.spaceL),
