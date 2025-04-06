@@ -57,7 +57,7 @@ class BookCard extends StatelessWidget {
       width: AppDimens.moduleIndicatorSize,
       height: AppDimens.moduleIndicatorSize,
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(AppDimens.opacityMedium),
+        color: colorScheme.primary.withValues(alpha: AppDimens.opacityMedium),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -168,7 +168,7 @@ class _Badge extends StatelessWidget {
         vertical: AppDimens.paddingXXS,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(AppDimens.opacityMedium),
+        color: color.withValues(alpha: AppDimens.opacityMedium),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Row(

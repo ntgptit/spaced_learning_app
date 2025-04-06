@@ -21,6 +21,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
+      key: const Key('module_details_bottom_sheet'),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(
@@ -28,7 +29,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(AppDimens.opacityMedium),
+            color: Colors.black.withValues(alpha: AppDimens.opacityMedium),
             blurRadius: AppDimens.shadowRadiusL,
             spreadRadius: AppDimens.shadowOffsetS,
           ),
@@ -73,11 +74,12 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         bottom: AppDimens.paddingS,
       ),
       child: Container(
+        key: const Key('drag_handle'),
         width: AppDimens.moduleIndicatorSize,
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurfaceVariant.withOpacity(
-            AppDimens.opacitySemi,
+          color: theme.colorScheme.onSurfaceVariant.withValues(
+            alpha: AppDimens.opacitySemi,
           ),
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
@@ -96,12 +98,19 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                     child: Material(
                       color: Colors.transparent,
                       child: Text(
-                        module.subject,
+                        module.subject.isEmpty
+                            ? 'Unnamed Module'
+                            : module.subject,
                         style: theme.textTheme.headlineSmall,
+                        key: const Key('module_title'),
                       ),
                     ),
                   )
-                  : Text(module.subject, style: theme.textTheme.headlineSmall),
+                  : Text(
+                    module.subject.isEmpty ? 'Unnamed Module' : module.subject,
+                    style: theme.textTheme.headlineSmall,
+                    key: const Key('module_title'),
+                  ),
         ),
       ],
     );
@@ -116,14 +125,16 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             Icons.book,
             color: theme.colorScheme.primary,
             size: AppDimens.iconS,
+            key: const Key('book_icon'),
           ),
           const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: Text(
-              'From: ${module.book}',
+              'From: ${module.book.isEmpty ? 'No Book' : module.book}',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.primary,
               ),
+              key: const Key('book_info'),
             ),
           ),
         ],
@@ -135,7 +146,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(theme, 'Module Details'),
+        _buildSectionTitle(
+          theme,
+          'Module Details',
+          key: const Key('details_section_title'),
+        ),
         Wrap(
           spacing: AppDimens.spaceL,
           runSpacing: AppDimens.spaceL,
@@ -146,6 +161,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               'Word Count',
               module.wordCount.toString(),
               Icons.text_fields,
+              key: const Key('word_count_item'),
             ),
             _buildDetailItem(
               context,
@@ -154,6 +170,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               '${module.percentage}%',
               Icons.trending_up,
               progressValue: module.percentage / 100,
+              key: const Key('progress_item'),
             ),
             _buildDetailItem(
               context,
@@ -167,6 +184,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                   module.cyclesStudied != null
                       ? CycleFormatter.getColor(module.cyclesStudied!)
                       : null,
+              key: const Key('cycle_item'),
             ),
             _buildDetailItem(
               context,
@@ -174,6 +192,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               'Tasks',
               module.taskCount?.toString() ?? 'None',
               Icons.assignment,
+              key: const Key('tasks_item'),
             ),
           ],
         ),
@@ -185,7 +204,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(theme, 'Important Dates'),
+        _buildSectionTitle(
+          theme,
+          'Important Dates',
+          key: const Key('dates_section_title'),
+        ),
         const SizedBox(height: AppDimens.spaceS),
         if (module.firstLearningDate != null)
           _buildDateItem(
@@ -193,6 +216,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             'First Learning',
             module.firstLearningDate!,
             Icons.play_circle,
+            key: const Key('first_learning_date'),
           ),
         if (module.nextStudyDate != null) ...[
           const SizedBox(height: AppDimens.spaceL),
@@ -204,6 +228,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             isUpcoming: module.nextStudyDate!.isBefore(
               DateTime.now().add(const Duration(days: 3)),
             ),
+            key: const Key('next_study_date'),
           ),
         ],
         if (module.lastStudyDate != null) ...[
@@ -213,6 +238,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             'Last Study',
             module.lastStudyDate!,
             Icons.history,
+            key: const Key('last_study_date'),
           ),
         ],
       ],
@@ -220,27 +246,34 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildStudyHistorySection(ThemeData theme) {
+    final studyHistory = List<DateTime>.from(module.studyHistory!)
+      ..sort((a, b) => b.compareTo(a));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(theme, 'Study History'),
+        _buildSectionTitle(
+          theme,
+          'Study History',
+          key: const Key('history_section_title'),
+        ),
         const SizedBox(height: AppDimens.spaceS),
-        _buildHistoryItems(theme),
-        if ((module.studyHistory?.length ?? 0) > 8) ...[
+        _buildHistoryItems(theme, studyHistory),
+        if (studyHistory.length > 7) ...[
           const SizedBox(height: AppDimens.spaceXXS),
           Text(
-            '+ ${module.studyHistory!.length - 8} more sessions',
+            '+ ${studyHistory.length - 7} more sessions',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontStyle: FontStyle.italic,
             ),
+            key: const Key('more_sessions_text'),
           ),
         ],
       ],
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme, String title) {
+  Widget _buildSectionTitle(ThemeData theme, String title, {Key? key}) {
     return Row(
       children: [
         Icon(
@@ -255,6 +288,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
           ),
+          key: key,
         ),
       ],
     );
@@ -268,6 +302,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     IconData icon, {
     double? progressValue,
     Color? color,
+    Key? key,
   }) {
     final effectiveColor = color ?? theme.colorScheme.primary;
     final width = MediaQuery.of(context).size.width;
@@ -277,13 +312,14 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             : (width - AppDimens.spaceXXL * 3) / 3;
 
     return Container(
+      key: key,
       width: containerWidth,
       padding: const EdgeInsets.all(AppDimens.paddingL),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: effectiveColor.withOpacity(AppDimens.opacitySemi),
+          color: effectiveColor.withValues(alpha: AppDimens.opacitySemi),
         ),
       ),
       child: Column(
@@ -338,10 +374,12 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     DateTime date,
     IconData icon, {
     bool isUpcoming = false,
+    Key? key,
   }) {
     final color = isUpcoming ? AppColors.lightError : theme.colorScheme.primary;
 
     return Row(
+      key: key,
       children: [
         Icon(icon, color: color, size: AppDimens.iconM),
         const SizedBox(width: AppDimens.spaceS),
@@ -377,12 +415,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItems(ThemeData theme) {
-    final studyHistory = List<DateTime>.from(module.studyHistory!)
-      ..sort((a, b) => b.compareTo(a));
+  Widget _buildHistoryItems(ThemeData theme, List<DateTime> studyHistory) {
     final today = DateTime.now();
 
     return Wrap(
+      key: const Key('history_items'),
       spacing: AppDimens.spaceXS,
       runSpacing: AppDimens.spaceXS,
       children:
@@ -393,15 +430,15 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 date.day == today.day;
             final bgColor =
                 isToday
-                    ? theme.colorScheme.primary.withOpacity(
-                      AppDimens.opacitySemi,
+                    ? theme.colorScheme.primary.withValues(
+                      alpha: AppDimens.opacitySemi,
                     )
                     : theme.colorScheme.surfaceContainerHighest;
             final borderColor =
                 isToday
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outline.withOpacity(
-                      AppDimens.opacitySemi,
+                    : theme.colorScheme.outline.withValues(
+                      alpha: AppDimens.opacitySemi,
                     );
 
             return Tooltip(
@@ -434,13 +471,35 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         OutlinedButton.icon(
+          key: const Key('close_button'),
           icon: const Icon(Icons.close),
           label: const Text('Close'),
           onPressed: () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+          ),
+        ),
+        ElevatedButton.icon(
+          key: const Key('study_button'),
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Start Studying'),
+          onPressed: () {
+            // Placeholder for study action
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Starting study session...')),
+            );
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+          ),
         ),
       ],
     );

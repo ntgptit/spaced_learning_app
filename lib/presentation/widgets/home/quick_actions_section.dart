@@ -56,8 +56,8 @@ class QuickActionsSection extends StatelessWidget {
         'icon': Icons.bar_chart_outlined, // Use outlined icons
         'onTap': onProgressReportPressed,
         // Use tertiary or another distinct color. Fallback if tertiary isn't distinct.
-        'contentColor': colorScheme.tertiary.withOpacity(
-          0.9,
+        'contentColor': colorScheme.tertiary.withValues(
+          alpha: 0.9,
         ), // Ensure tertiary is defined, maybe slightly less bright
       },
       {
@@ -98,14 +98,14 @@ class QuickActionsSection extends StatelessWidget {
       elevation: AppDimens.elevationS, // e.g., 2.0
       // Use a subtle background color from the theme like surfaceVariant
       // This adapts better to light/dark mode than tinted colors.
-      color: colorScheme.surfaceContainerHighest.withOpacity(
-        0.6,
+      color: colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.6,
       ), // Slight transparency for effect
       // Use AppDimens for border radius
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM), // e.g., 12.0
         // Optional: Add a subtle border
-        // side: BorderSide(color: contentColor.withOpacity(0.2), width: 1),
+        // side: BorderSide(color: contentColor.withValues(alpha:0.2), width: 1),
       ),
       clipBehavior: Clip.antiAlias, // Ensure InkWell ripple stays within bounds
       child: InkWell(
@@ -134,8 +134,8 @@ class QuickActionsSection extends StatelessWidget {
                 // Use a theme text style, but override color for consistency
                 style: theme.textTheme.titleMedium?.copyWith(
                   // Apply the theme-based content color to the text
-                  color: contentColor.withOpacity(
-                    0.9,
+                  color: contentColor.withValues(
+                    alpha: 0.9,
                   ), // Slightly less intense text color
                   fontWeight: FontWeight.w500, // Adjust weight if needed
                 ),

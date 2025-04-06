@@ -55,8 +55,10 @@ class AppCard extends StatelessWidget {
         onTap: onTap,
         highlightColor:
             highlightColor ??
-            colorScheme.primary.withOpacity(AppDimens.opacityMedium),
-        splashColor: colorScheme.primary.withOpacity(AppDimens.opacityMedium),
+            colorScheme.primary.withValues(alpha: AppDimens.opacityMedium),
+        splashColor: colorScheme.primary.withValues(
+          alpha: AppDimens.opacityMedium,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -93,8 +95,8 @@ class AppCard extends StatelessWidget {
                             if (subtitle != null)
                               DefaultTextStyle(
                                 style: theme.textTheme.bodyMedium!.copyWith(
-                                  color: colorScheme.onSurface.withOpacity(
-                                    AppDimens.opacityHigh,
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: AppDimens.opacityHigh,
                                   ),
                                 ),
                                 child: subtitle!,

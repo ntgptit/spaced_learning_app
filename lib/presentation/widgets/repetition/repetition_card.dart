@@ -38,7 +38,9 @@ class RepetitionCard extends StatelessWidget {
       elevation: isHistory ? AppDimens.elevationXS : AppDimens.elevationS,
       color:
           isHistory
-              ? theme.colorScheme.surface.withOpacity(AppDimens.opacityVeryHigh)
+              ? theme.colorScheme.surface.withValues(
+                alpha: AppDimens.opacityVeryHigh,
+              )
               : theme.colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -72,7 +74,7 @@ class RepetitionCard extends StatelessWidget {
             vertical: AppDimens.paddingXS,
           ),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(AppDimens.opacityMedium),
+            color: statusColor.withValues(alpha: AppDimens.opacityMedium),
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Row(
@@ -192,7 +194,7 @@ class RepetitionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingXXS),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(AppDimens.opacityMedium),
+                  color: color.withValues(alpha: AppDimens.opacityMedium),
                   borderRadius: BorderRadius.circular(AppDimens.radiusXS),
                 ),
                 child: Icon(
@@ -206,7 +208,7 @@ class RepetitionCard extends StatelessWidget {
         ),
         style: OutlinedButton.styleFrom(
           side: BorderSide(
-            color: color.withOpacity(AppDimens.opacityMediumHigh),
+            color: color.withValues(alpha: AppDimens.opacityMediumHigh),
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL),

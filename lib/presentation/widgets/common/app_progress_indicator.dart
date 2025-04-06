@@ -39,8 +39,8 @@ class AppProgressIndicator extends StatelessWidget {
     final effectiveBackgroundColor =
         backgroundColor ??
         (theme.brightness == Brightness.dark
-            ? colorScheme.surface.withOpacity(AppDimens.opacitySemi)
-            : colorScheme.primary.withOpacity(AppDimens.opacitySemi));
+            ? colorScheme.surface.withValues(alpha: AppDimens.opacitySemi)
+            : colorScheme.primary.withValues(alpha: AppDimens.opacitySemi));
 
     Widget progressIndicator;
 
@@ -88,7 +88,9 @@ class AppProgressIndicator extends StatelessWidget {
                   color:
                       color ??
                       foregroundColor ??
-                      colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
+                      colorScheme.onSurface.withValues(
+                        alpha: AppDimens.opacityHigh,
+                      ),
                 ),
             textAlign: TextAlign.center,
           ),

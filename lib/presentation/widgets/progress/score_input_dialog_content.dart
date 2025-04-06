@@ -128,11 +128,11 @@ class _ScoreButton extends StatelessWidget {
           border: Border.all(
             color:
                 isSelected
-                    ? theme.colorScheme.primary.withOpacity(
-                      AppDimens.opacityHigh,
+                    ? theme.colorScheme.primary.withValues(
+                      alpha: AppDimens.opacityHigh,
                     )
-                    : theme.colorScheme.outline.withOpacity(
-                      AppDimens.opacityMedium,
+                    : theme.colorScheme.outline.withValues(
+                      alpha: AppDimens.opacityMedium,
                     ),
           ),
         ),

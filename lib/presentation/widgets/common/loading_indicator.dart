@@ -59,7 +59,7 @@ class FullScreenLoading extends StatelessWidget {
     return Container(
       color:
           backgroundColor ??
-          theme.colorScheme.surface.withOpacity(AppDimens.opacityHigh),
+          theme.colorScheme.surface.withValues(alpha: AppDimens.opacityHigh),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

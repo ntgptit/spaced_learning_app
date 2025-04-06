@@ -174,8 +174,8 @@ class AppButton extends StatelessWidget {
         defaultElevation = 0;
         break;
       case AppButtonType.ghost:
-        defaultBackgroundColor = AppColors.lightPrimary.withOpacity(
-          AppDimens.opacityLight,
+        defaultBackgroundColor = AppColors.lightPrimary.withValues(
+          alpha: AppDimens.opacityLight,
         );
         defaultTextColor = AppColors.lightPrimary;
         defaultBorderColor = Colors.transparent;

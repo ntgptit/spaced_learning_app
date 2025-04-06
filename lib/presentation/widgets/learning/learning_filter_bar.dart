@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -35,6 +37,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   final TextEditingController _bookSearchController = TextEditingController();
   late List<String> _filteredBooks;
   bool _showSearch = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -53,20 +56,25 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _bookSearchController.dispose();
     super.dispose();
   }
 
   void _filterBooks(String query) {
-    setState(() {
-      _filteredBooks =
-          query.isEmpty
-              ? widget.books
-              : widget.books
-                  .where(
-                    (book) => book.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        _filteredBooks =
+            query.isEmpty
+                ? widget.books
+                : widget.books
+                    .where(
+                      (book) =>
+                          book.toLowerCase().contains(query.toLowerCase()),
+                    )
+                    .toList();
+      });
     });
   }
 
@@ -98,9 +106,14 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('Filters', style: theme.textTheme.titleMedium),
+        Text(
+          'Filters',
+          style: theme.textTheme.titleMedium,
+          key: const Key('filter_header'),
+        ),
         if (widget.books.length > 10)
           IconButton(
+            key: const Key('search_toggle'),
             icon: Icon(
               _showSearch ? Icons.search_off : Icons.search,
               semanticLabel: _showSearch ? 'Hide search' : 'Search books',
@@ -160,6 +173,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
       child: TextField(
+        key: const Key('book_search_field'),
         controller: _bookSearchController,
         decoration: InputDecoration(
           hintText: 'Search books...',
@@ -167,6 +181,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
           suffixIcon:
               _bookSearchController.text.isNotEmpty
                   ? IconButton(
+                    key: const Key('clear_search'),
                     icon: const Icon(Icons.clear),
                     tooltip: 'Clear search',
                     onPressed: () {
@@ -185,27 +200,36 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   }
 
   Widget _buildBookDropdown(ThemeData theme) {
+    final effectiveBooks =
+        _filteredBooks.isEmpty
+            ? ['No books available']
+            : ['All Books', ..._filteredBooks];
+    final effectiveValue =
+        widget.books.contains(widget.selectedBook)
+            ? widget.selectedBook
+            : effectiveBooks.first;
+
     return Container(
+      key: const Key('book_dropdown'),
       height: AppDimens.buttonHeightL,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(AppDimens.opacitySemi),
+          color: theme.colorScheme.outline.withValues(
+            alpha: AppDimens.opacitySemi,
+          ),
         ),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value:
-              widget.books.contains(widget.selectedBook)
-                  ? widget.selectedBook
-                  : widget.books.first,
+          value: effectiveValue,
           isExpanded: true,
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
           icon: const Icon(Icons.arrow_drop_down),
           padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
           items:
-              _filteredBooks
+              effectiveBooks
                   .map(
                     (book) => DropdownMenuItem(
                       value: book,
@@ -220,7 +244,13 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
                     ),
                   )
                   .toList(),
-          onChanged: widget.onBookChanged,
+          onChanged: (value) {
+            if (value == 'All Books') {
+              widget.onBookChanged(null); // Clear book filter
+            } else if (value != 'No books available') {
+              widget.onBookChanged(value);
+            }
+          },
         ),
       ),
     );
@@ -229,6 +259,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
   Widget _buildDateFilter(ThemeData theme) {
     return widget.selectedDate == null
         ? OutlinedButton.icon(
+          key: const Key('select_date_button'),
           icon: const Icon(Icons.calendar_today, size: AppDimens.iconS),
           label: const Text('Select Date'),
           onPressed: widget.onDateSelected,
@@ -241,14 +272,15 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
           ),
         )
         : Container(
+          key: const Key('selected_date_container'),
           height: AppDimens.buttonHeightL,
           padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
             border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(
-                AppDimens.opacitySemi,
+              color: theme.colorScheme.outline.withValues(
+                alpha: AppDimens.opacitySemi,
               ),
             ),
           ),
@@ -267,6 +299,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
                 ),
               ),
               IconButton(
+                key: const Key('clear_date'),
                 icon: const Icon(Icons.clear, size: AppDimens.iconS),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -280,6 +313,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
 
   Widget _buildStatsRow(ThemeData theme) {
     return Container(
+      key: const Key('stats_row'),
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
@@ -313,7 +347,7 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     return Container(
       height: AppDimens.listTileHeightS - AppDimens.paddingL,
       width: AppDimens.dividerThickness,
-      color: Colors.grey.withOpacity(AppDimens.opacityMedium),
+      color: Colors.grey.withValues(alpha: AppDimens.opacityMedium),
     );
   }
 

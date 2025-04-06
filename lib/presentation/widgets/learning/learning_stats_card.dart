@@ -360,7 +360,7 @@ class LearningStatsCard extends StatelessWidget {
           Text(
             additionalInfo,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: color.withOpacity(AppDimens.opacityHigh),
+              color: color.withValues(alpha: AppDimens.opacityHigh),
               fontSize: AppDimens.fontXS,
             ),
           ),

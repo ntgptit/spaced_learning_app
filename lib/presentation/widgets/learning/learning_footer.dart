@@ -39,7 +39,7 @@ class LearningFooter extends StatelessWidget {
         color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(AppDimens.opacityMedium),
+            color: Colors.black.withValues(alpha: AppDimens.opacityMedium),
             blurRadius: AppDimens.shadowRadiusM,
             offset: const Offset(0, -2),
           ),

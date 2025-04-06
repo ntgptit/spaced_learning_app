@@ -308,7 +308,7 @@ class _ModuleHeader extends StatelessWidget {
 
   Widget _buildDivider(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = theme.colorScheme.outline.withOpacity(0.5);
+    final dividerColor = theme.colorScheme.outline.withValues(alpha: 0.5);
 
     return Container(height: 40, width: 1, color: dividerColor);
   }
@@ -425,7 +425,7 @@ class _ContentSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Column(

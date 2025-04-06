@@ -550,7 +550,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 secondaryInfo,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: color.withOpacity(AppDimens.opacityVeryHigh),
+                  color: color.withValues(alpha: AppDimens.opacityVeryHigh),
                 ),
               ),
             ],
