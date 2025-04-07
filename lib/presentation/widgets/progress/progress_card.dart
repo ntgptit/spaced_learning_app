@@ -29,10 +29,7 @@ class ProgressCard extends StatelessWidget {
         vertical: AppDimens.spaceXS,
         horizontal: AppDimens.spaceXXS,
       ),
-      color:
-          isDue
-              ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.surface,
+      color: isDue ? theme.colorScheme.surfaceDim : theme.colorScheme.surface,
       child: InkWell(
         onTap: onTap,
         child: Padding(
