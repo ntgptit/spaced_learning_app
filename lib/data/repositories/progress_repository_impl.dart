@@ -176,7 +176,6 @@ class ProgressRepositoryImpl implements ProgressRepository {
 
       if (response['success'] == true) {
         if (response['data'] == null) {
-          // No progress found, but API call was successful
           return null;
         }
         return ProgressDetail.fromJson(response['data']);
@@ -184,7 +183,6 @@ class ProgressRepositoryImpl implements ProgressRepository {
         return null;
       }
     } on NotFoundException {
-      // If not found, return null (this is expected)
       return null;
     } on AppException {
       rethrow;
@@ -202,7 +200,6 @@ class ProgressRepositoryImpl implements ProgressRepository {
   }) async {
     try {
       final Map<String, dynamic> queryParams = {'page': page, 'size': size};
-
       if (studyDate != null) {
         queryParams['studyDate'] = _formatDate(studyDate);
       }
@@ -340,7 +337,6 @@ class ProgressRepositoryImpl implements ProgressRepository {
     }
   }
 
-  /// Format date to ISO8601 string (YYYY-MM-DD)
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
