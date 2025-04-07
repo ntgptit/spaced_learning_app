@@ -370,9 +370,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       child: InkWell(
         onTap: () {
           // Sử dụng đường dẫn tương đối thay vì tuyệt đối
-          GoRouter.of(context).push('modules/${module.id}');
+          // GoRouter.of(context).push('modules/${module.id}');
           // Hoặc sử dụng đường dẫn tuyệt đối đảm bảo vẫn nằm trong tab Books
-          // GoRouter.of(context).push('/books/${widget.bookId}/modules/${module.id}');
+          GoRouter.of(
+            context,
+          ).push('/books/${widget.bookId}/modules/${module.id}');
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),

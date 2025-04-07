@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 
 class ScaffoldWithBottomBar extends StatefulWidget {
@@ -38,8 +37,6 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
 
   @override
   Widget build(BuildContext context) {
-    final themeViewModel = context.watch<ThemeViewModel>();
-
     // Tự động cập nhật dữ liệu khi vào tab Home, nhưng không quá thường xuyên
     final now = DateTime.now();
     if (widget.currentIndex == 0 &&
