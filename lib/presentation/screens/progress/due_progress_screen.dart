@@ -6,6 +6,7 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
@@ -21,6 +22,9 @@ class DueProgressScreen extends StatefulWidget {
 class _DueProgressScreenState extends State<DueProgressScreen> {
   DateTime? _selectedDate;
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
+  // Map để lưu cache module titles
+  final Map<String, String> _moduleTitles = {};
+  bool _isLoadingModules = false;
 
   @override
   void initState() {
@@ -29,25 +33,61 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   }
 
   Future<void> _loadData() async {
-    // Sử dụng listen: false vì đang ở trong hàm không thuộc build context trực tiếp
     final authViewModel = context.read<AuthViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
+
     if (authViewModel.currentUser != null) {
-      // DEBUG: Log trước khi gọi loadDueProgress từ màn hình
       debugPrint(
         '[DueProgressScreen] Calling loadDueProgress from screen. UserId: ${authViewModel.currentUser!.id}, Date: $_selectedDate',
       );
+
       await progressViewModel.loadDueProgress(
         authViewModel.currentUser!.id,
         studyDate: _selectedDate,
       );
-      // DEBUG: Log sau khi gọi loadDueProgress từ màn hình
-      debugPrint(
-        '[DueProgressScreen] Finished calling loadDueProgress from screen.',
-      );
+
+      // Sau khi tải xong danh sách progress, tải thông tin module
+      if (progressViewModel.progressRecords.isNotEmpty) {
+        await _loadModuleTitles(progressViewModel.progressRecords);
+      }
     } else {
       debugPrint('[DueProgressScreen] Cannot load data: currentUser is null.');
     }
+  }
+
+  // Phương thức mới để tải thông tin module titles
+  Future<void> _loadModuleTitles(List<ProgressSummary> progressList) async {
+    setState(() {
+      _isLoadingModules = true;
+    });
+
+    final moduleViewModel = context.read<ModuleViewModel>();
+
+    // Tạo danh sách các moduleIds cần tải
+    final moduleIds =
+        progressList
+            .map((progress) => progress.moduleId)
+            .where((id) => !_moduleTitles.containsKey(id))
+            .toSet()
+            .toList();
+
+    // Tải thông tin của các module chưa có trong cache
+    for (final moduleId in moduleIds) {
+      try {
+        await moduleViewModel.loadModuleDetails(moduleId);
+        if (moduleViewModel.selectedModule != null) {
+          _moduleTitles[moduleId] = moduleViewModel.selectedModule!.title;
+        }
+      } catch (e) {
+        debugPrint('[DueProgressScreen] Error loading module $moduleId: $e');
+        // Nếu không tải được, đặt title mặc định
+        _moduleTitles[moduleId] = 'Module $moduleId';
+      }
+    }
+
+    setState(() {
+      _isLoadingModules = false;
+    });
   }
 
   Future<void> _selectDate() async {
@@ -104,7 +144,23 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     if (authViewModel.currentUser == null) {
       return const Center(child: Text('Please log in to view your due items'));
     }
-    return Scaffold(body: _buildBody());
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _selectedDate == null
+              ? 'Due Today'
+              : 'Due by ${_dateFormat.format(_selectedDate!)}',
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadData,
+            tooltip: 'Refresh data',
+          ),
+        ],
+      ),
+      body: _buildBody(),
+    );
   }
 
   Widget _buildBody() {
@@ -146,10 +202,8 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   }
 
   Widget _buildProgressList() {
-    // Sử dụng watch ở đây vì UI cần rebuild khi state của ProgressViewModel thay đổi
     final progressViewModel = context.watch<ProgressViewModel>();
 
-    // DEBUG: Log trạng thái ViewModel trong hàm build
     debugPrint('[DueProgressScreen] _buildProgressList rebuild triggered.');
     debugPrint('  isLoading: ${progressViewModel.isLoading}');
     debugPrint('  errorMessage: ${progressViewModel.errorMessage}');
@@ -159,7 +213,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
 
     if (progressViewModel.isLoading &&
         progressViewModel.progressRecords.isEmpty) {
-      // Chỉ hiển thị loading indicator toàn màn hình khi đang tải lần đầu và chưa có dữ liệu
       debugPrint('[DueProgressScreen] Showing global loading indicator.');
       return const Center(child: AppLoadingIndicator());
     }
@@ -169,7 +222,20 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
       return Center(
         child: ErrorDisplay(
           message: progressViewModel.errorMessage!,
-          onRetry: _loadData, // Gọi _loadData thay vì chỉ loadDueProgress
+          onRetry: _loadData,
+        ),
+      );
+    }
+
+    if (_isLoadingModules) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLoadingIndicator(),
+            SizedBox(height: AppDimens.spaceM),
+            Text('Loading module information...'),
+          ],
         ),
       );
     }
@@ -177,16 +243,14 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     if (progressViewModel.progressRecords.isEmpty &&
         !progressViewModel.isLoading) {
       debugPrint('[DueProgressScreen] Showing empty state.');
-      // Hiển thị trạng thái rỗng chỉ khi không loading và không có lỗi
       return _buildEmptyState();
     }
 
-    // Nếu không loading, không lỗi, và có dữ liệu (hoặc đang loading nhưng đã có dữ liệu cũ)
     debugPrint(
       '[DueProgressScreen] Building ListView with ${progressViewModel.progressRecords.length} items.',
     );
     return RefreshIndicator(
-      onRefresh: _loadData, // Gọi hàm load chung
+      onRefresh: _loadData,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
@@ -195,8 +259,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
         itemCount: progressViewModel.progressRecords.length,
         itemBuilder: (context, index) {
           final progress = progressViewModel.progressRecords[index];
-          // DEBUG: Log thông tin của từng item
-          // debugPrint('[DueProgressScreen] Building item $index: ID ${progress.id}, ModuleID ${progress.moduleId}, NextDate ${progress.nextStudyDate}');
           return _buildProgressItem(progress);
         },
       ),
@@ -232,22 +294,21 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   }
 
   Widget _buildProgressItem(ProgressSummary progress) {
-    // Tạm thời gán cứng để test, lý tưởng là lấy từ module liên quan
-    const moduleTitle = 'Unknown Module'; // Hoặc lấy title từ API nếu có
+    // Lấy tên module từ cache, hoặc hiển thị placeholder nếu chưa có
+    final moduleTitle = _moduleTitles[progress.moduleId] ?? 'Loading...';
     final cycleText = _formatCycleStudied(progress.cyclesStudied);
-    final bool isItemDue = _isDue(progress); // Tính toán isDue
+    final bool isItemDue = _isDue(progress);
 
-    // DEBUG: Log thông tin của ProgressCard sẽ được tạo
     debugPrint(
       '[DueProgressScreen] Creating ProgressCard for ID ${progress.id}, Module: $moduleTitle, isDue: $isItemDue',
     );
 
     return ProgressCard(
-      key: ValueKey(progress.id), // Thêm key để tối ưu rebuild
+      key: ValueKey(progress.id),
       progress: progress,
       moduleTitle: moduleTitle,
       isDue: isItemDue,
-      subtitle: 'Cycle: $cycleText', // Đổi thành 'Cycle' cho nhất quán
+      subtitle: 'Cycle: $cycleText',
       onTap:
           () => Navigator.push(
             context,
@@ -255,7 +316,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
               builder:
                   (context) => ProgressDetailScreen(progressId: progress.id),
             ),
-            // Reload data khi quay lại từ màn hình chi tiết
           ).then((_) => _loadData()),
     );
   }

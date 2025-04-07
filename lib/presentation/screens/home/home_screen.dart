@@ -1,4 +1,4 @@
-// lib/presentation/screens/home/home_tab_screen.dart
+// lib/presentation/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +7,7 @@ import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
@@ -31,6 +32,9 @@ class _HomeScreenState extends State<HomeScreen>
     with AutomaticKeepAliveClientMixin {
   bool _isInitialized = false;
   DateTime? _lastLoadTime;
+  // Map để lưu cache module titles
+  final Map<String, String> _moduleTitles = {};
+  bool _isLoadingModules = false;
 
   @override
   bool get wantKeepAlive => true; // Giữ trạng thái màn hình khi chuyển tab
@@ -76,6 +80,11 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           _loadDueProgress(authViewModel, progressViewModel),
         ]);
+
+        // Sau khi tải xong progress records, tải thông tin về module names
+        if (progressViewModel.progressRecords.isNotEmpty) {
+          await _loadModuleTitles(progressViewModel.progressRecords);
+        }
       }
 
       if (mounted) {
@@ -84,6 +93,41 @@ class _HomeScreenState extends State<HomeScreen>
     } catch (e, stackTrace) {
       _handleLoadError(e, stackTrace);
     }
+  }
+
+  // Phương thức mới để tải thông tin module titles
+  Future<void> _loadModuleTitles(List<ProgressSummary> progressList) async {
+    setState(() {
+      _isLoadingModules = true;
+    });
+
+    final moduleViewModel = context.read<ModuleViewModel>();
+
+    // Tạo danh sách các moduleIds cần tải
+    final moduleIds =
+        progressList
+            .map((progress) => progress.moduleId)
+            .where((id) => !_moduleTitles.containsKey(id))
+            .toSet()
+            .toList();
+
+    // Tải thông tin của các module chưa có trong cache
+    for (final moduleId in moduleIds) {
+      try {
+        await moduleViewModel.loadModuleDetails(moduleId);
+        if (moduleViewModel.selectedModule != null) {
+          _moduleTitles[moduleId] = moduleViewModel.selectedModule!.title;
+        }
+      } catch (e) {
+        debugPrint('[HomeScreen] Error loading module $moduleId: $e');
+        // Nếu không tải được, đặt title mặc định
+        _moduleTitles[moduleId] = 'Module $moduleId';
+      }
+    }
+
+    setState(() {
+      _isLoadingModules = false;
+    });
   }
 
   Future<void> _loadLearningStats(
@@ -432,6 +476,7 @@ class _HomeScreenState extends State<HomeScreen>
         compact: true,
       );
     }
+
     if (progressViewModel.isLoading &&
         progressViewModel.progressRecords.isEmpty) {
       return Padding(
@@ -445,6 +490,28 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       );
     }
+
+    if (_isLoadingModules) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
+        child: Center(
+          child: Column(
+            children: [
+              AppLoadingIndicator(
+                size: AppDimens.iconXL,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: AppDimens.spaceS),
+              Text(
+                'Loading module information...',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (progressViewModel.progressRecords.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
@@ -481,9 +548,12 @@ class _HomeScreenState extends State<HomeScreen>
       itemBuilder: (context, index) {
         final progress = limitedList[index];
 
+        // Lấy tên module từ cache, hoặc hiển thị placeholder nếu chưa có
+        final moduleTitle = _moduleTitles[progress.moduleId] ?? 'Loading...';
+
         return ProgressCard(
           progress: progress,
-          moduleTitle: 'Module', // Placeholder - cần dữ liệu thực tế nếu có thể
+          moduleTitle: moduleTitle,
           isDue: true,
           onTap:
               () => GoRouter.of(
