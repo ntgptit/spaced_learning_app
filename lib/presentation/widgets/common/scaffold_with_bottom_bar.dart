@@ -54,6 +54,7 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
     );
   }
 
+  // Thay đổi trong ScaffoldWithBottomBar (_buildBottomNavigationBar)
   Widget _buildBottomNavigationBar(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -66,9 +67,10 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Books'),
+        BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Due'),
         BottomNavigationBarItem(
-          icon: Icon(Icons.assignment),
-          label: 'Learning Overview',
+          icon: Icon(Icons.analytics_outlined),
+          label: 'Stats',
         ),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
@@ -90,9 +92,12 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
         GoRouter.of(context).go('/books');
         break;
       case 2:
-        GoRouter.of(context).go('/learning');
+        GoRouter.of(context).go('/due-progress'); // Tab DueProgress mới
         break;
       case 3:
+        GoRouter.of(context).go('/learning');
+        break;
+      case 4:
         GoRouter.of(context).go('/profile');
         break;
     }

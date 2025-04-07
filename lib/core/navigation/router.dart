@@ -10,6 +10,7 @@ import 'package:spaced_learning_app/presentation/screens/learning/learning_progr
 import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
@@ -48,10 +49,12 @@ class AppRouter {
           final location = state.matchedLocation;
           if (location.startsWith('/books')) {
             currentIndex = 1;
-          } else if (location.startsWith('/learning')) {
+          } else if (location.startsWith('/due-progress')) {
             currentIndex = 2;
-          } else if (location.startsWith('/profile')) {
+          } else if (location.startsWith('/learning')) {
             currentIndex = 3;
+          } else if (location.startsWith('/profile')) {
+            currentIndex = 4;
           }
 
           return ScaffoldWithBottomBar(
@@ -123,6 +126,11 @@ class AppRouter {
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
+          ),
+
+          GoRoute(
+            path: '/due-progress',
+            builder: (context, state) => const DueProgressScreen(),
           ),
 
           // Route cho help screens - vẫn trong shell route để giữ bottom bar
