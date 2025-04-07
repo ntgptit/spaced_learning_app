@@ -289,7 +289,7 @@ class LearningStatsCard extends StatelessWidget {
       crossAxisSpacing: AppDimens.spaceS,
       children:
           items
-              .where((item) => item != null)
+              // Removed unnecessary null check
               .cast<Widget>()
               .toList(), // Filter nulls if any logic changes
     );
