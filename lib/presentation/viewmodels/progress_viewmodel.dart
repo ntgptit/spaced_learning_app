@@ -196,20 +196,46 @@ class ProgressViewModel extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _errorMessage = null;
+    // DEBUG: Log bắt đầu load
+    debugPrint(
+      '[ProgressViewModel] Starting loadDueProgress for userId: $userId, date: $studyDate',
+    );
 
     try {
-      _progressRecords = await progressRepository.getDueProgress(
-        userId,
-        studyDate: studyDate,
-        page: page,
-        size: size,
+      // Lấy dữ liệu từ repository
+      final List<ProgressSummary> result = await progressRepository
+          .getDueProgress(userId, studyDate: studyDate, page: page, size: size);
+      // DEBUG: Log kết quả từ repository
+      debugPrint(
+        '[ProgressViewModel] Received ${result.length} records from repository for due progress.',
+      );
+
+      // Gán dữ liệu vào state
+      _progressRecords = result;
+      // DEBUG: Log sau khi gán state
+      debugPrint(
+        '[ProgressViewModel] Assigned ${result.length} records to _progressRecords.',
       );
     } on AppException catch (e) {
       _errorMessage = e.message;
+      _progressRecords = []; // Xóa dữ liệu cũ nếu có lỗi
+      // DEBUG: Log lỗi AppException
+      debugPrint(
+        '[ProgressViewModel] AppException during loadDueProgress: $_errorMessage',
+      );
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
+      _progressRecords = []; // Xóa dữ liệu cũ nếu có lỗi
+      // DEBUG: Log lỗi khác
+      debugPrint(
+        '[ProgressViewModel] Unexpected error during loadDueProgress: $e',
+      );
     } finally {
       _setLoading(false);
+      // DEBUG: Log kết thúc load (thành công hoặc thất bại)
+      debugPrint(
+        '[ProgressViewModel] Finished loadDueProgress. isLoading: $_isLoading, error: $_errorMessage, record count: ${_progressRecords.length}',
+      );
     }
   }
 
@@ -325,8 +351,13 @@ class ProgressViewModel extends ChangeNotifier {
 
   /// Set loading state and notify listeners
   void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
+    // DEBUG: Log thay đổi trạng thái loading
+    debugPrint('[ProgressViewModel] Setting isLoading to: $loading');
+    if (_isLoading != loading) {
+      // Chỉ cập nhật và thông báo nếu trạng thái thực sự thay đổi
+      _isLoading = loading;
+      notifyListeners();
+    }
   }
 
   /// Clear error message

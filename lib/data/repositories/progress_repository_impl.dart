@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/core/constants/api_endpoints.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
@@ -209,18 +210,72 @@ class ProgressRepositoryImpl implements ProgressRepository {
         queryParameters: queryParams,
       );
 
-      if (response['success'] == true && response['content'] != null) {
+      // DEBUG: In ra response thô từ API
+      debugPrint(
+        '[ProgressRepositoryImpl] Raw API response for getDueProgress: $response',
+      );
+
+      // --- SỬA ĐỔI TỪ ĐÂY ---
+      // Kiểm tra xem response có phải là Map và có chứa key 'content' là List không
+      if (response is Map<String, dynamic> && response['content'] is List) {
         final List<dynamic> progressList = response['content'];
-        return progressList
-            .map((item) => ProgressSummary.fromJson(item))
-            .toList();
+        // DEBUG: In ra số lượng item trước khi parse
+        debugPrint(
+          '[ProgressRepositoryImpl] Found ${progressList.length} due progress items before parsing.',
+        );
+        try {
+          // Đảm bảo parse an toàn hơn
+          final parsedList =
+              progressList
+                  .map((item) {
+                    if (item is Map<String, dynamic>) {
+                      return ProgressSummary.fromJson(item);
+                    } else {
+                      // Log item không hợp lệ nếu cần
+                      debugPrint(
+                        '[ProgressRepositoryImpl] Invalid item format found in content list: $item',
+                      );
+                      return null; // Hoặc throw lỗi tùy logic xử lý
+                    }
+                  })
+                  .whereType<
+                    ProgressSummary
+                  >() // Chỉ giữ lại những item parse thành công và không null
+                  .toList();
+          // DEBUG: In ra số lượng item sau khi parse
+          debugPrint(
+            '[ProgressRepositoryImpl] Parsed ${parsedList.length} due progress items successfully.',
+          );
+          return parsedList;
+        } catch (e) {
+          // DEBUG: In ra lỗi parsing
+          debugPrint(
+            '[ProgressRepositoryImpl] Error parsing ProgressSummary: $e',
+          );
+          // Có thể in ra toàn bộ list để dễ debug hơn
+          // debugPrint('[ProgressRepositoryImpl] Failed content data: $progressList');
+          throw DataFormatException('Failed to parse progress data: $e');
+        }
       } else {
+        // DEBUG: In ra lý do không có content hoặc sai định dạng
+        debugPrint(
+          '[ProgressRepositoryImpl] Response is not a valid Map or does not contain a "content" list.',
+        );
+        debugPrint(
+          '[ProgressRepositoryImpl] Response type: ${response?.runtimeType}',
+        );
         return [];
       }
+      // --- KẾT THÚC SỬA ĐỔI ---
+    } on AppException catch (e) {
+      // DEBUG: In ra AppException
+      debugPrint('[ProgressRepositoryImpl] AppException in getDueProgress: $e');
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
+      // DEBUG: In ra lỗi không mong muốn khác
+      debugPrint(
+        '[ProgressRepositoryImpl] Unexpected error in getDueProgress: $e',
+      );
       throw UnexpectedException('Failed to get due progress: $e');
     }
   }
