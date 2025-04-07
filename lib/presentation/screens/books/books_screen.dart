@@ -111,6 +111,13 @@ class _BooksScreenState extends State<BooksScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Books'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => GoRouter.of(context).pop(),
+        ),
+      ),
       body: Column(
         children: [
           Padding(
