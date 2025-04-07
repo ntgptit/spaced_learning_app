@@ -145,7 +145,7 @@ class RepetitionCard extends StatelessWidget {
             _buildActionButton(
               'Reschedule',
               Icons.calendar_month,
-              AppColors.primaryBlue,
+              AppColors.darkPrimary,
               onReschedule!,
             ),
           const SizedBox(width: AppDimens.spaceS),
@@ -248,7 +248,7 @@ class RepetitionCard extends StatelessWidget {
   Color _getStatusColor(RepetitionStatus status) {
     switch (status) {
       case RepetitionStatus.notStarted:
-        return AppColors.primaryBlue;
+        return AppColors.darkPrimary;
       case RepetitionStatus.completed:
         return AppColors.successLight;
       case RepetitionStatus.skipped:
@@ -276,9 +276,9 @@ class RepetitionCard extends StatelessWidget {
     final target = DateTime(date.year, date.month, date.day);
     final difference = target.difference(today).inDays;
 
-    if (difference < 0) return AppColors.errorDark;
+    if (difference < 0) return AppColors.accentOrange;
     if (difference == 0) return AppColors.successDark;
     if (difference <= 3) return AppColors.warningLight;
-    return AppColors.primaryBlueDark;
+    return AppColors.accentPurple;
   }
 }

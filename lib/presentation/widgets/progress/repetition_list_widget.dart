@@ -369,7 +369,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   Color _getCycleColor(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return AppColors.primaryBlue;
+        return AppColors.darkPrimary;
       case CycleStudied.firstReview:
         return AppColors.successDark;
       case CycleStudied.secondReview:

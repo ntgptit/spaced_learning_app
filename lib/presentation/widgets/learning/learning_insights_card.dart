@@ -105,9 +105,9 @@ class LearningInsightsCard extends StatelessWidget {
   Color _getColorFromString(String colorName) {
     switch (colorName.toLowerCase()) {
       case 'blue':
-        return AppColors.primaryBlue;
+        return AppColors.darkPrimary;
       case 'red':
-        return AppColors.errorDark;
+        return AppColors.darkDivider;
       case 'green':
         return AppColors.successLight;
       case 'orange':

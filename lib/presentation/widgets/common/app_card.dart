@@ -1,5 +1,6 @@
 // lib/presentation/widgets/common/app_card.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class AppCard extends StatelessWidget {
@@ -16,6 +17,10 @@ class AppCard extends StatelessWidget {
   final double borderRadius;
   final Color? backgroundColor;
   final Color? highlightColor;
+  final Color? shadowColor;
+  final bool useGradient;
+  final LinearGradient? customGradient;
+  final bool applyOuterShadow;
 
   const AppCard({
     super.key,
@@ -32,33 +37,53 @@ class AppCard extends StatelessWidget {
     this.borderRadius = AppDimens.radiusL,
     this.backgroundColor,
     this.highlightColor,
+    this.shadowColor,
+    this.useGradient = false,
+    this.customGradient,
+    this.applyOuterShadow = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
-      margin: margin,
-      elevation:
-          elevation ??
-          (theme.brightness == Brightness.dark
-              ? AppDimens.elevationXS
-              : AppDimens.elevationS),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      color: backgroundColor ?? colorScheme.surface,
-      clipBehavior: Clip.antiAlias,
+    final effectiveBackgroundColor =
+        backgroundColor ??
+        (isDark
+            ? AppColors.darkSurfaceContainerLow
+            : AppColors.surfaceContainerLowest);
+
+    final effectiveShadowColor =
+        shadowColor ?? (isDark ? Colors.black54 : Colors.black26);
+
+    // Create the content widget with potential gradient background
+    final Widget cardContent = Container(
+      decoration:
+          useGradient
+              ? BoxDecoration(
+                gradient:
+                    customGradient ??
+                    (isDark
+                        ? const LinearGradient(
+                          colors: [
+                            AppColors.darkSurfaceContainerLow,
+                            AppColors.darkSurfaceContainerHigh,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                        : AppColors.gradientPrimary),
+              )
+              : null,
       child: InkWell(
         onTap: onTap,
         highlightColor:
             highlightColor ??
-            colorScheme.primary.withValues(alpha: AppDimens.opacityMedium),
-        splashColor: colorScheme.primary.withValues(
-          alpha: AppDimens.opacityMedium,
-        ),
+            colorScheme.primary.withOpacity(AppDimens.opacitySemi),
+        splashColor: colorScheme.primary.withOpacity(AppDimens.opacityMedium),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -95,8 +120,8 @@ class AppCard extends StatelessWidget {
                             if (subtitle != null)
                               DefaultTextStyle(
                                 style: theme.textTheme.bodyMedium!.copyWith(
-                                  color: colorScheme.onSurface.withValues(
-                                    alpha: AppDimens.opacityHigh,
+                                  color: colorScheme.onSurface.withOpacity(
+                                    AppDimens.opacityHigh,
                                   ),
                                 ),
                                 child: subtitle!,
@@ -162,6 +187,54 @@ class AppCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    // Apply outer shadow if requested (mimicking todo app's card style)
+    if (applyOuterShadow) {
+      return Container(
+        margin: margin,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(borderRadius),
+          boxShadow: [
+            BoxShadow(
+              color: effectiveShadowColor.withOpacity(0.2),
+              blurRadius: AppDimens.shadowRadiusL,
+              spreadRadius: AppDimens.shadowOffsetS,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Card(
+          margin: EdgeInsets.zero,
+          elevation:
+              elevation ??
+              (theme.brightness == Brightness.dark
+                  ? AppDimens.elevationXS
+                  : AppDimens.elevationS),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          color: effectiveBackgroundColor,
+          clipBehavior: Clip.antiAlias,
+          child: cardContent,
+        ),
+      );
+    }
+
+    // Standard card without outer shadow
+    return Card(
+      margin: margin,
+      elevation:
+          elevation ??
+          (theme.brightness == Brightness.dark
+              ? AppDimens.elevationXS
+              : AppDimens.elevationS),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+      color: effectiveBackgroundColor,
+      clipBehavior: Clip.antiAlias,
+      child: cardContent,
     );
   }
 }
