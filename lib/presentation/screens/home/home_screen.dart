@@ -1,17 +1,14 @@
+// lib/presentation/screens/home/home_tab_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
-import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/dashboard_section.dart';
@@ -23,7 +20,6 @@ import 'package:spaced_learning_app/presentation/widgets/learning/learning_insig
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
-/// Integrated home screen with dashboard functionality
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -31,26 +27,25 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  // State variables
+class _HomeScreenState extends State<HomeScreen>
+    with AutomaticKeepAliveClientMixin {
   bool _isInitialized = false;
-  int _currentIndex = 0;
-
-  // Track the last time data was loaded to prevent excessive refreshes
   DateTime? _lastLoadTime;
+
+  @override
+  bool get wantKeepAlive => true; // Giữ trạng thái màn hình khi chuyển tab
 
   @override
   void initState() {
     super.initState();
-    // Use WidgetsBinding.instance.addPostFrameCallback for safety
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _loadData(forceRefresh: true),
     );
   }
 
-  // Data loading with optional force refresh parameter
+  // Data loading với khả năng buộc refresh
   Future<void> _loadData({bool forceRefresh = false}) async {
-    // Prevent excessive refreshes (only refresh if it's been more than 5 seconds since last refresh)
+    // Ngăn chặn refresh quá thường xuyên
     final now = DateTime.now();
     if (!forceRefresh &&
         _lastLoadTime != null &&
@@ -58,40 +53,35 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // Update last load time
+    // Cập nhật thời gian tải dữ liệu gần nhất
     _lastLoadTime = now;
 
-    // Ensure the widget is still mounted before proceeding
     if (!mounted) return;
 
     try {
-      // Use context.read inside methods where context is available and needed once
       final authViewModel = context.read<AuthViewModel>();
       final progressViewModel = context.read<ProgressViewModel>();
       final learningStatsViewModel = context.read<LearningStatsViewModel>();
 
-      if (authViewModel.currentUser != null) {
-        // Reset any cache in view models before loading fresh data
-        progressViewModel.clearError(); // Reset any previous errors
-        learningStatsViewModel.clearError();
+      // Reset error trước khi tải dữ liệu mới
+      progressViewModel.clearError();
+      learningStatsViewModel.clearError();
 
-        // Load data concurrently
+      if (authViewModel.currentUser != null) {
+        // Tải dữ liệu đồng thời
         await Future.wait([
           _loadLearningStats(
             learningStatsViewModel,
             forceRefresh: forceRefresh,
           ),
           _loadDueProgress(authViewModel, progressViewModel),
-          // Add other data loading futures here if needed
         ]);
       }
 
-      // Check mounted again before calling setState
       if (mounted) {
         setState(() => _isInitialized = true);
       }
     } catch (e, stackTrace) {
-      // Catch specific exceptions if possible
       _handleLoadError(e, stackTrace);
     }
   }
@@ -100,12 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
     LearningStatsViewModel viewModel, {
     bool forceRefresh = false,
   }) async {
-    // Always load fresh data if force refresh is requested
     try {
       await viewModel.loadAllStats(refreshCache: forceRefresh);
     } catch (e) {
       debugPrint('Error loading learning stats: $e');
-      // Optionally propagate or handle error specifically for this load
     }
   }
 
@@ -113,13 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
     AuthViewModel authViewModel,
     ProgressViewModel progressViewModel,
   ) async {
-    // Always load fresh data for due progress
     if (authViewModel.currentUser != null) {
       try {
         await progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
       } catch (e) {
         debugPrint('Error loading due progress: $e');
-        // Optionally propagate or handle error specifically for this load
       }
     }
   }
@@ -127,13 +113,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleLoadError(dynamic error, StackTrace stackTrace) {
     debugPrint('Error loading home screen data: $error\n$stackTrace');
     if (mounted) {
-      // Set initialized to true even on error to stop loading indicator
       setState(() => _isInitialized = true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Error loading data. Please try again. (${error.toString().split('\n').first})',
-          ), // More user-friendly message
+          ),
           backgroundColor: Colors.redAccent,
           action: SnackBarAction(
             label: 'Retry',
@@ -146,135 +131,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToLearningStats() {
-    Navigator.of(context)
-        .push(
-          MaterialPageRoute(builder: (context) => const LearningStatsScreen()),
-        )
-        .then((_) {
-          // Reload data when returning from Learning Stats screen
-          _loadData();
-        });
+    GoRouter.of(context).push('/learning-stats');
   }
 
-  // Build methods
   @override
   Widget build(BuildContext context) {
-    // Use context.watch only where UI needs to rebuild on changes
+    super.build(context); // Cần thiết cho AutomaticKeepAliveClientMixin
+
     final themeViewModel = context.watch<ThemeViewModel>();
-    final authViewModel = context.watch<AuthViewModel>();
-
-    if (authViewModel.currentUser == null) {
-      // Provide a more informative placeholder or redirect to login
-      return const Scaffold(
-        body: Center(child: Text('Please log in to view your dashboard')),
-      );
-    }
-
-    // Use WillPopScope to refresh data when returning to this screen
-    return WillPopScope(
-      onWillPop: () async {
-        // If we're on the home tab and popping back to this screen
-        if (_currentIndex == 0) {
-          _loadData();
-        }
-        return true;
-      },
-      child: Scaffold(
-        appBar: HomeAppBar(
-          isDarkMode: themeViewModel.isDarkMode,
-          onThemeToggle: themeViewModel.toggleTheme,
-          // Pass other necessary parameters if any
-        ),
-        drawer: const AppDrawer(),
-        body: _buildBody(), // Delegate body building
-        bottomNavigationBar: _buildBottomNavigationBar(),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    // Watch view models needed for the current body content
     final authViewModel = context.watch<AuthViewModel>();
     final progressViewModel = context.watch<ProgressViewModel>();
     final learningStatsViewModel = context.watch<LearningStatsViewModel>();
 
-    // Determine loading state based on relevant view models and initialization flag
-    final isLoading =
-        // Check specific loading flags if available, otherwise rely on _isInitialized
-        progressViewModel
-            .isLoading || // Assuming ProgressViewModel has isLoading
-        learningStatsViewModel
-            .isLoading || // Assuming LearningStatsViewModel has isLoading
-        !_isInitialized;
-
-    // Use a switch expression for cleaner body selection
-    return switch (_currentIndex) {
-      0 => _buildHomeTab(
+    return Scaffold(
+      appBar: HomeAppBar(
+        isDarkMode: themeViewModel.isDarkMode,
+        onThemeToggle: themeViewModel.toggleTheme,
+      ),
+      body: _buildBody(
         authViewModel,
         progressViewModel,
         learningStatsViewModel,
-        isLoading,
       ),
-      1 => const BooksScreen(),
-      2 => const LearningProgressScreen(),
-      3 => const ProfileScreen(),
-      // Default case, can redirect to home or show an error
-      _ => _buildHomeTab(
-        authViewModel,
-        progressViewModel,
-        learningStatsViewModel,
-        isLoading,
-      ),
-    };
-  }
-
-  Widget _buildBottomNavigationBar() {
-    final theme = Theme.of(context);
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (index) {
-        // Refresh data when:
-        // 1. Tapping home tab while already on home tab (pull-to-refresh behavior)
-        // 2. Switching to home tab from another tab
-        if ((index == 0 && _currentIndex == 0) ||
-            (index == 0 && _currentIndex != 0)) {
-          _loadData();
-        }
-        setState(() => _currentIndex = index);
-      },
-      type: BottomNavigationBarType.fixed, // Good for 4+ items
-      selectedItemColor: theme.colorScheme.primary,
-      // Use a defined opacity or keep 0.6 if standard opacities don't match
-      unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Books'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.assignment),
-          label: 'Learning Overview',
-        ),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-      ],
     );
   }
 
-  // Builds the content for the Home tab specifically
-  Widget _buildHomeTab(
+  Widget _buildBody(
     AuthViewModel authViewModel,
     ProgressViewModel progressViewModel,
     LearningStatsViewModel learningStatsViewModel,
-    bool isLoading,
   ) {
+    // Xác định trạng thái loading
+    final isLoading =
+        progressViewModel.isLoading ||
+        learningStatsViewModel.isLoading ||
+        !_isInitialized;
+
     return RefreshIndicator(
-      onRefresh:
-          () => _loadData(
-            forceRefresh: true,
-          ), // Trigger data reload on pull-to-refresh
+      onRefresh: () => _loadData(forceRefresh: true),
       child:
           isLoading
-              ? const Center(
-                child: AppLoadingIndicator(),
-              ) // Use consistent loading indicator
+              ? const Center(child: AppLoadingIndicator())
               : _buildHomeContent(
                 authViewModel,
                 progressViewModel,
@@ -283,94 +180,79 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Builds the scrollable content of the Home tab
   Widget _buildHomeContent(
     AuthViewModel authViewModel,
     ProgressViewModel progressViewModel,
     LearningStatsViewModel learningStatsViewModel,
   ) {
     final theme = Theme.of(context);
-    // Simplify checks
     final stats = learningStatsViewModel.stats;
     final insights = learningStatsViewModel.insights;
     final hasStats = stats != null;
     final hasInsights = insights.isNotEmpty;
 
     return ListView(
-      // Use AppDimens for padding
-      padding: const EdgeInsets.all(AppDimens.paddingL), // Changed from 16.0
+      padding: const EdgeInsets.all(AppDimens.paddingL),
       children: [
-        // Ensure WelcomeSection takes necessary params
         WelcomeSection(user: authViewModel.currentUser!),
-        // Use AppDimens for spacing
-        const SizedBox(height: AppDimens.spaceXL), // Changed from 24
-        // Conditional rendering for Stats Card or Legacy Dashboard
+        const SizedBox(height: AppDimens.spaceXL),
+
+        // Stats Section
         if (hasStats)
           LearningStatsCard(
             stats: stats,
             onViewDetailPressed: _navigateToLearningStats,
           )
         else
-          // Consider showing a placeholder or specific message if stats are expected but null
-          _buildLegacyDashboard(
-            learningStatsViewModel,
-          ), // Fallback or loading state
+          _buildLegacyDashboard(learningStatsViewModel),
 
-        const SizedBox(height: AppDimens.spaceXL), // Changed from 24
+        const SizedBox(height: AppDimens.spaceXL),
+
         // Due Today Section
         _buildDueTodaySection(theme, progressViewModel),
-        const SizedBox(height: AppDimens.spaceXL), // Changed from 24
-        // Conditional rendering for Insights Card or Legacy Insights
+
+        const SizedBox(height: AppDimens.spaceXL),
+
+        // Insights Section
         if (hasStats && hasInsights)
           LearningInsightsCard(
             insights: insights,
             onViewMorePressed: _navigateToLearningStats,
           )
-        else if (hasStats) // Show legacy only if stats exist but new insights don't
-          _buildLegacyInsights(stats)
-        // Optionally show nothing or a placeholder if no stats for insights
-        else
-          const SizedBox.shrink(), // Or a placeholder widget
+        else if (hasStats)
+          _buildLegacyInsights(stats),
 
-        const SizedBox(height: AppDimens.spaceXL), // Changed from 24
-        // Quick Actions Section Title
+        const SizedBox(height: AppDimens.spaceXL),
+
+        // Quick Actions Section
         Text('Quick Actions', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceL), // Changed from 16
+        const SizedBox(height: AppDimens.spaceL),
         QuickActionsSection(
-          onBrowseBooksPressed: () => setState(() => _currentIndex = 1),
-          onTodaysLearningPressed: () => setState(() => _currentIndex = 2),
-          onProgressReportPressed:
-              () => Navigator.of(context)
-                  .push(
-                    MaterialPageRoute(
-                      builder: (context) => const LearningProgressScreen(),
-                    ),
-                  )
-                  .then((_) => _loadData()), // Reload data when returning
+          onBrowseBooksPressed: () => GoRouter.of(context).go('/books'),
+          onTodaysLearningPressed: () => GoRouter.of(context).go('/learning'),
+          onProgressReportPressed: () => GoRouter.of(context).go('/learning'),
           onVocabularyStatsPressed: _navigateToLearningStats,
         ),
-        const SizedBox(
-          height: AppDimens.spaceXL,
-        ), // Changed from 24, consistent bottom spacing
+
+        const SizedBox(height: AppDimens.spaceXL),
       ],
     );
   }
 
-  // Builds the fallback dashboard section if new LearningStatsCard isn't used
   Widget _buildLegacyDashboard(LearningStatsViewModel viewModel) {
-    // Handle error state first
+    // Xử lý trạng thái lỗi trước
     if (viewModel.errorMessage != null) {
       return ErrorDisplay(
         message: viewModel.errorMessage!,
         onRetry: () => _loadData(forceRefresh: true),
-        compact: true, // Assuming this is appropriate here
+        compact: true,
       );
     }
 
-    // Use null-aware operators safely
+    // Sử dụng null-aware operators an toàn
     final stats = viewModel.stats;
 
-    // If stats are null but no error, show loading or placeholder
+    // Nếu stats là null nhưng không lỗi, hiển thị loading hoặc placeholder
     if (stats == null && !viewModel.isLoading) {
       return const Card(
         child: Padding(
@@ -379,13 +261,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    // Show dashboard section only if stats are available
+    // Hiển thị DashboardSection chỉ khi có stats
     if (stats != null) {
       return DashboardSection(
-        // Pass stats safely using null-aware access or defaults
         moduleStats: ModuleStats(
           totalModules: stats.totalModules,
-          // Provide default empty map if null
           cycleStats: stats.cycleStats,
         ),
         dueStats: DueStats(
@@ -396,10 +276,8 @@ class _HomeScreenState extends State<HomeScreen> {
           wordsDueThisWeek: stats.wordsDueThisWeek,
           wordsDueThisMonth: stats.wordsDueThisMonth,
         ),
-        // Assuming CompletionStats fields exist in LearningStatsDTO
-        // Add null checks or defaults if these fields might be null in LearningStatsDTO
         completionStats: CompletionStats(
-          completedToday: stats.completedToday, // Example null check
+          completedToday: stats.completedToday,
           completedThisWeek: stats.completedThisWeek,
           completedThisMonth: stats.completedThisMonth,
           wordsCompletedToday: stats.wordsCompletedToday,
@@ -421,14 +299,13 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Fallback if still loading (though outer check should handle this)
+    // Fallback nếu đang loading (mặc dù kiểm tra bên ngoài sẽ xử lý điều này)
     return const Center(child: AppLoadingIndicator());
   }
 
-  // Builds the fallback insights widget
   Widget _buildLegacyInsights(LearningStatsDTO? stats) {
-    // Use default values only if stats are truly null
-    const defaultRate = 5.5; // Define default value clearly
+    // Sử dụng giá trị mặc định chỉ khi stats thực sự là null
+    const defaultRate = 5.5; // Định nghĩa rõ ràng giá trị mặc định
 
     return LearningInsightsWidget(
       vocabularyRate: stats?.weeklyNewWordsRate ?? defaultRate,
@@ -438,30 +315,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Builds the "Due Today" section card
   Widget _buildDueTodaySection(
     ThemeData theme,
     ProgressViewModel progressViewModel,
   ) {
     return Card(
-      margin: EdgeInsets.zero, // Remove default card margin if needed
+      margin: EdgeInsets.zero, // Loại bỏ margin card mặc định nếu cần
       child: Padding(
-        // Use AppDimens for padding
-        padding: const EdgeInsets.all(AppDimens.paddingL), // Changed from 16.0
+        padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(Icons.calendar_today, color: theme.colorScheme.primary),
-                // Use AppDimens for spacing
-                const SizedBox(width: AppDimens.spaceS), // Changed from 8
+                const SizedBox(width: AppDimens.spaceS),
                 Text('Due Today', style: theme.textTheme.titleLarge),
                 const Spacer(),
                 Chip(
                   label: Text(
                     '${progressViewModel.progressRecords.length} items',
-                    // Consider using theme text style for chip
                     style: theme.chipTheme.labelStyle?.copyWith(
                       color:
                           theme.chipTheme.selectedColor ??
@@ -473,24 +346,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       theme.colorScheme.primary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingS,
-                  ), // Add padding
+                  ),
                 ),
               ],
             ),
-            const Divider(
-              height: AppDimens.paddingL * 2,
-            ), // Use dimens for divider spacing if needed
-            _buildDueProgressContent(
-              progressViewModel,
-            ), // Build list or placeholder
-            // Show "View all" only if there are items
+            const Divider(height: AppDimens.paddingL * 2),
+            _buildDueProgressContent(progressViewModel),
             if (progressViewModel.progressRecords.isNotEmpty) ...[
-              // Use AppDimens for spacing
-              const SizedBox(height: AppDimens.spaceS), // Changed from 8
+              const SizedBox(height: AppDimens.spaceS),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => setState(() => _currentIndex = 2),
+                  onPressed: () => GoRouter.of(context).go('/learning'),
                   child: const Text('View all'),
                 ),
               ),
@@ -501,44 +368,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Builds the content inside the "Due Today" card (list or message)
   Widget _buildDueProgressContent(ProgressViewModel progressViewModel) {
     if (progressViewModel.errorMessage != null) {
       return ErrorDisplay(
         message: progressViewModel.errorMessage!,
-        onRetry:
-            () => _loadData(
-              forceRefresh: true,
-            ), // Allow retrying the entire data load
+        onRetry: () => _loadData(forceRefresh: true),
         compact: true,
       );
     }
     if (progressViewModel.isLoading &&
         progressViewModel.progressRecords.isEmpty) {
-      // Show loading specifically for this section if needed
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
-        child: Center(
-          child: AppLoadingIndicator(size: AppDimens.iconXL),
-        ), // Use dimens
+        child: Center(child: AppLoadingIndicator(size: AppDimens.iconXL)),
       );
     }
     if (progressViewModel.progressRecords.isEmpty) {
       return const Padding(
-        // Use AppDimens for padding
-        padding: EdgeInsets.symmetric(
-          vertical: AppDimens.paddingXXL,
-        ), // Changed from 24.0
+        padding: EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
         child: Center(child: Text('No repetitions due today. Great job!')),
       );
     }
-    // Build the list if records exist
+
+    // Xây dựng danh sách nếu có records
     return _buildDueProgressList(progressViewModel.progressRecords);
   }
 
-  // Builds the limited list of due progress items for the home screen
   Widget _buildDueProgressList(List<ProgressSummary> progressList) {
-    // Limit the number of items shown on the home screen
+    // Giới hạn số lượng items hiển thị trên màn hình home
     const int maxItemsToShow = 3;
     final limitedList =
         progressList.length > maxItemsToShow
@@ -546,22 +403,20 @@ class _HomeScreenState extends State<HomeScreen> {
             : progressList;
 
     return ListView.builder(
-      shrinkWrap: true, // Important for ListView inside Column
-      physics:
-          const NeverScrollableScrollPhysics(), // Disable scrolling within list
+      shrinkWrap: true, // Quan trọng cho ListView trong Column
+      physics: const NeverScrollableScrollPhysics(), // Tắt cuộn trong list
       itemCount: limitedList.length,
       itemBuilder: (context, index) {
         final progress = limitedList[index];
-        // Ensure ProgressCard uses AppDimens internally
+
         return ProgressCard(
           progress: progress,
-          // TODO: Get actual module title if available
-          moduleTitle: 'Module', // Placeholder - need actual data if possible
+          moduleTitle: 'Module', // Placeholder - cần dữ liệu thực tế nếu có thể
           isDue: true,
           onTap:
-              () => Navigator.of(context)
-                  .pushNamed('/progress/detail', arguments: progress.id)
-                  .then((_) => _loadData()), // Reload data when returning
+              () => GoRouter.of(
+                context,
+              ).push('/learning/progress/${progress.id}'),
         );
       },
     );

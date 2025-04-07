@@ -5,7 +5,7 @@ import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart'
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/home/home_tab_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
@@ -63,7 +63,7 @@ class AppRouter {
           // Tab Home và các route con
           GoRoute(
             path: '/',
-            builder: (context, state) => const HomeTabScreen(),
+            builder: (context, state) => const HomeScreen(),
             routes: [
               GoRoute(
                 path: 'learning-stats',
