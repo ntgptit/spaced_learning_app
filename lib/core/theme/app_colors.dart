@@ -1,294 +1,211 @@
 import 'package:flutter/material.dart';
 
-/// Defines a comprehensive color palette for the application, inspired by the todo list app.
-/// The palette focuses on warm, energetic colors with fire element inspirations.
+/// Defines a comprehensive color palette for the application,
+/// with smoky grey as the primary color and traditional semantic colors.
 class AppColors {
-  // --- Core Palette (Fire Element Optimized) ---
+  // --- Core Palette (Smoky Grey Theme) ---
 
   // --- Light Theme Colors ---
-  static const Color lightPrimary = Color(
-    0xFFE53935,
-  ); // Red 600 - Primary Fire color
-  static const Color lightPrimaryVariant = Color(
-    0xFFD81B60,
-  ); // Pink 600 - Fire variant
+  static const Color lightPrimary = Color(0xFF5D5D5D); // Smoky Grey
+  static const Color lightPrimaryVariant = Color(0xFF7D7D7D); // Lighter Grey
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color lightPrimaryContainer = Color(
-    0xFFFF8A80,
-  ); // Coral Red 400 - Softer shade
-  static const Color lightOnPrimaryContainer = Color(0xFF4F0000); // Dark red
+  static const Color lightPrimaryContainer = Color(0xFFE0E0E0); // Light Grey
+  static const Color lightOnPrimaryContainer = Color(0xFF2D2D2D); // Dark Grey
 
-  static const Color lightSecondary = Color(
-    0xFFE65100,
-  ); // Deep Orange 900 - Supportive Fire
+  static const Color lightSecondary = Color(0xFF757575); // Material Grey 600
   static const Color lightSecondaryVariant = Color(
-    0xFFFF7043,
-  ); // Orange 400 - Lighter variant
+    0xFF9E9E9E,
+  ); // Material Grey 500
   static const Color lightOnSecondary = Color(0xFFFFFFFF);
   static const Color lightSecondaryContainer = Color(
-    0xFFFFE0B2,
-  ); // Orange 100 - Light background
-  static const Color lightOnSecondaryContainer = Color(
-    0xFF572800,
-  ); // Dark orange
+    0xFFF5F5F5,
+  ); // Light Grey background
+  static const Color lightOnSecondaryContainer = Color(0xFF424242); // Dark Grey
 
-  static const Color lightTertiary = Color(
-    0xFF7B1FA2,
-  ); // Purple 700 - Wood supports Fire
-  static const Color lightTertiaryVariant = Color(
-    0xFFAB47BC,
-  ); // Purple 400 - Lighter Wood
+  static const Color lightTertiary = Color(0xFF607D8B); // Blue Grey 500
+  static const Color lightTertiaryVariant = Color(0xFF78909C); // Blue Grey 400
   static const Color lightOnTertiary = Color(0xFFFFFFFF);
-  static const Color lightTertiaryContainer = Color(
-    0xFFE1BEE7,
-  ); // Purple 100 - Light background
+  static const Color lightTertiaryContainer = Color(0xFFECEFF1); // Blue Grey 50
   static const Color lightOnTertiaryContainer = Color(
-    0xFF3E0055,
-  ); // Dark purple
+    0xFF263238,
+  ); // Blue Grey 900
 
-  static const Color lightBackground = Color(
-    0xFFF8EDEB,
-  ); // Warm beige - Earth support
-  static const Color lightOnBackground = Color(0xFF3E2723); // Warm dark brown
-  static const Color lightSurface = Color(0xFFF8EDEB); // Warm beige
-  static const Color lightOnSurface = Color(0xFF3E2723); // Warm dark brown
+  static const Color lightBackground = Color(0xFFF8F9FA); // Very light grey
+  static const Color lightOnBackground = Color(0xFF212121); // Almost black
+  static const Color lightSurface = Color(0xFFFFFFFF); // White
+  static const Color lightOnSurface = Color(0xFF212121); // Almost black
 
-  static const Color lightSurfaceVariant = Color(
-    0xFFEBDFD3,
-  ); // Darker beige - Earth
-  static const Color lightOnSurfaceVariant = Color(0xFF52443C); // Earthy brown
-  static const Color lightOutline = Color(
-    0xFF7D6E64,
-  ); // Light earthy brown - Earth
-  static const Color lightDivider = Color(
-    0xFFB0A197,
-  ); // Medium earthy brown - Subtle divider
-
-  static const Color lightError = Color(0xFFD32F2F); // Red 700 - Error (Fire)
-  static const Color lightOnError = Color(0xFFFFFFFF);
-  static const Color lightErrorContainer = Color(0xFFFFEBEE); // Light red
-  static const Color lightOnErrorContainer = Color(0xFF450A0A); // Dark red
+  static const Color lightSurfaceVariant = Color(0xFFEEEEEE); // Light grey
+  static const Color lightOnSurfaceVariant = Color(0xFF616161); // Medium grey
+  static const Color lightOutline = Color(0xFFBDBDBD); // Light grey
+  static const Color lightDivider = Color(0xFFE0E0E0); // Very light grey
 
   // --- Dark Theme Colors ---
-  static const Color darkPrimary = Color(
-    0xFFFF6E6E,
-  ); // Bright red - Fire in dark mode
+  static const Color darkPrimary = Color(0xFF9E9E9E); // Material Grey 500
   static const Color darkPrimaryVariant = Color(
-    0xFFF06292,
-  ); // Pink 300 - Fire variant
-  static const Color darkOnPrimary = Color(0xFF4F0000); // Dark red
+    0xFFBDBDBD,
+  ); // Material Grey 400
+  static const Color darkOnPrimary = Color(0xFF212121); // Almost black
   static const Color darkPrimaryContainer = Color(
-    0xFFB71C1C,
-  ); // Red 900 - Darker
-  static const Color darkOnPrimaryContainer = Color(
-    0xFFFFDADA,
-  ); // Very light red
+    0xFF424242,
+  ); // Material Grey 800
+  static const Color darkOnPrimaryContainer = Color(0xFFEEEEEE); // Light grey
 
-  static const Color darkSecondary = Color(
-    0xFFFFB74D,
-  ); // Orange 300 - Bright Fire
-  static const Color darkSecondaryVariant = Color(
-    0xFFFF8A65,
-  ); // Orange 400 - Variant
-  static const Color darkOnSecondary = Color(0xFF572800); // Dark orange
+  static const Color darkSecondary = Color(0xFFB0BEC5); // Blue Grey 200
+  static const Color darkSecondaryVariant = Color(0xFF78909C); // Blue Grey 400
+  static const Color darkOnSecondary = Color(0xFF37474F); // Blue Grey 800
   static const Color darkSecondaryContainer = Color(
-    0xFFBF360C,
-  ); // Deep Orange 900
+    0xFF455A64,
+  ); // Blue Grey 700
   static const Color darkOnSecondaryContainer = Color(
-    0xFFFFDCC3,
-  ); // Very light orange
+    0xFFCFD8DC,
+  ); // Blue Grey 100
 
-  static const Color darkTertiary = Color(
-    0xFFCE93D8,
-  ); // Purple 200 - Bright Wood
-  static const Color darkTertiaryVariant = Color(
-    0xFFBA68C8,
-  ); // Purple 300 - Variant
-  static const Color darkOnTertiary = Color(0xFF3E0055); // Dark purple
-  static const Color darkTertiaryContainer = Color(0xFF6A1B9A); // Purple 900
+  static const Color darkTertiary = Color(0xFF90A4AE); // Blue Grey 300
+  static const Color darkTertiaryVariant = Color(0xFF78909C); // Blue Grey 400
+  static const Color darkOnTertiary = Color(0xFF263238); // Blue Grey 900
+  static const Color darkTertiaryContainer = Color(0xFF546E7A); // Blue Grey 600
   static const Color darkOnTertiaryContainer = Color(
-    0xFFF3D9FF,
-  ); // Very light purple
+    0xFFECEFF1,
+  ); // Blue Grey 50
 
-  static const Color darkBackground = Color(
-    0xFF3C2F2F,
-  ); // Warm reddish-brown - Earth
-  static const Color darkOnBackground = Color(0xFFEDE0D9); // Light beige
-  static const Color darkSurface = Color(0xFF3C2F2F); // Warm reddish-brown
-  static const Color darkOnSurface = Color(0xFFEDE0D9); // Light beige
+  static const Color darkBackground = Color(0xFF303030); // Dark grey
+  static const Color darkOnBackground = Color(0xFFEEEEEE); // Light grey
+  static const Color darkSurface = Color(0xFF424242); // Material Grey 800
+  static const Color darkOnSurface = Color(0xFFEEEEEE); // Light grey
 
-  static const Color darkSurfaceVariant = Color(
-    0xFF52443C,
-  ); // Dark earthy brown
+  static const Color darkSurfaceVariant = Color(0xFF616161); // Medium grey
   static const Color darkOnSurfaceVariant = Color(
-    0xFFE5D8CE,
-  ); // Very light beige
-  static const Color darkOutline = Color(0xFF9E8E82); // Light brown
-  static const Color darkDivider = Color(
-    0xFF6D5A52,
-  ); // Darker earthy brown - Subtle divider
+    0xFFE0E0E0,
+  ); // Very light grey
+  static const Color darkOutline = Color(0xFF757575); // Medium dark grey
+  static const Color darkDivider = Color(0xFF616161); // Medium grey
 
-  static const Color darkError = Color(
-    0xFFD32F2F,
-  ); // Red 700 - Intense Fire error
-  static const Color darkOnError = Color(0xFF690505); // Very dark red
-  static const Color darkErrorContainer = Color(
-    0xFFC62828,
-  ); // Red 800 - Dark red
-  static const Color darkOnErrorContainer = Color(0xFFFFDAD6); // Very light red
+  // --- Traditional Semantic Colors ---
 
-  // --- Semantic Colors ---
+  // Error
+  static const Color lightError = Color(0xFFF44336); // Material Red 500
+  static const Color lightOnError = Color(0xFFFFFFFF);
+  static const Color lightErrorContainer = Color(0xFFFFEBEE); // Red 50
+  static const Color lightOnErrorContainer = Color(0xFFB71C1C); // Red 900
+
+  static const Color darkError = Color(0xFFEF5350); // Material Red 400
+  static const Color darkOnError = Color(0xFF000000);
+  static const Color darkErrorContainer = Color(0xFFB71C1C); // Red 900
+  static const Color darkOnErrorContainer = Color(0xFFFFCDD2); // Red 100
 
   // Success (Wood - Green to fuel Fire)
-  static const Color successLight = Color(0xFF388E3C); // Green 700 - Wood
-  static const Color successLightVariant = Color(
-    0xFF4CAF50,
-  ); // Green 500 - Lighter Wood
-  static const Color successDark = Color(
-    0xFF66BB6A,
-  ); // Green 400 - Bright green
-  static const Color successDarkVariant = Color(
-    0xFF81C784,
-  ); // Green 300 - Variant
+  static const Color successLight = Color(0xFF4CAF50); // Material Green 500
+  static const Color successLightVariant = Color(0xFF66BB6A); // Green 400
+  static const Color successDark = Color(0xFF81C784); // Green 300
+  static const Color successDarkVariant = Color(0xFFA5D6A7); // Green 200
   static const Color onSuccessLight = Color(0xFFFFFFFF);
-  static const Color onSuccessDark = Color(0xFF1B3E1D); // Dark green
-  static const Color successContainerLight = Color(0xFFC8E6C9); // Green 100
+  static const Color onSuccessDark = Color(0xFF1B5E20); // Green 900
+  static const Color successContainerLight = Color(0xFFE8F5E9); // Green 50
   static const Color successContainerDark = Color(0xFF2E7D32); // Green 800
-  static const Color onSuccessContainerLight = Color(0xFF1B3E1D);
-  static const Color onSuccessContainerDark = Color(0xFFE8F5E9);
+  static const Color onSuccessContainerLight = Color(0xFF1B5E20); // Green 900
+  static const Color onSuccessContainerDark = Color(0xFFC8E6C9); // Green 100
 
-  // Warning (Fire - Orange)
-  static const Color warningLight = Color(0xFFFF9800); // Orange 500
-  static const Color warningLightVariant = Color(
-    0xFFFFB300,
-  ); // Amber 500 - Variant
-  static const Color warningDark = Color(0xFFFFB74D); // Orange 300
-  static const Color warningDarkVariant = Color(
-    0xFFFFCC80,
-  ); // Orange 200 - Variant
-  static const Color onWarningLight = Color(0xFF3E2723); // Warm dark brown
-  static const Color onWarningDark = Color(0xFF3D2200);
-  static const Color warningContainerLight = Color(0xFFFFE0B2); // Orange 100
-  static const Color warningContainerDark = Color(0xFFE65100); // Orange 900
-  static const Color onWarningContainerLight = Color(0xFF3D2200);
-  static const Color onWarningContainerDark = Color(0xFFFFF2E2);
+  // Warning (Amber/Orange)
+  static const Color warningLight = Color(0xFFFFC107); // Material Amber 500
+  static const Color warningLightVariant = Color(0xFFFFCA28); // Amber 400
+  static const Color warningDark = Color(0xFFFFD54F); // Amber 300
+  static const Color warningDarkVariant = Color(0xFFFFE082); // Amber 200
+  static const Color onWarningLight = Color(0xFF000000);
+  static const Color onWarningDark = Color(0xFF000000);
+  static const Color warningContainerLight = Color(0xFFFFF8E1); // Amber 50
+  static const Color warningContainerDark = Color(0xFFF57F17); // Amber 900
+  static const Color onWarningContainerLight = Color(0xFFFF6F00); // Amber 900
+  static const Color onWarningContainerDark = Color(0xFFFFECB3); // Amber 100
 
-  // Info (Wood - Purple)
-  static const Color infoLight = Color(0xFF7B1FA2); // Purple 700
-  static const Color infoLightVariant = Color(
-    0xFF9C27B0,
-  ); // Purple 500 - Variant
-  static const Color infoDark = Color(0xFFCE93D8); // Purple 200
-  static const Color infoDarkVariant = Color(
-    0xFFE1BEE7,
-  ); // Purple 100 - Lighter variant
+  // Info (Blue)
+  static const Color infoLight = Color(0xFF2196F3); // Material Blue 500
+  static const Color infoLightVariant = Color(0xFF42A5F5); // Blue 400
+  static const Color infoDark = Color(0xFF64B5F6); // Blue 300
+  static const Color infoDarkVariant = Color(0xFF90CAF9); // Blue 200
   static const Color onInfoLight = Color(0xFFFFFFFF);
-  static const Color onInfoDark = Color(0xFF3E0055);
-  static const Color infoContainerLight = Color(0xFFE1BEE7); // Purple 100
-  static const Color infoContainerDark = Color(0xFF6A1B9A); // Purple 900
-  static const Color onInfoContainerLight = Color(0xFF3E0055);
-  static const Color onInfoContainerDark = Color(0xFFF3D9FF);
+  static const Color onInfoDark = Color(0xFF0D47A1); // Blue 900
+  static const Color infoContainerLight = Color(0xFFE3F2FD); // Blue 50
+  static const Color infoContainerDark = Color(0xFF1565C0); // Blue 800
+  static const Color onInfoContainerLight = Color(0xFF0D47A1); // Blue 900
+  static const Color onInfoContainerDark = Color(0xFFBBDEFB); // Blue 100
 
   // --- Additional UI Colors ---
 
-  // Accent Colors (Fire and Wood inspired)
-  static const Color accentRed = Color(
-    0xFFFF5252,
-  ); // Red 400 - Vibrant Fire accent
-  static const Color accentOrange = Color(
-    0xFFFFA726,
-  ); // Orange 600 - Warm Fire accent
-  static const Color accentPink = Color(
-    0xFFF06292,
-  ); // Pink 400 - Soft Fire accent
-  static const Color accentPurple = Color(
-    0xFFBA68C8,
-  ); // Purple 300 - Wood accent
-  static const Color accentGreen = Color(0xFF66BB6A); // Green 400 - Wood accent
+  // Accent Colors
+  static const Color accentGrey = Color(0xFF9E9E9E); // Grey 500
+  static const Color accentBlue = Color(0xFF2196F3); // Blue 500
+  static const Color accentGreen = Color(0xFF4CAF50); // Green 500
+  static const Color accentRed = Color(0xFFF44336); // Red 500
+  static const Color accentAmber = Color(0xFFFFC107); // Amber 500
 
   // Text Colors
-  static const Color textPrimaryLight = Color(
-    0xFF3E2723,
-  ); // Warm dark brown - High contrast
-  static const Color textPrimaryDark = Color(
-    0xFFEDE0D9,
-  ); // Light beige - High contrast
-  static const Color textSecondaryLight = Color(
-    0xFF7D6E64,
-  ); // Light earthy brown - Medium contrast
-  static const Color textSecondaryDark = Color(
-    0xFFB0A197,
-  ); // Medium earthy brown - Medium contrast
-  static const Color textDisabledLight = Color(
-    0xFFB0A197,
-  ); // Medium earthy brown - Low contrast
-  static const Color textDisabledDark = Color(
-    0xFF6D5A52,
-  ); // Darker earthy brown - Low contrast
+  static const Color textPrimaryLight = Color(0xFF212121); // Grey 900
+  static const Color textPrimaryDark = Color(0xFFF5F5F5); // Grey 100
+  static const Color textSecondaryLight = Color(0xFF757575); // Grey 600
+  static const Color textSecondaryDark = Color(0xFFBDBDBD); // Grey 400
+  static const Color textDisabledLight = Color(0xFFBDBDBD); // Grey 400
+  static const Color textDisabledDark = Color(0xFF757575); // Grey 600
 
   // Icon Colors
-  static const Color iconPrimaryLight = Color(0xFFE53935); // Red 600 - Fire
-  static const Color iconPrimaryDark = Color(0xFFFF6E6E); // Bright red - Fire
-  static const Color iconSecondaryLight = Color(
-    0xFF7D6E64,
-  ); // Light earthy brown
-  static const Color iconSecondaryDark = Color(0xFF9E8E82); // Light brown
+  static const Color iconPrimaryLight = Color(0xFF616161); // Grey 700
+  static const Color iconPrimaryDark = Color(0xFFE0E0E0); // Grey 300
+  static const Color iconSecondaryLight = Color(0xFF9E9E9E); // Grey 500
+  static const Color iconSecondaryDark = Color(0xFFBDBDBD); // Grey 400
 
-  // Gradients (Fire and Wood inspired)
+  // Gradients
   static const LinearGradient gradientPrimary = LinearGradient(
-    colors: [Color(0xFFE53935), Color(0xFFD81B60)], // Red to Pink
+    colors: [Color(0xFF757575), Color(0xFF9E9E9E)], // Grey 600 to Grey 500
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   static const LinearGradient gradientSecondary = LinearGradient(
-    colors: [Color(0xFFE65100), Color(0xFFFF7043)], // Deep Orange to Orange
+    colors: [
+      Color(0xFF607D8B),
+      Color(0xFF90A4AE),
+    ], // Blue Grey 500 to Blue Grey 300
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   static const LinearGradient gradientTertiary = LinearGradient(
-    colors: [
-      Color(0xFF7B1FA2),
-      Color(0xFF388E3C),
-    ], // Purple to Green (Wood harmony)
+    colors: [Color(0xFF9E9E9E), Color(0xFF607D8B)], // Grey 500 to Blue Grey 500
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   // --- Neutral Colors ---
-  static const Color neutralLight = Color(0xFFF8EDEB); // Warm beige
-  static const Color neutralMedium = Color(0xFFB0A197); // Medium earthy brown
-  static const Color neutralDark = Color(0xFF52443C); // Dark earthy brown
+  static const Color neutralLight = Color(0xFFF5F5F5); // Grey 100
+  static const Color neutralMedium = Color(0xFF9E9E9E); // Grey 500
+  static const Color neutralDark = Color(0xFF616161); // Grey 700
   static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF3E2723); // Warm dark brown
+  static const Color black = Color(0xFF212121); // Grey 900
 
   // Surface container elevations
   static const Color surfaceContainerLowest = Color(0xFFFFFFFF); // White
-  static const Color surfaceContainerLow = Color(0xFFF7F4F3); // Very light warm
-  static const Color surfaceContainer = Color(0xFFECE5E3); // Base container
-  static const Color surfaceContainerHigh = Color(
-    0xFFDED5D2,
-  ); // Slightly darker
-  static const Color surfaceContainerHighest = Color(
-    0xFFEBE3E0,
-  ); // For cards/panels
+  static const Color surfaceContainerLow = Color(0xFFFAFAFA); // Grey 50
+  static const Color surfaceContainer = Color(0xFFF5F5F5); // Grey 100
+  static const Color surfaceContainerHigh = Color(0xFFEEEEEE); // Grey 200
+  static const Color surfaceContainerHighest = Color(0xFFE0E0E0); // Grey 300
 
   // Dark mode surface container elevations
-  static const Color darkSurfaceContainerLowest = Color(
-    0xFF483B39,
-  ); // Very dark warm
-  static const Color darkSurfaceContainerLow = Color(0xFF4E413E); // Dark warm
-  static const Color darkSurfaceContainer = Color(0xFF574845); // Base container
+  static const Color darkSurfaceContainerLowest = Color(0xFF424242); // Grey 800
+  static const Color darkSurfaceContainerLow = Color(
+    0xFF484848,
+  ); // Slightly lighter
+  static const Color darkSurfaceContainer = Color(
+    0xFF505050,
+  ); // Base dark container
   static const Color darkSurfaceContainerHigh = Color(
-    0xFF60504D,
+    0xFF5A5A5A,
   ); // Slightly lighter
   static const Color darkSurfaceContainerHighest = Color(
-    0xFF695752,
+    0xFF656565,
   ); // For cards/panels
 
   // Utility colors
-  static const Color surfaceDim = Color(0xFFF2E9E7); // Light mode dim surface
+  static const Color surfaceDim = Color(0xFFE0E0E0); // Light mode dim surface
   static const Color darkSurfaceDim = Color(
-    0xFF332826,
+    0xFF353535,
   ); // Dark mode dim surface
 }
 

@@ -113,17 +113,25 @@ class _HomeScreenState extends State<HomeScreen>
   void _handleLoadError(dynamic error, StackTrace stackTrace) {
     debugPrint('Error loading home screen data: $error\n$stackTrace');
     if (mounted) {
+      // Access theme for SnackBar styling
+      final theme = Theme.of(context);
       setState(() => _isInitialized = true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Error loading data. Please try again. (${error.toString().split('\n').first})',
+            // Use theme text style if defined in SnackBarTheme
+            // style: theme.snackBarTheme.contentTextStyle,
           ),
-          backgroundColor: Colors.redAccent,
+          // Use theme colors
+          backgroundColor: theme.colorScheme.error,
           action: SnackBarAction(
             label: 'Retry',
             onPressed: () => _loadData(forceRefresh: true),
-            textColor: Colors.white,
+            // Use theme colors
+            textColor:
+                theme.snackBarTheme.actionTextColor ??
+                theme.colorScheme.primary,
           ),
         ),
       );
@@ -138,20 +146,27 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     super.build(context); // Cần thiết cho AutomaticKeepAliveClientMixin
 
+    // Use Theme.of(context) to access the current theme data
+    final theme = Theme.of(context);
     final themeViewModel = context.watch<ThemeViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
     final progressViewModel = context.watch<ProgressViewModel>();
     final learningStatsViewModel = context.watch<LearningStatsViewModel>();
 
     return Scaffold(
+      // Use theme scaffold background color implicitly
       appBar: HomeAppBar(
         isDarkMode: themeViewModel.isDarkMode,
         onThemeToggle: themeViewModel.toggleTheme,
+        // Pass theme properties if needed by HomeAppBar
+        // backgroundColor: theme.appBarTheme.backgroundColor,
+        // foregroundColor: theme.appBarTheme.foregroundColor,
       ),
       body: _buildBody(
         authViewModel,
         progressViewModel,
         learningStatsViewModel,
+        theme, // Pass theme to body builder
       ),
     );
   }
@@ -160,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen>
     AuthViewModel authViewModel,
     ProgressViewModel progressViewModel,
     LearningStatsViewModel learningStatsViewModel,
+    ThemeData theme, // Receive theme
   ) {
     // Xác định trạng thái loading
     final isLoading =
@@ -169,13 +185,22 @@ class _HomeScreenState extends State<HomeScreen>
 
     return RefreshIndicator(
       onRefresh: () => _loadData(forceRefresh: true),
+      // Use theme's indicator colors
+      color: theme.colorScheme.primary,
+      backgroundColor: theme.progressIndicatorTheme.refreshBackgroundColor,
       child:
           isLoading
-              ? const Center(child: AppLoadingIndicator())
+              ? Center(
+                child: AppLoadingIndicator(
+                  // Optionally style indicator using theme
+                  color: theme.colorScheme.primary,
+                ),
+              )
               : _buildHomeContent(
                 authViewModel,
                 progressViewModel,
                 learningStatsViewModel,
+                theme, // Pass theme to content builder
               ),
     );
   }
@@ -184,8 +209,9 @@ class _HomeScreenState extends State<HomeScreen>
     AuthViewModel authViewModel,
     ProgressViewModel progressViewModel,
     LearningStatsViewModel learningStatsViewModel,
+    ThemeData theme, // Receive theme
   ) {
-    final theme = Theme.of(context);
+    // No need to call Theme.of(context) again, use the passed 'theme'
     final stats = learningStatsViewModel.stats;
     final insights = learningStatsViewModel.insights;
     final hasStats = stats != null;
@@ -194,6 +220,7 @@ class _HomeScreenState extends State<HomeScreen>
     return ListView(
       padding: const EdgeInsets.all(AppDimens.paddingL),
       children: [
+        // Pass theme if WelcomeSection needs styling
         WelcomeSection(user: authViewModel.currentUser!),
         const SizedBox(height: AppDimens.spaceXL),
 
@@ -204,11 +231,13 @@ class _HomeScreenState extends State<HomeScreen>
             onViewDetailPressed: _navigateToLearningStats,
           )
         else
-          _buildLegacyDashboard(learningStatsViewModel),
+          // Pass theme if legacy dashboard needs styling
+          _buildLegacyDashboard(learningStatsViewModel, theme),
 
         const SizedBox(height: AppDimens.spaceXL),
 
         // Due Today Section
+        // Pass theme directly
         _buildDueTodaySection(theme, progressViewModel),
 
         const SizedBox(height: AppDimens.spaceXL),
@@ -220,13 +249,16 @@ class _HomeScreenState extends State<HomeScreen>
             onViewMorePressed: _navigateToLearningStats,
           )
         else if (hasStats)
-          _buildLegacyInsights(stats),
+          // Pass theme if legacy insights need styling
+          _buildLegacyInsights(stats, theme),
 
         const SizedBox(height: AppDimens.spaceXL),
 
         // Quick Actions Section
+        // Use theme text styles
         Text('Quick Actions', style: theme.textTheme.titleLarge),
         const SizedBox(height: AppDimens.spaceL),
+        // Pass theme if QuickActionsSection needs styling
         QuickActionsSection(
           onBrowseBooksPressed: () => GoRouter.of(context).go('/books'),
           onTodaysLearningPressed: () => GoRouter.of(context).go('/learning'),
@@ -239,13 +271,17 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildLegacyDashboard(LearningStatsViewModel viewModel) {
+  Widget _buildLegacyDashboard(
+    LearningStatsViewModel viewModel,
+    ThemeData theme,
+  ) {
     // Xử lý trạng thái lỗi trước
     if (viewModel.errorMessage != null) {
       return ErrorDisplay(
         message: viewModel.errorMessage!,
         onRetry: () => _loadData(forceRefresh: true),
         compact: true,
+        // Pass theme if ErrorDisplay needs styling
       );
     }
 
@@ -254,10 +290,18 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Nếu stats là null nhưng không lỗi, hiển thị loading hoặc placeholder
     if (stats == null && !viewModel.isLoading) {
-      return const Card(
+      // Use Card with theme styling
+      return Card(
+        // Card theme is applied automatically
         child: Padding(
-          padding: EdgeInsets.all(AppDimens.paddingL),
-          child: Center(child: Text('Statistics not available yet.')),
+          padding: const EdgeInsets.all(AppDimens.paddingL),
+          // Use theme text style
+          child: Center(
+            child: Text(
+              'Statistics not available yet.',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
         ),
       );
     }
@@ -300,10 +344,10 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     // Fallback nếu đang loading (mặc dù kiểm tra bên ngoài sẽ xử lý điều này)
-    return const Center(child: AppLoadingIndicator());
+    return Center(child: AppLoadingIndicator(color: theme.colorScheme.primary));
   }
 
-  Widget _buildLegacyInsights(LearningStatsDTO? stats) {
+  Widget _buildLegacyInsights(LearningStatsDTO? stats, ThemeData theme) {
     // Sử dụng giá trị mặc định chỉ khi stats thực sự là null
     const defaultRate = 5.5; // Định nghĩa rõ ràng giá trị mặc định
 
@@ -316,11 +360,12 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildDueTodaySection(
-    ThemeData theme,
+    ThemeData theme, // Use passed theme
     ProgressViewModel progressViewModel,
   ) {
     return Card(
-      margin: EdgeInsets.zero, // Loại bỏ margin card mặc định nếu cần
+      // Use CardTheme from the passed theme
+      margin: EdgeInsets.zero, // Keep this customization
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -328,35 +373,43 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Row(
               children: [
-                Icon(Icons.calendar_today, color: theme.colorScheme.primary),
+                // Use theme icon color
+                Icon(Icons.calendar_today, color: theme.iconTheme.color),
                 const SizedBox(width: AppDimens.spaceS),
+                // Use theme text style
                 Text('Due Today', style: theme.textTheme.titleLarge),
                 const Spacer(),
                 Chip(
+                  // Use ChipTheme properties from the passed theme
                   label: Text(
                     '${progressViewModel.progressRecords.length} items',
+                    // Use theme chip label style
                     style: theme.chipTheme.labelStyle?.copyWith(
+                      // Ensure selected color is handled correctly by theme or override
                       color:
-                          theme.chipTheme.selectedColor ??
+                          theme.chipTheme.secondaryLabelStyle?.color ??
                           theme.colorScheme.onPrimary,
                     ),
                   ),
+                  // Use theme chip background color
                   backgroundColor:
-                      theme.chipTheme.backgroundColor ??
+                      theme.chipTheme.secondarySelectedColor ??
                       theme.colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingS,
-                  ),
+                  padding: theme.chipTheme.padding,
                 ),
               ],
             ),
+            // Use theme divider
             const Divider(height: AppDimens.paddingL * 2),
-            _buildDueProgressContent(progressViewModel),
+            // Pass theme to content builder
+            _buildDueProgressContent(progressViewModel, theme),
             if (progressViewModel.progressRecords.isNotEmpty) ...[
               const SizedBox(height: AppDimens.spaceS),
               Align(
                 alignment: Alignment.centerRight,
+                // Use TextButton with theme styling
                 child: TextButton(
+                  // Theme is applied automatically
                   onPressed: () => GoRouter.of(context).go('/learning'),
                   child: const Text('View all'),
                 ),
@@ -368,7 +421,10 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildDueProgressContent(ProgressViewModel progressViewModel) {
+  Widget _buildDueProgressContent(
+    ProgressViewModel progressViewModel,
+    ThemeData theme,
+  ) {
     if (progressViewModel.errorMessage != null) {
       return ErrorDisplay(
         message: progressViewModel.errorMessage!,
@@ -378,23 +434,39 @@ class _HomeScreenState extends State<HomeScreen>
     }
     if (progressViewModel.isLoading &&
         progressViewModel.progressRecords.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
-        child: Center(child: AppLoadingIndicator(size: AppDimens.iconXL)),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
+        child: Center(
+          child: AppLoadingIndicator(
+            size: AppDimens.iconXL,
+            // Use theme color
+            color: theme.colorScheme.primary,
+          ),
+        ),
       );
     }
     if (progressViewModel.progressRecords.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
-        child: Center(child: Text('No repetitions due today. Great job!')),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingXXL),
+        // Use theme text style
+        child: Center(
+          child: Text(
+            'No repetitions due today. Great job!',
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
       );
     }
 
     // Xây dựng danh sách nếu có records
-    return _buildDueProgressList(progressViewModel.progressRecords);
+    // Pass theme to list builder
+    return _buildDueProgressList(progressViewModel.progressRecords, theme);
   }
 
-  Widget _buildDueProgressList(List<ProgressSummary> progressList) {
+  Widget _buildDueProgressList(
+    List<ProgressSummary> progressList,
+    ThemeData theme,
+  ) {
     // Giới hạn số lượng items hiển thị trên màn hình home
     const int maxItemsToShow = 3;
     final limitedList =

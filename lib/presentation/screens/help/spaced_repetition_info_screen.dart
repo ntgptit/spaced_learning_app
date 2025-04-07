@@ -38,7 +38,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
               'The Science Behind It',
               'Spaced repetition takes advantage of the psychological spacing effect, which demonstrates that learning is more effective when study sessions are spaced out over time, rather than crammed into a single session. This technique directly addresses the "forgetting curve" - our natural tendency to forget information over time.',
               Icons.psychology,
-              AppColors.accentPurple,
+              AppColors.accentGrey,
             ),
 
             // How it works in this app
@@ -47,7 +47,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
               'How It Works In This App',
               'Our app schedules your learning into optimal review intervals. After initial learning, you\'ll review the material at gradually increasing intervals: 1 day, 7 days, 16 days, and 35 days. This schedule is optimized for long-term retention.',
               Icons.schedule,
-              AppColors.accentOrange,
+              AppColors.accentBlue,
             ),
 
             // Learning Cycles

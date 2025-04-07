@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/register_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
@@ -9,7 +8,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-/// Login screen for user authentication
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,13 +16,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Controllers
   final TextEditingController _usernameOrEmailController =
       TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Error states
   String? _usernameOrEmailError;
   String? _passwordError;
 
@@ -35,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // Validation methods
   void _validateUsernameOrEmail() {
     setState(() {
       _usernameOrEmailError =
@@ -56,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // Login handler
   Future<void> _login() async {
     _validateUsernameOrEmail();
     _validatePassword();
@@ -74,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // UI Components
   Widget _buildHeader(ThemeData theme) {
     return Column(
       children: [
@@ -82,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
           AppConstants.appName,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppColors.lightPrimary,
+            color: theme.colorScheme.primary,
           ),
           textAlign: TextAlign.center,
         ),
@@ -90,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Text(
           'Login to your account',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimaryLight,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -99,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildErrorDisplay(AuthViewModel authViewModel) {
+  Widget _buildErrorDisplay(AuthViewModel authViewModel, ThemeData theme) {
     return authViewModel.errorMessage != null
         ? Column(
           children: [
@@ -107,8 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
               message: authViewModel.errorMessage!,
               compact: true,
               onRetry: authViewModel.clearError,
-              backgroundColor: AppColors.lightErrorContainer,
-              textColor: AppColors.lightOnErrorContainer,
             ),
             const SizedBox(height: 16),
           ],
@@ -116,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
         : const SizedBox.shrink();
   }
 
-  Widget _buildFormFields() {
+  Widget _buildFormFields(ThemeData theme) {
     return Column(
       children: [
         AppTextField(
@@ -128,10 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
           prefixIcon: Icons.person,
           onChanged: (_) => _usernameOrEmailError = null,
           onEditingComplete: _validateUsernameOrEmail,
-          labelColor: AppColors.textPrimaryLight,
-          hintColor: AppColors.textSecondaryLight,
-          errorColor: AppColors.lightError,
-          borderColor: AppColors.lightOutline,
         ),
         const SizedBox(height: 16),
         AppPasswordField(
@@ -139,19 +126,19 @@ class _LoginScreenState extends State<LoginScreen> {
           hint: 'Enter your password',
           controller: _passwordController,
           errorText: _passwordError,
-          prefixIcon: const Icon(Icons.lock, color: AppColors.iconPrimaryLight),
+          prefixIcon: Icon(Icons.lock, color: theme.iconTheme.color),
           onChanged: (_) => _passwordError = null,
           onEditingComplete: _validatePassword,
-          labelColor: AppColors.textPrimaryLight,
-          hintColor: AppColors.textSecondaryLight,
-          errorColor: AppColors.lightError,
-          borderColor: AppColors.lightOutline,
         ),
       ],
     );
   }
 
-  Widget _buildActions(BuildContext context, AuthViewModel authViewModel) {
+  Widget _buildActions(
+    BuildContext context,
+    AuthViewModel authViewModel,
+    ThemeData theme,
+  ) {
     return Column(
       children: [
         const SizedBox(height: 24),
@@ -160,9 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
           onPressed: _login,
           isLoading: authViewModel.isLoading,
           isFullWidth: true,
-          backgroundColor: AppColors.lightPrimary,
-          textColor: AppColors.lightOnPrimary,
-          loadingColor: AppColors.lightOnPrimary,
         ),
         const SizedBox(height: 16),
         Row(
@@ -170,8 +154,8 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Text(
               "Don't have an account? ",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondaryLight,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             TextButton(
@@ -179,10 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const RegisterScreen()),
                   ),
-              child: const Text(
-                'Register',
-                style: TextStyle(color: AppColors.accentPink),
-              ),
+              child: const Text('Register'),
             ),
           ],
         ),
@@ -196,9 +177,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final authViewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: theme.colorScheme.surface,
       body: LoadingOverlay(
         isLoading: authViewModel.isLoading,
+        color: theme.colorScheme.surfaceContainerHighest,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -210,9 +192,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeader(theme),
-                    _buildErrorDisplay(authViewModel),
-                    _buildFormFields(),
-                    _buildActions(context, authViewModel),
+                    _buildErrorDisplay(authViewModel, theme),
+                    _buildFormFields(theme),
+                    _buildActions(context, authViewModel, theme),
                   ],
                 ),
               ),

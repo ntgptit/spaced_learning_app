@@ -4,7 +4,6 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/core/theme/app_typography.dart';
 
 class AppTheme {
-  // Create the light theme inspired by todo list app
   static ThemeData getLightTheme() {
     const colorScheme = ColorScheme(
       primary: AppColors.lightPrimary,
@@ -20,13 +19,20 @@ class AppTheme {
       onTertiary: AppColors.lightOnTertiary,
       onSurface: AppColors.lightOnSurface,
       onError: AppColors.lightOnError,
+      surfaceContainerHighest: AppColors.lightSurfaceVariant,
+      onSurfaceVariant: AppColors.lightOnSurfaceVariant,
+      outline: AppColors.lightOutline,
       brightness: Brightness.light,
+      inverseSurface: AppColors.black,
+      onInverseSurface: AppColors.white,
+      inversePrimary: AppColors.lightPrimaryVariant,
+      shadow: Colors.black,
+      scrim: Colors.black54,
     );
 
     return _createTheme(colorScheme);
   }
 
-  // Create the dark theme with higher contrast
   static ThemeData getDarkTheme() {
     const colorScheme = ColorScheme(
       primary: AppColors.darkPrimary,
@@ -42,13 +48,20 @@ class AppTheme {
       onTertiary: AppColors.darkOnTertiary,
       onSurface: AppColors.darkOnSurface,
       onError: AppColors.darkOnError,
+      surfaceContainerHighest: AppColors.darkSurfaceVariant,
+      onSurfaceVariant: AppColors.darkOnSurfaceVariant,
+      outline: AppColors.darkOutline,
       brightness: Brightness.dark,
+      inverseSurface: AppColors.white,
+      onInverseSurface: AppColors.black,
+      inversePrimary: AppColors.darkPrimaryVariant,
+      shadow: Colors.black,
+      scrim: Colors.black54,
     );
 
     return _createTheme(colorScheme);
   }
 
-  // Helper method to create themes with shared properties
   static ThemeData _createTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
     final textTheme = AppTypography.getTextTheme(colorScheme.brightness);
@@ -58,8 +71,6 @@ class AppTheme {
       colorScheme: colorScheme,
       textTheme: textTheme,
       scaffoldBackgroundColor: colorScheme.surface,
-
-      // AppBar theme
       appBarTheme: AppBarTheme(
         elevation: AppDimens.elevationS,
         centerTitle: false,
@@ -75,8 +86,6 @@ class AppTheme {
               isDark ? AppColors.iconPrimaryDark : AppColors.iconPrimaryLight,
         ),
       ),
-
-      // Card theme
       cardTheme: CardThemeData(
         elevation: AppDimens.elevationS,
         shape: RoundedRectangleBorder(
@@ -88,14 +97,9 @@ class AppTheme {
                 : AppColors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.symmetric(
-          vertical: AppDimens.paddingS,
-          horizontal: 0,
-        ),
+        margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
         shadowColor: isDark ? Colors.black : Colors.black26,
       ),
-
-      // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: AppDimens.elevationS,
@@ -111,7 +115,6 @@ class AppTheme {
           textStyle: textTheme.labelLarge,
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(
@@ -129,7 +132,6 @@ class AppTheme {
           textStyle: textTheme.labelLarge,
         ),
       ),
-
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
@@ -143,8 +145,6 @@ class AppTheme {
           textStyle: textTheme.labelLarge,
         ),
       ),
-
-      // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor:
@@ -204,15 +204,11 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-
-      // Divider theme
       dividerTheme: DividerThemeData(
         color: isDark ? AppColors.darkDivider : AppColors.lightDivider,
         thickness: AppDimens.dividerThickness,
         space: AppDimens.dividerThickness,
       ),
-
-      // Dialog theme
       dialogTheme: DialogThemeData(
         backgroundColor:
             isDark
@@ -225,8 +221,6 @@ class AppTheme {
         titleTextStyle: textTheme.headlineSmall,
         contentTextStyle: textTheme.bodyMedium,
       ),
-
-      // ListTile theme
       listTileTheme: ListTileThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
@@ -242,8 +236,6 @@ class AppTheme {
         titleTextStyle: textTheme.bodyLarge,
         subtitleTextStyle: textTheme.bodyMedium,
       ),
-
-      // Chip theme
       chipTheme: ChipThemeData(
         backgroundColor:
             isDark
@@ -274,14 +266,10 @@ class AppTheme {
         elevation: AppDimens.elevationNone,
         pressElevation: AppDimens.elevationXS,
       ),
-
-      // Icon theme
       iconTheme: IconThemeData(
         color: isDark ? AppColors.iconPrimaryDark : AppColors.iconPrimaryLight,
         size: AppDimens.iconL,
       ),
-
-      // Bottom navigation theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor:
             isDark
@@ -297,8 +285,6 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: AppDimens.elevationL,
       ),
-
-      // Tab bar theme
       tabBarTheme: TabBarThemeData(
         labelColor: colorScheme.primary,
         unselectedLabelColor: colorScheme.onSurface.withValues(
@@ -315,8 +301,6 @@ class AppTheme {
           ),
         ),
       ),
-
-      // Floating Action Button Theme
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
@@ -328,8 +312,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
         ),
       ),
-
-      // Progress Indicator Theme
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: colorScheme.primary,
         linearTrackColor: colorScheme.primary.withValues(
@@ -343,8 +325,6 @@ class AppTheme {
                 ? AppColors.darkSurfaceContainerLow
                 : AppColors.surfaceContainerLow,
       ),
-
-      // Snackbar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor:
             isDark
@@ -359,8 +339,6 @@ class AppTheme {
         actionTextColor: colorScheme.primary,
         behavior: SnackBarBehavior.floating,
       ),
-
-      // Tooltip Theme
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
           color:
