@@ -85,7 +85,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
               _buildStatusSection(
                 context,
                 'Pending',
-                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.inversePrimary,
                 notStartedByCycle,
                 false,
               ),
@@ -369,11 +369,11 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   Color _getCycleColor(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return AppColors.darkPrimary;
+        return AppColors.onInfoDark;
       case CycleStudied.firstReview:
-        return AppColors.successDark;
+        return AppColors.darkTertiary;
       case CycleStudied.secondReview:
-        return AppColors.darkSecondaryContainer;
+        return AppColors.darkOnError;
       case CycleStudied.thirdReview:
         return AppColors.infoLight;
       case CycleStudied.moreThanThreeReviews:

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// Removed direct AppColors import
-// import 'package:spaced_learning_app/core/theme/app_colors.dart';
+// Import lại AppColors vì cần dùng màu semantic Success, Warning
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/repetition.dart'; // Ensure path is correct
+import 'package:spaced_learning_app/domain/models/repetition.dart'; // Đảm bảo đường dẫn đúng
 
-/// Card representing a single repetition session, styled using Theme
+// Định nghĩa kiểu trả về cho các hàm lấy màu M3
+typedef M3ColorPair = ({Color container, Color onContainer});
+
+/// Card đại diện cho một phiên lặp lại, được style bằng AppTheme.
 class RepetitionCard extends StatelessWidget {
   final Repetition repetition;
   final bool isHistory;
   final VoidCallback? onMarkCompleted;
-  final VoidCallback? onSkip;
+  final VoidCallback? onSkip; // Callback onSkip (nếu cần)
   final VoidCallback? onReschedule;
   final ThemeData? theme; // Optional theme override
 
@@ -26,102 +29,111 @@ class RepetitionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use passed theme or get from context
+    // Lấy theme và các thành phần một lần
     final currentTheme = theme ?? Theme.of(context);
-    final dateFormat = DateFormat('dd MMM yyyy'); // Corrected format likely
+    final colorScheme = currentTheme.colorScheme;
+    final textTheme = currentTheme.textTheme;
+    final isDark = currentTheme.brightness == Brightness.dark;
+    final dateFormat = DateFormat('dd MMM yyyy'); // Định dạng ngày
 
+    // Lấy thông tin và màu sắc dựa trên theme
     final orderText = _formatRepetitionOrder(repetition.repetitionOrder);
-    // Get status color based on theme
-    final statusColor = _getStatusColor(repetition.status, currentTheme);
+    // Lấy cặp màu container/onContainer cho Status Badge
+    final statusColors = _getStatusColors(
+      repetition.status,
+      colorScheme,
+      isDark,
+    );
     final dateText =
         repetition.reviewDate != null
             ? dateFormat.format(repetition.reviewDate!)
             : 'Not scheduled';
     final timeIndicator = _getTimeIndicator(repetition.reviewDate);
-    // Get time indicator color based on theme
-    final indicatorColor = _getTimeIndicatorColor(
+    // Lấy cặp màu container/onContainer cho Time Indicator
+    final indicatorColors = _getTimeIndicatorColors(
       repetition.reviewDate,
-      currentTheme,
+      colorScheme,
+      isDark,
     );
-    // Determine contrast color for text on time indicator
-    final onIndicatorColor =
-        ThemeData.estimateBrightnessForColor(indicatorColor) == Brightness.dark
-            ? Colors
-                .white // Text on dark background
-            : Colors.black; // Text on light background
 
     return Card(
-      // Card theme applied automatically
       margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+      // CardTheme được áp dụng tự động (shape, elevation mặc định)
+      // Giảm elevation và dùng màu nền khác cho item lịch sử
       elevation:
           isHistory
-              ? (currentTheme.cardTheme.elevation ?? AppDimens.elevationS) *
-                  0.5 // Example: reduce elevation for history
-              : currentTheme.cardTheme.elevation ?? AppDimens.elevationS,
-      // Use theme surface color, adjust opacity for history
+              ? (currentTheme.cardTheme.elevation ?? 1.0) * 0.5
+              : null, // Giảm một nửa elevation mặc định
       color:
           isHistory
-              ? currentTheme.colorScheme.surface.withValues(
-                alpha: AppDimens.opacityVeryHigh,
-              )
-              : currentTheme.cardTheme.color ??
-                  currentTheme.colorScheme.surface,
-      shape: currentTheme.cardTheme.shape, // Use theme shape
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Pass theme and theme-based statusColor
-            _buildHeader(currentTheme, orderText, statusColor),
-            const SizedBox(height: AppDimens.spaceM),
-            // Pass theme and theme-based indicator colors
-            _buildDateRow(
-              context,
-              currentTheme,
-              dateText,
-              timeIndicator,
-              indicatorColor,
-              onIndicatorColor,
-            ),
-            if (!isHistory && repetition.status == RepetitionStatus.notStarted)
-              // Pass theme to actions builder
-              _buildActions(context, currentTheme),
-          ],
+              ? colorScheme
+                  .surfaceContainerLow // Dùng màu M3 đục thay vì alpha
+              : null, // Để Card dùng màu mặc định từ theme
+      child: InkWell(
+        // Thêm InkWell nếu muốn cả Card có thể tap được
+        onTap:
+            (isHistory || repetition.status != RepetitionStatus.notStarted)
+                ? null
+                : onMarkCompleted, // Ví dụ: tap để complete
+        borderRadius:
+            ((currentTheme.cardTheme.shape as RoundedRectangleBorder?)
+                    ?.borderRadius
+                as BorderRadius?) ??
+            BorderRadius.circular(
+              AppDimens.radiusL,
+            ), // Lấy từ theme hoặc fallback
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.paddingL),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Truyền màu đã xử lý vào header
+              _buildHeader(textTheme, colorScheme, orderText, statusColors),
+              const SizedBox(height: AppDimens.spaceM),
+              // Truyền màu đã xử lý vào date row
+              _buildDateRow(
+                context,
+                textTheme,
+                colorScheme,
+                dateText,
+                timeIndicator,
+                indicatorColors,
+              ),
+              // Chỉ hiển thị actions nếu không phải history và status là notStarted
+              if (!isHistory &&
+                  repetition.status == RepetitionStatus.notStarted)
+                _buildActions(context, colorScheme, textTheme, isDark),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme, String orderText, Color statusColor) {
-    // Determine text color that contrasts well with the semi-transparent status background
-    final onStatusColor =
-        ThemeData.estimateBrightnessForColor(statusColor) == Brightness.dark
-            ? Colors.white.withValues(
-              alpha: 0.9,
-            ) // Slightly less prominent on dark bg
-            : Colors.black.withValues(
-              alpha: 0.9,
-            ); // Slightly less prominent on light bg
-
+  Widget _buildHeader(
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+    String orderText,
+    M3ColorPair statusColors,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           orderText,
-          // Use theme text style
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface, // Đặt màu rõ ràng
           ),
         ),
+        // Status Badge dùng màu container/onContainer
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.paddingM,
             vertical: AppDimens.paddingXS,
           ),
           decoration: BoxDecoration(
-            // Use theme-based status color with opacity
-            color: statusColor.withValues(alpha: AppDimens.opacityMedium),
+            color: statusColors.container, // Màu nền container
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Row(
@@ -129,16 +141,28 @@ class RepetitionCard extends StatelessWidget {
             children: [
               Text(
                 _formatStatus(repetition.status),
-                // Use theme text style, ensure contrast with background
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: onStatusColor, // Use contrast color
+                style: textTheme.labelSmall?.copyWith(
+                  // Dùng labelSmall cho badge
+                  color: statusColors.onContainer, // Màu chữ onContainer
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // Keep Quiz icon if status is completed, using contrast color
               if (repetition.status == RepetitionStatus.completed) ...[
                 const SizedBox(width: AppDimens.spaceXS),
-                Icon(Icons.quiz, size: AppDimens.iconXS, color: onStatusColor),
+                Icon(
+                  Icons.check_circle_outline,
+                  size: AppDimens.iconXS,
+                  color: statusColors.onContainer,
+                ), // Dùng check thay quiz?
+              ],
+              // Có thể thêm icon cho skipped nếu muốn
+              if (repetition.status == RepetitionStatus.skipped) ...[
+                const SizedBox(width: AppDimens.spaceXS),
+                Icon(
+                  Icons.redo_outlined,
+                  size: AppDimens.iconXS,
+                  color: statusColors.onContainer,
+                ),
               ],
             ],
           ),
@@ -149,42 +173,43 @@ class RepetitionCard extends StatelessWidget {
 
   Widget _buildDateRow(
     BuildContext context,
-    ThemeData theme,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
     String dateText,
     String timeIndicator,
-    Color indicatorColor, // Receive theme-based indicator color
-    Color onIndicatorColor, // Receive theme-based text color for indicator
+    M3ColorPair? indicatorColors, // Có thể null
   ) {
     return Row(
       children: [
         Icon(
-          Icons.quiz, // Or Icons.calendar_today ?
-          // Use theme primary color for the date icon
-          color: theme.colorScheme.primary,
+          Icons.calendar_today_outlined, // Icon calendar
+          color: colorScheme.primary,
           size: AppDimens.iconS,
         ),
         const SizedBox(width: AppDimens.spaceS),
-        // Use theme text style for date
-        Text(dateText, style: theme.textTheme.bodyMedium),
-        const Spacer(),
-        if (repetition.reviewDate != null &&
-            !isHistory &&
-            timeIndicator.isNotEmpty)
+        Text(
+          dateText,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant, // Dùng màu phụ
+          ),
+        ),
+        const Spacer(), // Đẩy indicator sang phải
+        // Chỉ hiển thị indicator nếu có màu và text
+        if (indicatorColors != null && timeIndicator.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimens.paddingS,
               vertical: AppDimens.paddingXXS,
             ),
             decoration: BoxDecoration(
-              // Use theme-based indicator color
-              color: indicatorColor,
+              color: indicatorColors.container, // Màu nền container
               borderRadius: BorderRadius.circular(AppDimens.radiusS),
             ),
             child: Text(
               timeIndicator,
-              // Use theme text style and contrasting color
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: onIndicatorColor,
+              style: textTheme.labelSmall?.copyWith(
+                // Dùng labelSmall
+                color: indicatorColors.onContainer, // Màu chữ onContainer
               ),
             ),
           ),
@@ -192,50 +217,48 @@ class RepetitionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, ThemeData theme) {
-    // Define semantic colors based on theme for actions
-    final Color rescheduleColor = theme.colorScheme.primary;
-    final Color skipColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFFFFC107)
-            : const Color(0xFFFFD54F); // Warning
-    final Color completeColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFF4CAF50)
-            : const Color(0xFF81C784); // Success
+  Widget _buildActions(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    bool isDark,
+  ) {
+    // Lấy màu semantic từ AppColors, tôn trọng dark mode
+    final rescheduleColors = _getWarningColors(
+      colorScheme,
+      isDark,
+    ); // Ví dụ dùng Warning cho Reschedule
+    final completeColors = _getSuccessColors(
+      colorScheme,
+      isDark,
+    ); // Dùng Success cho Complete
+    // final skipColors = _getNeutralColors(colorScheme); // Ví dụ dùng màu trung tính cho Skip
 
     return Padding(
       padding: const EdgeInsets.only(top: AppDimens.paddingL),
       child: Wrap(
-        // Use Wrap for better responsiveness if buttons overflow
         alignment: WrapAlignment.end,
-        spacing: AppDimens.spaceS, // Horizontal space between buttons
-        runSpacing: AppDimens.spaceS, // Vertical space if they wrap
+        spacing: AppDimens.spaceM, // Tăng spacing
+        runSpacing: AppDimens.spaceS,
         children: [
+          // Reschedule Button (Ví dụ dùng màu Warning)
           if (onReschedule != null)
             _buildActionButton(
-              theme, // Pass theme
+              textTheme,
+              rescheduleColors,
               'Reschedule',
-              Icons.calendar_month,
-              rescheduleColor, // Pass theme-based color
+              Icons.calendar_month_outlined,
               onReschedule!,
             ),
-          if (onSkip != null)
-            _buildActionButton(
-              theme, // Pass theme
-              'Skip',
-              Icons.skip_next,
-              skipColor, // Pass theme-based color
-              onSkip!,
-            ),
+          // Complete Button (Dùng màu Success)
           if (onMarkCompleted != null)
             _buildActionButton(
-              theme, // Pass theme
+              textTheme,
+              completeColors,
               'Complete',
-              Icons.check_circle,
-              completeColor, // Pass theme-based color
+              Icons.check_circle_outlined,
               onMarkCompleted!,
-              showScoreIndicator: true,
+              showScoreIndicator: true, // Hiển thị icon %
             ),
         ],
       ),
@@ -243,68 +266,63 @@ class RepetitionCard extends StatelessWidget {
   }
 
   Widget _buildActionButton(
-    ThemeData theme, // Receive theme
+    TextTheme textTheme,
+    M3ColorPair colors, // Nhận cặp màu container/onContainer
     String label,
     IconData icon,
-    Color color, // Receive theme-based semantic color
     VoidCallback onPressed, {
     bool showScoreIndicator = false,
   }) {
-    // Determine text/icon color for contrast on the score indicator background
-    final onScoreIndicatorColor =
-        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-            ? Colors.white
-            : Colors.black;
+    // Style cho button, sử dụng màu từ M3ColorPair
+    // Ở đây dùng OutlinedButton, style màu theo foregroundColor và side.color
+    final buttonStyle = OutlinedButton.styleFrom(
+      foregroundColor:
+          colors.container, // Màu chữ/icon là màu container (thường đậm hơn)
+      side: BorderSide(color: colors.container), // Viền cùng màu với chữ/icon
+      padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+      textStyle: textTheme.labelLarge, // Dùng labelLarge
+    ).copyWith(
+      minimumSize: WidgetStateProperty.all(
+        Size.zero,
+      ), // Bỏ minimum size mặc định
+    );
+
+    // Score Indicator styling
+    final scoreIndicatorBg = colors.container.withOpacity(
+      0.15,
+    ); // Nền hơi mờ của màu container
+    final scoreIndicatorFg = colors.onContainer; // Màu icon là onContainer
 
     return SizedBox(
       height: AppDimens.buttonHeightM,
-      // Use theme's OutlinedButton styling
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(
-          icon,
-          size: AppDimens.iconS,
-        ), // Let theme handle icon color via foregroundColor
+        icon: Icon(icon, size: AppDimens.iconS),
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label), // Let theme handle text color via foregroundColor
+            Text(label),
             if (showScoreIndicator) ...[
-              const SizedBox(width: AppDimens.spaceXXS),
+              const SizedBox(width: AppDimens.spaceS), // Tăng khoảng cách
+              // Score Indicator dùng màu container/onContainer tương ứng
               Container(
-                padding: const EdgeInsets.all(AppDimens.paddingXXS),
+                padding: const EdgeInsets.all(AppDimens.paddingXXS + 1),
                 decoration: BoxDecoration(
-                  // Use semantic color with opacity for background
-                  color: color.withValues(alpha: AppDimens.opacityMedium),
-                  borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+                  // Dùng màu container với độ mờ nhẹ làm nền
+                  color: scoreIndicatorBg,
+                  shape: BoxShape.circle, // Làm thành hình tròn
                 ),
                 child: Icon(
                   Icons.percent,
                   size: AppDimens.iconXXS,
-                  // Ensure contrast for icon on background
-                  color: onScoreIndicatorColor.withValues(alpha: 0.8),
+                  // Dùng màu onContainer cho icon %
+                  color: scoreIndicatorFg,
                 ),
               ),
             ],
           ],
         ),
-        style: OutlinedButton.styleFrom(
-          // Apply the semantic color to foreground (text/icon) and border
-          foregroundColor: color,
-          side: BorderSide(
-            // Use semantic color with opacity for border
-            color: color.withValues(alpha: AppDimens.opacityMediumHigh),
-          ),
-          // Inherit shape from theme or define explicitly
-          shape: theme.outlinedButtonTheme.style?.shape?.resolve({}),
-          // ?? RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimens.radiusL)),
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
-          textStyle:
-              theme.textTheme.labelMedium, // Use appropriate theme text style
-        ).copyWith(
-          // Ensure minimum size if needed, or let theme handle it
-          minimumSize: WidgetStateProperty.all(Size.zero),
-        ),
+        style: buttonStyle,
       ),
     );
   }
@@ -312,7 +330,7 @@ class RepetitionCard extends StatelessWidget {
   // --- Helper Functions ---
 
   String _formatRepetitionOrder(RepetitionOrder order) {
-    // (Implementation remains the same)
+    // Giữ nguyên logic
     switch (order) {
       case RepetitionOrder.firstRepetition:
         return 'Repetition 1';
@@ -328,7 +346,7 @@ class RepetitionCard extends StatelessWidget {
   }
 
   String _formatStatus(RepetitionStatus status) {
-    // (Implementation remains the same)
+    // Giữ nguyên logic
     switch (status) {
       case RepetitionStatus.notStarted:
         return 'Pending';
@@ -339,85 +357,156 @@ class RepetitionCard extends StatelessWidget {
     }
   }
 
-  // Updated to accept Theme and return theme-based colors
-  Color _getStatusColor(RepetitionStatus status, ThemeData theme) {
+  // Sửa lại để trả về cặp màu M3, dùng AppColors và theme
+  M3ColorPair _getStatusColors(
+    RepetitionStatus status,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     switch (status) {
       case RepetitionStatus.notStarted:
-        // Use primary or a neutral color from theme
-        return theme.colorScheme.primary;
+        // Dùng màu Primary Container
+        return (
+          container: colorScheme.primaryContainer,
+          onContainer: colorScheme.onPrimaryContainer,
+        );
       case RepetitionStatus.completed:
-        // Use a success color derived from theme
-        return theme.brightness == Brightness.light
-            ? const Color(0xFF4CAF50)
-            : const Color(0xFF81C784);
+        // Dùng màu Success từ AppColors
+        return (
+          container:
+              isDark
+                  ? AppColors.successContainerDark
+                  : AppColors.successContainerLight,
+          onContainer:
+              isDark
+                  ? AppColors.onSuccessContainerDark
+                  : AppColors.onSuccessContainerLight,
+        );
       case RepetitionStatus.skipped:
-        // Use a warning color derived from theme
-        return theme.brightness == Brightness.light
-            ? const Color(0xFFFFC107)
-            : const Color(0xFFFFD54F);
+        // Dùng màu Warning từ AppColors
+        return (
+          container:
+              isDark
+                  ? AppColors.warningContainerDark
+                  : AppColors.warningContainerLight,
+          onContainer:
+              isDark
+                  ? AppColors.onWarningContainerDark
+                  : AppColors.onWarningContainerLight,
+        );
     }
   }
 
   String _getTimeIndicator(DateTime? date) {
-    // (Implementation remains the same)
+    // Giữ nguyên logic, có thể tối ưu DateUtils.dateOnly
     if (date == null) return '';
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(date.year, date.month, date.day);
-    final difference = target.difference(today).inDays;
+    final now = DateUtils.dateOnly(DateTime.now());
+    final target = DateUtils.dateOnly(date);
+    final difference = target.difference(now).inDays;
 
     if (difference < 0) return 'Overdue ${-difference}d';
     if (difference == 0) return 'Today';
     if (difference == 1) return 'Tomorrow';
-    return '$difference days left';
+    return 'In $difference days'; // Sửa lại text "days left"
   }
 
-  // Updated to accept Theme and return theme-based colors
-  Color _getTimeIndicatorColor(DateTime? date, ThemeData theme) {
-    if (date == null) {
-      return theme.colorScheme.outline; // Use theme outline color
+  // Sửa lại để trả về cặp màu M3 hoặc null, dùng AppColors và theme
+  M3ColorPair? _getTimeIndicatorColors(
+    DateTime? date,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    if (date == null) return null; // Trả về null nếu không có ngày
+
+    final now = DateUtils.dateOnly(DateTime.now());
+    final target = DateUtils.dateOnly(date);
+    final difference = target.difference(now).inDays;
+
+    if (difference < 0) {
+      // Overdue = Error
+      return (
+        container: colorScheme.errorContainer,
+        onContainer: colorScheme.onErrorContainer,
+      );
     }
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(date.year, date.month, date.day);
-    final difference = target.difference(today).inDays;
-
-    // Map time differences to semantic theme colors
-    if (difference < 0) return theme.colorScheme.error; // Overdue = Error
     if (difference == 0) {
-      return theme.brightness == Brightness.light
-          ? const Color(0xFF2E7D32)
-          : const Color(0xFFC8E6C9); // Today = Success (Darker/Lighter)
+      // Today = Success
+      return (
+        container:
+            isDark
+                ? AppColors.successContainerDark
+                : AppColors.successContainerLight,
+        onContainer:
+            isDark
+                ? AppColors.onSuccessContainerDark
+                : AppColors.onSuccessContainerLight,
+      );
     }
     if (difference <= 3) {
-      return theme.brightness == Brightness.light
-          ? const Color(0xFFFFC107)
-          : const Color(0xFFFFD54F); // Soon = Warning
+      // Soon = Warning
+      return (
+        container:
+            isDark
+                ? AppColors.warningContainerDark
+                : AppColors.warningContainerLight,
+        onContainer:
+            isDark
+                ? AppColors.onWarningContainerDark
+                : AppColors.onWarningContainerLight,
+      );
     }
-    // Further out, use secondary or tertiary theme color
-    return theme.colorScheme.secondary;
+    // Further out = Secondary Container
+    return (
+      container: colorScheme.secondaryContainer,
+      onContainer: colorScheme.onSecondaryContainer,
+    );
+  }
+
+  // --- Các hàm helper lấy màu semantic khác (ví dụ) ---
+  M3ColorPair _getSuccessColors(ColorScheme colorScheme, bool isDark) {
+    return (
+      container:
+          isDark
+              ? AppColors.successContainerDark
+              : AppColors.successContainerLight,
+      onContainer:
+          isDark
+              ? AppColors.onSuccessContainerDark
+              : AppColors.onSuccessContainerLight,
+    );
+  }
+
+  M3ColorPair _getWarningColors(ColorScheme colorScheme, bool isDark) {
+    return (
+      container:
+          isDark
+              ? AppColors.warningContainerDark
+              : AppColors.warningContainerLight,
+      onContainer:
+          isDark
+              ? AppColors.onWarningContainerDark
+              : AppColors.onWarningContainerLight,
+    );
   }
 }
 
-// Assume Repetition and enums are defined elsewhere
-// enum RepetitionOrder { firstRepetition, secondRepetition, thirdRepetition, fourthRepetition, fifthRepetition }
-// enum RepetitionStatus { notStarted, completed, skipped }
-// class Repetition {
-//   final String id;
-//   final RepetitionOrder repetitionOrder;
-//   final RepetitionStatus status;
-//   final DateTime? reviewDate;
-//   // ... other fields
-//   Repetition({required this.id, required this.repetitionOrder, required this.status, this.reviewDate});
-// }
+// --- Giả định ---
+/*
+enum RepetitionOrder { firstRepetition, secondRepetition, thirdRepetition, fourthRepetition, fifthRepetition }
+enum RepetitionStatus { notStarted, completed, skipped }
+class Repetition {
+  final String id;
+  final RepetitionOrder repetitionOrder;
+  final RepetitionStatus status;
+  final DateTime? reviewDate;
+  Repetition({required this.id, required this.repetitionOrder, required this.status, this.reviewDate});
+}
 
-// Helper extension (optional)
-// extension ColorAlpha on Color {
-//   Color withValues({double? alpha}) {
-//     if (alpha != null) {
-//       return withOpacity(alpha);
-//     }
-//     return this;
-//   }
-// }
+// Extension giả định
+extension ColorAlpha on Color {
+  Color withValues({double? alpha}) {
+    if (alpha != null) { return withOpacity(alpha.clamp(0.0, 1.0)); }
+    return this;
+  }
+}
+*/

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-// Removed direct AppColors import as colors should come from the theme
-// import 'package:spaced_learning_app/core/theme/app_colors.dart';
+// Import AppColors để sử dụng màu semantic (success, warning)
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Widget to display learning insights on the home screen using Theme
+/// Widget to display learning insights on the home screen using AppTheme.
 class LearningInsightsWidget extends StatelessWidget {
   final double vocabularyRate;
   final int streakDays;
@@ -22,116 +22,141 @@ class LearningInsightsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use passed theme or get from context
+    // Sử dụng theme được truyền vào hoặc lấy từ context
     final currentTheme = theme ?? Theme.of(context);
+    // Lấy các thành phần theme cần thiết một lần
+    final colorScheme = currentTheme.colorScheme;
+    final textTheme = currentTheme.textTheme;
+    final isDark = currentTheme.brightness == Brightness.dark;
 
     return Card(
-      // Card theme applied automatically
-      margin: EdgeInsets.zero, // Keep custom margin
+      // CardTheme được áp dụng tự động
+      margin: EdgeInsets.zero, // Giữ margin tùy chỉnh
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pass theme to header
-            _buildHeader(currentTheme),
-            const SizedBox(
-              height: AppDimens.spaceM,
-            ), // Added space after header
-            const Divider(), // Use theme divider, height adjusted by theme
-            const SizedBox(height: AppDimens.spaceS), // Added space before list
-            // Pass theme to list builder
-            _buildInsightsList(context, currentTheme),
+            // Các hàm build không cần truyền theme nữa
+            _buildHeader(colorScheme, textTheme),
+            const SizedBox(height: AppDimens.spaceM),
+            // Divider tự lấy theme
+            const Divider(),
+            const SizedBox(height: AppDimens.spaceS),
+            // Truyền các thành phần theme cần thiết vào list builder
+            _buildInsightsList(context, colorScheme, textTheme, isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  // Loại bỏ tham số theme, nhận colorScheme và textTheme
+  Widget _buildHeader(ColorScheme colorScheme, TextTheme textTheme) {
     return Row(
       children: [
         Icon(
-          Icons.insights,
-          // Use theme's tertiary color
-          color: theme.colorScheme.tertiary,
+          Icons.insights_outlined, // Cân nhắc dùng icon outlined
+          // Dùng màu tertiary từ theme
+          color: colorScheme.tertiary,
           size: AppDimens.iconM,
         ),
         const SizedBox(width: AppDimens.spaceS),
-        // Use theme text style
-        Text('Learning Insights', style: theme.textTheme.titleLarge),
+        // Dùng text style từ theme và đặt màu rõ ràng
+        Text(
+          'Learning Insights',
+          style: textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface, // Đảm bảo màu chữ trên nền Card
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildInsightsList(BuildContext context, ThemeData theme) {
-    // Define semantic colors based on the current theme
-    // Example mapping (adjust based on your AppColors definitions and theme intent)
-    final Color rateColor =
-        theme.colorScheme.secondary; // Example: Map accentPurple
+  // Loại bỏ tham số theme, nhận các thành phần theme cần thiết
+  Widget _buildInsightsList(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    bool isDark,
+  ) {
+    // Define semantic colors using the theme's color scheme and AppColors
+    final Color rateColor = colorScheme.secondary; // OK
+    // Sửa lỗi màu cứng: Dùng AppColors (có dark/light) cho warning/streak
     final Color streakColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFFFFC107)
-            : const Color(0xFFFFD54F); // Example: Map warningLight
+        isDark
+            ? AppColors.warningDark
+            : AppColors.warningLight; // Hoặc dùng tertiary nếu muốn
+    // Sửa lỗi màu cứng: Dùng AppColors (có dark/light) cho success/pending
     final Color pendingColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFF4CAF50)
-            : const Color(0xFF81C784); // Example: Map accentGreen
-    final Color dueColor =
-        theme.colorScheme.primary; // Example: Map lightPrimary
+        isDark ? AppColors.successDark : AppColors.successLight;
+    final Color dueColor = colorScheme.primary; // OK
 
     return Column(
       children: [
         _buildInsightItem(
           context,
-          theme, // Pass theme
+          textTheme, // Chỉ cần textTheme
+          colorScheme, // Truyền colorScheme để lấy onSurfaceVariant
           'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
           Icons.trending_up,
-          rateColor, // Use theme-derived color
+          rateColor, // Màu đã được xác định từ theme
         ),
         _buildInsightItem(
           context,
-          theme, // Pass theme
+          textTheme,
+          colorScheme,
           'Your current streak is $streakDays days - keep going!',
-          Icons.local_fire_department,
-          streakColor, // Use theme-derived color
+          Icons.local_fire_department_outlined, // Outlined icon
+          streakColor, // Màu warning từ AppColors (theo theme)
         ),
         _buildInsightItem(
           context,
-          theme, // Pass theme
+          textTheme,
+          colorScheme,
           'You have $pendingWords words pending to learn',
-          Icons
-              .menu_book, // Consider a more specific icon like hourglass_empty?
-          pendingColor, // Use theme-derived color
+          Icons.hourglass_empty_outlined, // Icon khác?
+          pendingColor, // Màu success từ AppColors (theo theme)
         ),
         _buildInsightItem(
           context,
-          theme, // Pass theme
+          textTheme,
+          colorScheme,
           'Complete today\'s $dueToday sessions to maintain your streak',
-          Icons.today,
-          dueColor, // Use theme-derived color
+          Icons.today_outlined, // Outlined icon
+          dueColor, // Màu primary từ theme
         ),
       ],
     );
   }
 
+  // Loại bỏ tham số theme, nhận textTheme và colorScheme
   Widget _buildInsightItem(
     BuildContext context,
-    ThemeData theme, // Receive theme
+    TextTheme textTheme,
+    ColorScheme colorScheme, // Nhận colorScheme để lấy màu text phụ
     String message,
     IconData icon,
-    Color color, // Color is now derived from theme in the caller
+    Color color, // Màu nhấn cho icon (đã được xác định ở trên)
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppDimens.paddingM,
+      ), // Tăng padding dọc
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // Căn trên nếu text dài
         children: [
-          // Use the derived color for the icon
+          // Dùng màu nhấn cho icon
           Icon(icon, color: color, size: AppDimens.iconM),
-          const SizedBox(width: AppDimens.spaceM),
+          const SizedBox(width: AppDimens.spaceM), // Tăng khoảng cách
           Expanded(
-            // Use theme text style for the message
-            child: Text(message, style: theme.textTheme.bodyMedium),
+            // Dùng text style từ theme và đặt màu phụ rõ ràng
+            child: Text(
+              message,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant, // Dùng màu phụ cho text
+              ),
+            ),
           ),
         ],
       ),
