@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-// Removed direct AppColors import
-// import 'package:spaced_learning_app/core/theme/app_colors.dart';
+// Import lại AppColors để sử dụng các màu ngữ nghĩa (success, warning, info)
+// vì chúng không nằm trong ColorScheme gốc của Flutter.
+import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/learning_insight.dart'; // Ensure this path is correct
+import 'package:spaced_learning_app/domain/models/learning_insight.dart'; // Đảm bảo đường dẫn này đúng
 
-/// Card widget that displays learning insights using Theme
+/// Card widget hiển thị learning insights, sử dụng AppTheme đã được áp dụng.
 class LearningInsightsCard extends StatelessWidget {
   final List<LearningInsightDTO> insights;
   final String? title;
@@ -21,10 +22,13 @@ class LearningInsightsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use passed theme or get from context
+    // Sử dụng theme được truyền vào hoặc lấy từ context
     final currentTheme = theme ?? Theme.of(context);
+    final colorScheme =
+        currentTheme.colorScheme; // Truy cập ColorScheme cho tiện
+    final textTheme = currentTheme.textTheme; // Truy cập TextTheme cho tiện
 
-    // Sort and limit insights
+    // Sắp xếp và giới hạn insights
     final sortedInsights = List<LearningInsightDTO>.from(insights)
       ..sort((a, b) => a.priority.compareTo(b.priority));
     final displayInsights =
@@ -33,24 +37,23 @@ class LearningInsightsCard extends StatelessWidget {
             : sortedInsights;
 
     return Card(
-      // Card theme is applied automatically
-      // Use theme elevation if defined, otherwise fallback or keep custom
-      elevation: currentTheme.cardTheme.elevation ?? AppDimens.elevationS,
-      // Use theme shape if defined, otherwise fallback or keep custom
-      shape:
-          currentTheme.cardTheme.shape ??
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusL),
-          ),
+      // CardTheme (color, shape, elevation, etc.) được áp dụng tự động từ currentTheme.
+      // Không cần set elevation và shape ở đây nữa vì Card widget sẽ tự lấy từ currentTheme.cardTheme.
+      // elevation: currentTheme.cardTheme.elevation ?? AppDimens.elevationS, // Bỏ đi, Card tự xử lý
+      // shape: currentTheme.cardTheme.shape ?? // Bỏ đi, Card tự xử lý
+      //         RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      //         ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pass theme to header
+            // Truyền theme vào header
             _buildHeader(currentTheme),
             const SizedBox(height: AppDimens.spaceS),
-            const Divider(), // Use theme divider
+            // Divider sẽ tự động sử dụng màu từ currentTheme.dividerTheme
+            const Divider(),
             const SizedBox(height: AppDimens.spaceS),
             if (displayInsights.isEmpty)
               Center(
@@ -58,19 +61,19 @@ class LearningInsightsCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     vertical: AppDimens.paddingL,
                   ),
-                  // Use theme text style and color
+                  // Sử dụng text style và màu từ theme
                   child: Text(
                     'No insights available',
-                    style: currentTheme.textTheme.bodyMedium?.copyWith(
-                      color: currentTheme.colorScheme.onSurface.withValues(
-                        alpha: 0.7,
-                      ),
+                    style: textTheme.bodyMedium?.copyWith(
+                      // Sử dụng onSurfaceVariant hoặc màu onSurface với alpha giảm
+                      color: colorScheme.onSurfaceVariant,
+                      // Hoặc: color: colorScheme.onSurface.withValues(alpha:0.7), // Giữ nguyên cách cũ nếu muốn
                     ),
                   ),
                 ),
               )
             else
-              // Pass theme to item builder
+              // Truyền theme vào item builder
               ...displayInsights.map(
                 (insight) => _buildInsightItem(context, insight, currentTheme),
               ),
@@ -78,7 +81,7 @@ class LearningInsightsCard extends StatelessWidget {
               const SizedBox(height: AppDimens.spaceS),
               Align(
                 alignment: Alignment.centerRight,
-                // TextButton uses theme automatically
+                // TextButton sẽ tự động sử dụng style từ currentTheme.textButtonTheme
                 child: TextButton(
                   onPressed: onViewMorePressed,
                   child: const Text('View More'),
@@ -92,22 +95,27 @@ class LearningInsightsCard extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    // Define semantic color based on theme
+    // Sử dụng màu từ ColorScheme cho icon header.
+    // Chọn màu phù hợp với ngữ nghĩa của icon (ví dụ: tertiary, secondary hoặc info)
     final Color headerIconColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFFFFD54F)
-            : const Color(0xFFFFCA28); // Example: Map warningDark
+        theme.colorScheme.tertiary; // Ví dụ dùng màu tertiary
 
     return Row(
       children: [
         Icon(
           Icons.lightbulb_outline,
-          color: headerIconColor, // Use theme-derived color
+          color: headerIconColor, // Sử dụng màu từ theme
           size: AppDimens.iconM,
         ),
         const SizedBox(width: AppDimens.spaceS),
-        // Use theme text style
-        Text(title ?? 'Learning Insights', style: theme.textTheme.titleLarge),
+        // Sử dụng text style từ theme
+        Text(
+          title ?? 'Learning Insights',
+          // Đảm bảo style phù hợp và có màu rõ ràng trên nền card
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
       ],
     );
   }
@@ -117,7 +125,8 @@ class LearningInsightsCard extends StatelessWidget {
     LearningInsightDTO insight,
     ThemeData theme,
   ) {
-    // Get color and icon using theme
+    // Lấy màu và icon sử dụng theme
+    // _getColorFromString giờ đây sẽ lấy màu ngữ nghĩa từ AppColors dựa trên theme
     final Color color = _getColorFromString(insight.color, theme);
     final IconData icon = _getIconFromString(insight.icon);
 
@@ -128,81 +137,77 @@ class LearningInsightsCard extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: color,
+            color: color, // Sử dụng màu đã được xử lý qua theme
             size: AppDimens.iconM,
-          ), // Use theme-derived color
+          ),
           const SizedBox(width: AppDimens.spaceM),
           Expanded(
-            // Use theme text style
-            child: Text(insight.message, style: theme.textTheme.bodyMedium),
+            // Sử dụng text style từ theme
+            child: Text(
+              insight.message,
+              // Đảm bảo style phù hợp và có màu rõ ràng
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Maps color names to theme-based colors
+  /// Ánh xạ tên màu sang màu dựa trên theme, bao gồm các màu ngữ nghĩa từ AppColors.
   Color _getColorFromString(String colorName, ThemeData theme) {
-    // Define semantic colors based on theme brightness (examples)
-    final Color successColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFF4CAF50)
-            : const Color(0xFF81C784);
-    final Color warningColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFFFFC107)
-            : const Color(0xFFFFD54F);
-    final Color errorColor = theme.colorScheme.error;
-    final Color infoColor =
-        theme.brightness == Brightness.light
-            ? const Color(0xFF2196F3)
-            : const Color(0xFF64B5F6);
+    final bool isDark = theme.brightness == Brightness.dark;
 
     switch (colorName.toLowerCase()) {
-      // Map to theme scheme colors
+      // Lấy màu trực tiếp từ ColorScheme của theme
       case 'primary':
-      case 'blue': // Assuming blue often means primary
+      case 'blue': // Giả sử blue thường là primary
         return theme.colorScheme.primary;
       case 'secondary':
-      case 'purple': // Assuming purple often means secondary
+      case 'purple': // Giả sử purple thường là secondary
         return theme.colorScheme.secondary;
       case 'tertiary':
         return theme.colorScheme.tertiary;
       case 'error':
-      case 'red': // Assuming red means error
-        return errorColor;
+      case 'red': // Giả sử red là error
+        return theme.colorScheme.error;
       case 'surface':
         return theme.colorScheme.surface;
       case 'onSurface':
         return theme.colorScheme.onSurface;
       case 'neutral':
-        return theme.colorScheme.onSurface.withValues(alpha: 0.6);
+        return theme
+            .colorScheme
+            .onSurfaceVariant; // Dùng onSurfaceVariant cho neutral
 
-      // Map to semantic colors derived from theme
+      // Lấy các màu ngữ nghĩa từ AppColors (đã định nghĩa trong theme tổng)
       case 'success':
-      case 'green': // Assuming green means success
-      case 'teal': // Assuming teal maps to success/green contextually
-        return successColor;
+      case 'green':
+      case 'teal': // Giả sử teal map sang success/green
+        return isDark ? AppColors.successDark : AppColors.successLight;
       case 'warning':
-      case 'orange': // Assuming orange means warning
-      case 'amber': // Assuming amber means warning
-        return warningColor;
+      case 'orange':
+      case 'amber':
+        return isDark ? AppColors.warningDark : AppColors.warningLight;
       case 'info':
-      case 'indigo': // Assuming indigo maps to info contextually
-        return infoColor;
+      case 'indigo':
+        return isDark ? AppColors.infoDark : AppColors.infoLight;
 
-      // Fallback
+      // Màu dự phòng
       default:
-        return theme.colorScheme.onSurface.withValues(
-          alpha: 0.7,
-        ); // Default subtle color
+        return theme
+            .colorScheme
+            .onSurfaceVariant; // Fallback dùng màu trung tính hơn
+      // return theme.colorScheme.onSurface.withValues(alpha:0.7); // Hoặc giữ nguyên cách cũ
     }
   }
 
-  /// Maps icon names to IconData (remains the same)
+  /// Ánh xạ tên icon sang IconData (giữ nguyên)
   IconData _getIconFromString(String iconName) {
     switch (iconName.toLowerCase()) {
-      // Added toLowerCase for robustness
+      // Đã có toLowerCase
       case 'trending_up':
         return Icons.trending_up;
       case 'local_fire_department':
@@ -219,11 +224,11 @@ class LearningInsightsCard extends StatelessWidget {
         return Icons.emoji_events;
       case 'lightbulb':
         return Icons.lightbulb;
-      case 'info': // Added potential icon name
+      case 'info':
         return Icons.info;
-      case 'warning': // Added potential icon name
+      case 'warning':
         return Icons.warning;
-      case 'error': // Added potential icon name
+      case 'error':
         return Icons.error;
       default:
         return Icons.info_outline; // Default fallback icon
@@ -231,18 +236,20 @@ class LearningInsightsCard extends StatelessWidget {
   }
 }
 
-// Assume LearningInsightDTO structure:
-// class LearningInsightDTO {
-//   final String message;
-//   final String color; // e.g., 'primary', 'red', 'warning'
-//   final String icon;  // e.g., 'trending_up', 'error'
-//   final int priority;
-//   // ... other fields
-//
-//   LearningInsightDTO({
-//     required this.message,
-//     required this.color,
-//     required this.icon,
-//     required this.priority,
-//   });
-// }
+// Assume LearningInsightDTO structure remains the same:
+/*
+class LearningInsightDTO {
+  final String message;
+  final String color; // e.g., 'primary', 'red', 'warning', 'success'
+  final String icon;  // e.g., 'trending_up', 'error', 'lightbulb'
+  final int priority;
+  // ... other fields
+
+  LearningInsightDTO({
+    required this.message,
+    required this.color,
+    required this.icon,
+    required this.priority,
+  });
+}
+*/

@@ -373,7 +373,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
       case CycleStudied.firstReview:
         return AppColors.successDark;
       case CycleStudied.secondReview:
-        return AppColors.successLightVariant;
+        return AppColors.darkSecondaryContainer;
       case CycleStudied.thirdReview:
         return AppColors.infoLight;
       case CycleStudied.moreThanThreeReviews:

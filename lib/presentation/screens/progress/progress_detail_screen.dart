@@ -209,6 +209,8 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
                         controller.text = newScore.toInt().toString();
                       });
                     },
+                    initialScore: 0.0,
+                    onScoreChangedFinal: (double value) {},
                   ),
                   actions: [
                     TextButton(

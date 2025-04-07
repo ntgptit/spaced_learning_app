@@ -5,7 +5,8 @@ import 'package:spaced_learning_app/core/theme/app_typography.dart';
 
 class AppTheme {
   static ThemeData getLightTheme() {
-    // Sử dụng các màu sáng từ AppColors đã cập nhật (Teal/Blue/Amber theme)
+    // Sử dụng các màu sáng từ AppColors hiện đại (Blue/Teal/Coral theme)
+    // ColorScheme này đã được định nghĩa chính xác với các màu mới trong AppColors
     const colorScheme = ColorScheme(
       brightness: Brightness.light,
       primary: AppColors.lightPrimary,
@@ -24,34 +25,43 @@ class AppTheme {
       onError: AppColors.lightOnError,
       errorContainer: AppColors.lightErrorContainer,
       onErrorContainer: AppColors.lightOnErrorContainer,
-      surface:
+      surface: AppColors.lightSurface, // Mapped to AppColors.lightSurface
+      onSurface:
           AppColors
-              .lightSurface, // == surfaceContainerLowest trong AppColors mới
-      onSurface: AppColors.lightOnSurface, // Sử dụng đúng surfaceVariant
-      onSurfaceVariant: AppColors.lightOnSurfaceVariant,
-      outline: AppColors.lightOutline,
-      // outlineVariant: // Có thể thêm nếu định nghĩa trong AppColors
+              .lightOnSurface, // M3 uses this for subtle backgrounds/borders
+      onSurfaceVariant:
+          AppColors
+              .lightOnSurfaceVariant, // M3 uses this for medium emphasis text/icons
+      outline: AppColors.lightOutline, // M3 uses for borders
+      outlineVariant:
+          AppColors
+              .lightOutlineVariant, // M3 uses for dividers, decorative outlines
       shadow: Colors.black,
       scrim: Colors.black54,
-      inverseSurface: AppColors.almostBlack, // Hoặc màu tối tương phản khác
-      onInverseSurface: AppColors.neutralLight, // Hoặc màu sáng tương phản khác
-      inversePrimary:
-          AppColors.darkPrimary, // Thường là màu primary của theme đối lập
-      surfaceTint: AppColors.lightPrimary, // Thường là màu primary
+      inverseSurface:
+          AppColors.darkSurface, // Typically opposite theme's surface
+      onInverseSurface:
+          AppColors.darkOnSurface, // Typically opposite theme's onSurface
+      inversePrimary: AppColors.darkPrimary, // Primary color in opposite theme
+      surfaceTint:
+          AppColors
+              .lightPrimary, // Often primary color, used for elevation overlay
       // M3 Surface Container Levels (Map từ AppColors mới)
       surfaceContainerLowest: AppColors.surfaceContainerLowest,
       surfaceContainerLow: AppColors.surfaceContainerLow,
       surfaceContainer: AppColors.surfaceContainer,
       surfaceContainerHigh: AppColors.surfaceContainerHigh,
       surfaceContainerHighest: AppColors.surfaceContainerHighest,
-      surfaceDim: AppColors.surfaceDim, // Thêm nếu có
+      surfaceDim: AppColors.surfaceDim, // Thêm từ AppColors mới
+      surfaceBright: AppColors.surfaceBright, // Thêm từ AppColors mới
     );
 
     return _createTheme(colorScheme);
   }
 
   static ThemeData getDarkTheme() {
-    // Sử dụng các màu tối từ AppColors đã cập nhật (Teal/Blue/Amber theme)
+    // Sử dụng các màu tối từ AppColors hiện đại (Blue/Teal/Coral theme)
+    // ColorScheme này đã được định nghĩa chính xác với các màu mới trong AppColors
     const colorScheme = ColorScheme(
       brightness: Brightness.dark,
       primary: AppColors.darkPrimary,
@@ -70,35 +80,35 @@ class AppTheme {
       onError: AppColors.darkOnError,
       errorContainer: AppColors.darkErrorContainer,
       onErrorContainer: AppColors.darkOnErrorContainer,
-      surface:
-          AppColors
-              .darkSurface, // == darkSurfaceContainerLowest trong AppColors mới
-      onSurface: AppColors.darkOnSurface, // Sử dụng đúng surfaceVariant
+      surface: AppColors.darkSurface, // Mapped to AppColors.darkSurface
+      onSurface: AppColors.darkOnSurface,
       onSurfaceVariant: AppColors.darkOnSurfaceVariant,
       outline: AppColors.darkOutline,
-      // outlineVariant: // Có thể thêm nếu định nghĩa trong AppColors
-      shadow: Colors.black, // Shadow thường vẫn là màu tối
+      outlineVariant: AppColors.darkOutlineVariant, // Thêm từ AppColors mới
+      shadow: Colors.black,
       scrim: Colors.black54,
-      inverseSurface: AppColors.neutralLight, // Hoặc màu sáng tương phản khác
-      onInverseSurface: AppColors.almostBlack, // Hoặc màu tối tương phản khác
-      inversePrimary:
-          AppColors.lightPrimary, // Thường là màu primary của theme đối lập
-      surfaceTint: AppColors.darkPrimary, // Thường là màu primary
+      inverseSurface:
+          AppColors.lightSurface, // Typically opposite theme's surface
+      onInverseSurface:
+          AppColors.lightOnSurface, // Typically opposite theme's onSurface
+      inversePrimary: AppColors.lightPrimary, // Primary color in opposite theme
+      surfaceTint:
+          AppColors
+              .darkPrimary, // Often primary color, used for elevation overlay
       // M3 Surface Container Levels (Map từ AppColors mới)
       surfaceContainerLowest: AppColors.darkSurfaceContainerLowest,
       surfaceContainerLow: AppColors.darkSurfaceContainerLow,
       surfaceContainer: AppColors.darkSurfaceContainer,
       surfaceContainerHigh: AppColors.darkSurfaceContainerHigh,
       surfaceContainerHighest: AppColors.darkSurfaceContainerHighest,
-      surfaceDim: AppColors.darkSurfaceDim, // Thêm nếu có
+      surfaceDim: AppColors.darkSurfaceDim, // Thêm từ AppColors mới
+      surfaceBright: AppColors.darkSurfaceBright, // Thêm từ AppColors mới
     );
 
     return _createTheme(colorScheme);
   }
 
-  // Phương thức _createTheme giữ nguyên cấu trúc,
-  // nhưng giờ sẽ nhận ColorScheme đã được cập nhật với màu tươi sáng.
-  // Các tham chiếu trực tiếp đến AppColors bên trong sẽ dùng giá trị mới.
+  // Phương thức _createTheme giờ đây nhất quán hơn trong việc sử dụng ColorScheme
   static ThemeData _createTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
     final textTheme = AppTypography.getTextTheme(colorScheme.brightness);
@@ -107,106 +117,148 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       textTheme: textTheme,
-      // Sử dụng colorScheme cho các thuộc tính gốc nếu có thể
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor:
+          colorScheme
+              .surface, // Chuẩn M3: Nên dùng surface hoặc surfaceContainerLowest
       appBarTheme: AppBarTheme(
-        elevation: AppDimens.elevationS,
+        elevation:
+            AppDimens.elevationS, // M3 thường là 0 nếu không scroll, hoặc 3
         centerTitle: false,
-        // AppBar có thể dùng surface hoặc surface container tùy thiết kế
-        // Mã gốc dùng AppColors, giữ nguyên để apply trực tiếp
+        // Chuẩn M3: AppBar thường dùng surface hoặc surfaceContainer tùy trạng thái scroll.
+        // Sử dụng colorScheme thay vì AppColors trực tiếp.
         backgroundColor:
             isDark
-                ? AppColors.darkSurfaceContainerHighest
-                : AppColors.surfaceContainerLow,
-        foregroundColor: colorScheme.onSurface, // Tốt hơn là dùng colorScheme
-        titleTextStyle: textTheme.titleLarge,
-        shadowColor: isDark ? Colors.black26 : Colors.black12,
+                ? colorScheme
+                    .surfaceContainerHighest // surfaceContainerHighest là một lựa chọn tốt cho AppBar tối
+                : colorScheme
+                    .surfaceContainerLow, // surfaceContainerLow hoặc surface cho AppBar sáng
+        foregroundColor: colorScheme.onSurface, // Màu cho title và icons
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: colorScheme.onSurface,
+        ), // Đảm bảo màu chữ rõ ràng
+        shadowColor:
+            isDark
+                ? Colors.transparent
+                : Colors.black12, // M3 ít dùng shadow rõ rệt
+        surfaceTintColor:
+            isDark ? null : colorScheme.surfaceTint, // Tint khi scroll
         iconTheme: IconThemeData(
-          // Mã gốc dùng AppColors, giữ nguyên
-          color:
-              isDark ? AppColors.iconPrimaryDark : AppColors.iconPrimaryLight,
-        ),
+          color: colorScheme.onSurface,
+        ), // Icon trên AppBar
       ),
       cardTheme: CardThemeData(
-        elevation: AppDimens.elevationS,
+        elevation:
+            AppDimens
+                .elevationS, // M3 thường là 1 (filled), 1 (elevated), 0 (outlined)
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          borderRadius: BorderRadius.circular(
+            AppDimens.radiusL,
+          ), // M3 thường là 12.0
+          side:
+              colorScheme.brightness == Brightness.light
+                  ? BorderSide(
+                    color: colorScheme.outlineVariant,
+                  ) // Thêm viền nhẹ cho card sáng (optional)
+                  : BorderSide.none, // Card tối thường không cần viền
         ),
-        // Card thường dùng surface hoặc surface container thấp
-        // Mã gốc dùng AppColors, giữ nguyên
+        // Chuẩn M3: Card thường dùng surfaceContainerLowest (sáng) hoặc surfaceContainerLow (tối)
         color:
             isDark
-                ? AppColors.darkSurfaceContainerLow
-                : AppColors.surfaceContainerLowest,
+                ? colorScheme.surfaceContainerLow
+                : colorScheme.surfaceContainerLowest,
         surfaceTintColor:
-            Colors.transparent, // M3 thường dùng colorScheme.surfaceTint ở đây
+            colorScheme.surfaceTint, // Cho hiệu ứng elevation tint
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
-        shadowColor: isDark ? Colors.black : Colors.black26,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          elevation: AppDimens.elevationS,
+          elevation: AppDimens.elevationS, // M3 là 1 khi enable, 0 khi disable
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingXL,
-            vertical: AppDimens.paddingM,
+            horizontal: AppDimens.paddingXL, // M3 thường là 24.0
+            vertical: AppDimens.paddingM, // M3 thường là 10.0
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            borderRadius: BorderRadius.circular(
+              AppDimens.radiusM,
+            ), // M3 thường là 20.0 (full)
           ),
-          foregroundColor: colorScheme.onPrimary, // Đúng chuẩn M3
-          backgroundColor: colorScheme.primary, // Đúng chuẩn M3
+          foregroundColor: colorScheme.onPrimary, // OK
+          backgroundColor: colorScheme.primary, // OK
+          disabledForegroundColor: colorScheme.onSurface.withValues(
+            alpha: 0.38,
+          ), // Chuẩn M3 disable
+          disabledBackgroundColor: colorScheme.onSurface.withValues(
+            alpha: 0.12,
+          ), // Chuẩn M3 disable
           textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingXL,
-            vertical: AppDimens.paddingM,
+            horizontal: AppDimens.paddingXL, // M3 thường là 24.0
+            vertical: AppDimens.paddingM, // M3 thường là 10.0
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            borderRadius: BorderRadius.circular(
+              AppDimens.radiusM,
+            ), // M3 thường là 20.0 (full)
           ),
           side: BorderSide(
-            color:
-                colorScheme.outline, // M3 thường dùng colorScheme.outline ở đây
-            width: AppDimens.outlineButtonBorderWidth,
+            color: colorScheme.outline, // Chuẩn M3: Dùng outline
+            width: AppDimens.outlineButtonBorderWidth, // M3 là 1.0
           ),
-          foregroundColor: colorScheme.primary, // Đúng chuẩn M3
+          foregroundColor: colorScheme.primary, // OK
+          disabledForegroundColor: colorScheme.onSurface.withValues(
+            alpha: 0.38,
+          ), // Chuẩn M3 disable
+          disabledBackgroundColor:
+              Colors.transparent, // Outlined không có background disable
           textStyle: textTheme.labelLarge,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: colorScheme.primary, // Đúng chuẩn M3
+          foregroundColor: colorScheme.primary, // OK
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingL,
-            vertical: AppDimens.paddingM,
+            horizontal:
+                AppDimens
+                    .paddingL, // M3 thường là 12.0 (start/end) và 4.0 (top/bottom nếu có icon)
+            vertical: AppDimens.paddingM, // M3 thường là 10.0
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusS),
+            borderRadius: BorderRadius.circular(
+              AppDimens.radiusS,
+            ), // M3 thường là 20.0 (full)
           ),
+          disabledForegroundColor: colorScheme.onSurface.withValues(
+            alpha: 0.38,
+          ), // Chuẩn M3 disable
+          disabledBackgroundColor: Colors.transparent,
           textStyle: textTheme.labelLarge,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        // Mã gốc dùng AppColors, giữ nguyên.
-        // M3 thường dùng colorScheme.surfaceContainerHighest hoặc tương tự
+        // Chuẩn M3: Fill color thường là surfaceContainerHighest hoặc tương tự.
+        // Lựa chọn AppColors gốc với alpha có thể là ý đồ thiết kế riêng, giữ lại nhưng comment lựa chọn M3.
         fillColor:
             isDark
-                ? AppColors.darkSurfaceContainerLow
+                ? colorScheme
+                    .surfaceContainerLow // Sử dụng colorScheme
                 : AppColors.lightOnSurface.withValues(
                   alpha: AppDimens.opacityLight,
-                ),
+                ), // Giữ lại từ mã gốc nếu là ý đồ
+        // : colorScheme.surfaceContainerHighest, // Lựa chọn M3 thay thế cho light theme
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingXL,
-          vertical: AppDimens.paddingL,
+          horizontal: AppDimens.paddingXL, // M3 là 16.0
+          vertical: AppDimens.paddingL, // M3 là 16.0
         ),
-        // Sử dụng colorScheme.outline cho border sẽ chuẩn M3 hơn
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          borderRadius: BorderRadius.circular(
+            AppDimens.radiusM,
+          ), // M3 thường là 4.0 (top), 0.0 (bottom) cho Filled; hoặc 4.0 cho Outlined
           borderSide: BorderSide(color: colorScheme.outline), // Chuẩn M3
         ),
         enabledBorder: OutlineInputBorder(
@@ -216,199 +268,332 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(
-            color: colorScheme.primary, // Đúng chuẩn M3
-            width: AppDimens.elevationS, // Có thể là 2.0
+            color: colorScheme.primary, // OK
+            width: AppDimens.elevationS, // M3 là 2.0
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(
-            color: colorScheme.error, // Đúng chuẩn M3
-            width: AppDimens.dividerThickness,
+            color: colorScheme.error, // OK
+            width: AppDimens.dividerThickness, // M3 là 1.0
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide: BorderSide(
-            color: colorScheme.error, // Đúng chuẩn M3
-            width: AppDimens.elevationS, // Có thể là 2.0
+            color: colorScheme.error, // OK
+            width: AppDimens.elevationS, // M3 là 2.0
           ),
         ),
-        // Sử dụng onSurface hoặc onSurfaceVariant cho label/hint
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.12),
+          ), // M3 disable border
+        ),
+        // Chuẩn M3: label/hint dùng onSurfaceVariant
         labelStyle: textTheme.bodyLarge?.copyWith(
-          color: colorScheme.onSurfaceVariant, // Chuẩn M3
-        ),
+          color: colorScheme.onSurfaceVariant,
+        ), // OK
         hintStyle: textTheme.bodyLarge?.copyWith(
-          color: colorScheme.onSurfaceVariant, // Chuẩn M3
-        ),
+          color: colorScheme.onSurfaceVariant,
+        ), // OK
+        helperStyle: textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ), // Thêm helper style
         errorStyle: textTheme.bodySmall?.copyWith(
-          color: colorScheme.onErrorContainer,
-        ), // Chuẩn M3
+          color: colorScheme.error,
+        ), // Chuẩn M3 nên dùng error trực tiếp
         floatingLabelStyle: textTheme.bodyLarge?.copyWith(
-          color: colorScheme.primary, // Đúng chuẩn M3
-        ),
+          color: colorScheme.primary,
+        ), // OK
+        prefixIconColor: colorScheme.onSurfaceVariant, // Chuẩn M3
+        suffixIconColor: colorScheme.onSurfaceVariant, // Chuẩn M3
       ),
       dividerTheme: DividerThemeData(
-        // M3 thường dùng colorScheme.outlineVariant
-        color: colorScheme.outlineVariant, // Dùng outlineVariant nếu có
-        thickness: AppDimens.dividerThickness,
-        space: AppDimens.dividerThickness, // space thường lớn hơn thickness
+        color: colorScheme.outlineVariant, // Chuẩn M3: Dùng outlineVariant
+        thickness: AppDimens.dividerThickness, // M3 là 1.0
+        space:
+            AppDimens
+                .paddingL, // Điều chỉnh khoảng cách nếu cần (M3 không quy định cứng)
       ),
       dialogTheme: DialogThemeData(
-        // M3 dùng colorScheme.surfaceContainerHigh hoặc tương tự
-        // Mã gốc dùng AppColors, giữ nguyên
+        // Chuẩn M3: Dùng surfaceContainerHigh
         backgroundColor:
             isDark
-                ? AppColors.darkSurfaceContainerHighest
-                : AppColors.surfaceContainerLowest,
-        elevation:
-            AppDimens
-                .elevationXXL, // M3 thường dùng elevation thấp hơn (e.g., 6)
+                ? colorScheme.surfaceContainerHigh
+                : colorScheme.surfaceContainerHigh,
+        elevation: AppDimens.elevationL, // M3 thường là 6
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
             AppDimens.radiusXL,
           ), // M3 thường là 28.0
         ),
-        titleTextStyle: textTheme.headlineSmall, // Đúng chuẩn M3
-        contentTextStyle: textTheme.bodyMedium, // Đúng chuẩn M3
+        iconColor: colorScheme.secondary, // Chuẩn M3
+        titleTextStyle: textTheme.headlineSmall?.copyWith(
+          color: colorScheme.onSurface,
+        ), // Chuẩn M3
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ), // Chuẩn M3
       ),
       listTileTheme: ListTileThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingL,
+          horizontal: AppDimens.paddingL, // M3 là 16.0 (start), 24.0 (end)
           vertical: AppDimens.paddingS,
         ),
-        minLeadingWidth: AppDimens.iconL,
+        minLeadingWidth: AppDimens.iconL, // Điều chỉnh nếu cần
         minVerticalPadding: AppDimens.paddingL,
-        iconColor: colorScheme.primary, // Chuẩn M3
-        textColor: colorScheme.onSurface, // Chuẩn M3
-        titleTextStyle: textTheme.bodyLarge, // Chuẩn M3
+        iconColor:
+            colorScheme
+                .onSurfaceVariant, // Chuẩn M3: Dùng onSurfaceVariant hoặc primary nếu cần nhấn mạnh
+        textColor: colorScheme.onSurface, // Màu cho leading/trailing text
+        titleTextStyle: textTheme.bodyLarge?.copyWith(
+          color: colorScheme.onSurface,
+        ), // Màu cho title
         subtitleTextStyle: textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurfaceVariant, // Chuẩn M3
-        ),
+          color: colorScheme.onSurfaceVariant,
+        ), // Màu cho subtitle
       ),
       chipTheme: ChipThemeData(
-        // M3 dùng colorScheme.secondaryContainer hoặc surfaceContainerLow/etc.
-        // Mã gốc dùng AppColors, giữ nguyên
-        backgroundColor:
-            isDark
-                ? AppColors.darkSurfaceContainerLow
-                : AppColors.surfaceContainerLow,
-        selectedColor: colorScheme.primaryContainer, // Chuẩn M3 hơn
+        // Chuẩn M3: Dùng surfaceContainerLow hoặc outline tùy loại chip (Input, Filter, Assist, Suggestion)
+        backgroundColor: colorScheme.surfaceContainerLow, // Lựa chọn trung tính
+        selectedColor:
+            colorScheme
+                .secondaryContainer, // Chuẩn M3 cho Filter chip khi selected
         secondarySelectedColor:
-            colorScheme.primary, // Thường là primaryContainer hoặc primary
+            colorScheme.primaryContainer, // Nếu cần phân biệt
+        disabledColor: colorScheme.onSurface.withValues(alpha: 0.12),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM,
-          vertical: AppDimens.paddingS,
+          horizontal:
+              AppDimens
+                  .paddingM, // M3 thường là 12.0 (Assist/Input/Suggestion) hoặc 8.0 (Filter)
+          vertical: AppDimens.paddingS, // M3 là 6.0
         ),
         labelStyle: textTheme.labelLarge?.copyWith(
-          color: colorScheme.onSurfaceVariant, // Chuẩn M3
-        ),
+          color: colorScheme.onSurfaceVariant,
+        ), // Màu chữ khi chưa chọn
         secondaryLabelStyle: textTheme.labelLarge?.copyWith(
-          color: colorScheme.onPrimaryContainer, // Chuẩn M3 hơn
-        ),
+          color: colorScheme.onSecondaryContainer,
+        ), // Màu chữ khi chọn (nếu dùng secondaryContainer)
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
             AppDimens.radiusXL,
           ), // M3 thường là 8.0
           side: BorderSide(
-            // M3 dùng colorScheme.outline
-            color: colorScheme.outline, // Chuẩn M3
-          ),
+            color: colorScheme.outline,
+          ), // Chuẩn M3: Dùng outline cho chip không elevated
         ),
-        elevation: AppDimens.elevationNone,
-        pressElevation: AppDimens.elevationXS,
+        elevation: AppDimens.elevationNone, // M3 là 0 cho flat chip
+        pressElevation:
+            AppDimens.elevationXS, // M3 là 1 cho flat chip khi pressed
+        iconTheme: IconThemeData(
+          color: colorScheme.primary,
+          size: 18.0,
+        ), // Icon trong chip (M3)
+        checkmarkColor:
+            colorScheme.onSecondaryContainer, // Màu dấu tick khi chọn (M3)
       ),
       iconTheme: IconThemeData(
-        // Nên dùng colorScheme.onSurface hoặc onSurfaceVariant
-        color:
-            isDark
-                ? AppColors.iconPrimaryDark
-                : AppColors.iconPrimaryLight, // Giữ nguyên mã gốc
-        size: AppDimens.iconL,
+        // Chuẩn M3: Icon độc lập thường dùng onSurfaceVariant
+        color: colorScheme.onSurfaceVariant,
+        size: AppDimens.iconL, // M3 là 24.0
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        // M3 dùng colorScheme.surfaceContainer hoặc surface
-        // Mã gốc dùng AppColors, giữ nguyên
-        backgroundColor:
-            isDark
-                ? AppColors.darkSurfaceContainerHighest
-                : AppColors.surfaceContainerHighest,
-        selectedItemColor: colorScheme.onSurface, // M3 dùng onSurface
+        // Chuẩn M3: Dùng surfaceContainer
+        backgroundColor: colorScheme.surfaceContainer,
+        selectedItemColor: colorScheme.onSurface, // Màu icon và label được chọn
         unselectedItemColor:
-            colorScheme.onSurfaceVariant, // M3 dùng onSurfaceVariant
-        selectedLabelStyle: textTheme.labelSmall,
-        unselectedLabelStyle: textTheme.labelSmall,
+            colorScheme.onSurfaceVariant, // Màu icon và label không được chọn
+        selectedLabelStyle: textTheme.labelSmall, // Font style
+        unselectedLabelStyle: textTheme.labelSmall, // Font style
+        selectedIconTheme: IconThemeData(
+          color: colorScheme.onSurface,
+        ), // Có thể thêm hiệu ứng riêng cho icon chọn
+        unselectedIconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-        elevation: AppDimens.elevationL, // M3 thường là 0 hoặc 3
+        elevation: AppDimens.elevationL, // M3 thường là 3
+        landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: colorScheme.primary, // Chuẩn M3
-        unselectedLabelColor: colorScheme.onSurfaceVariant, // Chuẩn M3
-        labelStyle: textTheme.titleSmall, // Chuẩn M3
-        unselectedLabelStyle: textTheme.titleSmall, // Chuẩn M3
-        indicatorColor: colorScheme.primary, // Chuẩn M3
-        indicatorSize: TabBarIndicatorSize.tab, // Chuẩn M3
-        // Bỏ BoxDecoration cũ, dùng thuộc tính M3
-        // indicator: BoxDecoration(
-        //   border: Border(
-        //     bottom: BorderSide(
-        //       color: colorScheme.primary,
-        //       width: AppDimens.tabIndicatorThickness,
-        //     ),
-        //   ),
-        // ),
+        // TabBar thường nằm trên AppBar hoặc surface khác
+        // Không cần set màu nền riêng trừ khi có thiết kế đặc biệt
+        labelColor: colorScheme.primary, // Màu text tab được chọn
+        unselectedLabelColor:
+            colorScheme.onSurfaceVariant, // Màu text tab không được chọn
+        labelStyle: textTheme.titleSmall, // Font style
+        unselectedLabelStyle: textTheme.titleSmall, // Font style
+        indicatorColor: colorScheme.primary, // Màu của indicator
+        indicatorSize: TabBarIndicatorSize.tab, // Indicator full tab
+        dividerColor:
+            colorScheme
+                .surfaceContainerHighest, // Màu đường kẻ dưới TabBar (M3)
+        overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          // Hiệu ứng ripple
+          if (states.contains(WidgetState.pressed)) {
+            return colorScheme.primary.withValues(alpha: 0.12);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return colorScheme.primary.withValues(alpha: 0.08);
+          }
+          return null;
+        }),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor:
-            colorScheme.primaryContainer, // M3 thường dùng primaryContainer
-        foregroundColor:
-            colorScheme.onPrimaryContainer, // M3 dùng onPrimaryContainer
+        // Chuẩn M3: FAB thường dùng primaryContainer hoặc tertiaryContainer
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
         elevation: AppDimens.elevationL, // M3 là 6
-        hoverElevation: AppDimens.elevationXL,
-        focusElevation: AppDimens.elevationL,
-        highlightElevation: AppDimens.elevationXL,
+        hoverElevation: AppDimens.elevationXL, // M3 là 8
+        focusElevation: AppDimens.elevationL, // M3 là 6
+        highlightElevation: AppDimens.elevationXL, // M3 là 12
+        disabledElevation: 0.0,
         shape: RoundedRectangleBorder(
-          // M3 dùng hình dạng khác nhau tùy loại FAB (Circular, Small, Large, Extended)
-          // Giữ hình tròn cơ bản
-          borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
+          // M3 FAB mặc định là 16.0
+          borderRadius: BorderRadius.circular(
+            AppDimens.radiusL,
+          ), // Giữ lại hoặc đổi thành 16.0
         ),
+        // Có thể định nghĩa riêng cho small, large, extended FAB nếu cần
+        // smallSizeConstraints: const BoxConstraints.tightFor(width: 40.0, height: 40.0),
+        // largeSizeConstraints: const BoxConstraints.tightFor(width: 96.0, height: 96.0),
+        // extendedPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        // extendedTextStyle: textTheme.labelLarge,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: colorScheme.primary, // Chuẩn M3
-        linearTrackColor: colorScheme.surfaceContainerHighest, // Chuẩn M3
-        circularTrackColor: colorScheme.surfaceContainerHighest, // Chuẩn M3
-        refreshBackgroundColor: colorScheme.surfaceContainerLow, // Chuẩn M3
+        color: colorScheme.primary, // OK
+        linearTrackColor: colorScheme.surfaceContainerHighest, // OK
+        circularTrackColor: colorScheme.surfaceContainerHighest, // OK
+        refreshBackgroundColor: colorScheme.surfaceContainerLow, // OK
       ),
       snackBarTheme: SnackBarThemeData(
-        // M3 dùng inverseSurface
-        backgroundColor: colorScheme.inverseSurface, // Chuẩn M3
+        // Chuẩn M3: Dùng inverseSurface
+        backgroundColor: colorScheme.inverseSurface,
+        actionTextColor:
+            colorScheme.inversePrimary, // Màu chữ của Action button
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onInverseSurface, // Chuẩn M3
-        ),
+          color: colorScheme.onInverseSurface,
+        ), // Màu chữ nội dung
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusS), // M3 là 4.0
         ),
-        actionTextColor: colorScheme.inversePrimary, // Chuẩn M3
-        behavior: SnackBarBehavior.floating,
+        behavior: SnackBarBehavior.floating, // OK
+        elevation: 6.0, // M3 là 6
       ),
       tooltipTheme: TooltipThemeData(
-        // M3 dùng màu khác (thường là inverseSurface hoặc màu trung tính đậm/nhạt)
-        // Giữ nguyên mã gốc
+        // Chuẩn M3: Dùng màu trung tính đậm/nhạt tùy theme
         decoration: BoxDecoration(
           color:
               isDark
-                  ? AppColors.darkSurfaceContainerHighest
-                  : AppColors.neutralDark,
+                  ? colorScheme.surfaceContainerHighest
+                  : colorScheme.inverseSurface, // Sử dụng màu M3 phù hợp
           borderRadius: BorderRadius.circular(AppDimens.radiusS), // M3 là 4.0
         ),
         textStyle: textTheme.bodySmall?.copyWith(
-          // Phụ thuộc vào màu nền tooltip
-          color: isDark ? AppColors.textPrimaryDark : AppColors.white,
+          color:
+              isDark
+                  ? colorScheme.onSurface
+                  : colorScheme.onInverseSurface, // Đảm bảo tương phản
         ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 4.0,
+        ), // M3 padding
+        waitDuration: const Duration(
+          milliseconds: 500,
+        ), // Thời gian chờ hiển thị
+        showDuration: const Duration(milliseconds: 1500), // Thời gian hiển thị
+      ),
+      // Thêm các tùy chỉnh khác nếu cần (Switch, Radio, Checkbox, Slider...)
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.onPrimary;
+          }
+          if (states.contains(WidgetState.disabled)) {
+            return isDark ? Colors.grey.shade800 : Colors.grey.shade400;
+          }
+          return isDark ? colorScheme.outline : colorScheme.outline;
+        }),
+        trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          if (states.contains(WidgetState.disabled)) {
+            return isDark ? Colors.white10 : Colors.black12;
+          }
+          return isDark
+              ? colorScheme.surfaceContainerHighest
+              : colorScheme.surfaceContainerHighest;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return isDark ? Colors.white10 : Colors.black12;
+          }
+          if (states.contains(WidgetState.selected)) {
+            return Colors.transparent;
+          }
+          return isDark ? colorScheme.outline : colorScheme.outline;
+        }),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.onSurface.withValues(alpha: 0.12);
+          }
+          return null; // Use default outline color
+        }),
+        checkColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.disabled) &&
+              states.contains(WidgetState.selected)) {
+            return colorScheme.onSurface.withValues(alpha: 0.38);
+          }
+          return colorScheme.onPrimary; // Color of the check mark
+        }),
+        overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.hovered)) {
+            return colorScheme.primary.withValues(alpha: 0.08);
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return colorScheme.primary.withValues(alpha: 0.12);
+          }
+          return null;
+        }),
+        side: WidgetStateBorderSide.resolveWith((states) {
+          return BorderSide(
+            color: colorScheme.onSurface.withValues(
+              alpha: states.contains(WidgetState.disabled) ? 0.38 : 1.0,
+            ),
+          );
+        }), // Border color when unchecked
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.onSurface.withValues(alpha: 0.38);
+          }
+          return colorScheme.onSurfaceVariant; // Color when unselected
+        }),
+        overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.hovered)) {
+            return colorScheme.primary.withValues(alpha: 0.08);
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return colorScheme.primary.withValues(alpha: 0.12);
+          }
+          return null;
+        }),
       ),
     );
   }
