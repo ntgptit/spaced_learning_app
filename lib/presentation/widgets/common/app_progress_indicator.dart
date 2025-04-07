@@ -77,15 +77,11 @@ class _AppProgressIndicatorState extends State<AppProgressIndicator>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final effectiveForegroundColor =
         widget.foregroundColor ?? widget.color ?? colorScheme.primary;
     final effectiveBackgroundColor =
-        widget.backgroundColor ??
-        (isDark
-            ? colorScheme.surface.withOpacity(AppDimens.opacitySemi)
-            : colorScheme.primary.withOpacity(AppDimens.opacitySemi));
+        widget.backgroundColor ?? colorScheme.surfaceContainerHighest;
 
     Widget progressIndicator;
 
@@ -145,10 +141,7 @@ class _AppProgressIndicatorState extends State<AppProgressIndicator>
             style:
                 widget.labelStyle ??
                 theme.textTheme.bodyMedium!.copyWith(
-                  color:
-                      widget.color ??
-                      widget.foregroundColor ??
-                      colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
+                  color: colorScheme.onSurfaceVariant,
                 ),
             textAlign: TextAlign.center,
           ),
@@ -172,7 +165,7 @@ class _AppProgressIndicatorState extends State<AppProgressIndicator>
             value: widget.value,
             backgroundColor: backgroundColor,
             valueColor: AlwaysStoppedAnimation<Color>(
-              foregroundColor.withOpacity(_fadeAnimation.value),
+              foregroundColor.withValues(alpha: _fadeAnimation.value),
             ),
             minHeight: widget.strokeWidth,
             borderRadius: BorderRadius.circular(widget.strokeWidth / 2),

@@ -35,14 +35,14 @@ class ModuleCard extends StatelessWidget {
         width: AppDimens.avatarSizeL,
         height: AppDimens.avatarSizeL,
         decoration: BoxDecoration(
-          color: colorScheme.primary.withValues(alpha: 0.1),
+          color: colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
         child: Center(
           child: Text(
             '${module.moduleNo}',
             style: theme.textTheme.titleLarge!.copyWith(
-              color: colorScheme.primary,
+              color: colorScheme.onPrimaryContainer,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -52,7 +52,9 @@ class ModuleCard extends StatelessWidget {
           module.wordCount != null && module.wordCount! > 0
               ? Text(
                 '${module.wordCount} words',
-                style: theme.textTheme.bodyMedium,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               )
               : null,
       content: Column(
@@ -67,6 +69,7 @@ class ModuleCard extends StatelessWidget {
                     type: ProgressType.linear,
                     value: progress,
                     strokeWidth: AppDimens.lineProgressHeightL,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                   ),
                 ),
                 const SizedBox(width: AppDimens.spaceL),

@@ -73,8 +73,8 @@ class DetailedLearningStatsScreen extends StatelessWidget {
           'No statistics available',
           // Use theme text style and onSurface color
           style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(
-              0.7,
+            color: theme.colorScheme.onSurface.withValues(
+              alpha: 0.7,
             ), // Example subtle color
           ),
         ),
@@ -147,7 +147,9 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             : const Color(
               0xFF64B5F6,
             ); // Example: Map to AppColors.infoLight/Dark
-    final Color neutralColor = theme.colorScheme.onSurface.withOpacity(0.6);
+    final Color neutralColor = theme.colorScheme.onSurface.withValues(
+      alpha: 0.6,
+    );
     final Color primaryAccentColor =
         theme.colorScheme.primary; // Use theme's primary color
 
@@ -378,7 +380,9 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         theme.brightness == Brightness.light
             ? const Color(0xFFFFC107)
             : const Color(0xFFFFD54F);
-    final Color neutralColor = theme.colorScheme.onSurface.withOpacity(0.6);
+    final Color neutralColor = theme.colorScheme.onSurface.withValues(
+      alpha: 0.6,
+    );
     final Color achievementColor =
         theme.brightness == Brightness.light
             ? const Color(0xFFFFC107)
@@ -463,7 +467,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                   '• Helps achieve learning goals faster',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     // Use theme's onSurface color, perhaps slightly less prominent
-                    color: theme.colorScheme.onSurface.withOpacity(0.85),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -586,7 +590,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                   '• Review right before sleep for better retention',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     // Use theme's onSurface color, perhaps slightly less prominent
-                    color: theme.colorScheme.onSurface.withOpacity(0.85),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -699,7 +703,7 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontStyle: FontStyle.italic,
                   // Make secondary info slightly less prominent than main value color
-                  color: color.withOpacity(0.85),
+                  color: color.withValues(alpha: 0.85),
                 ),
               ),
             ],
@@ -708,8 +712,8 @@ class DetailedLearningStatsScreen extends StatelessWidget {
               description,
               // Use theme text style and color for description
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(
-                  0.7,
+                color: theme.colorScheme.onSurface.withValues(
+                  alpha: 0.7,
                 ), // Example subtle color
               ),
               maxLines: expanded ? null : 2,

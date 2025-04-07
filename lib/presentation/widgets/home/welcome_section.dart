@@ -27,14 +27,14 @@ class WelcomeSection extends StatelessWidget {
   Widget _buildGreeting(ThemeData theme) {
     // Note: The original code uses .withValues(alpha: 0.7)
     // Assuming .withValues is an extension method you have defined,
-    // otherwise use .withOpacity(0.7)
+    // otherwise use .withValues(alpha:0.7)
     Color greetingColor = theme.colorScheme.onSurface;
     try {
       // Attempt to use the custom extension method if it exists
       greetingColor = (greetingColor as dynamic).withValues(alpha: 0.7);
     } catch (e) {
       // Fallback to standard opacity method if extension doesn't exist or fails
-      greetingColor = greetingColor.withOpacity(0.7);
+      greetingColor = greetingColor.withValues(alpha: 0.7);
       debugPrint(
         "WelcomeSection: Using withOpacity fallback for greeting color. Define 'withValues' extension if needed.",
       );

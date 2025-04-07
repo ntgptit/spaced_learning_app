@@ -45,7 +45,7 @@ class CycleFormatter {
       case CycleStudied.firstReview:
         return AppColors.successLight; // Green (Success)
       case CycleStudied.secondReview:
-        return AppColors.accentGreen; // Accent Green
+        return AppColors.accentPrimary; // Accent Green
       case CycleStudied.thirdReview:
         return AppColors.infoDark; // Lighter Purple
       case CycleStudied.moreThanThreeReviews:

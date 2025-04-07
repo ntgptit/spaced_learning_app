@@ -1,6 +1,5 @@
 // lib/presentation/widgets/common/app_card.dart
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class AppCard extends StatelessWidget {
@@ -47,16 +46,10 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final effectiveBackgroundColor =
-        backgroundColor ??
-        (isDark
-            ? AppColors.darkSurfaceContainerLow
-            : AppColors.surfaceContainerLowest);
-
-    final effectiveShadowColor =
-        shadowColor ?? (isDark ? Colors.black54 : Colors.black26);
+        backgroundColor ?? colorScheme.surfaceContainerLowest;
+    final effectiveShadowColor = shadowColor ?? colorScheme.shadow;
 
     // Create the content widget with potential gradient background
     final Widget cardContent = Container(
@@ -65,24 +58,22 @@ class AppCard extends StatelessWidget {
               ? BoxDecoration(
                 gradient:
                     customGradient ??
-                    (isDark
-                        ? const LinearGradient(
-                          colors: [
-                            AppColors.darkSurfaceContainerLow,
-                            AppColors.darkSurfaceContainerHigh,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                        : AppColors.gradientPrimary),
+                    LinearGradient(
+                      colors: [
+                        colorScheme.surfaceContainerLow,
+                        colorScheme.surfaceContainerHigh,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
               )
               : null,
       child: InkWell(
         onTap: onTap,
-        highlightColor:
-            highlightColor ??
-            colorScheme.primary.withOpacity(AppDimens.opacitySemi),
-        splashColor: colorScheme.primary.withOpacity(AppDimens.opacityMedium),
+        highlightColor: highlightColor ?? colorScheme.primaryContainer,
+        splashColor: colorScheme.primary.withValues(
+          alpha: AppDimens.opacityMedium,
+        ),
         borderRadius: BorderRadius.circular(borderRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +103,9 @@ class AppCard extends StatelessWidget {
                           children: [
                             if (title != null)
                               DefaultTextStyle(
-                                style: theme.textTheme.titleMedium!,
+                                style: theme.textTheme.titleMedium!.copyWith(
+                                  color: colorScheme.onSurface,
+                                ),
                                 child: title!,
                               ),
                             if (title != null && subtitle != null)
@@ -120,9 +113,7 @@ class AppCard extends StatelessWidget {
                             if (subtitle != null)
                               DefaultTextStyle(
                                 style: theme.textTheme.bodyMedium!.copyWith(
-                                  color: colorScheme.onSurface.withOpacity(
-                                    AppDimens.opacityHigh,
-                                  ),
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                                 child: subtitle!,
                               ),
@@ -197,7 +188,7 @@ class AppCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: effectiveShadowColor.withOpacity(0.2),
+              color: effectiveShadowColor.withValues(alpha: 0.2),
               blurRadius: AppDimens.shadowRadiusL,
               spreadRadius: AppDimens.shadowOffsetS,
               offset: const Offset(0, 3),
@@ -206,11 +197,7 @@ class AppCard extends StatelessWidget {
         ),
         child: Card(
           margin: EdgeInsets.zero,
-          elevation:
-              elevation ??
-              (theme.brightness == Brightness.dark
-                  ? AppDimens.elevationXS
-                  : AppDimens.elevationS),
+          elevation: elevation ?? AppDimens.elevationS,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
@@ -224,11 +211,7 @@ class AppCard extends StatelessWidget {
     // Standard card without outer shadow
     return Card(
       margin: margin,
-      elevation:
-          elevation ??
-          (theme.brightness == Brightness.dark
-              ? AppDimens.elevationXS
-              : AppDimens.elevationS),
+      elevation: elevation ?? AppDimens.elevationS,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius),
       ),

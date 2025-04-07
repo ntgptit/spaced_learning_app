@@ -34,6 +34,7 @@ class BookCard extends StatelessWidget {
         book.name,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
+          color: colorScheme.onSurface,
         ),
       ),
       subtitle:
@@ -46,7 +47,7 @@ class BookCard extends StatelessWidget {
               )
               : null,
       trailing: _buildModuleCountBadge(theme, colorScheme),
-      content: _buildContent(theme),
+      content: _buildContent(theme, colorScheme),
       actions: _buildActions(),
     );
   }
@@ -57,14 +58,14 @@ class BookCard extends StatelessWidget {
       width: AppDimens.moduleIndicatorSize,
       height: AppDimens.moduleIndicatorSize,
       decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: AppDimens.opacityMedium),
+        color: colorScheme.secondaryContainer,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Text(
           '${book.moduleCount}',
           style: theme.textTheme.titleSmall!.copyWith(
-            color: colorScheme.primary,
+            color: colorScheme.onSecondaryContainer,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -72,33 +73,37 @@ class BookCard extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent(ThemeData theme, ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: AppDimens.spaceS),
         Wrap(
-          spacing: AppDimens.spaceS, // Thay 6.0 bằng 8.0
+          spacing: AppDimens.spaceS,
           runSpacing: AppDimens.spaceXS,
           children: [
-            _buildStatusBadge(theme),
-            if (_buildDifficultyBadge(theme) != null)
-              _buildDifficultyBadge(theme)!,
+            _buildStatusBadge(theme, colorScheme),
+            if (_buildDifficultyBadge(theme, colorScheme) != null)
+              _buildDifficultyBadge(theme, colorScheme)!,
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStatusBadge(ThemeData theme) {
+  Widget _buildStatusBadge(ThemeData theme, ColorScheme colorScheme) {
     final (badgeColor, iconData, statusText) = switch (book.status) {
       BookStatus.published => (
-        Colors.green.shade600,
+        colorScheme.primary,
         Icons.check_circle,
         'Published',
       ),
-      BookStatus.draft => (Colors.amber.shade700, Icons.edit, 'Draft'),
-      BookStatus.archived => (Colors.grey.shade600, Icons.archive, 'Archived'),
+      BookStatus.draft => (colorScheme.secondary, Icons.edit, 'Draft'),
+      BookStatus.archived => (
+        colorScheme.onSurfaceVariant,
+        Icons.archive,
+        'Archived',
+      ),
     };
 
     return _Badge(
@@ -112,14 +117,14 @@ class BookCard extends StatelessWidget {
     );
   }
 
-  Widget? _buildDifficultyBadge(ThemeData theme) {
+  Widget? _buildDifficultyBadge(ThemeData theme, ColorScheme colorScheme) {
     if (book.difficultyLevel == null) return null;
 
     final (badgeColor, difficultyText) = switch (book.difficultyLevel!) {
-      DifficultyLevel.beginner => (Colors.green.shade600, 'Beginner'),
-      DifficultyLevel.intermediate => (Colors.blue.shade600, 'Intermediate'),
-      DifficultyLevel.advanced => (Colors.orange.shade600, 'Advanced'),
-      DifficultyLevel.expert => (Colors.red.shade600, 'Expert'),
+      DifficultyLevel.beginner => (colorScheme.primary, 'Beginner'),
+      DifficultyLevel.intermediate => (colorScheme.secondary, 'Intermediate'),
+      DifficultyLevel.advanced => (colorScheme.tertiary, 'Advanced'),
+      DifficultyLevel.expert => (colorScheme.error, 'Expert'),
     };
 
     return _Badge(
@@ -162,13 +167,16 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS, // Thay 6.0 bằng 8.0
+        horizontal: AppDimens.paddingS,
         vertical: AppDimens.paddingXXS,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: AppDimens.opacityMedium),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Row(
@@ -178,7 +186,15 @@ class _Badge extends StatelessWidget {
             Icon(icon, size: AppDimens.iconXS, color: color),
             const SizedBox(width: AppDimens.spaceXXS),
           ],
-          Text(text, style: textStyle),
+          Text(
+            text,
+            style: textStyle.copyWith(
+              color:
+                  colorScheme.brightness == Brightness.dark
+                      ? color.withValues(alpha: 0.9)
+                      : color,
+            ),
+          ),
         ],
       ),
     );

@@ -98,8 +98,8 @@ class ErrorDisplay extends StatelessWidget {
               textAlign: TextAlign.center,
               // Use theme text style and onError or onSurface color
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(
-                  0.85,
+                color: theme.colorScheme.onSurface.withValues(
+                  alpha: 0.85,
                 ), // Example color
               ),
             ),

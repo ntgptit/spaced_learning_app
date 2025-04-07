@@ -53,8 +53,8 @@ class LearningStatsCard extends StatelessWidget {
         currentTheme.colorScheme.secondary; // Often purple/pink in Material 3
     final Color tertiaryColor =
         currentTheme.colorScheme.tertiary; // Often teal/blue-grey
-    final Color neutralColor = currentTheme.colorScheme.onSurface.withOpacity(
-      0.6,
+    final Color neutralColor = currentTheme.colorScheme.onSurface.withValues(
+      alpha: 0.6,
     );
 
     // Create a map for easier access in builders
@@ -522,7 +522,7 @@ class LearningStatsCard extends StatelessWidget {
             additionalInfo,
             style: theme.textTheme.bodySmall?.copyWith(
               // Use passed color but make it less prominent than the main value
-              color: color.withOpacity(AppDimens.opacityHigh),
+              color: color.withValues(alpha: AppDimens.opacityHigh),
               fontSize: AppDimens.fontXS,
             ),
             maxLines: 1,

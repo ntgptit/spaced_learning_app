@@ -62,8 +62,8 @@ class LearningInsightsCard extends StatelessWidget {
                   child: Text(
                     'No insights available',
                     style: currentTheme.textTheme.bodyMedium?.copyWith(
-                      color: currentTheme.colorScheme.onSurface.withOpacity(
-                        0.7,
+                      color: currentTheme.colorScheme.onSurface.withValues(
+                        alpha: 0.7,
                       ),
                     ),
                   ),
@@ -176,7 +176,7 @@ class LearningInsightsCard extends StatelessWidget {
       case 'onSurface':
         return theme.colorScheme.onSurface;
       case 'neutral':
-        return theme.colorScheme.onSurface.withOpacity(0.6);
+        return theme.colorScheme.onSurface.withValues(alpha: 0.6);
 
       // Map to semantic colors derived from theme
       case 'success':
@@ -193,8 +193,8 @@ class LearningInsightsCard extends StatelessWidget {
 
       // Fallback
       default:
-        return theme.colorScheme.onSurface.withOpacity(
-          0.7,
+        return theme.colorScheme.onSurface.withValues(
+          alpha: 0.7,
         ); // Default subtle color
     }
   }

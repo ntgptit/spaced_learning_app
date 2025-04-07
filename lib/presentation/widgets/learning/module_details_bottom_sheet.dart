@@ -30,7 +30,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(AppDimens.opacityMedium),
+            color: Colors.black.withValues(alpha: AppDimens.opacityMedium),
             blurRadius: AppDimens.shadowRadiusL,
             spreadRadius: AppDimens.shadowOffsetS,
           ),
@@ -79,8 +79,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         width: AppDimens.moduleIndicatorSize,
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurfaceVariant.withOpacity(
-            AppDimens.opacitySemi,
+          color: theme.colorScheme.onSurfaceVariant.withValues(
+            alpha: AppDimens.opacitySemi,
           ),
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
@@ -321,7 +321,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: effectiveColor.withOpacity(AppDimens.opacitySemi),
+          color: effectiveColor.withValues(alpha: AppDimens.opacitySemi),
         ),
       ),
       child: Column(
@@ -436,15 +436,15 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 date.day == today.day;
             final bgColor =
                 isToday
-                    ? theme.colorScheme.primary.withOpacity(
-                      AppDimens.opacitySemi,
+                    ? theme.colorScheme.primary.withValues(
+                      alpha: AppDimens.opacitySemi,
                     )
                     : theme.colorScheme.surfaceContainerHighest;
             final borderColor =
                 isToday
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.outline.withOpacity(
-                      AppDimens.opacitySemi,
+                    : theme.colorScheme.outline.withValues(
+                      alpha: AppDimens.opacitySemi,
                     );
 
             return Tooltip(

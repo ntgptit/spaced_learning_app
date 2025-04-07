@@ -152,7 +152,7 @@ class LoadingWidget extends StatelessWidget {
         children: [
           Icon(
             Icons.inbox_outlined,
-            color: effectiveColor.withOpacity(0.7),
+            color: effectiveColor.withValues(alpha: 0.7),
             size: size,
           ),
 
@@ -183,7 +183,7 @@ class LoadingWidget extends StatelessWidget {
         children: [
           Icon(
             Icons.hourglass_empty,
-            color: effectiveColor.withOpacity(0.7),
+            color: effectiveColor.withValues(alpha: 0.7),
             size: size,
           ),
 
@@ -235,8 +235,8 @@ class LoadingOverlay extends StatelessWidget {
               color:
                   backgroundColor ??
                   (isDark
-                      ? Colors.black.withOpacity(0.7)
-                      : Colors.white.withOpacity(0.7)),
+                      ? Colors.black.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.7)),
               child: Center(
                 child: LoadingWidget(
                   loadingText: message,

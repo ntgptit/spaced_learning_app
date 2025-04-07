@@ -251,7 +251,7 @@ class AppButton extends StatelessWidget {
                 effectiveElevation > 0
                     ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         spreadRadius: 0,
                         blurRadius: effectiveElevation * 2,
                         offset: Offset(0, effectiveElevation / 2),

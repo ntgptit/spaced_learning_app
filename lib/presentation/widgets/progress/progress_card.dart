@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
@@ -102,7 +101,10 @@ class ProgressCard extends StatelessWidget {
           Text(
             'Next study: $nextStudyText',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: isDue ? theme.colorScheme.primary : null,
+              color:
+                  isDue
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
               fontWeight: isDue ? FontWeight.bold : null,
             ),
           ),
@@ -118,10 +120,7 @@ class ProgressCard extends StatelessWidget {
 
   /// Builds the due indicator icon
   Widget _buildDueIndicator(ThemeData theme) {
-    return const Icon(
-      Icons.notifications_active,
-      color: AppColors.warningLight,
-    );
+    return Icon(Icons.notifications_active, color: theme.colorScheme.error);
   }
 
   /// Builds the repetition count badge
@@ -132,12 +131,14 @@ class ProgressCard extends StatelessWidget {
         vertical: AppDimens.paddingXS,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(AppDimens.radiusXS),
       ),
       child: Text(
         'Repetitions: ${progress.repetitionCount}',
-        style: theme.textTheme.bodySmall,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

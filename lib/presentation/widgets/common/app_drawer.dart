@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Thêm import
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -9,6 +9,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final authViewModel = context.watch<AuthViewModel>();
 
     return Drawer(
@@ -16,9 +17,11 @@ class AppDrawer extends StatelessWidget {
         children: [
           // Header with user info
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: theme.colorScheme.primary),
+            decoration: BoxDecoration(color: colorScheme.primaryContainer),
             currentAccountPicture: CircleAvatar(
-              backgroundColor: theme.colorScheme.onPrimary,
+              backgroundColor: colorScheme.onPrimaryContainer.withValues(
+                alpha: 0.1,
+              ),
               child: Text(
                 _getInitials(
                   authViewModel.currentUser?.displayName ??
@@ -26,19 +29,31 @@ class AppDrawer extends StatelessWidget {
                       'User',
                 ),
                 style: TextStyle(
-                  color: theme.colorScheme.primary,
+                  color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            accountName: Text(authViewModel.currentUser?.displayName ?? 'User'),
-            accountEmail: Text(authViewModel.currentUser?.email ?? ''),
+            accountName: Text(
+              authViewModel.currentUser?.displayName ?? 'User',
+              style: TextStyle(color: colorScheme.onPrimaryContainer),
+            ),
+            accountEmail: Text(
+              authViewModel.currentUser?.email ?? '',
+              style: TextStyle(
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+              ),
+            ),
           ),
 
           // Navigation items
           ListTile(
-            leading: const Icon(Icons.home, size: AppDimens.iconL),
-            title: const Text('Home'),
+            leading: Icon(
+              Icons.home,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Home', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context); // Close drawer
               Navigator.pushReplacementNamed(context, '/home');
@@ -47,11 +62,12 @@ class AppDrawer extends StatelessWidget {
 
           // New item for Learning Progress Overview
           ListTile(
-            leading: const Icon(
+            leading: Icon(
               Icons.analytics_outlined,
               size: AppDimens.iconL,
+              color: colorScheme.primary,
             ),
-            title: const Text('Learning Overview'),
+            title: Text('Learning Overview', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context); // Close drawer
               Navigator.pushNamed(context, '/learning/progress');
@@ -59,8 +75,12 @@ class AppDrawer extends StatelessWidget {
           ),
 
           ListTile(
-            leading: const Icon(Icons.book, size: AppDimens.iconL),
-            title: const Text('Books'),
+            leading: Icon(
+              Icons.book,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Books', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context); // Close drawer
               // Navigate to books screen
@@ -68,19 +88,30 @@ class AppDrawer extends StatelessWidget {
           ),
 
           ListTile(
-            leading: const Icon(Icons.person, size: AppDimens.iconL),
-            title: const Text('Profile'),
+            leading: Icon(
+              Icons.person,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Profile', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context); // Close drawer
               // Navigate to profile screen
             },
           ),
 
-          const Divider(height: AppDimens.dividerThickness),
+          Divider(
+            height: AppDimens.dividerThickness,
+            color: colorScheme.outlineVariant,
+          ),
 
           ListTile(
-            leading: const Icon(Icons.help_outline, size: AppDimens.iconL),
-            title: const Text('Help'),
+            leading: Icon(
+              Icons.help_outline,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Help', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context); // Close drawer
               // Navigate to help screen
@@ -96,8 +127,12 @@ class AppDrawer extends StatelessWidget {
               vertical: AppDimens.paddingS,
             ),
             child: ListTile(
-              leading: const Icon(Icons.logout, size: AppDimens.iconL),
-              title: const Text('Logout'),
+              leading: Icon(
+                Icons.logout,
+                size: AppDimens.iconL,
+                color: colorScheme.error,
+              ),
+              title: Text('Logout', style: theme.textTheme.bodyLarge),
               onTap: () async {
                 Navigator.pop(context); // Close drawer
                 await authViewModel.logout();
@@ -111,7 +146,12 @@ class AppDrawer extends StatelessWidget {
           // App version at the bottom
           Padding(
             padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Text('Version 1.0.0', style: theme.textTheme.bodySmall),
+            child: Text(
+              'Version 1.0.0',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ],
       ),

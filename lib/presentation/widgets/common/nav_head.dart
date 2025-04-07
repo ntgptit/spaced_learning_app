@@ -89,7 +89,7 @@ class _NavHeadState extends State<NavHead> with SingleTickerProviderStateMixin {
                       : [
                         AppColors.lightPrimaryContainer,
                         AppColors.lightPrimary,
-                        Colors.white.withOpacity(0.6),
+                        Colors.white.withValues(alpha: 0.6),
                       ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -195,7 +195,7 @@ class _NavHeadState extends State<NavHead> with SingleTickerProviderStateMixin {
           boxShadow: [
             BoxShadow(
               offset: Offset(0.0, radius / 2),
-              color: Colors.black.withOpacity(isDark ? 0.5 : 0.3),
+              color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.3),
               blurRadius: radius + 5,
               spreadRadius: -radius / 2,
             ),
@@ -217,13 +217,13 @@ class _NavHeadState extends State<NavHead> with SingleTickerProviderStateMixin {
               AppColors.darkPrimary,
               AppColors.darkSecondary,
               AppColors.darkTertiary,
-              Colors.white.withOpacity(0.5),
+              Colors.white.withValues(alpha: 0.5),
             ]
             : [
               AppColors.lightPrimary,
               AppColors.lightSecondary,
               AppColors.lightTertiary,
-              Colors.white.withOpacity(0.8),
+              Colors.white.withValues(alpha: 0.8),
             ];
 
     final List<Color> list = [];
@@ -234,7 +234,9 @@ class _NavHeadState extends State<NavHead> with SingleTickerProviderStateMixin {
 
     // Ensure we have some white/lightness in the gradient
     final lightColor =
-        isDark ? Colors.white.withOpacity(0.5) : Colors.white.withOpacity(0.8);
+        isDark
+            ? Colors.white.withValues(alpha: 0.5)
+            : Colors.white.withValues(alpha: 0.8);
 
     if (!list.contains(lightColor)) {
       list.insert(Random().nextInt(list.length), lightColor);

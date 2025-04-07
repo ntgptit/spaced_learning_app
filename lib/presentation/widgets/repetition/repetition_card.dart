@@ -61,8 +61,8 @@ class RepetitionCard extends StatelessWidget {
       // Use theme surface color, adjust opacity for history
       color:
           isHistory
-              ? currentTheme.colorScheme.surface.withOpacity(
-                AppDimens.opacityVeryHigh,
+              ? currentTheme.colorScheme.surface.withValues(
+                alpha: AppDimens.opacityVeryHigh,
               )
               : currentTheme.cardTheme.color ??
                   currentTheme.colorScheme.surface,
@@ -97,11 +97,11 @@ class RepetitionCard extends StatelessWidget {
     // Determine text color that contrasts well with the semi-transparent status background
     final onStatusColor =
         ThemeData.estimateBrightnessForColor(statusColor) == Brightness.dark
-            ? Colors.white.withOpacity(
-              0.9,
+            ? Colors.white.withValues(
+              alpha: 0.9,
             ) // Slightly less prominent on dark bg
-            : Colors.black.withOpacity(
-              0.9,
+            : Colors.black.withValues(
+              alpha: 0.9,
             ); // Slightly less prominent on light bg
 
     return Row(
@@ -121,7 +121,7 @@ class RepetitionCard extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             // Use theme-based status color with opacity
-            color: statusColor.withOpacity(AppDimens.opacityMedium),
+            color: statusColor.withValues(alpha: AppDimens.opacityMedium),
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Row(
@@ -275,14 +275,14 @@ class RepetitionCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppDimens.paddingXXS),
                 decoration: BoxDecoration(
                   // Use semantic color with opacity for background
-                  color: color.withOpacity(AppDimens.opacityMedium),
+                  color: color.withValues(alpha: AppDimens.opacityMedium),
                   borderRadius: BorderRadius.circular(AppDimens.radiusXS),
                 ),
                 child: Icon(
                   Icons.percent,
                   size: AppDimens.iconXXS,
                   // Ensure contrast for icon on background
-                  color: onScoreIndicatorColor.withOpacity(0.8),
+                  color: onScoreIndicatorColor.withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -293,7 +293,7 @@ class RepetitionCard extends StatelessWidget {
           foregroundColor: color,
           side: BorderSide(
             // Use semantic color with opacity for border
-            color: color.withOpacity(AppDimens.opacityMediumHigh),
+            color: color.withValues(alpha: AppDimens.opacityMediumHigh),
           ),
           // Inherit shape from theme or define explicitly
           shape: theme.outlinedButtonTheme.style?.shape?.resolve({}),
