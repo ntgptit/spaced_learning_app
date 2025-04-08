@@ -33,7 +33,7 @@ class ProgressCard extends StatelessWidget {
         horizontal: AppDimens.spaceXXS,
       ),
       // Màu nền Card thay đổi dựa trên isDue, sử dụng màu từ theme
-      color: isDue ? colorScheme.surfaceDim : colorScheme.surface,
+      color: colorScheme.surface,
       // CardTheme (shape, elevation) sẽ được áp dụng tự động
       child: InkWell(
         onTap: onTap,

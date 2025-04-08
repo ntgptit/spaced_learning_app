@@ -1,7 +1,5 @@
-// lib/presentation/screens/learning/learning_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar.dart';
@@ -22,7 +20,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   @override
   void initState() {
     super.initState();
-    // Move initialization to after the first frame to avoid build-time errors
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeViewModel();
     });
@@ -92,11 +89,12 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   }
 
   void _showExportResult(bool success) {
+    final theme = Theme.of(context);
     _showSnackBar(
       success
           ? 'Data exported successfully. The file was saved to your downloads folder.'
           : 'Failed to export data. Please try again.',
-      success ? AppColors.successLight : AppColors.lightError,
+      success ? theme.colorScheme.tertiary : theme.colorScheme.error,
       duration: const Duration(seconds: 3),
     );
   }
@@ -116,7 +114,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
         IconButton(
           icon: const Icon(Icons.refresh),
           onPressed: () {
-            // Get the viewModel without listening to avoid build errors
             final viewModel = Provider.of<LearningProgressViewModel>(
               context,
               listen: false,
@@ -137,7 +134,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
   Widget _buildBody() {
     return Consumer<LearningProgressViewModel>(
       builder: (context, viewModel, _) {
-        // Compute values outside of widget build for cleaner code
         final dueModules = viewModel.getDueModulesCount();
         final totalModules = viewModel.filteredModules.length;
         final completedModules = viewModel.getCompletedModulesCount();

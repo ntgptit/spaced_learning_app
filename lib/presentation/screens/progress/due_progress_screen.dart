@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
@@ -22,7 +21,6 @@ class DueProgressScreen extends StatefulWidget {
 class _DueProgressScreenState extends State<DueProgressScreen> {
   DateTime? _selectedDate;
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
-  // Map để lưu cache module titles
   final Map<String, String> _moduleTitles = {};
   bool _isLoadingModules = false;
 
@@ -46,7 +44,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
         studyDate: _selectedDate,
       );
 
-      // Sau khi tải xong danh sách progress, tải thông tin module
       if (progressViewModel.progressRecords.isNotEmpty) {
         await _loadModuleTitles(progressViewModel.progressRecords);
       }
@@ -55,7 +52,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
     }
   }
 
-  // Phương thức mới để tải thông tin module titles
   Future<void> _loadModuleTitles(List<ProgressSummary> progressList) async {
     setState(() {
       _isLoadingModules = true;
@@ -63,7 +59,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
 
     final moduleViewModel = context.read<ModuleViewModel>();
 
-    // Tạo danh sách các moduleIds cần tải
     final moduleIds =
         progressList
             .map((progress) => progress.moduleId)
@@ -71,7 +66,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
             .toSet()
             .toList();
 
-    // Tải thông tin của các module chưa có trong cache
     for (final moduleId in moduleIds) {
       try {
         await moduleViewModel.loadModuleDetails(moduleId);
@@ -80,7 +74,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
         }
       } catch (e) {
         debugPrint('[DueProgressScreen] Error loading module $moduleId: $e');
-        // Nếu không tải được, đặt title mặc định
         _moduleTitles[moduleId] = 'Module $moduleId';
       }
     }
@@ -266,21 +259,22 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.check_circle_outline,
             size: AppDimens.iconXXL,
-            color: AppColors.successLight,
+            color: theme.colorScheme.tertiary,
           ),
           const SizedBox(height: AppDimens.spaceL),
           Text(
             _selectedDate == null
                 ? 'No modules due for review today!'
                 : 'No modules due for review by ${_dateFormat.format(_selectedDate!)}',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: theme.textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppDimens.spaceM),
@@ -294,7 +288,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   }
 
   Widget _buildProgressItem(ProgressSummary progress) {
-    // Lấy tên module từ cache, hoặc hiển thị placeholder nếu chưa có
     final moduleTitle = _moduleTitles[progress.moduleId] ?? 'Loading...';
     final cycleText = _formatCycleStudied(progress.cyclesStudied);
     final bool isItemDue = _isDue(progress);

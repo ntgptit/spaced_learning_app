@@ -1,8 +1,6 @@
-// lib/presentation/screens/progress/progress_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -123,13 +121,15 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     await progressViewModel.loadProgressDetails(widget.progressId);
   }
 
-  void _showSnackBar(
-    String message, {
-    Color backgroundColor = AppColors.lightSurfaceVariant,
-  }) {
+  void _showSnackBar(String message, {Color? backgroundColor}) {
     if (mounted) {
+      final theme = Theme.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: backgroundColor),
+        SnackBar(
+          content: Text(message),
+          backgroundColor:
+              backgroundColor ?? theme.colorScheme.surfaceContainerHighest,
+        ),
       );
     }
   }
@@ -140,12 +140,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
   void _showCycleCompletionSnackBar() {
     if (mounted) {
+      final theme = Theme.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
             'Congratulations! You have completed this learning cycle.',
           ),
-          backgroundColor: AppColors.successLight,
+          backgroundColor: theme.colorScheme.tertiary,
           duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: 'Details',
@@ -266,7 +267,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           icon: const Icon(Icons.help_outline),
           tooltip: 'Learn about repetition cycles',
           onPressed: () {
-            // Cập nhật điều hướng với GoRouter
             GoRouter.of(context).push('/help/spaced-repetition');
           },
         ),

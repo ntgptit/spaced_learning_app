@@ -423,23 +423,37 @@ class _HomeScreenState extends State<HomeScreen>
                 // Use theme text style
                 Text('Due Today', style: theme.textTheme.titleLarge),
                 const Spacer(),
+
+                // Giả sử 'theme' là ThemeData lấy từ context (Theme.of(context))
+                // và 'progressViewModel' chứa dữ liệu cần thiết.
                 Chip(
-                  // Use ChipTheme properties from the passed theme
                   label: Text(
                     '${progressViewModel.progressRecords.length} items',
-                    // Use theme chip label style
-                    style: theme.chipTheme.labelStyle?.copyWith(
-                      // Ensure selected color is handled correctly by theme or override
-                      color:
-                          theme.chipTheme.secondaryLabelStyle?.color ??
-                          theme.colorScheme.onPrimary,
-                    ),
+                    // Kiểu chữ sẽ được tự động kế thừa từ theme.chipTheme.labelStyle
+                    // FlexColorScheme thường đặt textTheme.labelLarge làm mặc định cho Chip trong M3
                   ),
-                  // Use theme chip background color
-                  backgroundColor:
-                      theme.chipTheme.secondarySelectedColor ??
-                      theme.colorScheme.primary,
-                  padding: theme.chipTheme.padding,
+                  // --- Bỏ ghi đè màu nền ---
+                  // backgroundColor: theme.chipTheme.secondarySelectedColor ?? theme.colorScheme.primary,
+                  // -> ChipThemeData từ FlexColorScheme sẽ cung cấp màu nền M3 mặc định
+                  //    (thường là secondaryContainer hoặc surfaceContainerHighest cho chip thông tin)
+
+                  // --- Bỏ ghi đè màu chữ trong labelStyle ---
+                  // style: theme.chipTheme.labelStyle?.copyWith(...),
+                  // -> Màu chữ sẽ tự động khớp với màu nền được cung cấp bởi ChipThemeData
+                  //    (thường là onSecondaryContainer hoặc onSurfaceVariant)
+
+                  // Padding có thể giữ lại nếu bạn muốn sử dụng padding được định nghĩa trong ChipTheme
+                  // padding: theme.chipTheme.padding,
+                  // Hoặc bỏ qua nếu padding mặc định của Chip là đủ
+
+                  // Cân nhắc thêm viền nếu muốn (M3 Chip thường có viền nhẹ hoặc không có)
+                  side:
+                      theme.chipTheme.side ??
+                      BorderSide(
+                        color: theme.colorScheme.outlineVariant,
+                      ), // Ví dụ: sử dụng outlineVariant nếu theme không định nghĩa
+                  // Cân nhắc visualDensity nếu cần chip nhỏ gọn hơn
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),

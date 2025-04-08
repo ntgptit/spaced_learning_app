@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// Import lại AppColors để dùng màu semantic success/warning (vì chúng có light/dark)
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/learning_module.dart';
+// Verwijder import AppColors als het niet meer nodig is na refactoring
+// import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Aangenomen dat dit bestaat
+import 'package:spaced_learning_app/domain/models/learning_module.dart'; // Zorg voor correct pad
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
-import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
+import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart'; // Zorg voor correct pad
 
 class ModuleDetailsBottomSheet extends StatelessWidget {
   final LearningModule module;
@@ -19,87 +19,72 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme; // Lấy colorScheme cho tiện
-    final textTheme = theme.textTheme; // Lấy textTheme cho tiện
+    final theme = Theme.of(
+      context,
+    ); // Krijgt thema (van FlexColorScheme of anderszins)
+    final colorScheme = theme.colorScheme; // Haal ColorScheme op
+    final textTheme = theme.textTheme; // Haal TextTheme op
     final mediaQuery = MediaQuery.of(context);
-    final isDark =
-        theme.brightness == Brightness.dark; // Kiểm tra theme tối/sáng
+    // isDark is niet meer nodig, ColorScheme handelt dit af
+    // final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       key: const Key('module_details_bottom_sheet'),
-      // Sử dụng BottomSheetTheme nếu có, hoặc style M3 cơ bản
-      // Thay vì Container, có thể dùng trực tiếp nội dung bên trong showModalBottomSheet
+      // Gebruik M3 aanbevolen kleur voor bottom sheet achtergrond
       decoration: BoxDecoration(
-        // Màu nền của Bottom Sheet (có thể dùng surfaceContainerLow/etc tùy elevation)
-        color: colorScheme.surface,
+        color: colorScheme.surfaceContainerLow, // Gebruik M3 rol
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusL), // Bo góc trên
+          top: Radius.circular(AppDimens.radiusL), // Bovenste hoeken afronden
         ),
-        // M3 thường dùng surfaceTintColor để thể hiện elevation thay vì shadow đậm
-        // Hoặc nếu dùng shadow, lấy từ theme
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: theme.shadowColor.withValues(alpha:0.1), // Lấy màu shadow từ theme
-        //     blurRadius: AppDimens.shadowRadiusL / 2,
-        //     spreadRadius: 0,
-        //     offset: const Offset(0, 1),
-        //   ),
-        // ],
+        // Schaduw/tint wordt idealiter beheerd door BottomSheetThemeData
+        // (geconfigureerd door FlexColorScheme subThemes)
       ),
-      // Nên đặt constraints này bên ngoài khi gọi showModalBottomSheet
-      // constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.8),
+      // constraints moeten buiten worden ingesteld bij het aanroepen van showModalBottomSheet
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Co lại theo nội dung
+        mainAxisSize: MainAxisSize.min, // Krimpen naar inhoud
         children: [
-          _buildDragHandle(theme, colorScheme), // Truyền colorScheme
+          _buildDragHandle(colorScheme), // Geef alleen colorScheme door
           Flexible(
-            // Cho phép nội dung cuộn nếu dài
+            // Toestaan dat inhoud scrollt indien nodig
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
                 left: AppDimens.paddingL,
                 right: AppDimens.paddingL,
                 bottom:
                     AppDimens.paddingXL +
-                    mediaQuery.padding.bottom, // Thêm padding dưới cùng an toàn
+                    mediaQuery.padding.bottom, // Veilige padding onderaan
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildModuleTitle(
-                    theme,
                     colorScheme,
                     textTheme,
-                  ), // Truyền theme components
+                  ), // Geef componenten door
                   _buildBookInfo(
-                    theme,
                     colorScheme,
                     textTheme,
-                  ), // Truyền theme components
+                  ), // Geef componenten door
                   const Divider(height: AppDimens.paddingXXL),
                   _buildModuleDetailsSection(
                     context,
-                    theme,
                     colorScheme,
-                    textTheme,
-                    isDark,
-                  ), // Truyền theme components và isDark
+                    textTheme, // Verwijder isDark
+                  ),
                   const Divider(height: AppDimens.paddingXXL),
                   _buildDatesSection(
-                    theme,
                     colorScheme,
                     textTheme,
-                  ), // Truyền theme components
+                  ), // Geef componenten door
                   if (module.studyHistory?.isNotEmpty ?? false) ...[
                     const SizedBox(height: AppDimens.spaceXL),
                     _buildStudyHistorySection(
-                      theme,
                       colorScheme,
                       textTheme,
-                    ), // Truyền theme components
+                    ), // Geef componenten door
                   ],
                   const SizedBox(height: AppDimens.spaceXL),
-                  _buildActionButtons(context, theme), // Truyền theme
+                  _buildActionButtons(context), // Context is voldoende
                 ],
               ),
             ),
@@ -109,7 +94,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildDragHandle(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildDragHandle(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(
         top: AppDimens.paddingM,
@@ -120,58 +105,48 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         width: AppDimens.moduleIndicatorSize,
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
-          // Dùng màu onSurfaceVariant trực tiếp, không cần alpha
-          color: colorScheme.onSurfaceVariant,
+          // Gebruik M3 rol voor drag handle
+          color: colorScheme.onSurfaceVariant.withOpacity(
+            0.4,
+          ), // Standaard M3 stijl
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
       ),
     );
   }
 
-  Widget _buildModuleTitle(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+  Widget _buildModuleTitle(ColorScheme colorScheme, TextTheme textTheme) {
     Widget titleWidget = Text(
       module.subject.isEmpty ? 'Unnamed Module' : module.subject,
       style: textTheme.headlineSmall?.copyWith(
-        color: colorScheme.onSurface, // Đảm bảo màu chữ trên nền surface
+        color: colorScheme.onSurface, // Zorg voor leesbaarheid op surface
       ),
       key: const Key('module_title'),
     );
 
-    // Chỉ bọc Hero nếu có tag prefix
     if (heroTagPrefix != null) {
       titleWidget = Hero(
         tag: '${heroTagPrefix}_${module.id}',
-        // Material cần thiết cho Hero transition không bị lỗi text
         child: Material(color: Colors.transparent, child: titleWidget),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.only(
-        bottom: AppDimens.paddingXS,
-      ), // Thêm padding dưới title
+      padding: const EdgeInsets.only(bottom: AppDimens.paddingXS),
       child: titleWidget,
     );
   }
 
-  Widget _buildBookInfo(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+  Widget _buildBookInfo(ColorScheme colorScheme, TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.only(
         top: AppDimens.paddingS,
         bottom: AppDimens.paddingM,
-      ), // Thêm padding dưới
+      ),
       child: Row(
         children: [
           Icon(
-            Icons.book_outlined, // Icon outline có thể đẹp hơn
+            Icons.book_outlined,
             color: colorScheme.primary,
             size: AppDimens.iconS,
             key: const Key('book_icon'),
@@ -181,7 +156,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             child: Text(
               'From: ${module.book.isEmpty ? 'No Book' : module.book}',
               style: textTheme.titleMedium?.copyWith(
-                // Dùng titleMedium hợp lý
                 color: colorScheme.primary,
               ),
               maxLines: 1,
@@ -195,28 +169,21 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildSectionTitle(
-    ThemeData theme,
     ColorScheme colorScheme,
     TextTheme textTheme,
     String title, {
+    IconData icon = Icons.info_outline, // Standaard icoon
     Key? key,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: AppDimens.paddingM,
-      ), // Thêm padding cho section title
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
       child: Row(
         children: [
-          Icon(
-            Icons.info_outline, // Hoặc icon khác phù hợp
-            size: AppDimens.iconM,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: AppDimens.iconM, color: colorScheme.primary),
           const SizedBox(width: AppDimens.spaceS),
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-              // Dùng titleMedium hợp lý
               fontWeight: FontWeight.bold,
               color: colorScheme.primary,
             ),
@@ -228,76 +195,69 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildModuleDetailsSection(
-    BuildContext context,
-    ThemeData theme,
+    BuildContext context, // Behoud context voor MediaQuery
     ColorScheme colorScheme,
     TextTheme textTheme,
-    bool isDark,
+    // isDark verwijderd
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(
-          theme,
           colorScheme,
           textTheme,
           'Module Details',
           key: const Key('details_section_title'),
         ),
         Wrap(
-          spacing: AppDimens.spaceL, // Khoảng cách ngang
-          runSpacing: AppDimens.spaceL, // Khoảng cách dọc
+          spacing: AppDimens.spaceL, // Horizontale afstand
+          runSpacing: AppDimens.spaceL, // Verticale afstand
           children: [
             _buildDetailItem(
-              context,
-              theme,
+              context, // Doorgeven voor breedteberekening
               colorScheme,
               textTheme,
-              isDark,
+              // isDark verwijderd
               'Word Count',
               module.wordCount.toString(),
               Icons.text_fields,
               key: const Key('word_count_item'),
             ),
             _buildDetailItem(
-              context,
-              theme,
+              context, // Doorgeven
               colorScheme,
               textTheme,
-              isDark,
+              // isDark verwijderd
               'Progress',
               '${module.percentage}%',
-              Icons.show_chart_outlined, // Icon khác
-              progressValue: module.percentage / 100.0, // Đảm bảo là double
+              Icons.show_chart_outlined,
+              progressValue: module.percentage / 100.0,
               key: const Key('progress_item'),
             ),
-            if (module.cyclesStudied != null) // Chỉ hiển thị nếu có cycle
+            if (module.cyclesStudied != null)
               _buildDetailItem(
-                context,
-                theme,
+                context, // Doorgeven
                 colorScheme,
                 textTheme,
-                isDark,
+                // isDark verwijderd
                 'Cycle',
                 CycleFormatter.format(module.cyclesStudied!),
-                Icons.autorenew, // Icon khác
-                // Lấy màu từ CycleFormatter nhưng đảm bảo có dark mode
-                color: CycleFormatter.getColor(
-                  module.cyclesStudied!,
-                ), // Giả sử CycleFormatter hỗ trợ isDark
+                Icons.autorenew,
+                // Haal kleur op via CycleFormatter, maar geef colorScheme door
+                // zodat de formatter thema-bewust kan zijn.
+                // OF: bepaal kleur hier op basis van cycle en colorScheme.
+                color: CycleFormatter.getColor(module.cyclesStudied!, context),
                 key: const Key('cycle_item'),
               ),
-            if (module.taskCount != null &&
-                module.taskCount! > 0) // Chỉ hiển thị nếu có task
+            if (module.taskCount != null && module.taskCount! > 0)
               _buildDetailItem(
-                context,
-                theme,
+                context, // Doorgeven
                 colorScheme,
                 textTheme,
-                isDark,
+                // isDark verwijderd
                 'Tasks',
                 module.taskCount!.toString(),
-                Icons.checklist_outlined, // Icon khác
+                Icons.checklist_outlined,
                 key: const Key('tasks_item'),
               ),
           ],
@@ -307,64 +267,69 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildDetailItem(
-    BuildContext context,
-    ThemeData theme,
+    BuildContext context, // Voor MediaQuery
     ColorScheme colorScheme,
     TextTheme textTheme,
-    bool isDark,
+    // isDark verwijderd
     String label,
     String value,
     IconData icon, {
     double? progressValue,
-    Color? color,
+    Color? color, // Optionele override kleur (bijv. van CycleFormatter)
     Key? key,
   }) {
-    final effectiveColor = color ?? colorScheme.primary; // Màu nhấn chính
-    // Màu nền và viền theo M3
-    final bgColor = colorScheme.surfaceContainerLowest;
-    final borderColor =
-        colorScheme.outlineVariant; // Dùng outlineVariant cho viền nhẹ
+    final effectiveColor =
+        color ?? colorScheme.primary; // Gebruik override of primary
+    // M3 kleuren voor achtergrond en rand
+    final bgColor =
+        colorScheme.surfaceContainerLowest; // Zeer subtiele achtergrond
+    final borderColor = colorScheme.outlineVariant; // Zeer subtiele rand
 
-    // Tính toán width linh hoạt hơn
+    // Responsive breedteberekening
     final screenWidth = MediaQuery.of(context).size.width;
-    // Trừ padding của SingleChildScrollView và spacing của Wrap
     final availableWidth =
         screenWidth - (AppDimens.paddingL * 2) - AppDimens.spaceL;
-    final itemWidth = availableWidth / 2; // Hiển thị 2 item mỗi hàng
+    final itemWidth = availableWidth / 2; // Ca. 2 items per rij
+
+    // --- BELANGRIJKE WIJZIGING: Progress Bar Kleur ---
+    Color progressIndicatorColor = colorScheme.error; // Standaard (laagste)
+    if (progressValue != null) {
+      if (progressValue >= 0.9) {
+        // Gebruik Tertiary voor Succes (aanpassen indien nodig)
+        progressIndicatorColor = colorScheme.tertiary;
+      } else if (progressValue >= 0.7) {
+        // Gebruik Secondary voor Waarschuwing (aanpassen indien nodig)
+        progressIndicatorColor = colorScheme.secondary;
+      }
+      // Anders blijft het colorScheme.error
+    }
+    // --- Einde Wijziging ---
 
     return Container(
       key: key,
-      width: itemWidth, // Set width để Wrap hoạt động đúng
-      constraints: const BoxConstraints(
-        minHeight: AppDimens.thumbnailSizeS,
-      ), // Giảm minHeight
-      padding: const EdgeInsets.all(
-        AppDimens.paddingM,
-      ), // Giảm padding một chút
+      width: itemWidth,
+      constraints: const BoxConstraints(minHeight: AppDimens.thumbnailSizeS),
+      padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM), // Bo góc
-        border: Border.all(color: borderColor), // Dùng màu outlineVariant
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // Co lại theo nội dung
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: AppDimens.iconS,
-                color: effectiveColor,
-              ), // Màu nhấn cho icon
+              Icon(icon, size: AppDimens.iconS, color: effectiveColor),
               const SizedBox(width: AppDimens.spaceS),
               Expanded(
                 child: Text(
                   label,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant, // Màu phụ cho label
+                    color: colorScheme.onSurfaceVariant, // Subtiele label kleur
                   ),
-                  overflow: TextOverflow.ellipsis, // Tránh tràn chữ
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -373,90 +338,75 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           Text(
             value,
             style: textTheme.titleMedium?.copyWith(
-              // Dùng titleMedium cho value
               fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface, // Màu chính cho value
+              color: colorScheme.onSurface, // Duidelijke waarde kleur
             ),
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(
-            height: AppDimens.spaceS,
-          ), // Khoảng cách trước progress bar
-          // Progress Indicator (nếu có)
+          const SizedBox(height: AppDimens.spaceS),
+          // Progress Indicator (indien aanwezig)
           if (progressValue != null)
             LinearProgressIndicator(
               value: progressValue,
-              backgroundColor: colorScheme.surfaceContainerHighest, // Nền track
-              valueColor: AlwaysStoppedAnimation<Color>(
-                // Sửa lỗi màu cứng, dùng màu semantic từ AppColors (có dark/light)
-                progressValue >= 0.9
-                    ? (isDark ? AppColors.successDark : AppColors.successLight)
-                    : progressValue >= 0.7
-                    ? (isDark ? AppColors.warningDark : AppColors.warningLight)
-                    : colorScheme.error, // Dùng màu error từ theme
-              ),
+              backgroundColor:
+                  colorScheme.surfaceContainerHighest, // Track achtergrond
+              // GEBRUIK NU DE BEREKENDE THEMA-KLEUR
+              valueColor: AlwaysStoppedAnimation<Color>(progressIndicatorColor),
               borderRadius: BorderRadius.circular(AppDimens.radiusXXS),
               minHeight: AppDimens.lineProgressHeight,
             )
           else
-            // Placeholder để giữ chiều cao nếu không có progress bar
+            // Placeholder om hoogte consistent te houden
             const SizedBox(height: AppDimens.lineProgressHeight),
         ],
       ),
     );
   }
 
-  Widget _buildDatesSection(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+  Widget _buildDatesSection(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(
-          theme,
           colorScheme,
           textTheme,
           'Important Dates',
+          icon: Icons.calendar_month_outlined, // Ander icoon
           key: const Key('dates_section_title'),
         ),
         const SizedBox(height: AppDimens.spaceS),
         if (module.firstLearningDate != null)
           _buildDateItem(
-            theme,
             colorScheme,
             textTheme,
             'First Learning',
             module.firstLearningDate!,
-            Icons.play_circle_outline, // Icon khác
+            Icons.play_circle_outline,
             key: const Key('first_learning_date'),
           ),
         if (module.nextStudyDate != null) ...[
           const SizedBox(height: AppDimens.spaceL),
           _buildDateItem(
-            theme,
             colorScheme,
             textTheme,
             'Next Study',
             module.nextStudyDate!,
-            Icons.event_available_outlined, // Icon khác
-            // Xác định isDue (có thể truyền từ ngoài vào hoặc tính tại đây)
-            isDue: module.nextStudyDate!.isBefore(
-              DateTime.now().add(const Duration(days: 1)),
-            ), // Ví dụ: Due nếu trong vòng 1 ngày
+            Icons.event_available_outlined,
+            // Bepaal isDue (vandaag of gisteren)
+            isDue:
+                DateUtils.isSameDay(module.nextStudyDate, DateTime.now()) ||
+                module.nextStudyDate!.isBefore(DateTime.now()),
             key: const Key('next_study_date'),
           ),
         ],
         if (module.lastStudyDate != null) ...[
           const SizedBox(height: AppDimens.spaceL),
           _buildDateItem(
-            theme,
             colorScheme,
             textTheme,
             'Last Study',
             module.lastStudyDate!,
-            Icons.history_outlined, // Icon khác
+            Icons.history_outlined,
             key: const Key('last_study_date'),
           ),
         ],
@@ -465,7 +415,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildDateItem(
-    ThemeData theme,
     ColorScheme colorScheme,
     TextTheme textTheme,
     String label,
@@ -474,19 +423,18 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     bool isDue = false,
     Key? key,
   }) {
-    // Sửa lỗi màu cứng: Dùng error từ theme
+    // Gebruik thema kleuren, error indien 'isDue'
     final Color effectiveColor =
         isDue ? colorScheme.error : colorScheme.primary;
-    final Color labelColor = colorScheme.onSurfaceVariant; // Màu cho label
-    final Color dateColor =
-        isDue ? colorScheme.error : colorScheme.onSurface; // Màu cho ngày tháng
+    final Color labelColor = colorScheme.onSurfaceVariant;
+    final Color dateColor = isDue ? colorScheme.error : colorScheme.onSurface;
 
     return Row(
       key: key,
-      crossAxisAlignment: CrossAxisAlignment.start, // Căn trên nếu text dài
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: effectiveColor, size: AppDimens.iconM),
-        const SizedBox(width: AppDimens.spaceM), // Tăng khoảng cách
+        const SizedBox(width: AppDimens.spaceM),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,9 +446,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               Text(
                 DateFormat(
                   'EEEE, MMMM d, yyyy',
-                ).format(date), // Định dạng đầy đủ hơn
+                ).format(date), // Volledig formaat
                 style: textTheme.titleMedium?.copyWith(
-                  // Dùng titleMedium
                   color: dateColor,
                   fontWeight: isDue ? FontWeight.bold : null,
                 ),
@@ -511,16 +458,16 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         if (isDue)
           Padding(
             padding: const EdgeInsets.only(left: AppDimens.spaceS),
-            // Sửa lỗi Chip hardcode: Dùng Chip chuẩn và màu theme
+            // Gebruik standaard Chip met M3 error container kleuren
             child: Chip(
-              label: const Text('Due Soon'),
+              label: const Text('Due'), // Simpel label
               labelStyle: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onErrorContainer,
               ),
               backgroundColor: colorScheme.errorContainer,
               padding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,
-              side: BorderSide.none, // Bỏ border mặc định của Chip
+              side: BorderSide.none,
             ),
           ),
       ],
@@ -528,34 +475,39 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildStudyHistorySection(
-    ThemeData theme,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
-    final studyHistory = List<DateTime>.from(module.studyHistory!)
-      ..sort((a, b) => b.compareTo(a)); // Sắp xếp mới nhất lên đầu
+    // Sorteer en beperk geschiedenis (logica ongewijzigd)
+    final studyHistory = List<DateTime>.from(module.studyHistory ?? [])
+      ..sort((a, b) => b.compareTo(a));
+    final displayHistory = studyHistory.take(7).toList(); // Toon max 7
+    final remainingCount = studyHistory.length - displayHistory.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle(
-          theme,
           colorScheme,
           textTheme,
           'Study History',
+          icon: Icons.history_edu_outlined, // Ander icoon
           key: const Key('history_section_title'),
         ),
         const SizedBox(height: AppDimens.spaceS),
-        _buildHistoryItems(theme, colorScheme, textTheme, studyHistory),
-        if (studyHistory.length > 7) ...[
-          const SizedBox(height: AppDimens.spaceS), // Tăng khoảng cách
+        _buildHistoryItems(
+          colorScheme,
+          textTheme,
+          displayHistory,
+        ), // Geef beperkte lijst door
+        if (remainingCount > 0) ...[
+          const SizedBox(height: AppDimens.spaceS),
           Padding(
-            padding: const EdgeInsets.only(
-              left: AppDimens.paddingS,
-            ), // Thụt lề text
+            padding: const EdgeInsets.only(left: AppDimens.paddingS),
             child: Text(
-              '+ ${studyHistory.length - 7} more sessions',
+              '+ $remainingCount more session${remainingCount > 1 ? 's' : ''}',
               style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant, // Dùng màu phụ
+                color: colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
               key: const Key('more_sessions_text'),
@@ -567,65 +519,56 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildHistoryItems(
-    ThemeData theme,
     ColorScheme colorScheme,
     TextTheme textTheme,
-    List<DateTime> studyHistory,
+    List<DateTime> displayHistory, // Ontvangt al beperkte lijst
   ) {
-    final today = DateUtils.dateOnly(
-      DateTime.now(),
-    ); // So sánh chỉ ngày, bỏ qua giờ
+    final today = DateUtils.dateOnly(DateTime.now());
 
     return Wrap(
       key: const Key('history_items'),
-      spacing: AppDimens.spaceS, // Tăng khoảng cách ngang
-      runSpacing: AppDimens.spaceS, // Tăng khoảng cách dọc
+      spacing: AppDimens.spaceS,
+      runSpacing: AppDimens.spaceS,
       children:
-          studyHistory.take(7).map((date) {
-            // Chỉ hiển thị tối đa 7 ngày
+          displayHistory.map((date) {
             final itemDate = DateUtils.dateOnly(date);
             final isToday = itemDate.isAtSameMomentAs(today);
 
-            // Sửa lỗi màu cứng và alpha: Dùng màu M3
+            // Gebruik M3 kleuren consistent
             final Color bgColor;
-            final Color fgColor; // Màu chữ
-            final Border? border;
+            final Color fgColor;
+            final Border border; // Gebruik Border ipv BorderSide?
 
             if (isToday) {
               bgColor = colorScheme.primaryContainer;
               fgColor = colorScheme.onPrimaryContainer;
-              border = Border.all(
-                color: colorScheme.primary,
-              ); // Border primary cho ngày hôm nay
+              border = Border.all(color: colorScheme.primary);
             } else {
-              bgColor = colorScheme.surfaceContainerHighest;
-              fgColor = colorScheme.onSurfaceVariant; // Màu phụ cho ngày cũ
+              bgColor =
+                  colorScheme
+                      .surfaceContainerHighest; // Iets meer contrast dan Lowest
+              fgColor = colorScheme.onSurfaceVariant;
               border = Border.all(
-                color: colorScheme.outline,
-              ); // Border outline cho ngày cũ
+                color: colorScheme.outlineVariant,
+              ); // Subtiele rand
             }
 
-            // Sửa lỗi TextStyle cứng: Dùng textTheme
-            final itemTextStyle = textTheme.labelMedium; // Dùng labelMedium
+            final itemTextStyle = textTheme.labelMedium;
 
             return Tooltip(
-              message: DateFormat(
-                'MMMM d, yyyy',
-              ).format(date), // Format đầy đủ cho tooltip
+              message: DateFormat('MMMM d, yyyy').format(date),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingM, // Tăng padding
-                  vertical: AppDimens.paddingXXS + 1,
+                  horizontal: AppDimens.paddingM,
+                  vertical: AppDimens.paddingXS, // Iets meer verticale padding
                 ),
                 decoration: BoxDecoration(
                   color: bgColor,
-                  borderRadius: BorderRadius.circular(
-                    AppDimens.radiusM,
-                  ), // Tăng radius
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   border: border,
                 ),
                 child: Text(
-                  DateFormat('MMM d').format(date), // Format ngắn gọn
+                  DateFormat('MMM d').format(date), // Kort formaat
                   style: itemTextStyle?.copyWith(
                     fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                     color: fgColor,
@@ -637,33 +580,29 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, ThemeData theme) {
-    // Các button sẽ tự lấy style từ OutlinedButtonTheme và ElevatedButtonTheme
+  Widget _buildActionButtons(BuildContext context) {
+    // Knoppen gebruiken automatisch de thema's (ElevatedButtonTheme, OutlinedButtonTheme)
+    // Deze thema's worden correct geconfigureerd door FlexColorScheme subThemes.
     return Padding(
-      padding: const EdgeInsets.only(
-        top: AppDimens.paddingL,
-      ), // Thêm padding trên cùng
+      padding: const EdgeInsets.only(top: AppDimens.paddingL),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end, // Đẩy button sang phải
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           OutlinedButton.icon(
             key: const Key('close_button'),
             icon: const Icon(Icons.close),
             label: const Text('Close'),
             onPressed: () => Navigator.pop(context),
-            // Không cần style override ở đây nếu OutlinedButtonTheme đã đủ
-            // style: OutlinedButton.styleFrom(padding: ...), // Chỉ override nếu cần padding khác theme
+            // Geen expliciete stijl nodig hier
           ),
-          const SizedBox(width: AppDimens.spaceM), // Khoảng cách giữa 2 button
+          const SizedBox(width: AppDimens.spaceM),
           ElevatedButton.icon(
             key: const Key('study_button'),
             icon: const Icon(Icons.play_arrow),
             label: const Text('Start Studying'),
             onPressed: () {
-              Navigator.pop(context); // Đóng bottom sheet trước khi điều hướng
-              // TODO: Xác nhận cách điều hướng này có đúng không
-              // Có thể cần dùng Navigator.pushReplacement hoặc các phương thức khác
-              // tùy thuộc vào luồng ứng dụng của bạn.
+              Navigator.pop(context); // Sluit bottom sheet
+              // Navigeer naar detail scherm (logica ongewijzigd)
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -671,39 +610,10 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 ),
               );
             },
-            // Bỏ style override, để button tự lấy style từ ElevatedButtonTheme
-            // style: ElevatedButton.styleFrom(
-            //   padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
-            //   backgroundColor: theme.colorScheme.primary, // Lấy từ theme rồi
-            //   foregroundColor: theme.colorScheme.onPrimary, // Lấy từ theme rồi
-            // ),
+            // Geen expliciete stijl nodig hier
           ),
         ],
       ),
     );
   }
 }
-
-// Extension và Formatter giả định
-/*
-extension ColorAlpha on Color {
-  Color withValues({double? alpha}) {
-    if (alpha != null) { return withOpacity(alpha.clamp(0.0, 1.0)); }
-    return this;
-  }
-}
-
-class CycleFormatter {
-  static String format(int cycle) => 'Cycle $cycle';
-  static Color? getColor(int cycle, {bool isDark = false}) {
-     // Implement logic to return color based on cycle, considering dark mode
-     // Example: return Colors.blue;
-     return null; // Placeholder
-  }
-}
-
-class LearningModule {
- //... Các thuộc tính như id, subject, book, wordCount, percentage, cyclesStudied, taskCount, firstLearningDate, nextStudyDate, lastStudyDate, studyHistory
-}
-
-*/

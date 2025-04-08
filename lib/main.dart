@@ -1,10 +1,9 @@
-// lib/main.dart
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/navigation/router.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
-import 'package:spaced_learning_app/core/theme/app_theme.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
@@ -74,8 +73,28 @@ class AppWithRouter extends StatelessWidget {
 
     return MaterialApp.router(
       title: 'Spaced Learning App',
-      theme: AppTheme.getLightTheme(),
-      darkTheme: AppTheme.getDarkTheme(),
+      // Sử dụng FlexThemeData.light cho chủ đề sáng
+      theme: FlexThemeData.light(
+        scheme: FlexScheme.shark, // Chọn một scheme có sẵn
+        useMaterial3: true, // Sử dụng Material 3
+        subThemesData: const FlexSubThemesData(
+          defaultRadius: 8.0, // Bo góc mặc định
+          buttonMinSize: Size(80, 40), // Kích thước tối thiểu của nút
+        ),
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurfaces,
+        blendLevel: 10, // Mức độ pha trộn màu
+      ),
+      // Sử dụng FlexThemeData.dark cho chủ đề tối
+      darkTheme: FlexThemeData.dark(
+        scheme: FlexScheme.shark, // Đảm bảo sáng và tối đồng bộ
+        useMaterial3: true,
+        subThemesData: const FlexSubThemesData(
+          defaultRadius: 8.0,
+          buttonMinSize: Size(80, 40),
+        ),
+        surfaceMode: FlexSurfaceMode.highScaffoldLowSurfaces,
+        blendLevel: 15, // Mức độ pha trộn cho chế độ tối
+      ),
       themeMode: themeViewModel.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       routerConfig: appRouter.router,
     );

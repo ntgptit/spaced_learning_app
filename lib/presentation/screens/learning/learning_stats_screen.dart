@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/detailed_learning_stats_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
@@ -103,6 +102,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
 
   Widget _buildCategoryCards(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Modules',
               Icons.auto_stories,
-              AppColors.infoLight,
+              colorScheme.primary,
               'View detailed module completion statistics',
               () => _navigateToDetailedStats(
                 context,
@@ -140,7 +140,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Due Sessions',
               Icons.calendar_today,
-              AppColors.warningLight,
+              colorScheme.secondary,
               'View upcoming and completed sessions',
               () => _navigateToDetailedStats(
                 context,
@@ -152,7 +152,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Streaks',
               Icons.local_fire_department,
-              AppColors.darkPrimary,
+              colorScheme.tertiary,
               'View learning streak information',
               () => _navigateToDetailedStats(
                 context,
@@ -164,7 +164,7 @@ class _LearningStatsScreenState extends State<LearningStatsScreen> {
               context,
               'Vocabulary',
               Icons.menu_book,
-              AppColors.successLight,
+              colorScheme.primaryContainer,
               'View vocabulary learning progress',
               () => _navigateToDetailedStats(
                 context,

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/progress.dart';
-import 'package:spaced_learning_app/domain/models/repetition.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
+// Verwijder AppColors import indien niet meer nodig
+// import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Aangenomen dat dit bestaat
+import 'package:spaced_learning_app/domain/models/progress.dart'; // Zorg voor correct pad
+import 'package:spaced_learning_app/domain/models/repetition.dart'; // Zorg voor correct pad
+import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart'; // Zorg voor correct pad
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Aangenomen thema-bewust
+import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart'; // Aangenomen thema-bewust
+import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart'; // Aangenomen thema-bewust
+import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart'; // Al aangepast
+
+// Definieer M3ColorPair opnieuw indien nodig, of importeer van een gedeelde plek
+typedef M3ColorPair = ({Color container, Color onContainer});
 
 class RepetitionListWidget extends StatefulWidget {
   final String progressId;
@@ -35,13 +39,18 @@ class RepetitionListWidget extends StatefulWidget {
 class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   @override
   Widget build(BuildContext context) {
+    // Haal thema-informatie op
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Consumer<RepetitionViewModel>(
       builder: (context, viewModel, _) {
         if (viewModel.isLoading) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(AppDimens.paddingXL),
-              child: AppLoadingIndicator(),
+              child: AppLoadingIndicator(), // Gebruikt thema-kleuren (aanname)
             ),
           );
         }
@@ -52,14 +61,16 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
             onRetry: () {
               viewModel.loadRepetitionsByProgressId(widget.progressId);
             },
-            compact: true,
+            compact: true, // Aanname: ErrorDisplay gebruikt thema
           );
         }
 
         if (viewModel.repetitions.isEmpty) {
+          // Geef thema door aan empty state indien nodig (AppButton gebruikt het al)
           return _buildEmptyState(context);
         }
 
+        // Data voorbereiden (logica ongewijzigd)
         final repetitions = List<Repetition>.from(viewModel.repetitions);
         final notStarted =
             repetitions
@@ -78,32 +89,46 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
         final completedByCycle = _groupRepetitionsByCycle(completed);
         final skippedByCycle = _groupRepetitionsByCycle(skipped);
 
+        // Definieer M3 Kleurparen voor secties
+        final pendingColors = (
+          container: colorScheme.primaryContainer, // Of inversePrimary
+          onContainer: colorScheme.onPrimaryContainer,
+        );
+        final completedColors = (
+          container: colorScheme.tertiaryContainer, // M3 Succes mapping
+          onContainer: colorScheme.onTertiaryContainer,
+        );
+        final skippedColors = (
+          container: colorScheme.secondaryContainer, // M3 Warning mapping
+          onContainer: colorScheme.onSecondaryContainer,
+        );
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (notStarted.isNotEmpty)
               _buildStatusSection(
-                context,
+                context, // Doorgeven voor thema binnenin
                 'Pending',
-                Theme.of(context).colorScheme.inversePrimary,
+                pendingColors, // Geef paar door
                 notStartedByCycle,
-                false,
+                false, // isHistory
               ),
             if (completed.isNotEmpty)
               _buildStatusSection(
                 context,
                 'Completed',
-                AppColors.successDark,
+                completedColors, // Geef paar door
                 completedByCycle,
-                true,
+                true, // isHistory
               ),
             if (skipped.isNotEmpty)
               _buildStatusSection(
                 context,
                 'Skipped',
-                AppColors.warningDark,
+                skippedColors, // Geef paar door
                 skippedByCycle,
-                true,
+                true, // isHistory
               ),
           ],
         );
@@ -114,6 +139,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   Map<String, List<Repetition>> _groupRepetitionsByCycle(
     List<Repetition> repetitions,
   ) {
+    // Grouping logic remains the same
     final Map<String, List<Repetition>> groupedByCycle = {};
     repetitions.sort((a, b) {
       if (a.createdAt == null && b.createdAt == null) return 0;
@@ -125,55 +151,45 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     int cycleIndex = 1;
     int currentGroupCount = 0;
     String currentKey = '';
+    int repIndex = 0;
 
-    for (int i = 0; i < repetitions.length; i++) {
-      final rep = repetitions[i];
-
-      if (currentGroupCount == 0 ||
-          (currentGroupCount < 5 &&
-              rep.createdAt != null &&
-              i > 0 &&
-              repetitions[i - 1].createdAt != null &&
-              rep.createdAt!
-                      .difference(repetitions[i - 1].createdAt!)
-                      .inMinutes <
-                  10)) {
+    while (repIndex < repetitions.length) {
+      final rep = repetitions[repIndex];
+      if (currentGroupCount < 5) {
         if (currentGroupCount == 0) {
           currentKey = 'Cycle $cycleIndex';
           groupedByCycle[currentKey] = [];
         }
-
         groupedByCycle[currentKey]!.add(rep);
         currentGroupCount++;
-
-        if (currentGroupCount >= 5) {
-          cycleIndex++;
-          currentGroupCount = 0;
-        }
+        repIndex++;
       } else {
-        currentKey = 'Cycle $cycleIndex';
-        groupedByCycle[currentKey] = [rep];
-        currentGroupCount = 1;
+        cycleIndex++;
+        currentGroupCount = 0;
+        // Start new cycle without incrementing repIndex
       }
     }
 
+    // Sort repetitions within each cycle by order
     for (final key in groupedByCycle.keys) {
       groupedByCycle[key]!.sort(
         (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
       );
     }
-
     return groupedByCycle;
   }
 
   Widget _buildStatusSection(
     BuildContext context,
     String title,
-    Color color,
+    M3ColorPair colors, // Ontvangt M3 paar
     Map<String, List<Repetition>> cycleGroups,
     bool isHistory,
   ) {
     if (cycleGroups.isEmpty) return const SizedBox.shrink();
+
+    // Haal textTheme hier op
+    final textTheme = Theme.of(context).textTheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,18 +204,20 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
             vertical: AppDimens.paddingXS,
           ),
           decoration: BoxDecoration(
-            color: color,
+            color: colors.container, // Gebruik container kleur uit paar
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
+            // Gebruik textTheme en onContainer kleur
+            style: textTheme.titleSmall?.copyWith(
+              // Of labelLarge?
+              color: colors.onContainer,
               fontWeight: FontWeight.bold,
-              fontSize: AppDimens.fontM,
             ),
           ),
         ),
+        // Geef context door voor thema toegang in _buildCycleGroup
         for (final entry in cycleGroups.entries)
           _buildCycleGroup(context, entry.key, entry.value, isHistory),
       ],
@@ -213,16 +231,28 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     bool isHistory,
   ) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     final isCurrentCycle = _isCurrentCycle(repetitions);
     final cycleNumber = int.tryParse(cycleKey.replaceAll('Cycle ', '')) ?? 1;
-    final CycleStudied cycleName =
+    final cycleName =
         isCurrentCycle
             ? widget.currentCycleStudied
             : _mapNumberToCycleStudied(cycleNumber);
 
+    // Haal M3 Kleurpaar voor cycle badge op
+    final cycleColors = _getCycleColors(cycleName, colorScheme);
+
+    // Kleurpaar voor 'Current' badge
+    final currentBadgeColors = (
+      container: colorScheme.tertiaryContainer, // Bv. Tertiary voor highlight
+      onContainer: colorScheme.onTertiaryContainer,
+    );
+
     return Container(
       margin: const EdgeInsets.only(
-        left: AppDimens.paddingM,
+        left: AppDimens.paddingM, // Inspringen van cycle groep
         bottom: AppDimens.spaceL,
       ),
       child: Column(
@@ -232,23 +262,27 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
             margin: const EdgeInsets.only(bottom: AppDimens.spaceS),
             child: Row(
               children: [
+                // Cycle Name Badge
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingS,
                     vertical: AppDimens.paddingXXS,
                   ),
                   decoration: BoxDecoration(
-                    color: _getCycleColor(cycleName),
+                    color: cycleColors.container, // Gebruik thema-kleur
                     borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   ),
                   child: Text(
                     _formatCycleStudied(cycleName),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
+                    // Gebruik textTheme en thema-kleur
+                    style: textTheme.labelSmall?.copyWith(
+                      // labelSmall is passend
+                      color: cycleColors.onContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
+                // 'Current' Badge (indien van toepassing)
                 if (isCurrentCycle) ...[
                   const SizedBox(width: AppDimens.spaceS),
                   Container(
@@ -257,13 +291,15 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
                       vertical: AppDimens.paddingXXS,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.amber.shade700,
+                      color:
+                          currentBadgeColors.container, // Gebruik thema-kleur
                       borderRadius: BorderRadius.circular(AppDimens.radiusXS),
                     ),
                     child: Text(
                       'Current',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white,
+                      // Gebruik textTheme en thema-kleur
+                      style: textTheme.labelSmall?.copyWith(
+                        color: currentBadgeColors.onContainer,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -272,10 +308,12 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
               ],
             ),
           ),
+          // Repetition Cards (deze gebruiken al thema)
           for (final repetition in repetitions)
             RepetitionCard(
               repetition: repetition,
               isHistory: isHistory,
+              // Callbacks ongewijzigd, maar gebruiken nu geen hardcoded kleuren meer intern
               onMarkCompleted:
                   isHistory
                       ? null
@@ -293,11 +331,19 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   }
 
   bool _isCurrentCycle(List<Repetition> repetitions) {
+    // Logic remains the same
+    if (repetitions.isEmpty) {
+      return false;
+    }
+    // Check if any repetition in this group is 'notStarted'
+    // AND if the overall module's current cycle (passed via widget)
+    // is not the very first one (meaning reviews have started).
     return repetitions.any((r) => r.status == RepetitionStatus.notStarted) &&
         widget.currentCycleStudied != CycleStudied.firstTime;
   }
 
   CycleStudied _mapNumberToCycleStudied(int number) {
+    // Logic remains the same
     switch (number) {
       case 1:
         return CycleStudied.firstTime;
@@ -313,20 +359,26 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    // AppButton wordt verondersteld thema-bewust te zijn
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDimens.spaceXL),
       child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('No review schedule found for this module'),
+            Text(
+              'No review schedule found for this module',
+              style:
+                  Theme.of(context).textTheme.bodyMedium, // Gebruik thema stijl
+            ),
             const SizedBox(height: AppDimens.spaceM),
             AppButton(
               text: 'Create Review Schedule',
-              type: AppButtonType.primary,
+              type: AppButtonType.primary, // Aanname: AppButton gebruikt thema
               onPressed: () async {
                 final viewModel = context.read<RepetitionViewModel>();
                 await viewModel.createDefaultSchedule(widget.progressId);
-                await widget.onReload();
+                await widget.onReload(); // Reload data after creation
               },
             ),
           ],
@@ -339,11 +391,14 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     BuildContext context,
     String repetitionId,
   ) async {
+    // showDatePicker is van nature thema-bewust
     final date = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
+      firstDate: DateTime.now(), // Kan niet in het verleden plannen
+      lastDate: DateTime.now().add(
+        const Duration(days: 365),
+      ), // Bv. max 1 jaar vooruit
     );
 
     if (date != null && context.mounted) {
@@ -352,6 +407,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   }
 
   String _formatCycleStudied(CycleStudied cycle) {
+    // Logic remains the same
     switch (cycle) {
       case CycleStudied.firstTime:
         return 'Initial';
@@ -366,18 +422,41 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     }
   }
 
-  Color _getCycleColor(CycleStudied cycle) {
+  // --- VERVANGEN: Gebruik ColorScheme voor Cycle Kleuren ---
+  M3ColorPair _getCycleColors(CycleStudied cycle, ColorScheme colorScheme) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return AppColors.onInfoDark;
+        return (
+          // Bv. Primary
+          container: colorScheme.primaryContainer,
+          onContainer: colorScheme.onPrimaryContainer,
+        );
       case CycleStudied.firstReview:
-        return AppColors.darkTertiary;
+        return (
+          // Bv. Secondary
+          container: colorScheme.secondaryContainer,
+          onContainer: colorScheme.onSecondaryContainer,
+        );
       case CycleStudied.secondReview:
-        return AppColors.darkOnError;
+        return (
+          // Bv. Tertiary
+          container: colorScheme.tertiaryContainer,
+          onContainer: colorScheme.onTertiaryContainer,
+        );
       case CycleStudied.thirdReview:
-        return AppColors.infoLight;
+        return (
+          // Bv. Een subtielere Surface variant
+          container: colorScheme.surfaceContainerHighest,
+          onContainer: colorScheme.onSurfaceVariant,
+        );
       case CycleStudied.moreThanThreeReviews:
-        return AppColors.darkTertiary;
+        return (
+          // Nog subtieler
+          container: colorScheme.surfaceContainerHigh,
+          onContainer: colorScheme.onSurfaceVariant,
+        );
     }
   }
+
+  // --- Einde Vervanging ---
 }

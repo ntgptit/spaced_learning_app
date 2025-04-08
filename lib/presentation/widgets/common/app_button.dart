@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 enum AppButtonType {
-  primary, // Filled button with primary color
-  secondary, // Filled button with secondary color
-  outline, // Outlined button with colored border
-  text, // Text-only button without background
-  ghost, // Semi-transparent background that appears on hover/press
-  error, // Red/error-themed button for destructive actions
-  success, // Green/success-themed button for confirmations
-  warning, // Amber/warning-themed button for cautionary actions
-  gradient, // Button with gradient background (inspired by todo app)
+  primary,
+  secondary,
+  outline,
+  text,
+  ghost,
+  error,
+  success,
+  warning,
+  gradient,
 }
 
-enum AppButtonSize {
-  tiny, // For very small buttons like icons with minimal text
-  small, // For secondary actions, compact UI
-  medium, // Default size for most actions
-  large, // Primary actions, call-to-action buttons
-  xlarge, // Prominent buttons, marketing or hero sections
-}
+enum AppButtonSize { tiny, small, medium, large, xlarge }
 
 class AppButton extends StatelessWidget {
   final String text;
@@ -69,9 +62,8 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
-    // Get size dimensions
     EdgeInsets padding;
     double height;
     double iconSize;
@@ -146,7 +138,6 @@ class AppButton extends StatelessWidget {
         break;
     }
 
-    // Get colors based on type
     Color defaultBackgroundColor;
     Color defaultTextColor;
     Color defaultBorderColor;
@@ -155,80 +146,66 @@ class AppButton extends StatelessWidget {
 
     switch (type) {
       case AppButtonType.primary:
-        defaultBackgroundColor =
-            isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-        defaultTextColor =
-            isDark ? AppColors.darkOnPrimary : AppColors.lightOnPrimary;
+        defaultBackgroundColor = colorScheme.primary;
+        defaultTextColor = colorScheme.onPrimary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.secondary:
-        defaultBackgroundColor =
-            isDark ? AppColors.darkSecondary : AppColors.lightSecondary;
-        defaultTextColor =
-            isDark ? AppColors.darkOnSecondary : AppColors.lightOnSecondary;
+        defaultBackgroundColor = colorScheme.secondary;
+        defaultTextColor = colorScheme.onSecondary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.outline:
         defaultBackgroundColor = Colors.transparent;
-        defaultTextColor =
-            isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-        defaultBorderColor =
-            isDark ? AppColors.darkOutline : AppColors.lightOutline;
+        defaultTextColor = colorScheme.primary;
+        defaultBorderColor = colorScheme.outline;
         defaultElevation = 0;
         break;
       case AppButtonType.text:
         defaultBackgroundColor = Colors.transparent;
-        defaultTextColor =
-            isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+        defaultTextColor = colorScheme.primary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
         break;
       case AppButtonType.ghost:
-        defaultBackgroundColor = (isDark
-                ? AppColors.darkPrimary
-                : AppColors.lightPrimary)
-            .withValues(alpha: AppDimens.opacityLight);
-        defaultTextColor =
-            isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+        defaultBackgroundColor = colorScheme.primary.withOpacity(0.1);
+        defaultTextColor = colorScheme.primary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
         break;
       case AppButtonType.error:
-        defaultBackgroundColor =
-            isDark ? AppColors.darkError : AppColors.lightError;
-        defaultTextColor =
-            isDark ? AppColors.darkOnError : AppColors.lightOnError;
+        defaultBackgroundColor = colorScheme.error;
+        defaultTextColor = colorScheme.onError;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.success:
-        defaultBackgroundColor =
-            isDark ? AppColors.successDark : AppColors.successLight;
-        defaultTextColor =
-            isDark ? AppColors.onSuccessDark : AppColors.onSuccessLight;
+        defaultBackgroundColor = Colors.green;
+        defaultTextColor = Colors.white;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.warning:
-        defaultBackgroundColor =
-            isDark ? AppColors.warningDark : AppColors.warningLight;
-        defaultTextColor =
-            isDark ? AppColors.onWarningDark : AppColors.onWarningLight;
+        defaultBackgroundColor = Colors.amber;
+        defaultTextColor = Colors.black87;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.gradient:
-        defaultBackgroundColor = Colors.transparent; // Not used with gradient
-        defaultTextColor = AppColors.white;
+        defaultBackgroundColor = Colors.transparent;
+        defaultTextColor = Colors.white;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
-        defaultGradient = customGradient ?? AppColors.gradientPrimary;
+        defaultGradient =
+            customGradient ??
+            LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
+            );
         break;
     }
 
-    // Apply custom colors if provided
     final effectiveBackgroundColor = backgroundColor ?? defaultBackgroundColor;
     final effectiveTextColor = textColor ?? defaultTextColor;
     final effectiveIconColor = iconColor ?? effectiveTextColor;
@@ -238,7 +215,6 @@ class AppButton extends StatelessWidget {
     final effectiveBorderRadius =
         customBorderRadius ?? BorderRadius.circular(borderRadius);
 
-    // Create gradient button separately since it needs special handling
     if (type == AppButtonType.gradient) {
       return SizedBox(
         width: width ?? (isFullWidth ? double.infinity : null),
@@ -251,7 +227,7 @@ class AppButton extends StatelessWidget {
                 effectiveElevation > 0
                     ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: Colors.black.withOpacity(0.2),
                         spreadRadius: 0,
                         blurRadius: effectiveElevation * 2,
                         offset: Offset(0, effectiveElevation / 2),
@@ -282,7 +258,6 @@ class AppButton extends StatelessWidget {
       );
     }
 
-    // Create button based on type
     Widget button;
 
     switch (type) {
@@ -304,8 +279,8 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             elevation: effectiveElevation,
-            disabledBackgroundColor: AppColors.textDisabledLight,
-            disabledForegroundColor: AppColors.white,
+            disabledBackgroundColor: colorScheme.onSurface.withOpacity(0.12),
+            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
             shadowColor:
                 type == AppButtonType.ghost ? Colors.transparent : null,
           ),
@@ -329,7 +304,7 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: AppColors.textDisabledLight,
+            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
           ),
           child: _buildContent(
             effectiveTextColor,
@@ -350,7 +325,7 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: AppColors.textDisabledLight,
+            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
           ),
           child: _buildContent(
             effectiveTextColor,
@@ -362,7 +337,6 @@ class AppButton extends StatelessWidget {
         );
         break;
 
-      // Added to handle all cases, although this is already handled above
       case AppButtonType.gradient:
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
@@ -422,7 +396,6 @@ class AppButton extends StatelessWidget {
 
     final List<Widget> children = [];
 
-    // Add prefix (icon or widget)
     if (prefixWidget != null) {
       children.add(prefixWidget!);
       children.add(
@@ -441,10 +414,8 @@ class AppButton extends StatelessWidget {
       );
     }
 
-    // Add text
     children.add(Text(text, style: baseTextStyle.copyWith(color: textColor)));
 
-    // Add suffix (icon or widget)
     if (suffixWidget != null) {
       children.add(
         SizedBox(

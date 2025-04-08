@@ -1,4 +1,3 @@
-// lib/presentation/widgets/common/app_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
@@ -51,7 +50,6 @@ class AppCard extends StatelessWidget {
         backgroundColor ?? colorScheme.surfaceContainerLowest;
     final effectiveShadowColor = shadowColor ?? colorScheme.shadow;
 
-    // Create the content widget with potential gradient background
     final Widget cardContent = Container(
       decoration:
           useGradient
@@ -71,9 +69,7 @@ class AppCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         highlightColor: highlightColor ?? colorScheme.primaryContainer,
-        splashColor: colorScheme.primary.withValues(
-          alpha: AppDimens.opacityMedium,
-        ),
+        splashColor: colorScheme.primary.withOpacity(0.2),
         borderRadius: BorderRadius.circular(borderRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +176,6 @@ class AppCard extends StatelessWidget {
       ),
     );
 
-    // Apply outer shadow if requested (mimicking todo app's card style)
     if (applyOuterShadow) {
       return Container(
         margin: margin,
@@ -188,7 +183,7 @@ class AppCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: effectiveShadowColor.withValues(alpha: 0.2),
+              color: effectiveShadowColor.withOpacity(0.2),
               blurRadius: AppDimens.shadowRadiusL,
               spreadRadius: AppDimens.shadowOffsetS,
               offset: const Offset(0, 3),
@@ -208,7 +203,6 @@ class AppCard extends StatelessWidget {
       );
     }
 
-    // Standard card without outer shadow
     return Card(
       margin: margin,
       elevation: elevation ?? AppDimens.elevationS,

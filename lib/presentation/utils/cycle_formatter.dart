@@ -1,6 +1,4 @@
-import 'dart:ui';
-
-import 'package:spaced_learning_app/core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 /// Tiện ích để định dạng enum CycleStudied thành chuỗi thân thiện với người dùng
@@ -38,18 +36,22 @@ class CycleFormatter {
   }
 
   /// Trả về màu gợi ý cho từng chu kỳ học tập từ AppColors
-  static Color getColor(CycleStudied cycle) {
+  static Color getColor(CycleStudied cycle, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     switch (cycle) {
       case CycleStudied.firstTime:
-        return AppColors.infoLight; // Purple (Info)
+        return colorScheme.primary; // Replaces infoLight (Purple)
       case CycleStudied.firstReview:
-        return AppColors.successLight; // Green (Success)
+        return colorScheme.tertiary; // Replaces successLight (Green)
       case CycleStudied.secondReview:
-        return AppColors.darkOnSecondary; // Accent Green
+        return colorScheme.secondary; // Replaces darkOnSecondary (Accent Green)
       case CycleStudied.thirdReview:
-        return AppColors.infoDark; // Lighter Purple
+        return colorScheme
+            .primaryContainer; // Replaces infoDark (Lighter Purple)
       case CycleStudied.moreThanThreeReviews:
-        return AppColors.darkTertiary; // Purple 200
+        return colorScheme
+            .tertiaryContainer; // Replaces darkTertiary (Purple 200)
     }
   }
 }

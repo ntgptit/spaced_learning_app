@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-// Assuming AppDimens and ColorAlpha extension are available
+// Assuming AppDimens is available
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+// Bỏ M3ColorPair typedef nếu không dùng ở đâu khác
 
 /// Widget for displaying quick action buttons on the home screen, styled with AppTheme.
 class QuickActionsSection extends StatelessWidget {
@@ -19,52 +21,54 @@ class QuickActionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // GridView cấu hình đã ổn
+    // GridView configuration seems fine
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       crossAxisSpacing: AppDimens.gridSpacingL,
       mainAxisSpacing: AppDimens.gridSpacingL,
-      childAspectRatio: 1.1, // Giữ nguyên hoặc điều chỉnh nếu cần
+      childAspectRatio: 1.1, // Adjust if needed
       children: _buildActionItems(context),
     );
   }
 
-  // Build the list of action cards using theme colors without unnecessary alpha
+  // Build the list of action cards with uniform background and distinct content colors
   List<Widget> _buildActionItems(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Define actions using theme colors directly
+    // Define actions, specifying the content color for icon/text for each
     final List<Map<String, dynamic>> actions = [
       {
         'title': 'Browse Books',
         'icon': Icons.menu_book_outlined,
         'onTap': onBrowseBooksPressed,
-        'contentColor': colorScheme.primary, // OK
+        // Màu nội dung (icon & text) là Primary
+        'contentColor': colorScheme.primary,
       },
       {
         'title': 'Today\'s Learning',
         'icon': Icons.assignment_turned_in_outlined,
         'onTap': onTodaysLearningPressed,
-        'contentColor': colorScheme.secondary, // OK
+        // Màu nội dung (icon & text) là Secondary
+        'contentColor': colorScheme.secondary,
       },
       {
         'title': 'Progress Report',
         'icon': Icons.bar_chart_outlined,
         'onTap': onProgressReportPressed,
-        // Dùng tertiary trực tiếp, không cần alpha
-        'contentColor': colorScheme.tertiary,
+        // Màu nội dung (icon & text) là Tertiary
+        'contentColor': colorScheme.error,
       },
       {
         'title': 'Vocabulary Stats',
-        'icon': Icons.translate_outlined, // Hoặc Icons.assessment_outlined
+        'icon': Icons.translate_outlined, // Or Icons.assessment_outlined
         'onTap': onVocabularyStatsPressed,
-        // Thay thế error bằng một màu khác phù hợp hơn, ví dụ tertiary hoặc secondary
-        'contentColor':
-            colorScheme
-                .tertiary, // Sử dụng lại tertiary (hoặc secondary nếu muốn)
+        // Chọn màu cho action thứ 4.
+        // Có thể dùng lại Tertiary, hoặc Primary/Secondary nếu muốn.
+        // Dùng lại Tertiary là lựa chọn phổ biến và an toàn.
+        'contentColor': colorScheme.onSecondaryContainer,
       },
     ];
 
@@ -75,68 +79,67 @@ class QuickActionsSection extends StatelessWidget {
         title: action['title'] as String,
         icon: action['icon'] as IconData,
         onTap: action['onTap'] as VoidCallback,
-        // Pass the direct theme-based content color
+        // Pass the specific content color for this card
         contentColor: action['contentColor'] as Color,
       );
     }).toList();
   }
 
-  /// Builds a single action card with theme-aware styling (M3 compliant).
+  /// Builds a single action card with a uniform light background
+  /// and specific content color for icon/text.
   Widget _buildActionCard(
     BuildContext context, {
     required String title,
     required IconData icon,
     required VoidCallback onTap,
-    required Color contentColor, // Use this for icon and text directly
+    required Color contentColor, // Màu này sẽ áp dụng cho Icon và Text
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    // Lấy bo góc từ CardTheme hoặc fallback
+    final borderRadius =
+        (theme.cardTheme.shape is RoundedRectangleBorder
+            ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius
+                as BorderRadius?
+            : null) ??
+        BorderRadius.circular(AppDimens.radiusM); // Use AppDimens if needed
 
     return Card(
-      // Card sẽ tự lấy elevation và shape từ CardTheme trong AppTheme
-      // Nếu muốn override, có thể làm ở đây, nhưng nên định nghĩa trong AppTheme
-      // elevation: AppDimens.elevationS, // Có thể bỏ nếu cardTheme đã định nghĩa
-      // Sử dụng màu nền container M3 đục, không dùng alpha
-      color: colorScheme.surfaceContainerHighest, // Màu nền tách biệt nhẹ nhàng
-      // shape: RoundedRectangleBorder( // Có thể bỏ nếu cardTheme đã định nghĩa shape
-      //   borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      //   // Bỏ border sử dụng alpha
-      //   // side: BorderSide.none, // Hoặc dùng outlineVariant nếu muốn
-      // ),
-      clipBehavior: Clip.antiAlias,
+      // Elevation và shape sẽ được lấy từ CardTheme (do FlexColorScheme cấu hình)
+      // elevation: theme.cardTheme.elevation,
+      // shape: theme.cardTheme.shape,
+
+      // *** THAY ĐỔI CHÍNH: Sử dụng màu nền sáng, đồng nhất cho tất cả Card ***
+      // surfaceContainerHighest là lựa chọn tốt, tách biệt nhẹ nhàng khỏi nền chính.
+      // Các lựa chọn khác: surfaceContainerLow, surfaceContainer, surface.
+      color: colorScheme.surfaceContainerHighest,
+      clipBehavior: Clip.antiAlias, // Tốt cho InkWell
       child: InkWell(
         onTap: onTap,
-        // borderRadius nên khớp với shape của Card
-        borderRadius:
-            (theme.cardTheme.shape is RoundedRectangleBorder
-                ? (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius
-                    as BorderRadius?
-                : null) ??
-            BorderRadius.circular(
-              AppDimens.radiusM,
-            ), // Lấy từ theme hoặc fallback
+        borderRadius: borderRadius, // Đảm bảo khớp với shape của Card
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
                 icon,
                 size: AppDimens.iconXL,
-                // Dùng contentColor trực tiếp
+                // *** Áp dụng màu nội dung được truyền vào cho Icon ***
                 color: contentColor,
               ),
-              const SizedBox(
-                height: AppDimens.spaceM,
-              ), // Tăng khoảng cách một chút
+              const SizedBox(height: AppDimens.spaceM),
               Text(
                 title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  // Dùng titleSmall có thể hợp lý hơn cho card nhỏ
-                  // Dùng contentColor trực tiếp, không cần alpha
+                style: textTheme.titleSmall?.copyWith(
+                  // Hoặc bodyLarge tùy thẩm mỹ
+                  // *** Áp dụng màu nội dung được truyền vào cho Text ***
                   color: contentColor,
-                  fontWeight: FontWeight.w600, // Tăng độ đậm nếu muốn
+                  // fontWeight: FontWeight.w600, // Bỏ hoặc giữ tùy thuộc vào theme
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -149,6 +152,3 @@ class QuickActionsSection extends StatelessWidget {
     );
   }
 }
-
-// Giả định extension ColorAlpha đã được định nghĩa ở AppColors
-// extension ColorAlpha on Color { ... }
