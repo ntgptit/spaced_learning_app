@@ -85,7 +85,7 @@ class ReminderManager {
   /// Load reminder preferences from storage
   Future<void> _loadPreferences() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final _ = await SharedPreferences.getInstance();
 
       _remindersEnabled = await _storageService.getBool(_enabledKey) ?? true;
       _noonReminderEnabled =
