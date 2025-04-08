@@ -340,7 +340,6 @@ class _ProgressSection extends StatelessWidget {
           progress: ProgressSummary(
             id: progress.id,
             moduleId: progress.moduleId,
-            userId: progress.userId,
             firstLearningDate: progress.firstLearningDate,
             cyclesStudied: progress.cyclesStudied,
             nextStudyDate: progress.nextStudyDate,

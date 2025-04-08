@@ -25,7 +25,6 @@ abstract class ProgressSummary with _$ProgressSummary {
   const factory ProgressSummary({
     required String id,
     required String moduleId,
-    required String userId,
     DateTime? firstLearningDate,
     @Default(CycleStudied.firstTime) CycleStudied cyclesStudied,
     DateTime? nextStudyDate,
@@ -46,7 +45,6 @@ abstract class ProgressDetail with _$ProgressDetail {
     required String id,
     required String moduleId,
     String? moduleTitle,
-    required String userId,
     String? userName,
     DateTime? firstLearningDate,
     @Default(CycleStudied.firstTime) CycleStudied cyclesStudied,

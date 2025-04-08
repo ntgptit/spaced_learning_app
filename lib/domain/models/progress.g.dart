@@ -10,7 +10,6 @@ _ProgressSummary _$ProgressSummaryFromJson(Map<String, dynamic> json) =>
     _ProgressSummary(
       id: json['id'] as String,
       moduleId: json['moduleId'] as String,
-      userId: json['userId'] as String,
       firstLearningDate:
           json['firstLearningDate'] == null
               ? null
@@ -38,7 +37,6 @@ Map<String, dynamic> _$ProgressSummaryToJson(_ProgressSummary instance) =>
     <String, dynamic>{
       'id': instance.id,
       'moduleId': instance.moduleId,
-      'userId': instance.userId,
       'firstLearningDate': instance.firstLearningDate?.toIso8601String(),
       'cyclesStudied': _$CycleStudiedEnumMap[instance.cyclesStudied]!,
       'nextStudyDate': instance.nextStudyDate?.toIso8601String(),
@@ -61,7 +59,6 @@ _ProgressDetail _$ProgressDetailFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       moduleId: json['moduleId'] as String,
       moduleTitle: json['moduleTitle'] as String?,
-      userId: json['userId'] as String,
       userName: json['userName'] as String?,
       firstLearningDate:
           json['firstLearningDate'] == null
@@ -95,7 +92,6 @@ Map<String, dynamic> _$ProgressDetailToJson(_ProgressDetail instance) =>
       'id': instance.id,
       'moduleId': instance.moduleId,
       'moduleTitle': instance.moduleTitle,
-      'userId': instance.userId,
       'userName': instance.userName,
       'firstLearningDate': instance.firstLearningDate?.toIso8601String(),
       'cyclesStudied': _$CycleStudiedEnumMap[instance.cyclesStudied]!,

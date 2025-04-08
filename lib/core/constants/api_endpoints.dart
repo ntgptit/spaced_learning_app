@@ -39,8 +39,7 @@ class ApiEndpoints {
       '$basePath/progress/user/$userId/module/$moduleId';
   static String currentUserProgressByModule(String moduleId) =>
       '$basePath/progress/user/current/module/$moduleId';
-  static String dueProgress(String userId) =>
-      '$basePath/progress/user/$userId/due';
+  static String dueProgress(String userId) => '$basePath/progress/due';
 
   // Repetition related endpoints
   static final String repetitions = '$basePath/repetitions';
