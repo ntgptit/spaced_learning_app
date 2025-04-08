@@ -42,7 +42,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     // Haal thema-informatie op
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final _ = theme.textTheme;
 
     return Consumer<RepetitionViewModel>(
       builder: (context, viewModel, _) {
