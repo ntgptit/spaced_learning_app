@@ -1,3 +1,4 @@
+// lib/core/services/reminder/reminder_manager.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
@@ -12,6 +13,7 @@ class ReminderManager {
   final StorageService _storageService;
   final ProgressViewModel _progressViewModel;
   final DeviceSpecificService _deviceSpecificService;
+  bool _isInitialized = false;
 
   // Preference keys
   static const String _enabledKey = 'reminders_enabled';
@@ -44,50 +46,91 @@ class ReminderManager {
            deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
 
   /// Initialize the reminder manager
-  Future<void> initialize() async {
-    // Load user preferences
-    await _loadPreferences();
+  Future<bool> initialize() async {
+    if (_isInitialized) return true;
 
-    // Initialize notification service
-    await _notificationService.initialize();
+    try {
+      // Load user preferences
+      await _loadPreferences();
 
-    // Schedule initial reminders if enabled
-    if (_remindersEnabled) {
-      await scheduleAllReminders();
+      // Initialize notification service
+      final bool notificationsInitialized =
+          await _notificationService.initialize();
+      if (!notificationsInitialized) {
+        debugPrint('Warning: Failed to initialize notification service');
+        // Continue anyway
+      }
+
+      // Initialize device-specific services
+      final bool deviceServicesInitialized =
+          await _deviceSpecificService.initialize();
+      if (!deviceServicesInitialized) {
+        debugPrint('Warning: Failed to initialize device-specific services');
+        // Continue anyway
+      }
+
+      // Schedule initial reminders if enabled
+      if (_remindersEnabled) {
+        await scheduleAllReminders();
+      }
+
+      _isInitialized = true;
+      return true;
+    } catch (e) {
+      debugPrint('Error initializing ReminderManager: $e');
+      return false;
     }
   }
 
   /// Load reminder preferences from storage
   Future<void> _loadPreferences() async {
-    await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    _remindersEnabled = await _storageService.getBool(_enabledKey) ?? true;
-    _noonReminderEnabled =
-        await _storageService.getBool(_noonReminderKey) ?? true;
-    _eveningFirstReminderEnabled =
-        await _storageService.getBool(_eveningFirstReminderKey) ?? true;
-    _eveningSecondReminderEnabled =
-        await _storageService.getBool(_eveningSecondReminderKey) ?? true;
-    _endOfDayReminderEnabled =
-        await _storageService.getBool(_endOfDayReminderKey) ?? true;
+      _remindersEnabled = await _storageService.getBool(_enabledKey) ?? true;
+      _noonReminderEnabled =
+          await _storageService.getBool(_noonReminderKey) ?? true;
+      _eveningFirstReminderEnabled =
+          await _storageService.getBool(_eveningFirstReminderKey) ?? true;
+      _eveningSecondReminderEnabled =
+          await _storageService.getBool(_eveningSecondReminderKey) ?? true;
+      _endOfDayReminderEnabled =
+          await _storageService.getBool(_endOfDayReminderKey) ?? true;
+
+      debugPrint('Loaded reminder preferences:');
+      debugPrint('- Reminders enabled: $_remindersEnabled');
+      debugPrint('- Noon reminder: $_noonReminderEnabled');
+      debugPrint('- Evening first: $_eveningFirstReminderEnabled');
+      debugPrint('- Evening second: $_eveningSecondReminderEnabled');
+      debugPrint('- End of day: $_endOfDayReminderEnabled');
+    } catch (e) {
+      debugPrint('Error loading reminder preferences: $e');
+      // Use default values
+    }
   }
 
   /// Save reminder preferences to storage
-  Future<void> _savePreferences() async {
-    await _storageService.setBool(_enabledKey, _remindersEnabled);
-    await _storageService.setBool(_noonReminderKey, _noonReminderEnabled);
-    await _storageService.setBool(
-      _eveningFirstReminderKey,
-      _eveningFirstReminderEnabled,
-    );
-    await _storageService.setBool(
-      _eveningSecondReminderKey,
-      _eveningSecondReminderEnabled,
-    );
-    await _storageService.setBool(
-      _endOfDayReminderKey,
-      _endOfDayReminderEnabled,
-    );
+  Future<bool> _savePreferences() async {
+    try {
+      await _storageService.setBool(_enabledKey, _remindersEnabled);
+      await _storageService.setBool(_noonReminderKey, _noonReminderEnabled);
+      await _storageService.setBool(
+        _eveningFirstReminderKey,
+        _eveningFirstReminderEnabled,
+      );
+      await _storageService.setBool(
+        _eveningSecondReminderKey,
+        _eveningSecondReminderEnabled,
+      );
+      await _storageService.setBool(
+        _endOfDayReminderKey,
+        _endOfDayReminderEnabled,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Error saving reminder preferences: $e');
+      return false;
+    }
   }
 
   /// Check if the user has pending tasks for today
@@ -98,6 +141,7 @@ class ReminderManager {
       final userId = userData?['id'];
 
       if (userId == null) {
+        debugPrint('Cannot check pending tasks: User not logged in');
         return false; // Not logged in
       }
 
@@ -108,7 +152,9 @@ class ReminderManager {
       );
 
       // Check if there are any due tasks
-      return _progressViewModel.progressRecords.isNotEmpty;
+      final hasTasks = _progressViewModel.progressRecords.isNotEmpty;
+      debugPrint('Pending tasks check: ${hasTasks ? 'Has tasks' : 'No tasks'}');
+      return hasTasks;
     } catch (e) {
       debugPrint('Error checking pending tasks: $e');
       return false; // Assume no tasks on error
@@ -116,17 +162,30 @@ class ReminderManager {
   }
 
   /// Schedule all reminders with device-specific optimizations
-  Future<void> scheduleAllReminders() async {
+  Future<bool> scheduleAllReminders() async {
     try {
+      if (!_isInitialized) {
+        final bool initialized = await initialize();
+        if (!initialized) {
+          debugPrint('Failed to initialize ReminderManager');
+          return false;
+        }
+      }
+
       // Cancel existing reminders first
       await _notificationService.cancelAllNotifications();
 
       // Only proceed if reminders are globally enabled
-      if (!_remindersEnabled) return;
+      if (!_remindersEnabled) {
+        debugPrint('Reminders are disabled, not scheduling any reminders');
+        return true;
+      }
 
       // Schedule noon reminder (always shows regardless of pending tasks)
       if (_noonReminderEnabled) {
-        await _notificationService.scheduleNoonReminder();
+        final bool noonResult =
+            await _notificationService.scheduleNoonReminder();
+        debugPrint('Noon reminder scheduled: $noonResult');
       }
 
       // Check if the user has pending tasks
@@ -135,11 +194,15 @@ class ReminderManager {
       // Only schedule evening and end-of-day reminders if there are pending tasks
       if (hasPendingTasks) {
         if (_eveningFirstReminderEnabled) {
-          await _notificationService.scheduleEveningFirstReminder();
+          final bool eveningFirstResult =
+              await _notificationService.scheduleEveningFirstReminder();
+          debugPrint('Evening first reminder scheduled: $eveningFirstResult');
         }
 
         if (_eveningSecondReminderEnabled) {
-          await _notificationService.scheduleEveningSecondReminder();
+          final bool eveningSecondResult =
+              await _notificationService.scheduleEveningSecondReminder();
+          debugPrint('Evening second reminder scheduled: $eveningSecondResult');
         }
 
         if (_endOfDayReminderEnabled) {
@@ -149,32 +212,50 @@ class ReminderManager {
               (_deviceSpecificService.isSamsungDevice ||
                   _deviceSpecificService.sdkVersion >= 26);
 
-          await _notificationService.scheduleEndOfDayReminder(
-            useAlarmStyle: useAlarmStyle,
+          final bool endOfDayResult = await _notificationService
+              .scheduleEndOfDayReminder(useAlarmStyle: useAlarmStyle);
+          debugPrint(
+            'End of day reminder scheduled: $endOfDayResult (alarm style: $useAlarmStyle)',
           );
         }
+      } else {
+        debugPrint(
+          'No pending tasks today, skipping evening and end-of-day reminders',
+        );
       }
+
+      return true;
     } catch (e) {
       debugPrint('Error scheduling reminders: $e');
+      return false;
     }
   }
 
   /// Update reminders after task completion
-  Future<void> updateRemindersAfterTaskCompletion() async {
-    // Check if there are still pending tasks
-    final stillHasPendingTasks = await hasPendingTasksToday();
+  Future<bool> updateRemindersAfterTaskCompletion() async {
+    try {
+      // Check if there are still pending tasks
+      final stillHasPendingTasks = await hasPendingTasksToday();
 
-    // If all tasks are completed, cancel the evening and end-of-day reminders
-    if (!stillHasPendingTasks) {
-      await _notificationService.cancelNotification(
-        NotificationService.eveningFirstReminderId,
-      );
-      await _notificationService.cancelNotification(
-        NotificationService.eveningSecondReminderId,
-      );
-      await _notificationService.cancelNotification(
-        NotificationService.endOfDayReminderId,
-      );
+      // If all tasks are completed, cancel the evening and end-of-day reminders
+      if (!stillHasPendingTasks) {
+        debugPrint(
+          'All tasks completed, cancelling evening and end-of-day reminders',
+        );
+        await _notificationService.cancelNotification(
+          NotificationService.eveningFirstReminderId,
+        );
+        await _notificationService.cancelNotification(
+          NotificationService.eveningSecondReminderId,
+        );
+        await _notificationService.cancelNotification(
+          NotificationService.endOfDayReminderId,
+        );
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Error updating reminders after task completion: $e');
+      return false;
     }
   }
 
@@ -184,76 +265,96 @@ class ReminderManager {
   bool get eveningFirstReminderEnabled => _eveningFirstReminderEnabled;
   bool get eveningSecondReminderEnabled => _eveningSecondReminderEnabled;
   bool get endOfDayReminderEnabled => _endOfDayReminderEnabled;
+  bool get isInitialized => _isInitialized;
 
   // Setters with automatic scheduling
-  Future<void> setRemindersEnabled(bool value) async {
+  Future<bool> setRemindersEnabled(bool value) async {
+    if (_remindersEnabled == value) return true;
+
     _remindersEnabled = value;
-    await _savePreferences();
+    final bool saved = await _savePreferences();
+    if (!saved) return false;
 
     if (_remindersEnabled) {
-      await scheduleAllReminders();
+      return scheduleAllReminders();
     } else {
-      await _notificationService.cancelAllNotifications();
+      return _notificationService.cancelAllNotifications();
     }
   }
 
-  Future<void> setNoonReminderEnabled(bool value) async {
+  Future<bool> setNoonReminderEnabled(bool value) async {
+    if (_noonReminderEnabled == value) return true;
+
     _noonReminderEnabled = value;
-    await _savePreferences();
+    final bool saved = await _savePreferences();
+    if (!saved) return false;
 
     if (_remindersEnabled) {
       if (_noonReminderEnabled) {
-        await _notificationService.scheduleNoonReminder();
+        return _notificationService.scheduleNoonReminder();
       } else {
-        await _notificationService.cancelNotification(
+        return _notificationService.cancelNotification(
           NotificationService.noonReminderId,
         );
       }
     }
+    return true;
   }
 
-  Future<void> setEveningFirstReminderEnabled(bool value) async {
+  Future<bool> setEveningFirstReminderEnabled(bool value) async {
+    if (_eveningFirstReminderEnabled == value) return true;
+
     _eveningFirstReminderEnabled = value;
-    await _savePreferences();
+    final bool saved = await _savePreferences();
+    if (!saved) return false;
 
     if (_remindersEnabled) {
       if (_eveningFirstReminderEnabled && await hasPendingTasksToday()) {
-        await _notificationService.scheduleEveningFirstReminder();
+        return _notificationService.scheduleEveningFirstReminder();
       } else {
-        await _notificationService.cancelNotification(
+        return _notificationService.cancelNotification(
           NotificationService.eveningFirstReminderId,
         );
       }
     }
+    return true;
   }
 
-  Future<void> setEveningSecondReminderEnabled(bool value) async {
+  Future<bool> setEveningSecondReminderEnabled(bool value) async {
+    if (_eveningSecondReminderEnabled == value) return true;
+
     _eveningSecondReminderEnabled = value;
-    await _savePreferences();
+    final bool saved = await _savePreferences();
+    if (!saved) return false;
 
     if (_remindersEnabled) {
       if (_eveningSecondReminderEnabled && await hasPendingTasksToday()) {
-        await _notificationService.scheduleEveningSecondReminder();
+        return _notificationService.scheduleEveningSecondReminder();
       } else {
-        await _notificationService.cancelNotification(
+        return _notificationService.cancelNotification(
           NotificationService.eveningSecondReminderId,
         );
       }
     }
+    return true;
   }
 
-  Future<void> setEndOfDayReminderEnabled(bool value) async {
+  Future<bool> setEndOfDayReminderEnabled(bool value) async {
+    if (_endOfDayReminderEnabled == value) return true;
+
     _endOfDayReminderEnabled = value;
-    await _savePreferences();
+    final bool saved = await _savePreferences();
+    if (!saved) return false;
 
     if (_remindersEnabled) {
       if (_endOfDayReminderEnabled && await hasPendingTasksToday()) {
-        await _notificationService.scheduleEndOfDayReminder();
+        return _notificationService.scheduleEndOfDayReminder();
       } else {
-        await _notificationService.cancelNotification(
+        return _notificationService.cancelNotification(
           NotificationService.endOfDayReminderId,
         );
       }
     }
+    return true;
   }
 }

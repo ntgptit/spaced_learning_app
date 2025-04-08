@@ -4,6 +4,7 @@ import 'package:spaced_learning_app/core/network/api_client.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service_impl.dart';
 import 'package:spaced_learning_app/core/services/reminder/alarm_manager_service.dart';
+import 'package:spaced_learning_app/core/services/reminder/cloud_reminder_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/notification_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
@@ -119,24 +120,40 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
-  // Thêm dịch vụ nhắc nhở mới
-  serviceLocator.registerLazySingleton<NotificationService>(
-    () => NotificationService(),
-  );
-
-  serviceLocator.registerLazySingleton<AlarmManagerService>(
-    () => AlarmManagerService(),
-  );
-
+  // Device Specific Service - đăng ký trước các service khác
   serviceLocator.registerLazySingleton<DeviceSpecificService>(
     () => DeviceSpecificService(),
   );
 
+  // NotificationService
+  serviceLocator.registerLazySingleton<NotificationService>(
+    () => NotificationService(
+      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+    ),
+  );
+
+  // AlarmManagerService
+  serviceLocator.registerLazySingleton<AlarmManagerService>(
+    () => AlarmManagerService(
+      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+    ),
+  );
+
+  // CloudReminderService (mới)
+  serviceLocator.registerLazySingleton<CloudReminderService>(
+    () => CloudReminderService(
+      storageService: serviceLocator<StorageService>(),
+      notificationService: serviceLocator<NotificationService>(),
+    ),
+  );
+
+  // ReminderManager
   serviceLocator.registerLazySingleton<ReminderManager>(
     () => ReminderManager(
       notificationService: serviceLocator<NotificationService>(),
       storageService: serviceLocator<StorageService>(),
       progressViewModel: serviceLocator<ProgressViewModel>(),
+      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
     ),
   );
 }

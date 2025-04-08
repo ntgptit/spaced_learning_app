@@ -1,3 +1,4 @@
+// lib/core/services/reminder/alarm_manager_service.dart
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,145 +31,224 @@ void endOfDayReminderCallback() {
 /// Helper function to trigger a background task from callback
 @pragma('vm:entry-point')
 Future<void> _triggerBackgroundCheck(int callbackId) async {
-  final prefs = await SharedPreferences.getInstance();
+  try {
+    final prefs = await SharedPreferences.getInstance();
 
-  // Mark that this callback was triggered
-  await prefs.setInt('last_triggered_callback', callbackId);
-  await prefs.setInt(
-    'last_triggered_time',
-    DateTime.now().millisecondsSinceEpoch,
-  );
+    // Mark that this callback was triggered
+    await prefs.setInt('last_triggered_callback', callbackId);
+    await prefs.setInt(
+      'last_triggered_time',
+      DateTime.now().millisecondsSinceEpoch,
+    );
 
-  // In a real app, we would trigger a work manager task or similar to show notifications
-  // For this example, we'll just set a flag that will be checked when the app is opened
+    // In a real app, we would trigger a work manager task or similar to show notifications
+    // For this example, we'll just set a flag that will be checked when the app is opened
+    debugPrint('Alarm callback triggered: $callbackId at ${DateTime.now()}');
+  } catch (e) {
+    print(
+      'Error in _triggerBackgroundCheck: $e',
+    ); // Use print since debugPrint might not work in background
+  }
 }
 
 /// Service for integrating with Android's AlarmManager for precise alarms
 class AlarmManagerService {
   final DeviceSpecificService _deviceSpecificService;
+  bool _isInitialized = false;
 
   AlarmManagerService({DeviceSpecificService? deviceSpecificService})
     : _deviceSpecificService =
           deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
 
   /// Initialize the alarm manager service with device-specific adjustments
-  Future<void> initialize() async {
-    try {
-      // Initialize the alarm manager plugin
-      await AndroidAlarmManager.initialize();
-      debugPrint('AlarmManager initialized successfully');
+  Future<bool> initialize() async {
+    if (_isInitialized) return true;
 
-      // Check if we need a different approach based on device
+    try {
+      // Check if running on Android
       if (!_deviceSpecificService.isAndroid) {
         debugPrint('Not on Android, using local notifications only');
-        // On iOS, we'll rely only on local notifications
-        return;
+        _isInitialized = true;
+        return true;
       }
+
+      // Initialize the alarm manager plugin
+      final bool initialized = await AndroidAlarmManager.initialize();
+      if (!initialized) {
+        debugPrint('Failed to initialize AndroidAlarmManager');
+        return false;
+      }
+
+      debugPrint('AlarmManager initialized successfully');
 
       // On Android 12+, we need to request SCHEDULE_EXACT_ALARM permission
       if (_deviceSpecificService.sdkVersion >= 31) {
-        await _requestExactAlarmPermission();
+        final bool permissionGranted = await _requestExactAlarmPermission();
+        debugPrint('Exact alarm permission granted: $permissionGranted');
+        // Continue even if permission is not granted, as we'll fall back to normal alarms
       }
+
+      _isInitialized = true;
+      return true;
     } catch (e) {
       debugPrint('Error initializing AlarmManager: $e');
       debugPrint('Falling back to local notifications only');
+      return false;
     }
   }
 
   /// Request permission for exact alarms (Android 12+)
-  Future<void> _requestExactAlarmPermission() async {
+  Future<bool> _requestExactAlarmPermission() async {
     try {
       const methodChannel = MethodChannel('com.yourapp.device/optimization');
-      await methodChannel.invokeMethod('requestExactAlarmPermission');
+      final bool result = await methodChannel.invokeMethod(
+        'requestExactAlarmPermission',
+      );
+      return result;
+    } on PlatformException catch (e) {
+      debugPrint('Error requesting exact alarm permission: ${e.message}');
+      return false;
     } catch (e) {
-      debugPrint('Error requesting exact alarm permission: $e');
+      debugPrint('Unexpected error requesting exact alarm permission: $e');
+      return false;
     }
   }
 
   /// Schedule all fixed-time alarms
-  Future<void> scheduleFixedTimeAlarms() async {
-    try {
-      await _scheduleNoonReminder();
-      await _scheduleEveningFirstReminder();
-      await _scheduleEveningSecondReminder();
-      await _scheduleEndOfDayReminder();
+  Future<bool> scheduleFixedTimeAlarms() async {
+    if (!_isInitialized) {
+      final bool initialized = await initialize();
+      if (!initialized) return false;
+    }
 
-      debugPrint('All fixed-time alarms scheduled successfully');
+    if (!_deviceSpecificService.isAndroid) {
+      debugPrint('Not on Android, cannot schedule alarms');
+      return false;
+    }
+
+    try {
+      // Create a list to track success/failure of each alarm
+      final List<bool> results = await Future.wait([
+        _scheduleNoonReminder(),
+        _scheduleEveningFirstReminder(),
+        _scheduleEveningSecondReminder(),
+        _scheduleEndOfDayReminder(),
+      ]);
+
+      // Check if all alarms were scheduled successfully
+      final bool allSuccessful = results.every((result) => result);
+      debugPrint(
+        'All fixed-time alarms scheduled successfully: $allSuccessful',
+      );
+      return allSuccessful;
     } catch (e) {
       debugPrint('Error scheduling fixed-time alarms: $e');
+      return false;
     }
   }
 
   /// Schedule the noon reminder (12:30 PM)
   Future<bool> _scheduleNoonReminder() async {
-    final alarmTime = _createTime(
-      AppConstants.noonReminderHour,
-      AppConstants.noonReminderMinute,
-    );
+    try {
+      final alarmTime = _createTime(
+        AppConstants.noonReminderHour,
+        AppConstants.noonReminderMinute,
+      );
 
-    return AndroidAlarmManager.periodic(
-      const Duration(days: 1),
-      AppConstants.noonReminderCallbackId,
-      noonReminderCallback,
-      startAt: alarmTime,
-      exact: true,
-      wakeup: true,
-      rescheduleOnReboot: true,
-    );
+      final bool result = await AndroidAlarmManager.periodic(
+        const Duration(days: 1),
+        AppConstants.noonReminderCallbackId,
+        noonReminderCallback,
+        startAt: alarmTime,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+
+      debugPrint('Noon reminder scheduled: $result at $alarmTime');
+      return result;
+    } catch (e) {
+      debugPrint('Error scheduling noon reminder: $e');
+      return false;
+    }
   }
 
   /// Schedule the first evening reminder (9:00 PM)
   Future<bool> _scheduleEveningFirstReminder() async {
-    final alarmTime = _createTime(
-      AppConstants.eveningFirstReminderHour,
-      AppConstants.eveningFirstReminderMinute,
-    );
+    try {
+      final alarmTime = _createTime(
+        AppConstants.eveningFirstReminderHour,
+        AppConstants.eveningFirstReminderMinute,
+      );
 
-    return AndroidAlarmManager.periodic(
-      const Duration(days: 1),
-      AppConstants.eveningFirstReminderCallbackId,
-      eveningFirstReminderCallback,
-      startAt: alarmTime,
-      exact: true,
-      wakeup: true,
-      rescheduleOnReboot: true,
-    );
+      final bool result = await AndroidAlarmManager.periodic(
+        const Duration(days: 1),
+        AppConstants.eveningFirstReminderCallbackId,
+        eveningFirstReminderCallback,
+        startAt: alarmTime,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+
+      debugPrint('Evening first reminder scheduled: $result at $alarmTime');
+      return result;
+    } catch (e) {
+      debugPrint('Error scheduling evening first reminder: $e');
+      return false;
+    }
   }
 
   /// Schedule the second evening reminder (10:30 PM)
   Future<bool> _scheduleEveningSecondReminder() async {
-    final alarmTime = _createTime(
-      AppConstants.eveningSecondReminderHour,
-      AppConstants.eveningSecondReminderMinute,
-    );
+    try {
+      final alarmTime = _createTime(
+        AppConstants.eveningSecondReminderHour,
+        AppConstants.eveningSecondReminderMinute,
+      );
 
-    return AndroidAlarmManager.periodic(
-      const Duration(days: 1),
-      AppConstants.eveningSecondReminderCallbackId,
-      eveningSecondReminderCallback,
-      startAt: alarmTime,
-      exact: true,
-      wakeup: true,
-      rescheduleOnReboot: true,
-    );
+      final bool result = await AndroidAlarmManager.periodic(
+        const Duration(days: 1),
+        AppConstants.eveningSecondReminderCallbackId,
+        eveningSecondReminderCallback,
+        startAt: alarmTime,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+
+      debugPrint('Evening second reminder scheduled: $result at $alarmTime');
+      return result;
+    } catch (e) {
+      debugPrint('Error scheduling evening second reminder: $e');
+      return false;
+    }
   }
 
   /// Schedule the end-of-day reminder (11:30 PM)
   Future<bool> _scheduleEndOfDayReminder() async {
-    final alarmTime = _createTime(
-      AppConstants.endOfDayReminderHour,
-      AppConstants.endOfDayReminderMinute,
-    );
+    try {
+      final alarmTime = _createTime(
+        AppConstants.endOfDayReminderHour,
+        AppConstants.endOfDayReminderMinute,
+      );
 
-    return AndroidAlarmManager.periodic(
-      const Duration(days: 1),
-      AppConstants.endOfDayReminderCallbackId,
-      endOfDayReminderCallback,
-      startAt: alarmTime,
-      exact: true,
-      wakeup: true,
-      rescheduleOnReboot: true,
-    );
+      final bool result = await AndroidAlarmManager.periodic(
+        const Duration(days: 1),
+        AppConstants.endOfDayReminderCallbackId,
+        endOfDayReminderCallback,
+        startAt: alarmTime,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+
+      debugPrint('End-of-day reminder scheduled: $result at $alarmTime');
+      return result;
+    } catch (e) {
+      debugPrint('Error scheduling end-of-day reminder: $e');
+      return false;
+    }
   }
 
   /// Create a DateTime for the specified hour and minute
@@ -186,31 +266,86 @@ class AlarmManagerService {
 
   /// Cancel a specific alarm
   Future<bool> cancelAlarm(int id) async {
-    return AndroidAlarmManager.cancel(id);
+    try {
+      if (!_deviceSpecificService.isAndroid) {
+        debugPrint('Not on Android, cannot cancel alarm');
+        return false;
+      }
+
+      final bool result = await AndroidAlarmManager.cancel(id);
+      debugPrint('Alarm $id cancelled: $result');
+      return result;
+    } catch (e) {
+      debugPrint('Error cancelling alarm $id: $e');
+      return false;
+    }
+  }
+
+  /// Cancel all alarms
+  Future<bool> cancelAllAlarms() async {
+    try {
+      if (!_deviceSpecificService.isAndroid) {
+        debugPrint('Not on Android, cannot cancel alarms');
+        return false;
+      }
+
+      final List<bool> results = await Future.wait([
+        cancelAlarm(AppConstants.noonReminderCallbackId),
+        cancelAlarm(AppConstants.eveningFirstReminderCallbackId),
+        cancelAlarm(AppConstants.eveningSecondReminderCallbackId),
+        cancelAlarm(AppConstants.endOfDayReminderCallbackId),
+      ]);
+
+      final bool allSuccessful = results.every((result) => result);
+      debugPrint('All alarms cancelled: $allSuccessful');
+      return allSuccessful;
+    } catch (e) {
+      debugPrint('Error cancelling all alarms: $e');
+      return false;
+    }
   }
 
   /// Check if any alarm has been triggered recently
   Future<int?> getLastTriggeredAlarmId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('last_triggered_callback');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getInt('last_triggered_callback');
+    } catch (e) {
+      debugPrint('Error getting last triggered alarm ID: $e');
+      return null;
+    }
   }
 
   /// Get the time of the last triggered alarm
   Future<DateTime?> getLastTriggeredTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    final timestamp = prefs.getInt('last_triggered_time');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final timestamp = prefs.getInt('last_triggered_time');
 
-    if (timestamp != null) {
-      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+      if (timestamp != null) {
+        return DateTime.fromMillisecondsSinceEpoch(timestamp);
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Error getting last triggered time: $e');
+      return null;
     }
-
-    return null;
   }
 
   /// Clear the last triggered alarm data
-  Future<void> clearLastTriggeredData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('last_triggered_callback');
-    await prefs.remove('last_triggered_time');
+  Future<bool> clearLastTriggeredData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('last_triggered_callback');
+      await prefs.remove('last_triggered_time');
+      return true;
+    } catch (e) {
+      debugPrint('Error clearing last triggered data: $e');
+      return false;
+    }
   }
+
+  /// Check if service is initialized
+  bool get isInitialized => _isInitialized;
 }
