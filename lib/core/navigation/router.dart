@@ -28,7 +28,7 @@ class AppRouter {
     redirect: (context, state) {
       // Kiểm tra auth và redirect nếu cần
       final isLoggedIn = authViewModel.isAuthenticated;
-      final isGoingToLogin = state.location == '/login';
+      final isGoingToLogin = state.uri.toString() == '/login';
 
       if (!isLoggedIn && !isGoingToLogin) {
         return '/login';

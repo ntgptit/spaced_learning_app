@@ -362,8 +362,6 @@ class NotificationService {
             isAlarmStyle
                 ? AndroidScheduleMode.exactAllowWhileIdle
                 : AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents:
             DateTimeComponents.time, // Daily at the same time
         payload: payload,
