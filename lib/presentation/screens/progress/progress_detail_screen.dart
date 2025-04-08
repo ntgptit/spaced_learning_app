@@ -190,60 +190,36 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   }
 
   Future<double?> _showScoreInputDialog() async {
-    double currentScore = 80.0;
-    final controller = TextEditingController(text: '80');
-
     return showDialog<double>(
       context: context,
       barrierDismissible: false,
       builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (context, setState) => AlertDialog(
-                  title: const Text('Enter Test Score'),
-                  content: ScoreInputDialogContent(
-                    currentScore: currentScore,
-                    controller: controller,
-                    onScoreChanged: (newScore) {
-                      setState(() {
-                        currentScore = newScore;
-                        controller.text = newScore.toInt().toString();
-                      });
-                    },
-                    initialScore: 0.0,
-                    onScoreChangedFinal: (double value) {},
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      onPressed:
-                          () => _confirmScore(
-                            dialogContext,
-                            controller,
-                            currentScore,
-                          ),
-                      child: const Text('Confirm'),
-                    ),
-                  ],
-                ),
+          (dialogContext) => AlertDialog(
+            title: const Text('Enter Test Score'),
+            content: ScoreInputDialogContent(
+              initialScore: 80.0, // Đặt giá trị mặc định là 80
+              onScoreChangedFinal: (score) {
+                Navigator.pop(
+                  dialogContext,
+                  score,
+                ); // Trả về score khi xác nhận
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Logic xác nhận đã được xử lý trong ScoreInputDialogContent
+                  // Chỉ cần đóng dialog, giá trị sẽ được trả về qua onScoreChangedFinal
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
           ),
-    );
-  }
-
-  void _confirmScore(
-    BuildContext dialogContext,
-    TextEditingController controller,
-    double currentScore,
-  ) {
-    final finalValue = int.tryParse(controller.text);
-    Navigator.pop(
-      dialogContext,
-      (finalValue != null && finalValue >= 0 && finalValue <= 100)
-          ? finalValue.toDouble()
-          : currentScore,
     );
   }
 
