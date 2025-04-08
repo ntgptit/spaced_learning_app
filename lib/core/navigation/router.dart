@@ -12,6 +12,7 @@ import 'package:spaced_learning_app/presentation/screens/modules/module_detail_s
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
 
@@ -131,6 +132,11 @@ class AppRouter {
           GoRoute(
             path: '/due-progress',
             builder: (context, state) => const DueProgressScreen(),
+          ),
+
+          GoRoute(
+            path: '/settings/reminders',
+            builder: (context, state) => const ReminderSettingsScreen(),
           ),
 
           // Route cho help screens - vẫn trong shell route để giữ bottom bar

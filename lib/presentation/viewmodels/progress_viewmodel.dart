@@ -1,18 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/repositories/progress_repository.dart';
 
 /// View model for module progress operations
 class ProgressViewModel extends ChangeNotifier {
   final ProgressRepository progressRepository;
+  final ReminderManager? reminderManager; // Thêm ReminderManager
 
   bool _isLoading = false;
   List<ProgressSummary> _progressRecords = [];
   ProgressDetail? _selectedProgress;
   String? _errorMessage;
 
-  ProgressViewModel({required this.progressRepository});
+  ProgressViewModel({
+    required this.progressRepository,
+    this.reminderManager, // Optional để tránh lỗi trong unit tests
+  });
 
   // Getters
   bool get isLoading => _isLoading;
@@ -212,6 +217,12 @@ class ProgressViewModel extends ChangeNotifier {
 
       // Gán dữ liệu vào state
       _progressRecords = result;
+
+      // Cập nhật nhắc nhở sau khi load dữ liệu
+      if (reminderManager != null) {
+        await reminderManager!.scheduleAllReminders();
+      }
+
       // DEBUG: Log sau khi gán state
       debugPrint(
         '[ProgressViewModel] Assigned ${result.length} records to _progressRecords.',
@@ -260,6 +271,12 @@ class ProgressViewModel extends ChangeNotifier {
         nextStudyDate: nextStudyDate,
         percentComplete: percentComplete,
       );
+
+      // Cập nhật nhắc nhở sau khi tạo tiến độ mới
+      if (reminderManager != null) {
+        await reminderManager!.scheduleAllReminders();
+      }
+
       return progress;
     } on AppException catch (e) {
       _errorMessage = e.message;
@@ -296,6 +313,11 @@ class ProgressViewModel extends ChangeNotifier {
         _selectedProgress = progress;
       }
 
+      // Cập nhật nhắc nhở sau khi hoàn thành nhiệm vụ
+      if (reminderManager != null) {
+        await reminderManager!.updateRemindersAfterTaskCompletion();
+      }
+
       return progress;
     } on AppException catch (e) {
       _errorMessage = e.message;
@@ -322,6 +344,12 @@ class ProgressViewModel extends ChangeNotifier {
 
       _progressRecords =
           _progressRecords.where((progress) => progress.id != id).toList();
+
+      // Cập nhật nhắc nhở sau khi xóa tiến độ
+      if (reminderManager != null) {
+        await reminderManager!.scheduleAllReminders();
+      }
+
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
@@ -346,6 +374,16 @@ class ProgressViewModel extends ChangeNotifier {
       debugPrint('Error refreshing progress details: $e');
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Get the count of due progress records
+  Future<int> getDueTodayCount() async {
+    try {
+      return _progressRecords.length;
+    } catch (e) {
+      debugPrint('Error getting due progress count: $e');
+      return 0;
     }
   }
 

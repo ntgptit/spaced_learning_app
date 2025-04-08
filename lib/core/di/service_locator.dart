@@ -3,6 +3,10 @@ import 'package:get_it/get_it.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service_impl.dart';
+import 'package:spaced_learning_app/core/services/reminder/alarm_manager_service.dart';
+import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
+import 'package:spaced_learning_app/core/services/reminder/notification_service.dart';
+import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/data/repositories/auth_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/book_repository_impl.dart';
@@ -112,6 +116,27 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerFactory<LearningProgressViewModel>(
     () => LearningProgressViewModel(
       learningDataService: serviceLocator<LearningDataService>(),
+    ),
+  );
+
+  // Thêm dịch vụ nhắc nhở mới
+  serviceLocator.registerLazySingleton<NotificationService>(
+    () => NotificationService(),
+  );
+
+  serviceLocator.registerLazySingleton<AlarmManagerService>(
+    () => AlarmManagerService(),
+  );
+
+  serviceLocator.registerLazySingleton<DeviceSpecificService>(
+    () => DeviceSpecificService(),
+  );
+
+  serviceLocator.registerLazySingleton<ReminderManager>(
+    () => ReminderManager(
+      notificationService: serviceLocator<NotificationService>(),
+      storageService: serviceLocator<StorageService>(),
+      progressViewModel: serviceLocator<ProgressViewModel>(),
     ),
   );
 }
