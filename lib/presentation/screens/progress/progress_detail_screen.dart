@@ -190,36 +190,34 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   }
 
   Future<double?> _showScoreInputDialog() async {
+    double? selectedScore;
+
     return showDialog<double>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Enter Test Score'),
-            content: ScoreInputDialogContent(
-              initialScore: 80.0, // Đặt giá trị mặc định là 80
-              onScoreChangedFinal: (score) {
-                Navigator.pop(
-                  dialogContext,
-                  score,
-                ); // Trả về score khi xác nhận
-              },
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Logic xác nhận đã được xử lý trong ScoreInputDialogContent
-                  // Chỉ cần đóng dialog, giá trị sẽ được trả về qua onScoreChangedFinal
-                  Navigator.pop(dialogContext);
-                },
-                child: const Text('Confirm'),
-              ),
-            ],
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Enter Test Score'),
+          content: ScoreInputDialogContent(
+            initialScore: 80.0,
+            onScoreChangedFinal: (score) {
+              selectedScore = score;
+            },
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, selectedScore ?? 80.0);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
     );
   }
 
