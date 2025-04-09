@@ -38,14 +38,23 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     await moduleViewModel.loadModuleDetails(moduleId);
     if (!mounted) return;
 
-    if (authViewModel.isAuthenticated) {
-      await progressViewModel.loadModuleProgress(moduleId);
+    final module = moduleViewModel.selectedModule;
+    if (module == null) return;
 
-      // Thêm log để kiểm tra
-      debugPrint(
-        'Progress loaded: ${progressViewModel.selectedProgress != null ? 'YES' : 'NO'}',
-      );
+    // Kiểm tra rõ ràng hơn về progress
+    if (module.progress.isNotEmpty) {
+      final progressId = module.progress[0].id;
+      await progressViewModel.loadProgressDetails(progressId);
+      debugPrint('Loaded progress directly from module: $progressId');
+    } else if (authViewModel.isAuthenticated) {
+      await progressViewModel.loadModuleProgress(moduleId);
     }
+
+    // Log sau khi tất cả quá trình tải đã hoàn tất
+    debugPrint(
+      'After loading - Progress exists: ${progressViewModel.selectedProgress != null}',
+    );
+    debugPrint('Module progress count: ${module.progress.length}');
   }
 
   Future<void> _startLearning() async {
@@ -117,9 +126,14 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final progressViewModel = context.watch<ProgressViewModel>();
     final module = moduleViewModel.selectedModule;
 
-    debugPrint(
-      'Building screen - Progress exists: ${progressViewModel.selectedProgress != null}',
-    );
+    // Kiểm tra cả hai nơi có thể chứa thông tin progress
+    final bool hasProgress =
+        progressViewModel.selectedProgress != null ||
+        (module?.progress != null && module!.progress.isNotEmpty);
+
+    debugPrint('Has progress (combined check): $hasProgress');
+    debugPrint('selectedProgress: ${progressViewModel.selectedProgress?.id}');
+    debugPrint('module.progress count: ${module?.progress.length ?? 0}');
 
     return Scaffold(
       appBar: AppBar(title: Text(module?.title ?? 'Module Details')),
@@ -131,8 +145,9 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
         onRefresh: _loadData,
         onProgressTap: _navigateToProgress,
       ),
+      // Cải tiến điều kiện hiển thị
       floatingActionButton:
-          module != null && progressViewModel.selectedProgress == null
+          module != null && !hasProgress
               ? FloatingActionButton.extended(
                 onPressed: _startLearning,
                 icon: const Icon(Icons.play_arrow),

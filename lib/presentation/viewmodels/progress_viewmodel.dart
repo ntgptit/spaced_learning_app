@@ -179,6 +179,9 @@ class ProgressViewModel extends ChangeNotifier {
         size: 1, // Chỉ lấy 1 progress
       );
 
+      debugPrint('Progress list length: ${progressList.length}');
+      debugPrint('Progress list content: $progressList');
+
       // Nếu có progress nào, lấy progress đầu tiên
       if (progressList.isNotEmpty) {
         // Lấy chi tiết của progress
