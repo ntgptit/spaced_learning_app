@@ -127,6 +127,7 @@ class AppCard extends StatelessWidget {
   Widget _buildDefaultContent(ThemeData theme, ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         if (title != null ||

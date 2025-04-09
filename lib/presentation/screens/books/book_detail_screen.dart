@@ -255,10 +255,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               () => GoRouter.of(
                 context,
               ).push('/books/${widget.bookId}/modules/${module.id}'),
-          onStudyPressed:
-              () => GoRouter.of(
-                context,
-              ).push('/books/${widget.bookId}/modules/${module.id}/study'),
+          // onStudyPressed:
+          //     () => GoRouter.of(
+          //       context,
+          //     ).push('/books/${widget.bookId}/modules/${module.id}/study'),
         );
       },
     );
