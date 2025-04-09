@@ -10,6 +10,7 @@ import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewm
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/dashboard_section.dart';
@@ -35,6 +36,8 @@ class _HomeScreenState extends State<HomeScreen>
   // Map để lưu cache module titles
   final Map<String, String> _moduleTitles = {};
   bool _isLoadingModules = false;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   bool get wantKeepAlive => true; // Giữ trạng thái màn hình khi chuyển tab
@@ -198,13 +201,18 @@ class _HomeScreenState extends State<HomeScreen>
     final learningStatsViewModel = context.watch<LearningStatsViewModel>();
 
     return Scaffold(
+      key: _scaffoldKey,
       // Use theme scaffold background color implicitly
+      drawer: const AppDrawer(),
       appBar: HomeAppBar(
         isDarkMode: themeViewModel.isDarkMode,
         onThemeToggle: themeViewModel.toggleTheme,
         // Pass theme properties if needed by HomeAppBar
         // backgroundColor: theme.appBarTheme.backgroundColor,
         // foregroundColor: theme.appBarTheme.foregroundColor,
+        onMenuPressed: () {
+          _scaffoldKey.currentState?.openDrawer();
+        },
       ),
       body: _buildBody(
         authViewModel,

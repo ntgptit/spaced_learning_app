@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -11,6 +13,7 @@ class AppDrawer extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final authViewModel = context.watch<AuthViewModel>();
+    final themeViewModel = context.watch<ThemeViewModel>();
 
     return Drawer(
       child: Column(
@@ -51,19 +54,7 @@ class AppDrawer extends StatelessWidget {
             title: Text('Home', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/home');
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.analytics_outlined,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
-            ),
-            title: Text('Learning Overview', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/learning/progress');
+              GoRouter.of(context).go('/');
             },
           ),
           ListTile(
@@ -75,6 +66,31 @@ class AppDrawer extends StatelessWidget {
             title: Text('Books', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context);
+              GoRouter.of(context).go('/books');
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.today,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Due Progress', style: theme.textTheme.bodyLarge),
+            onTap: () {
+              Navigator.pop(context);
+              GoRouter.of(context).go('/due-progress');
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.analytics_outlined,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Learning Stats', style: theme.textTheme.bodyLarge),
+            onTap: () {
+              Navigator.pop(context);
+              GoRouter.of(context).go('/learning');
             },
           ),
           ListTile(
@@ -86,6 +102,34 @@ class AppDrawer extends StatelessWidget {
             title: Text('Profile', style: theme.textTheme.bodyLarge),
             onTap: () {
               Navigator.pop(context);
+              GoRouter.of(context).go('/profile');
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.settings,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Reminder Settings', style: theme.textTheme.bodyLarge),
+            onTap: () {
+              Navigator.pop(context);
+              GoRouter.of(context).go('/settings/reminders');
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.info_outline,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text(
+              'Spaced Repetition Info',
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              GoRouter.of(context).go('/help/spaced-repetition');
             },
           ),
           Divider(
@@ -94,12 +138,16 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(
-              Icons.help_outline,
+              themeViewModel.isDarkMode ? Icons.light_mode : Icons.dark_mode,
               size: AppDimens.iconL,
               color: colorScheme.primary,
             ),
-            title: Text('Help', style: theme.textTheme.bodyLarge),
+            title: Text(
+              themeViewModel.isDarkMode ? 'Light Mode' : 'Dark Mode',
+              style: theme.textTheme.bodyLarge,
+            ),
             onTap: () {
+              themeViewModel.toggleTheme();
               Navigator.pop(context);
             },
           ),
@@ -120,7 +168,7 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pop(context);
                 await authViewModel.logout();
                 if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/login');
+                  GoRouter.of(context).go('/login');
                 }
               },
             ),

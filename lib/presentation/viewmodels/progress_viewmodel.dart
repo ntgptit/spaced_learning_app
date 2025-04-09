@@ -7,28 +7,56 @@ import 'package:spaced_learning_app/domain/repositories/progress_repository.dart
 /// View model for module progress operations
 class ProgressViewModel extends ChangeNotifier {
   final ProgressRepository progressRepository;
-  final ReminderManager? reminderManager; // Thêm ReminderManager
+  final ReminderManager? reminderManager;
 
-  bool _isLoading = false;
+  // Granular loading states for different operations
+  bool _isLoadingAllProgress = false;
+  bool _isLoadingDueProgress = false;
+  bool _isLoadingDetails = false;
+  bool _isLoadingByUser = false;
+  bool _isLoadingByModule = false;
+  bool _isLoadingByBook = false;
+  bool _isCreating = false;
+  bool _isUpdating = false;
+  bool _isDeleting = false;
+
   List<ProgressSummary> _progressRecords = [];
   ProgressDetail? _selectedProgress;
   String? _errorMessage;
 
   ProgressViewModel({
     required this.progressRepository,
-    this.reminderManager, // Optional để tránh lỗi trong unit tests
+    this.reminderManager, // Optional to avoid issues in unit tests
   });
 
-  // Getters
-  bool get isLoading => _isLoading;
+  // Getters for loading states
+  bool get isLoading =>
+      _isLoadingAllProgress ||
+      _isLoadingDueProgress ||
+      _isLoadingDetails ||
+      _isLoadingByUser ||
+      _isLoadingByModule ||
+      _isLoadingByBook ||
+      _isCreating ||
+      _isUpdating ||
+      _isDeleting;
+
+  bool get isLoadingDueProgress => _isLoadingDueProgress;
+  bool get isLoadingDetails => _isLoadingDetails;
+  bool get isUpdating => _isUpdating;
+
+  // Getters for data
   List<ProgressSummary> get progressRecords => _progressRecords;
   ProgressDetail? get selectedProgress => _selectedProgress;
   String? get errorMessage => _errorMessage;
 
   /// Load all progress records with pagination
   Future<void> loadProgressRecords({int page = 0, int size = 20}) async {
-    _setLoading(true);
+    if (_isLoadingAllProgress) return; // Prevent duplicate calls
+
+    _isLoadingAllProgress = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       _progressRecords = await progressRepository.getAllProgress(
@@ -40,14 +68,18 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
-      _setLoading(false);
+      _isLoadingAllProgress = false;
+      notifyListeners();
     }
   }
 
   /// Load progress details by ID
   Future<void> loadProgressDetails(String id) async {
-    _setLoading(true);
+    if (_isLoadingDetails) return; // Prevent duplicate calls
+
+    _isLoadingDetails = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       _selectedProgress = await progressRepository.getProgressById(id);
@@ -56,7 +88,8 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
-      _setLoading(false);
+      _isLoadingDetails = false;
+      notifyListeners();
     }
   }
 
@@ -66,8 +99,11 @@ class ProgressViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
+    if (_isLoadingByUser) return; // Prevent duplicate calls
+
+    _isLoadingByUser = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       _progressRecords = await progressRepository.getProgressByUserId(
@@ -80,7 +116,8 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
-      _setLoading(false);
+      _isLoadingByUser = false;
+      notifyListeners();
     }
   }
 
@@ -90,8 +127,11 @@ class ProgressViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
+    if (_isLoadingByModule) return; // Prevent duplicate calls
+
+    _isLoadingByModule = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       _progressRecords = await progressRepository.getProgressByModuleId(
@@ -104,7 +144,8 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
-      _setLoading(false);
+      _isLoadingByModule = false;
+      notifyListeners();
     }
   }
 
@@ -115,8 +156,11 @@ class ProgressViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
+    if (_isLoadingByBook) return; // Prevent duplicate calls
+
+    _isLoadingByBook = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       _progressRecords = await progressRepository.getProgressByUserAndBook(
@@ -130,7 +174,8 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
-      _setLoading(false);
+      _isLoadingByBook = false;
+      notifyListeners();
     }
   }
 
@@ -139,8 +184,11 @@ class ProgressViewModel extends ChangeNotifier {
     String userId,
     String moduleId,
   ) async {
-    _setLoading(true);
+    if (_isLoadingDetails) return null; // Prevent duplicate calls
+
+    _isLoadingDetails = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       final progress = await progressRepository.getProgressByUserAndModule(
@@ -162,29 +210,33 @@ class ProgressViewModel extends ChangeNotifier {
       _selectedProgress = null;
       return null;
     } finally {
-      _setLoading(false);
+      _isLoadingDetails = false;
+      notifyListeners();
     }
   }
 
   /// Load progress for a specific module
   Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
-    _setLoading(true);
+    if (_isLoadingByModule) return null; // Prevent duplicate calls
+
+    _isLoadingByModule = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
-      // Lấy danh sách progress cho module này
+      // Get progress list for this module
       final progressList = await progressRepository.getProgressByModuleId(
         moduleId,
         page: 0,
-        size: 1, // Chỉ lấy 1 progress
+        size: 1, // Only get 1 progress
       );
 
       debugPrint('Progress list length: ${progressList.length}');
       debugPrint('Progress list content: $progressList');
 
-      // Nếu có progress nào, lấy progress đầu tiên
+      // If there's any progress, get the first one
       if (progressList.isNotEmpty) {
-        // Lấy chi tiết của progress
+        // Get progress details
         final progressDetail = await progressRepository.getProgressById(
           progressList[0].id,
         );
@@ -205,64 +257,74 @@ class ProgressViewModel extends ChangeNotifier {
       _selectedProgress = null;
       return null;
     } finally {
-      _setLoading(false);
+      _isLoadingByModule = false;
+      notifyListeners();
     }
   }
 
-  /// Load progress records due for study
+  /// Load progress records due for study with improved state management
   Future<void> loadDueProgress(
     String userId, {
     DateTime? studyDate,
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
+    if (_isLoadingDueProgress) return; // Prevent duplicate calls
+
+    _isLoadingDueProgress = true;
     _errorMessage = null;
-    // DEBUG: Log bắt đầu load
+    notifyListeners();
+
+    // DEBUG: Log start of loading
     debugPrint(
       '[ProgressViewModel] Starting loadDueProgress for userId: $userId, date: $studyDate',
     );
 
     try {
-      // Lấy dữ liệu từ repository
+      // Get data from repository
       final List<ProgressSummary> result = await progressRepository
           .getDueProgress(userId, studyDate: studyDate, page: page, size: size);
-      // DEBUG: Log kết quả từ repository
+
+      // DEBUG: Log repository results
       debugPrint(
         '[ProgressViewModel] Received ${result.length} records from repository for due progress.',
       );
 
-      // Gán dữ liệu vào state
+      // Assign data to state
       _progressRecords = result;
 
-      // Cập nhật nhắc nhở sau khi load dữ liệu
+      // Update reminders after loading data
       if (reminderManager != null) {
         await reminderManager!.scheduleAllReminders();
       }
 
-      // DEBUG: Log sau khi gán state
+      // DEBUG: Log after state assignment
       debugPrint(
         '[ProgressViewModel] Assigned ${result.length} records to _progressRecords.',
       );
     } on AppException catch (e) {
       _errorMessage = e.message;
-      _progressRecords = []; // Xóa dữ liệu cũ nếu có lỗi
-      // DEBUG: Log lỗi AppException
+      _progressRecords = []; // Clear old data if there's an error
+
+      // DEBUG: Log AppException error
       debugPrint(
         '[ProgressViewModel] AppException during loadDueProgress: $_errorMessage',
       );
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
-      _progressRecords = []; // Xóa dữ liệu cũ nếu có lỗi
-      // DEBUG: Log lỗi khác
+      _progressRecords = []; // Clear old data if there's an error
+
+      // DEBUG: Log other errors
       debugPrint(
         '[ProgressViewModel] Unexpected error during loadDueProgress: $e',
       );
     } finally {
-      _setLoading(false);
-      // DEBUG: Log kết thúc load (thành công hoặc thất bại)
+      _isLoadingDueProgress = false;
+      notifyListeners();
+
+      // DEBUG: Log end of loading (success or failure)
       debugPrint(
-        '[ProgressViewModel] Finished loadDueProgress. isLoading: $_isLoading, error: $_errorMessage, record count: ${_progressRecords.length}',
+        '[ProgressViewModel] Finished loadDueProgress. isLoading: $_isLoadingDueProgress, error: $_errorMessage, record count: ${_progressRecords.length}',
       );
     }
   }
@@ -276,8 +338,11 @@ class ProgressViewModel extends ChangeNotifier {
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
-    _setLoading(true);
+    if (_isCreating) return null; // Prevent duplicate calls
+
+    _isCreating = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       final progress = await progressRepository.createProgress(
@@ -289,7 +354,7 @@ class ProgressViewModel extends ChangeNotifier {
         percentComplete: percentComplete,
       );
 
-      // Cập nhật nhắc nhở sau khi tạo tiến độ mới
+      // Update reminders after creating new progress
       if (reminderManager != null) {
         await reminderManager!.scheduleAllReminders();
       }
@@ -302,7 +367,8 @@ class ProgressViewModel extends ChangeNotifier {
       _errorMessage = 'An unexpected error occurred';
       return null;
     } finally {
-      _setLoading(false);
+      _isCreating = false;
+      notifyListeners();
     }
   }
 
@@ -314,8 +380,11 @@ class ProgressViewModel extends ChangeNotifier {
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
-    _setLoading(true);
+    if (_isUpdating) return null; // Prevent duplicate calls
+
+    _isUpdating = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       final progress = await progressRepository.updateProgress(
@@ -330,7 +399,7 @@ class ProgressViewModel extends ChangeNotifier {
         _selectedProgress = progress;
       }
 
-      // Cập nhật nhắc nhở sau khi hoàn thành nhiệm vụ
+      // Update reminders after completing a task
       if (reminderManager != null) {
         await reminderManager!.updateRemindersAfterTaskCompletion();
       }
@@ -343,14 +412,18 @@ class ProgressViewModel extends ChangeNotifier {
       _errorMessage = 'An unexpected error occurred';
       return null;
     } finally {
-      _setLoading(false);
+      _isUpdating = false;
+      notifyListeners();
     }
   }
 
   /// Delete a progress record
   Future<bool> deleteProgress(String id) async {
-    _setLoading(true);
+    if (_isDeleting) return false; // Prevent duplicate calls
+
+    _isDeleting = true;
     _errorMessage = null;
+    notifyListeners();
 
     try {
       await progressRepository.deleteProgress(id);
@@ -362,7 +435,7 @@ class ProgressViewModel extends ChangeNotifier {
       _progressRecords =
           _progressRecords.where((progress) => progress.id != id).toList();
 
-      // Cập nhật nhắc nhở sau khi xóa tiến độ
+      // Update reminders after deleting progress
       if (reminderManager != null) {
         await reminderManager!.scheduleAllReminders();
       }
@@ -375,14 +448,17 @@ class ProgressViewModel extends ChangeNotifier {
       _errorMessage = 'An unexpected error occurred';
       return false;
     } finally {
-      _setLoading(false);
+      _isDeleting = false;
+      notifyListeners();
     }
   }
 
   /// Refresh progress details
   Future<void> refreshProgressDetails(String progressId) async {
-    _setLoading(true);
-    _errorMessage = null;
+    if (_isLoadingDetails) return; // Prevent duplicate calls
+
+    _isLoadingDetails = true;
+    notifyListeners();
 
     try {
       _selectedProgress = await progressRepository.getProgressById(progressId);
@@ -390,7 +466,8 @@ class ProgressViewModel extends ChangeNotifier {
       // Just log the error, don't set error message to avoid UI disruption
       debugPrint('Error refreshing progress details: $e');
     } finally {
-      _setLoading(false);
+      _isLoadingDetails = false;
+      notifyListeners();
     }
   }
 
@@ -401,17 +478,6 @@ class ProgressViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error getting due progress count: $e');
       return 0;
-    }
-  }
-
-  /// Set loading state and notify listeners
-  void _setLoading(bool loading) {
-    // DEBUG: Log thay đổi trạng thái loading
-    debugPrint('[ProgressViewModel] Setting isLoading to: $loading');
-    if (_isLoading != loading) {
-      // Chỉ cập nhật và thông báo nếu trạng thái thực sự thay đổi
-      _isLoading = loading;
-      notifyListeners();
     }
   }
 

@@ -5,11 +5,13 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isDarkMode;
   final VoidCallback onThemeToggle;
+  final VoidCallback? onMenuPressed;
 
   const HomeAppBar({
     super.key,
     required this.isDarkMode,
     required this.onThemeToggle,
+    this.onMenuPressed,
   });
 
   @override
@@ -17,6 +19,15 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
 
     return AppBar(
+      leading: IconButton(
+        icon: Icon(
+          Icons.menu,
+          size: AppDimens.iconL,
+          color: theme.iconTheme.color,
+        ),
+        onPressed: onMenuPressed,
+        tooltip: 'Menu',
+      ),
       title: Text('Spaced Learning', style: theme.textTheme.titleLarge),
       actions: [
         _buildThemeToggleButton(theme),
