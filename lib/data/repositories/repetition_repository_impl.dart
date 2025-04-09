@@ -208,6 +208,7 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
     String id, {
     RepetitionStatus? status,
     DateTime? reviewDate,
+    bool rescheduleFollowing = false,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -219,6 +220,8 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
       if (reviewDate != null) {
         data['reviewDate'] = _formatDate(reviewDate);
       }
+
+      data['rescheduleFollowing'] = rescheduleFollowing;
 
       final response = await _apiClient.put(
         '${ApiEndpoints.repetitions}/$id',

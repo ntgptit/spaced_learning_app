@@ -42,6 +42,7 @@ abstract class RepetitionRepository {
     String id, {
     RepetitionStatus? status,
     DateTime? reviewDate,
+    bool rescheduleFollowing = false,
   });
 
   /// Delete a repetition

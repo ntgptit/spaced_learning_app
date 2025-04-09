@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Assuming this exists
-import 'package:spaced_learning_app/domain/models/repetition.dart'; // Ensure correct path
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/repetition.dart';
 
 // Define the M3ColorPair type (unchanged)
 typedef M3ColorPair = ({Color container, Color onContainer});
@@ -12,25 +12,23 @@ class RepetitionCard extends StatelessWidget {
   final Repetition repetition;
   final bool isHistory;
   final VoidCallback? onMarkCompleted;
-  final VoidCallback? onSkip; // Callback for skip (if needed later)
-  final VoidCallback? onReschedule;
-  final ThemeData? theme; // Optional theme override for testing
+  final VoidCallback? onSkip;
+
+  // Thay đổi: cập nhật kiểu của onReschedule để nhận một tham số DateTime
+  final Function(DateTime)? onReschedule;
+  final ThemeData? theme;
 
   const RepetitionCard({
     super.key,
     required this.repetition,
     this.isHistory = false,
     this.onMarkCompleted,
-    this.onSkip, // Still here if needed in future
+    this.onSkip,
     this.onReschedule,
     this.theme,
   });
 
-  // --- Semantic Color Helpers (using standard ColorScheme slots) ---
-  // These now map semantic concepts to M3 roles populated by FlexColorScheme.
-  // You might adjust the mapping (e.g., use Primary for Success if it's green)
-  // based on your specific FlexColorScheme setup.
-
+  // --- Semantic Color Helpers (unchanged) ---
   /// Returns M3 Tertiary container/onContainer, often used for Success.
   M3ColorPair _getSuccessColors(ColorScheme colorScheme) {
     return (
@@ -40,10 +38,7 @@ class RepetitionCard extends StatelessWidget {
   }
 
   /// Returns M3 Secondary container/onContainer, can be used for Warning/Notice.
-  /// If Error is more appropriate, use errorContainer.
   M3ColorPair _getWarningColors(ColorScheme colorScheme) {
-    // Using Secondary as a proxy for Warning. Adjust if needed.
-    // Could also use colorScheme.errorContainer if the warning is severe.
     return (
       container: colorScheme.secondaryContainer,
       onContainer: colorScheme.onSecondaryContainer,
@@ -60,20 +55,15 @@ class RepetitionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get theme components once (this works regardless of theme source)
+    // Get theme components once (unchanged)
     final currentTheme = theme ?? Theme.of(context);
     final colorScheme = currentTheme.colorScheme;
     final textTheme = currentTheme.textTheme;
-    // isDark check might not be strictly needed if ColorScheme handles it all
-    // final isDark = currentTheme.brightness == Brightness.dark;
-    final dateFormat = DateFormat('dd MMM yyyy'); // Consistent format
+    final dateFormat = DateFormat('dd MMM yyyy');
 
-    // Get derived info and colors using the ColorScheme
+    // Get derived info and colors using the ColorScheme (unchanged)
     final orderText = _formatRepetitionOrder(repetition.repetitionOrder);
-    final statusColors = _getStatusColors(
-      repetition.status,
-      colorScheme,
-    ); // Pass ColorScheme
+    final statusColors = _getStatusColors(repetition.status, colorScheme);
     final dateText =
         repetition.reviewDate != null
             ? dateFormat.format(repetition.reviewDate!)
@@ -82,33 +72,23 @@ class RepetitionCard extends StatelessWidget {
     final indicatorColors = _getTimeIndicatorColors(
       repetition.reviewDate,
       colorScheme,
-    ); // Pass ColorScheme
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
-      // CardTheme (shape, elevation) is applied automatically from currentTheme
-      // Adjust elevation and color for history items using M3 roles
       elevation:
-          isHistory
-              ? (currentTheme.cardTheme.elevation ?? 1.0) *
-                  0.5 // Half elevation
-              : null, // Use default theme elevation
-      color:
-          isHistory
-              ? colorScheme
-                  .surfaceContainerLow // M3 subtle background
-              : null, // Use default theme card color
+          isHistory ? (currentTheme.cardTheme.elevation ?? 1.0) * 0.5 : null,
+      color: isHistory ? colorScheme.surfaceContainerLow : null,
       child: InkWell(
-        // Consider if card-level tap is desired vs button-only actions
         onTap:
             (isHistory || repetition.status != RepetitionStatus.notStarted)
                 ? null
-                : onMarkCompleted, // Example: tap card to complete
+                : onMarkCompleted,
         borderRadius:
             ((currentTheme.cardTheme.shape as RoundedRectangleBorder?)
                     ?.borderRadius
                 as BorderRadius?) ??
-            BorderRadius.circular(AppDimens.radiusL), // Use theme or fallback
+            BorderRadius.circular(AppDimens.radiusL),
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Column(
@@ -117,7 +97,7 @@ class RepetitionCard extends StatelessWidget {
               _buildHeader(textTheme, colorScheme, orderText, statusColors),
               const SizedBox(height: AppDimens.spaceM),
               _buildDateRow(
-                context, // Keep context if needed for future locale stuff
+                context,
                 textTheme,
                 colorScheme,
                 dateText,
@@ -127,11 +107,7 @@ class RepetitionCard extends StatelessWidget {
               // Only show actions for pending, non-history items
               if (!isHistory &&
                   repetition.status == RepetitionStatus.notStarted)
-                _buildActions(
-                  context,
-                  colorScheme,
-                  textTheme,
-                ), // Pass scheme/theme
+                _buildActions(context, colorScheme, textTheme),
             ],
           ),
         ),
@@ -143,8 +119,9 @@ class RepetitionCard extends StatelessWidget {
     TextTheme textTheme,
     ColorScheme colorScheme,
     String orderText,
-    M3ColorPair statusColors, // Expects ({Color container, Color onContainer})
+    M3ColorPair statusColors,
   ) {
+    // Unchanged header implementation
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -152,17 +129,16 @@ class RepetitionCard extends StatelessWidget {
           orderText,
           style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface, // Use clear M3 role
+            color: colorScheme.onSurface,
           ),
         ),
-        // Status Badge using M3 container/onContainer pattern
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.paddingM,
             vertical: AppDimens.paddingXS,
           ),
           decoration: BoxDecoration(
-            color: statusColors.container, // Background from pair
+            color: statusColors.container,
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Row(
@@ -171,28 +147,26 @@ class RepetitionCard extends StatelessWidget {
               Text(
                 _formatStatus(repetition.status),
                 style: textTheme.labelSmall?.copyWith(
-                  color: statusColors.onContainer, // Text color from pair
+                  color: statusColors.onContainer,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // Add appropriate icons based on status
               if (repetition.status == RepetitionStatus.completed) ...[
                 const SizedBox(width: AppDimens.spaceXS),
                 Icon(
-                  Icons.check_circle_outline, // Or Icons.task_alt
+                  Icons.check_circle_outline,
                   size: AppDimens.iconXS,
-                  color: statusColors.onContainer, // Icon color from pair
+                  color: statusColors.onContainer,
                 ),
               ],
               if (repetition.status == RepetitionStatus.skipped) ...[
                 const SizedBox(width: AppDimens.spaceXS),
                 Icon(
-                  Icons.redo_outlined, // Or Icons.skip_next_outlined
+                  Icons.redo_outlined,
                   size: AppDimens.iconXS,
-                  color: statusColors.onContainer, // Icon color from pair
+                  color: statusColors.onContainer,
                 ),
               ],
-              // Could add icon for Pending if desired (e.g., schedule or timer)
             ],
           ),
         ),
@@ -206,24 +180,24 @@ class RepetitionCard extends StatelessWidget {
     ColorScheme colorScheme,
     String dateText,
     String timeIndicator,
-    M3ColorPair? indicatorColors, // Nullable pair
+    M3ColorPair? indicatorColors,
   ) {
+    // Unchanged date row implementation
     return Row(
       children: [
         Icon(
-          Icons.calendar_today_outlined, // Standard icon
-          color: colorScheme.primary, // Use primary color for emphasis
+          Icons.calendar_today_outlined,
+          color: colorScheme.primary,
           size: AppDimens.iconS,
         ),
         const SizedBox(width: AppDimens.spaceS),
         Text(
           dateText,
           style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant, // Subtler text color
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
-        const Spacer(), // Push indicator to the right
-        // Only show indicator if data and colors exist
+        const Spacer(),
         if (indicatorColors != null && timeIndicator.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(
@@ -231,13 +205,13 @@ class RepetitionCard extends StatelessWidget {
               vertical: AppDimens.paddingXXS,
             ),
             decoration: BoxDecoration(
-              color: indicatorColors.container, // Background from pair
+              color: indicatorColors.container,
               borderRadius: BorderRadius.circular(AppDimens.radiusS),
             ),
             child: Text(
               timeIndicator,
               style: textTheme.labelSmall?.copyWith(
-                color: indicatorColors.onContainer, // Text color from pair
+                color: indicatorColors.onContainer,
               ),
             ),
           ),
@@ -249,51 +223,46 @@ class RepetitionCard extends StatelessWidget {
     BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
-    // bool isDark is no longer needed here if ColorScheme handles it
   ) {
-    // Get semantic M3 colors from ColorScheme
-    // Mapping: Reschedule -> Warning (Secondary), Complete -> Success (Tertiary)
-    final rescheduleColor = colorScheme.secondary; // Main color for button
-    final rescheduleContainerColors = _getWarningColors(
-      colorScheme,
-    ); // Container pair
-    final completeColor = colorScheme.tertiary; // Main color for button
-    final completeContainerColors = _getSuccessColors(
-      colorScheme,
-    ); // Container pair
+    // Get semantic M3 colors (unchanged)
+    final rescheduleColor = colorScheme.secondary;
+    final rescheduleContainerColors = _getWarningColors(colorScheme);
+    final completeColor = colorScheme.tertiary;
+    final completeContainerColors = _getSuccessColors(colorScheme);
 
     return Padding(
       padding: const EdgeInsets.only(top: AppDimens.paddingL),
       child: Wrap(
-        alignment: WrapAlignment.end, // Align buttons to the right
-        spacing: AppDimens.spaceM, // Horizontal space
-        runSpacing: AppDimens.spaceS, // Vertical space if wrapping
+        alignment: WrapAlignment.end,
+        spacing: AppDimens.spaceM,
+        runSpacing: AppDimens.spaceS,
         children: [
-          // Reschedule Button (using Warning/Secondary)
+          // Reschedule Button - Thay đổi: Truyền reviewDate vào
           if (onReschedule != null)
             _buildActionButton(
               textTheme: textTheme,
-              colorScheme: colorScheme, // Pass scheme for potential overrides
-              foregroundColor: rescheduleColor, // Main semantic color
-              containerColors:
-                  rescheduleContainerColors, // Container pair for bg/indicator
+              colorScheme: colorScheme,
+              foregroundColor: rescheduleColor,
+              containerColors: rescheduleContainerColors,
               label: 'Reschedule',
-              icon: Icons.calendar_month_outlined, // Or Icons.update
-              onPressed: onReschedule!,
+              icon: Icons.calendar_month_outlined,
+              onPressed: () {
+                // Truyền ngày hiện tại của repetition vào callback
+                onReschedule?.call(repetition.reviewDate ?? DateTime.now());
+              },
             ),
 
-          // Complete Button (using Success/Tertiary)
+          // Complete Button (unchanged)
           if (onMarkCompleted != null)
             _buildActionButton(
               textTheme: textTheme,
               colorScheme: colorScheme,
-              foregroundColor: completeColor, // Main semantic color
-              containerColors:
-                  completeContainerColors, // Container pair for bg/indicator
+              foregroundColor: completeColor,
+              containerColors: completeContainerColors,
               label: 'Complete',
-              icon: Icons.check_circle_outlined, // Or Icons.task_alt
+              icon: Icons.check_circle_outlined,
               onPressed: onMarkCompleted!,
-              showScoreIndicator: true, // Show the % icon
+              showScoreIndicator: true,
             ),
         ],
       ),
@@ -302,56 +271,46 @@ class RepetitionCard extends StatelessWidget {
 
   Widget _buildActionButton({
     required TextTheme textTheme,
-    required ColorScheme colorScheme, // Pass for context
-    required Color foregroundColor, // Main semantic color for text/icon/border
-    required M3ColorPair
-    containerColors, // Container pair for indicator bg etc.
+    required ColorScheme colorScheme,
+    required Color foregroundColor,
+    required M3ColorPair containerColors,
     required String label,
     required IconData icon,
     required VoidCallback onPressed,
     bool showScoreIndicator = false,
   }) {
-    // Use the foregroundColor for text, icon, and border
+    // Unchanged action button implementation
     final buttonStyle = OutlinedButton.styleFrom(
-      foregroundColor: foregroundColor, // Text and icon color
-      side: BorderSide(color: foregroundColor), // Border color
+      foregroundColor: foregroundColor,
+      side: BorderSide(color: foregroundColor),
       padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
-      textStyle: textTheme.labelLarge, // Standard button label style
-    ).copyWith(
-      // Remove default min size to allow button to shrink wrap content
-      minimumSize: WidgetStateProperty.all(Size.zero),
-    );
+      textStyle: textTheme.labelLarge,
+    ).copyWith(minimumSize: WidgetStateProperty.all(Size.zero));
 
-    // Score Indicator styling using the container/onContainer pair
-    // Background is a slightly transparent version of the *container* color
-    final scoreIndicatorBg = containerColors.container.withOpacity(
-      0.4,
-    ); // Adjust opacity
-    // Icon color is the *onContainer* color
+    final scoreIndicatorBg = containerColors.container.withOpacity(0.4);
     final scoreIndicatorFg = containerColors.onContainer;
 
     return SizedBox(
-      height: AppDimens.buttonHeightM, // Consistent button height
+      height: AppDimens.buttonHeightM,
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: Icon(icon, size: AppDimens.iconS),
         label: Row(
-          mainAxisSize: MainAxisSize.min, // Keep row tight
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(label),
             if (showScoreIndicator) ...[
               const SizedBox(width: AppDimens.spaceS),
-              // Score Indicator using container colors
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingXXS + 1),
                 decoration: BoxDecoration(
-                  color: scoreIndicatorBg, // Use calculated bg
-                  shape: BoxShape.circle, // Circular shape
+                  color: scoreIndicatorBg,
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.percent,
                   size: AppDimens.iconXXS,
-                  color: scoreIndicatorFg, // Use calculated fg
+                  color: scoreIndicatorFg,
                 ),
               ),
             ],
@@ -362,10 +321,9 @@ class RepetitionCard extends StatelessWidget {
     );
   }
 
-  // --- Formatting and Logic Helpers ---
+  // --- Formatting and Logic Helpers (unchanged) ---
 
   String _formatRepetitionOrder(RepetitionOrder order) {
-    // (Unchanged)
     switch (order) {
       case RepetitionOrder.firstRepetition:
         return 'Repetition 1';
@@ -381,7 +339,6 @@ class RepetitionCard extends StatelessWidget {
   }
 
   String _formatStatus(RepetitionStatus status) {
-    // (Unchanged)
     switch (status) {
       case RepetitionStatus.notStarted:
         return 'Pending';
@@ -392,26 +349,21 @@ class RepetitionCard extends StatelessWidget {
     }
   }
 
-  // Get M3ColorPair for the Status Badge based on status
   M3ColorPair _getStatusColors(
     RepetitionStatus status,
     ColorScheme colorScheme,
   ) {
     return switch (status) {
-      // Pending: Use Primary container (often default accent)
       RepetitionStatus.notStarted => (
         container: colorScheme.primaryContainer,
         onContainer: colorScheme.onPrimaryContainer,
       ),
-      // Completed: Use Success mapping (Tertiary)
       RepetitionStatus.completed => _getSuccessColors(colorScheme),
-      // Skipped: Use Warning mapping (Secondary)
       RepetitionStatus.skipped => _getWarningColors(colorScheme),
     };
   }
 
   String _getTimeIndicator(DateTime? date) {
-    // (Unchanged, uses DateUtils)
     if (date == null) return '';
     final now = DateUtils.dateOnly(DateTime.now());
     final target = DateUtils.dateOnly(date);
@@ -423,7 +375,6 @@ class RepetitionCard extends StatelessWidget {
     return 'In $difference days';
   }
 
-  // Get M3ColorPair? for the Time Indicator badge based on due date proximity
   M3ColorPair? _getTimeIndicatorColors(
     DateTime? date,
     ColorScheme colorScheme,
@@ -434,24 +385,18 @@ class RepetitionCard extends StatelessWidget {
     final target = DateUtils.dateOnly(date);
     final difference = target.difference(now).inDays;
 
-    // Overdue: Use Error colors
     if (difference < 0) {
       return _getErrorColors(colorScheme);
     }
-    // Due Today: Use Success mapping (Tertiary) - high importance
     if (difference == 0) {
       return _getSuccessColors(colorScheme);
     }
-    // Due Soon (1-3 days): Use Warning mapping (Secondary)
     if (difference <= 3) {
       return _getWarningColors(colorScheme);
     }
-    // Due Later: Use a more neutral M3 container (e.g., Secondary or Surface)
-    // Let's keep Secondary Container for consistency with Warning mapping here,
-    // but could use surfaceContainerHighest etc. for less emphasis.
     return (
-      container: colorScheme.secondaryContainer, // Or e.g., surfaceContainer
-      onContainer: colorScheme.onSecondaryContainer, // Or onSurfaceVariant
+      container: colorScheme.secondaryContainer,
+      onContainer: colorScheme.onSecondaryContainer,
     );
   }
 }

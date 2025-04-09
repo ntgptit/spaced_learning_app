@@ -184,27 +184,28 @@ class RepetitionViewModel extends ChangeNotifier {
     String id, {
     RepetitionStatus? status,
     DateTime? reviewDate,
+    bool rescheduleFollowing = false,
   }) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       final repetition = await repetitionRepository.updateRepetition(
         id,
         status: status,
         reviewDate: reviewDate,
+        rescheduleFollowing: rescheduleFollowing,
       );
-
       if (_selectedRepetition?.id == id) {
         _selectedRepetition = repetition;
       }
-
-      // Update in the list if present
       final index = _repetitions.indexWhere((r) => r.id == id);
       if (index >= 0) {
         _repetitions[index] = repetition;
       }
-
+      if (rescheduleFollowing) {
+        // Tải lại toàn bộ danh sách nếu rescheduleFollowing
+        await loadRepetitionsByProgressId(repetition.moduleProgressId);
+      }
       return repetition;
     } on AppException catch (e) {
       _errorMessage = e.message;
