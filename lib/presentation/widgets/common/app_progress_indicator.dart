@@ -8,9 +8,11 @@ class AppProgressIndicator extends StatefulWidget {
   final double? value;
   final double size;
   final double strokeWidth;
-  final Color? color;
+  final Color? color; // Màu mặc định (legacy)
   final Color? backgroundColor;
-  final Color? foregroundColor;
+  final Color? foregroundColor; // Màu viền hoặc nền của thanh tiến độ
+  final Animation<Color?>?
+  valueColor; // Màu của phần tiến độ (thay thế foregroundColor nếu có)
   final Widget? child;
   final String? label;
   final TextStyle? labelStyle;
@@ -26,6 +28,7 @@ class AppProgressIndicator extends StatefulWidget {
     this.color,
     this.backgroundColor,
     this.foregroundColor,
+    this.valueColor,
     this.child,
     this.label,
     this.labelStyle,
@@ -39,38 +42,53 @@ class AppProgressIndicator extends StatefulWidget {
 
 class _AppProgressIndicatorState extends State<AppProgressIndicator>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+  AnimationController? _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimation();
+  }
 
-    if (widget.animate) {
-      _animationController = AnimationController(
-        vsync: this,
-        duration: widget.animationDuration,
-      );
-
-      _fadeAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-      );
-
-      _pulseAnimation = Tween<double>(begin: 0.97, end: 1.03).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-      );
-
-      _animationController.repeat(reverse: true);
+  @override
+  void didUpdateWidget(AppProgressIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animate != widget.animate) {
+      _teardownAnimation();
+      _setupAnimation();
     }
   }
 
   @override
   void dispose() {
-    if (widget.animate) {
-      _animationController.dispose();
-    }
+    _teardownAnimation();
     super.dispose();
+  }
+
+  void _setupAnimation() {
+    if (!widget.animate) return;
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: widget.animationDuration,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
+    );
+
+    _pulseAnimation = Tween<double>(begin: 0.97, end: 1.03).animate(
+      CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
+    );
+
+    _animationController!.repeat(reverse: true);
+  }
+
+  void _teardownAnimation() {
+    _animationController?.dispose();
+    _animationController = null;
   }
 
   @override
@@ -82,52 +100,33 @@ class _AppProgressIndicatorState extends State<AppProgressIndicator>
         widget.foregroundColor ?? widget.color ?? colorScheme.primary;
     final effectiveBackgroundColor =
         widget.backgroundColor ?? colorScheme.surfaceContainerHighest;
+    final effectiveValueColor =
+        widget.valueColor ?? AlwaysStoppedAnimation(effectiveForegroundColor);
 
-    Widget progressIndicator;
+    return _buildContent(
+      effectiveForegroundColor,
+      effectiveBackgroundColor,
+      effectiveValueColor,
+      theme,
+      colorScheme,
+    );
+  }
 
-    switch (widget.type) {
-      case ProgressType.linear:
-        progressIndicator =
-            widget.animate
-                ? _buildAnimatedLinearProgress(
-                  effectiveForegroundColor,
-                  effectiveBackgroundColor,
-                )
-                : LinearProgressIndicator(
-                  value: widget.value,
-                  backgroundColor: effectiveBackgroundColor,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    effectiveForegroundColor,
-                  ),
-                  minHeight: widget.strokeWidth,
-                  borderRadius: BorderRadius.circular(widget.strokeWidth / 2),
-                );
-        break;
-      case ProgressType.circular:
-        Widget circularProgress = SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: CircularProgressIndicator(
-            value: widget.value,
-            backgroundColor: effectiveBackgroundColor,
-            valueColor: AlwaysStoppedAnimation<Color>(effectiveForegroundColor),
-            strokeWidth: widget.strokeWidth,
-          ),
-        );
-
-        if (widget.child != null) {
-          circularProgress = Stack(
-            alignment: Alignment.center,
-            children: [circularProgress, widget.child!],
-          );
-        }
-
-        progressIndicator =
-            widget.animate
-                ? _buildAnimatedCircularProgress(circularProgress)
-                : circularProgress;
-        break;
-    }
+  Widget _buildContent(
+    Color foregroundColor,
+    Color backgroundColor,
+    Animation<Color?> valueColor,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final progressIndicator =
+        widget.type == ProgressType.linear
+            ? _buildLinearProgress(foregroundColor, backgroundColor, valueColor)
+            : _buildCircularProgress(
+              foregroundColor,
+              backgroundColor,
+              valueColor,
+            );
 
     if (widget.label != null) {
       return Column(
@@ -148,43 +147,72 @@ class _AppProgressIndicatorState extends State<AppProgressIndicator>
         ],
       );
     }
-
     return progressIndicator;
   }
 
-  Widget _buildAnimatedLinearProgress(
+  Widget _buildLinearProgress(
     Color foregroundColor,
     Color backgroundColor,
+    Animation<Color?> valueColor,
   ) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _fadeAnimation.value,
-          child: LinearProgressIndicator(
-            value: widget.value,
-            backgroundColor: backgroundColor,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              foregroundColor.withValues(alpha: _fadeAnimation.value),
-            ),
-            minHeight: widget.strokeWidth,
-            borderRadius: BorderRadius.circular(widget.strokeWidth / 2),
-          ),
+    return widget.animate && _animationController != null
+        ? AnimatedBuilder(
+          animation: _animationController!,
+          builder:
+              (context, child) => Opacity(
+                opacity: _fadeAnimation.value,
+                child: LinearProgressIndicator(
+                  value: widget.value,
+                  backgroundColor: backgroundColor,
+                  valueColor: valueColor,
+                  minHeight: widget.strokeWidth,
+                  borderRadius: BorderRadius.circular(widget.strokeWidth / 2),
+                ),
+              ),
+        )
+        : LinearProgressIndicator(
+          value: widget.value,
+          backgroundColor: backgroundColor,
+          valueColor: valueColor,
+          minHeight: widget.strokeWidth,
+          borderRadius: BorderRadius.circular(widget.strokeWidth / 2),
         );
-      },
-    );
   }
 
-  Widget _buildAnimatedCircularProgress(Widget circularProgress) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _pulseAnimation.value,
-          child: Opacity(opacity: _fadeAnimation.value, child: child),
-        );
-      },
-      child: circularProgress,
+  Widget _buildCircularProgress(
+    Color foregroundColor,
+    Color backgroundColor,
+    Animation<Color?> valueColor,
+  ) {
+    Widget circularProgress = SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: CircularProgressIndicator(
+        value: widget.value,
+        backgroundColor: backgroundColor,
+        valueColor: valueColor,
+        strokeWidth: widget.strokeWidth,
+        strokeCap: StrokeCap.round,
+      ),
     );
+
+    if (widget.child != null) {
+      circularProgress = Stack(
+        alignment: Alignment.center,
+        children: [circularProgress, widget.child!],
+      );
+    }
+
+    return widget.animate && _animationController != null
+        ? AnimatedBuilder(
+          animation: _animationController!,
+          builder:
+              (context, child) => Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Opacity(opacity: _fadeAnimation.value, child: child),
+              ),
+          child: circularProgress,
+        )
+        : circularProgress;
   }
 }

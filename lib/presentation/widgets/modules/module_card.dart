@@ -1,14 +1,13 @@
-// lib/presentation/widgets/module_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Giả định theme-aware
-import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart'; // Giả định theme-aware
-import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart'; // Giả định theme-aware
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart';
 
 class ModuleCard extends StatelessWidget {
   final ModuleSummary module;
-  final double? progress; // Progress value between 0.0 and 1.0
+  final double? progress;
   final VoidCallback? onTap;
   final VoidCallback? onStudyPressed;
 
@@ -25,90 +24,125 @@ class ModuleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-
-    // Validate progress value
     final validProgress = progress?.clamp(0.0, 1.0);
 
     return AppCard(
       onTap: onTap,
-      title: Text(
-        'Module ${module.moduleNo}: ${module.title}',
-        style: textTheme.titleMedium?.copyWith(
-          color: colorScheme.onSurface, // Đặt màu rõ ràng cho title
-        ),
-        maxLines: 2, // Giới hạn dòng cho tiêu đề dài
-        overflow: TextOverflow.ellipsis,
+      elevation: 2, // Độ nổi nhẹ
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      leading: Container(
-        width: AppDimens.avatarSizeL,
-        height: AppDimens.avatarSizeL,
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer, // Nền container M3
-          borderRadius: BorderRadius.circular(AppDimens.radiusM), // Bo góc
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.spaceL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(textTheme, colorScheme),
+            if (validProgress != null) ...[
+              const SizedBox(height: AppDimens.spaceM),
+              _buildProgressSection(validProgress, colorScheme, textTheme),
+            ],
+            const SizedBox(height: AppDimens.spaceM),
+            _buildActionSection(colorScheme),
+          ],
         ),
-        child: Center(
-          child: Text(
-            '${module.moduleNo}',
-            style: textTheme.titleLarge!.copyWith(
-              color:
-                  colorScheme
-                      .onPrimaryContainer, // Màu chữ trên nền container M3
-              fontWeight: FontWeight.bold,
-            ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(TextTheme textTheme, ColorScheme colorScheme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildModuleNumber(colorScheme, textTheme),
+        const SizedBox(width: AppDimens.spaceM),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                module.title,
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (module.wordCount != null && module.wordCount! > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppDimens.spaceXS),
+                  child: Text(
+                    '${module.wordCount} words',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModuleNumber(ColorScheme colorScheme, TextTheme textTheme) {
+    return Container(
+      width: AppDimens.avatarSizeM,
+      height: AppDimens.avatarSizeM,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+      ),
+      child: Center(
+        child: Text(
+          '${module.moduleNo}',
+          style: textTheme.titleMedium!.copyWith(
+            color: colorScheme.onPrimaryContainer,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      subtitle:
-          module.wordCount != null && module.wordCount! > 0
-              ? Text(
-                '${module.wordCount} words',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant, // Màu phụ M3
-                ),
-              )
-              : null,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Chỉ hiển thị phần progress nếu progress có giá trị hợp lệ
-          if (validProgress != null) ...[
-            const SizedBox(
-              height: AppDimens.spaceL,
-            ), // Khoảng cách trước progress
-            Row(
-              children: [
-                Expanded(
-                  // Giả định AppProgressIndicator tự lấy màu value từ theme (primary)
-                  child: AppProgressIndicator(
-                    type: ProgressType.linear,
-                    value: validProgress,
-                    strokeWidth: AppDimens.lineProgressHeightL,
-                    // Màu nền track lấy từ theme, nhất quán với các widget khác
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-                const SizedBox(
-                  width: AppDimens.spaceL,
-                ), // Khoảng cách giữa progress và text %
-                Text(
-                  '${(validProgress * 100).toInt()}%', // Hiển thị %
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color:
-                        colorScheme.primary, // Dùng màu primary để nhấn mạnh %
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-      actions: [
+    );
+  }
+
+  Widget _buildProgressSection(
+    double validProgress,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: AppProgressIndicator(
+            type: ProgressType.linear,
+            value: validProgress,
+            strokeWidth: AppDimens.buttonHeightM,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+          ),
+        ),
+        const SizedBox(width: AppDimens.spaceM),
+        Text(
+          '${(validProgress * 100).toInt()}%',
+          style: textTheme.bodyMedium!.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.primary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionSection(ColorScheme colorScheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
         if (onStudyPressed != null)
           AppButton(
             text: 'Study',
             onPressed: onStudyPressed,
-            type: AppButtonType.primary, // AppButton tự lấy style từ theme
+            type: AppButtonType.primary,
             size: AppButtonSize.small,
             prefixIcon: Icons.book,
           ),

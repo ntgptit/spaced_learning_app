@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
-import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/modules/module_card.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final String bookId;
@@ -37,60 +37,49 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final bookViewModel = context.watch<BookViewModel>();
     final moduleViewModel = context.watch<ModuleViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
-
     final book = bookViewModel.selectedBook;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(book?.name ?? 'Book Details'),
-        actions: [
-          if (authViewModel.currentUser?.roles?.contains('ADMIN') == true)
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'edit' && book != null) {
-                  GoRouter.of(context).push('/books/edit/${book.id}');
-                } else if (value == 'delete' && book != null) {
-                  _showDeleteConfirmation(context, book);
-                }
-              },
-              itemBuilder:
-                  (BuildContext context) => [
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.edit,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: const Text('Edit Book'),
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.delete,
-                          color: theme.colorScheme.error,
-                        ),
-                        title: const Text('Delete Book'),
-                      ),
-                    ),
-                  ],
-            ),
-        ],
-      ),
+      appBar: _buildAppBar(theme, book, authViewModel),
       body: _buildBody(theme, book, moduleViewModel),
-      floatingActionButton:
-          authViewModel.currentUser?.roles?.contains('ADMIN') == true &&
-                  book != null
-              ? FloatingActionButton(
-                onPressed: () {
-                  GoRouter.of(context).push('/modules/create/${book.id}');
-                },
-                child: const Icon(Icons.add),
-              )
-              : null,
+      floatingActionButton: _buildFloatingActionButton(authViewModel, book),
     );
+  }
+
+  AppBar _buildAppBar(
+    ThemeData theme,
+    BookDetail? book,
+    AuthViewModel authViewModel,
+  ) {
+    return AppBar(
+      title: Text(book?.name ?? 'Book Details'),
+      actions: [
+        if (authViewModel.currentUser?.roles?.contains('ADMIN') == true)
+          PopupMenuButton<String>(
+            onSelected: (value) => _handleMenuSelection(value, book),
+            itemBuilder: (context) => _buildPopupMenuItems(theme),
+          ),
+      ],
+    );
+  }
+
+  List<PopupMenuItem<String>> _buildPopupMenuItems(ThemeData theme) {
+    return [
+      PopupMenuItem<String>(
+        value: 'edit',
+        child: ListTile(
+          leading: Icon(Icons.edit, color: theme.colorScheme.primary),
+          title: const Text('Edit Book'),
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'delete',
+        child: ListTile(
+          leading: Icon(Icons.delete, color: theme.colorScheme.error),
+          title: const Text('Delete Book'),
+        ),
+      ),
+    ];
   }
 
   Widget _buildBody(
@@ -100,10 +89,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   ) {
     final bookViewModel = context.watch<BookViewModel>();
 
-    if (bookViewModel.isLoading) {
+    if (bookViewModel.isLoading)
       return const Center(child: AppLoadingIndicator());
-    }
-
     if (bookViewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(
@@ -112,10 +99,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         ),
       );
     }
-
-    if (book == null) {
-      return const Center(child: Text('Book not found'));
-    }
+    if (book == null) return const Center(child: Text('Book not found'));
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -139,43 +123,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildBookHeader(ThemeData theme, BookDetail book) {
-    Color statusColor;
-    switch (book.status) {
-      case BookStatus.published:
-        statusColor = Colors.green;
-        break;
-      case BookStatus.draft:
-        statusColor = Colors.orange;
-        break;
-      case BookStatus.archived:
-        statusColor = Colors.grey;
-        break;
-    }
-
-    Color difficultyColor;
-    String difficultyText = 'Unknown';
-    if (book.difficultyLevel != null) {
-      switch (book.difficultyLevel!) {
-        case DifficultyLevel.beginner:
-          difficultyColor = Colors.green;
-          difficultyText = 'Beginner';
-          break;
-        case DifficultyLevel.intermediate:
-          difficultyColor = Colors.red;
-          difficultyText = 'Intermediate';
-          break;
-        case DifficultyLevel.advanced:
-          difficultyColor = Colors.amber;
-          difficultyText = 'Advanced';
-          break;
-        case DifficultyLevel.expert:
-          difficultyColor = theme.colorScheme.error;
-          difficultyText = 'Expert';
-          break;
-      }
-    } else {
-      difficultyColor = Colors.grey;
-    }
+    final statusColor = _getStatusColor(book.status);
+    final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,20 +134,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             Expanded(
               child: Text(book.name, style: theme.textTheme.headlineMedium),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                _formatStatus(book.status),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: statusColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            _buildStatusChip(theme, book.status, statusColor),
           ],
         ),
         const SizedBox(height: 8),
@@ -206,46 +142,70 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           spacing: 16,
           runSpacing: 8,
           children: [
-            if (book.category != null)
-              Chip(
-                label: Text(book.category!),
-                labelStyle: theme.textTheme.bodyMedium,
-              ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: difficultyColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                difficultyText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: difficultyColor,
-                ),
-              ),
-            ),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Modules: ',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextSpan(
-                    text: book.modules.length.toString(),
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
+            if (book.category != null) Chip(label: Text(book.category!)),
+            _buildDifficultyChip(theme, difficultyData),
+            _buildModulesCount(theme, book.modules.length),
           ],
         ),
       ],
     );
   }
 
+  Widget _buildStatusChip(
+    ThemeData theme,
+    BookStatus status,
+    Color statusColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        _formatStatus(status),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: statusColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultyChip(
+    ThemeData theme,
+    ({Color color, String text}) data,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: data.color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        data.text,
+        style: theme.textTheme.bodySmall?.copyWith(color: data.color),
+      ),
+    );
+  }
+
+  Widget _buildModulesCount(ThemeData theme, int count) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: 'Modules: ',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          TextSpan(text: count.toString(), style: theme.textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  // Tiếp tục từ đoạn code trước
   Widget _buildModulesList(ModuleViewModel viewModel) {
     if (viewModel.isLoading) {
       return const Center(
@@ -289,60 +249,42 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       itemCount: viewModel.modules.length,
       itemBuilder: (context, index) {
         final module = viewModel.modules[index];
-        return _buildModuleCard(module);
+        return ModuleCard(
+          module: module,
+          onTap:
+              () => GoRouter.of(
+                context,
+              ).push('/books/${widget.bookId}/modules/${module.id}'),
+          onStudyPressed:
+              () => GoRouter.of(
+                context,
+              ).push('/books/${widget.bookId}/modules/${module.id}/study'),
+        );
       },
     );
   }
 
-  Widget _buildModuleCard(ModuleSummary module) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          GoRouter.of(
-            context,
-          ).push('/books/${widget.bookId}/modules/${module.id}');
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  module.moduleNo.toString(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(module.title, style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    if (module.wordCount != null && module.wordCount! > 0)
-                      Text(
-                        '${module.wordCount} words',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: theme.iconTheme.color),
-            ],
-          ),
-        ),
-      ),
-    );
+  FloatingActionButton? _buildFloatingActionButton(
+    AuthViewModel authViewModel,
+    BookDetail? book,
+  ) {
+    return authViewModel.currentUser?.roles?.contains('ADMIN') == true &&
+            book != null
+        ? FloatingActionButton(
+          onPressed:
+              () => GoRouter.of(context).push('/modules/create/${book.id}'),
+          child: const Icon(Icons.add),
+        )
+        : null;
+  }
+
+  void _handleMenuSelection(String value, BookDetail? book) {
+    if (book == null) return;
+    if (value == 'edit') {
+      GoRouter.of(context).push('/books/edit/${book.id}');
+    } else if (value == 'delete') {
+      _showDeleteConfirmation(context, book);
+    }
   }
 
   void _showDeleteConfirmation(BuildContext context, BookDetail book) {
@@ -386,6 +328,34 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             ],
           ),
     );
+  }
+
+  Color _getStatusColor(BookStatus status) {
+    switch (status) {
+      case BookStatus.published:
+        return Colors.green;
+      case BookStatus.draft:
+        return Colors.orange;
+      case BookStatus.archived:
+        return Colors.grey;
+    }
+  }
+
+  ({Color color, String text}) _getDifficultyData(
+    ThemeData theme,
+    DifficultyLevel? level,
+  ) {
+    if (level == null) return (color: Colors.grey, text: 'Unknown');
+    switch (level) {
+      case DifficultyLevel.beginner:
+        return (color: Colors.green, text: 'Beginner');
+      case DifficultyLevel.intermediate:
+        return (color: Colors.red, text: 'Intermediate');
+      case DifficultyLevel.advanced:
+        return (color: Colors.amber, text: 'Advanced');
+      case DifficultyLevel.expert:
+        return (color: theme.colorScheme.error, text: 'Expert');
+    }
   }
 
   String _formatStatus(BookStatus status) {
