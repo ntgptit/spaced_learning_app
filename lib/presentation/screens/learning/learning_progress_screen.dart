@@ -14,45 +14,82 @@ class LearningProgressScreen extends StatefulWidget {
   State<LearningProgressScreen> createState() => _LearningProgressScreenState();
 }
 
-class _LearningProgressScreenState extends State<LearningProgressScreen> {
+class _LearningProgressScreenState extends State<LearningProgressScreen>
+    with WidgetsBindingObserver {
   final ScrollController _verticalScrollController = ScrollController();
-  bool _isInitializing = false;
+  bool _isFirstLoad = true;
 
   @override
   void initState() {
     super.initState();
-    // Safely initialize after the first frame
+    WidgetsBinding.instance.addObserver(this);
+
+    // Delay initialization to avoid build-time state changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _safeInitialize();
+      _initializeViewModel();
     });
   }
 
-  // Safe initialization method
-  void _safeInitialize() {
-    if (!mounted || _isInitializing) return;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Check if this is the first load
+    if (_isFirstLoad) {
+      _isFirstLoad = false;
+      // The initialization is already handled in initState
+    }
+  }
 
-    _isInitializing = true;
-
-    try {
-      final viewModel = Provider.of<LearningProgressViewModel>(
-        context,
-        listen: false,
-      );
-
-      if (!viewModel.isInitialized) {
-        viewModel.initialize();
-      }
-    } catch (e) {
-      debugPrint('Error initializing learning progress: $e');
-    } finally {
-      _isInitializing = false;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh data when app comes to foreground
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _verticalScrollController.dispose();
     super.dispose();
+  }
+
+  void _initializeViewModel() {
+    if (!mounted) return;
+
+    // Use a Future.microtask to avoid build-time state changes
+    Future.microtask(() {
+      if (!mounted) return;
+
+      final viewModel = Provider.of<LearningProgressViewModel>(
+        context,
+        listen: false,
+      );
+
+      debugPrint(
+        'LearningProgressScreen: Initializing view model - isInitialized=${viewModel.isInitialized}',
+      );
+
+      // Always load data when this screen appears, regardless of initialization state
+      viewModel.loadData();
+    });
+  }
+
+  void _refreshData() {
+    if (!mounted) return;
+
+    Future.microtask(() {
+      if (!mounted) return;
+
+      final viewModel = Provider.of<LearningProgressViewModel>(
+        context,
+        listen: false,
+      );
+
+      debugPrint('LearningProgressScreen: Refreshing data');
+      viewModel.refreshData();
+    });
   }
 
   Future<void> _selectDate(

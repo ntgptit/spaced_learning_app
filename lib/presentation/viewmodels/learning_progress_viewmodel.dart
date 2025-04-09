@@ -16,7 +16,7 @@ class LearningProgressViewModel extends ChangeNotifier {
   String? _errorMessage;
   bool _isInitialized = false;
   DateTime? _lastUpdated;
-  bool _isRefreshing = false;
+  final bool _isRefreshing = false;
 
   // Getters
   List<LearningModule> get modules => _modules;
@@ -51,40 +51,41 @@ class LearningProgressViewModel extends ChangeNotifier {
 
   /// Load module data from service
   Future<void> loadData() async {
-    // Prevent multiple concurrent loads
-    if (_isRefreshing) return;
-    _isRefreshing = true;
-
-    // Set loading state once
-    final bool wasLoading = _isLoading;
+    // Set loading state
     _isLoading = true;
-    if (!wasLoading) {
-      notifyListeners(); // Only notify if state actually changed
-    }
+    notifyListeners();
 
     _errorMessage = null;
 
     try {
+      debugPrint('LearningProgressViewModel: Loading module data');
       final modules = await _learningDataService.getModules();
       _modules = modules;
-      _applyFiltersWithoutNotify(); // Don't notify during processing
+      _applyFiltersWithoutNotify();
       _lastUpdated = DateTime.now();
+      _isInitialized = true; // Mark as initialized here
+
+      debugPrint('LearningProgressViewModel: Loaded ${modules.length} modules');
     } catch (e) {
+      debugPrint('LearningProgressViewModel: Error loading data - $e');
       _handleLoadError(e.toString());
     } finally {
       _isLoading = false;
-      _isRefreshing = false;
-      notifyListeners(); // Notify once at the end
+      notifyListeners();
     }
   }
 
   /// Refresh data by clearing cache and reloading
   Future<void> refreshData() async {
-    // Prevent multiple concurrent refreshes
-    if (_isRefreshing) return;
+    debugPrint(
+      'LearningProgressViewModel: Refreshing data, explicitly resetting cache',
+    );
 
+    // Always clear the cache
     _learningDataService.resetCache();
-    await loadData(); // loadData handles the refresh flag
+
+    // Load fresh data
+    await loadData();
   }
 
   /// Apply book and date filters to the module list

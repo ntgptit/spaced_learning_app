@@ -94,6 +94,11 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       if (index == 0) {
         _refreshHomeData();
       }
+
+      if (widget.currentIndex == 3) {
+        // This needs to be much more direct
+        _refreshLearningData();
+      }
     }
 
     // Navigate to the corresponding tab
