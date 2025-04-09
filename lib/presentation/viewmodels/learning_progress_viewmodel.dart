@@ -15,6 +15,8 @@ class LearningProgressViewModel extends ChangeNotifier {
   bool _isLoading = true;
   String? _errorMessage;
   bool _isInitialized = false;
+  DateTime? _lastUpdated;
+  bool _isRefreshing = false;
 
   // Getters
   List<LearningModule> get modules => _modules;
@@ -24,40 +26,72 @@ class LearningProgressViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isInitialized => _isInitialized;
+  DateTime? get lastUpdated => _lastUpdated;
 
   LearningProgressViewModel({required LearningDataService learningDataService})
     : _learningDataService = learningDataService;
 
   /// Initialize the ViewModel and load initial data
   Future<void> initialize() async {
-    if (_isInitialized) return;
+    // If already initialized and recently updated, skip loading
+    if (_isInitialized && _lastUpdated != null) {
+      final now = DateTime.now();
+      if (now.difference(_lastUpdated!).inMinutes < 5) {
+        // Data is recent, no need to refresh
+        return;
+      }
+    }
+
+    // If already refreshing, don't start another refresh
+    if (_isRefreshing) return;
+
     await loadData();
     _isInitialized = true;
   }
 
   /// Load module data from service
   Future<void> loadData() async {
-    setLoading(true);
-    setErrorMessage(null);
+    // Prevent multiple concurrent loads
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    // Set loading state once
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners(); // Only notify if state actually changed
+    }
+
+    _errorMessage = null;
 
     try {
       final modules = await _learningDataService.getModules();
       _modules = modules;
-      _applyFiltersWithoutNotify(); // Use private method that doesn't notify
-      setLoading(false); // This will trigger notification
+      _applyFiltersWithoutNotify(); // Don't notify during processing
+      _lastUpdated = DateTime.now();
     } catch (e) {
-      handleLoadError(e.toString());
+      _handleLoadError(e.toString());
+    } finally {
+      _isLoading = false;
+      _isRefreshing = false;
+      notifyListeners(); // Notify once at the end
     }
   }
 
   /// Refresh data by clearing cache and reloading
   Future<void> refreshData() async {
+    // Prevent multiple concurrent refreshes
+    if (_isRefreshing) return;
+
     _learningDataService.resetCache();
-    await loadData();
+    await loadData(); // loadData handles the refresh flag
   }
 
   /// Apply book and date filters to the module list
   void applyFilters() {
+    // Don't apply filters if refreshing
+    if (_isRefreshing) return;
+
     final newFilteredModules = _getFilteredModules();
 
     if (_filteredModulesChanged(newFilteredModules)) {
@@ -115,14 +149,22 @@ class LearningProgressViewModel extends ChangeNotifier {
 
   /// Export learning data
   Future<bool> exportData() async {
-    setLoading(true);
+    // Prevent export during refresh
+    if (_isRefreshing) return false;
+
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners();
+    }
+
     try {
       final success = await _learningDataService.exportData();
-      setLoading(false);
+      _isLoading = false;
+      notifyListeners();
       return success;
     } catch (e) {
-      setErrorMessage('Error exporting data: $e');
-      setLoading(false);
+      _handleLoadError('Error exporting data: $e');
       return false;
     }
   }
@@ -136,19 +178,16 @@ class LearningProgressViewModel extends ChangeNotifier {
   }
 
   /// Handle load error by setting error message and disabling loading state
-  void handleLoadError(String error) {
-    setLoading(false);
-    setErrorMessage('Error loading data: $error');
-  }
-
-  /// Set the loading state
-  void setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
+  void _handleLoadError(String error) {
+    _isLoading = false;
+    _errorMessage = 'Error loading data: $error';
+    debugPrint('LearningProgressViewModel error: $_errorMessage');
   }
 
   /// Set the error message
   void setErrorMessage(String? message) {
+    if (_errorMessage == message) return; // Avoid unnecessary updates
+
     _errorMessage = message;
     if (message != null) {
       // Only notify if there's an actual error

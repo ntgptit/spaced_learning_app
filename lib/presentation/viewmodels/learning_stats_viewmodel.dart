@@ -13,6 +13,8 @@ class LearningStatsViewModel extends ChangeNotifier {
   List<LearningInsightDTO> _insights = [];
   String? _errorMessage;
   bool _isInitialized = false;
+  DateTime? _lastUpdated;
+  bool _isRefreshing = false;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -20,48 +22,82 @@ class LearningStatsViewModel extends ChangeNotifier {
   List<LearningInsightDTO> get insights => _insights;
   String? get errorMessage => _errorMessage;
   bool get isInitialized => _isInitialized;
+  DateTime? get lastUpdated => _lastUpdated;
 
   LearningStatsViewModel({required LearningStatsRepository repository})
     : _repository = repository;
 
   /// Load dashboard statistics
   Future<void> loadDashboardStats({bool refreshCache = false}) async {
-    _setLoading(true);
+    // Prevent multiple concurrent loads
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners();
+    }
+
     _errorMessage = null;
 
     try {
       _stats = await _repository.getDashboardStats(refreshCache: refreshCache);
       _isInitialized = true;
+      _lastUpdated = DateTime.now();
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred while loading statistics';
       debugPrint('Error loading dashboard stats: $e');
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      _isRefreshing = false;
+      notifyListeners();
     }
   }
 
   /// Load learning insights
   Future<void> loadLearningInsights() async {
-    _setLoading(true);
+    // Prevent multiple concurrent loads
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners();
+    }
+
     _errorMessage = null;
 
     try {
       _insights = await _repository.getLearningInsights();
+      _lastUpdated = DateTime.now();
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred while loading insights';
       debugPrint('Error loading learning insights: $e');
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      _isRefreshing = false;
+      notifyListeners();
     }
   }
 
   /// Load both dashboard statistics and learning insights
   Future<void> loadAllStats({bool refreshCache = false}) async {
-    _setLoading(true);
+    // Prevent multiple concurrent loads
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners();
+    }
+
     _errorMessage = null;
 
     try {
@@ -74,13 +110,16 @@ class LearningStatsViewModel extends ChangeNotifier {
       _stats = results[0] as LearningStatsDTO;
       _insights = results[1] as List<LearningInsightDTO>;
       _isInitialized = true;
+      _lastUpdated = DateTime.now();
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred while loading data';
       debugPrint('Error loading all stats: $e');
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      _isRefreshing = false;
+      notifyListeners();
     }
   }
 
@@ -89,7 +128,16 @@ class LearningStatsViewModel extends ChangeNotifier {
     String userId, {
     bool refreshCache = false,
   }) async {
-    _setLoading(true);
+    // Prevent multiple concurrent loads
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners();
+    }
+
     _errorMessage = null;
 
     try {
@@ -98,6 +146,7 @@ class LearningStatsViewModel extends ChangeNotifier {
         refreshCache: refreshCache,
       );
       _isInitialized = true;
+      _lastUpdated = DateTime.now();
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (e) {
@@ -105,17 +154,29 @@ class LearningStatsViewModel extends ChangeNotifier {
           'An unexpected error occurred while loading user statistics';
       debugPrint('Error loading user dashboard stats: $e');
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      _isRefreshing = false;
+      notifyListeners();
     }
   }
 
   /// Load learning insights for a specific user (admin only)
   Future<void> loadUserLearningInsights(String userId) async {
-    _setLoading(true);
+    // Prevent multiple concurrent loads
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    final bool wasLoading = _isLoading;
+    _isLoading = true;
+    if (!wasLoading) {
+      notifyListeners();
+    }
+
     _errorMessage = null;
 
     try {
       _insights = await _repository.getUserLearningInsights(userId);
+      _lastUpdated = DateTime.now();
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (e) {
@@ -123,18 +184,16 @@ class LearningStatsViewModel extends ChangeNotifier {
           'An unexpected error occurred while loading user insights';
       debugPrint('Error loading user learning insights: $e');
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      _isRefreshing = false;
+      notifyListeners();
     }
-  }
-
-  /// Set loading state and notify listeners
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
   }
 
   /// Clear error message
   void clearError() {
+    if (_errorMessage == null) return; // Avoid unnecessary updates
+
     _errorMessage = null;
     notifyListeners();
   }

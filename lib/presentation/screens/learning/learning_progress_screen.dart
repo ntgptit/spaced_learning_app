@@ -16,22 +16,36 @@ class LearningProgressScreen extends StatefulWidget {
 
 class _LearningProgressScreenState extends State<LearningProgressScreen> {
   final ScrollController _verticalScrollController = ScrollController();
+  bool _isInitializing = false;
 
   @override
   void initState() {
     super.initState();
+    // Safely initialize after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeViewModel();
+      _safeInitialize();
     });
   }
 
-  void _initializeViewModel() {
-    final viewModel = Provider.of<LearningProgressViewModel>(
-      context,
-      listen: false,
-    );
-    if (!viewModel.isInitialized) {
-      viewModel.initialize();
+  // Safe initialization method
+  void _safeInitialize() {
+    if (!mounted || _isInitializing) return;
+
+    _isInitializing = true;
+
+    try {
+      final viewModel = Provider.of<LearningProgressViewModel>(
+        context,
+        listen: false,
+      );
+
+      if (!viewModel.isInitialized) {
+        viewModel.initialize();
+      }
+    } catch (e) {
+      debugPrint('Error initializing learning progress: $e');
+    } finally {
+      _isInitializing = false;
     }
   }
 
@@ -51,8 +65,14 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
       firstDate: DateTime(2024),
       lastDate: DateTime(2026),
     );
+
+    // Only update if a date was selected and it's different
     if (picked != null && picked != viewModel.selectedDate && mounted) {
-      viewModel.setSelectedDate(picked);
+      // Schedule state update after the current frame
+      Future.microtask(() {
+        if (!mounted) return;
+        viewModel.setSelectedDate(picked);
+      });
     }
   }
 
@@ -99,6 +119,25 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
     );
   }
 
+  // Safe refresh method
+  void _safeRefreshData() {
+    if (!mounted) return;
+
+    Future.microtask(() {
+      if (!mounted) return;
+
+      try {
+        final viewModel = Provider.of<LearningProgressViewModel>(
+          context,
+          listen: false,
+        );
+        viewModel.refreshData();
+      } catch (e) {
+        debugPrint('Error refreshing data: $e');
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,13 +152,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh),
-          onPressed: () {
-            final viewModel = Provider.of<LearningProgressViewModel>(
-              context,
-              listen: false,
-            );
-            viewModel.refreshData();
-          },
+          onPressed: _safeRefreshData,
           tooltip: 'Refresh data',
         ),
         IconButton(
@@ -168,11 +201,21 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
       books: viewModel.getUniqueBooks(),
       onBookChanged: (value) {
         if (value != null) {
-          viewModel.setSelectedBook(value);
+          // Safe state update
+          Future.microtask(() {
+            if (!mounted) return;
+            viewModel.setSelectedBook(value);
+          });
         }
       },
       onDateSelected: () => _selectDate(context, viewModel),
-      onDateCleared: () => viewModel.clearDateFilter(),
+      onDateCleared: () {
+        // Safe state update
+        Future.microtask(() {
+          if (!mounted) return;
+          viewModel.clearDateFilter();
+        });
+      },
       totalCount: totalModules,
       dueCount: dueModules,
       completeCount: completedModules,
@@ -198,10 +241,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen> {
               style: TextStyle(color: theme.colorScheme.error),
             ),
           ),
-          TextButton(
-            onPressed: () => viewModel.loadData(),
-            child: const Text('Retry'),
-          ),
+          TextButton(onPressed: _safeRefreshData, child: const Text('Retry')),
         ],
       ),
     );

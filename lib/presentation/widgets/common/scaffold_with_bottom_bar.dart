@@ -1,4 +1,3 @@
-// lib/presentation/widgets/common/scaffold_with_bottom_bar.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -22,31 +21,43 @@ class ScaffoldWithBottomBar extends StatefulWidget {
 }
 
 class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
-  // Sử dụng để theo dõi lần cuối cập nhật dữ liệu
+  // Track last refresh time to avoid too frequent refreshes
   DateTime? _lastHomeRefreshTime;
+  DateTime? _lastTabChangeTime;
+  bool _needsRefresh = false;
 
   @override
   void didUpdateWidget(ScaffoldWithBottomBar oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Nếu chuyển sang tab Home, refresh dữ liệu
-    if (widget.currentIndex == 0 && oldWidget.currentIndex != 0) {
-      _refreshHomeData();
+    // If we've switched tabs, schedule a state update after build completes
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      // Prevent double refreshes by tracking time
+      final now = DateTime.now();
+      if (_lastTabChangeTime == null ||
+          now.difference(_lastTabChangeTime!).inSeconds > 2) {
+        _lastTabChangeTime = now;
+
+        // Schedule refresh after the build is complete
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Check if widget is still mounted before proceeding
+          if (!mounted) return;
+
+          // If switching to Home tab, refresh data
+          if (widget.currentIndex == 0) {
+            _refreshHomeData();
+          }
+          // If switching to Stats tab (Learning Progress)
+          else if (widget.currentIndex == 3) {
+            _refreshLearningData();
+          }
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tự động cập nhật dữ liệu khi vào tab Home, nhưng không quá thường xuyên
-    final now = DateTime.now();
-    if (widget.currentIndex == 0 &&
-        (_lastHomeRefreshTime == null ||
-            now.difference(_lastHomeRefreshTime!).inSeconds > 30)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _refreshHomeData();
-      });
-    }
-
     return Scaffold(
       drawer: const AppDrawer(),
       body: widget.child,
@@ -54,7 +65,6 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
     );
   }
 
-  // Thay đổi trong ScaffoldWithBottomBar (_buildBottomNavigationBar)
   Widget _buildBottomNavigationBar(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -63,7 +73,7 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       onTap: (index) => _onTabTapped(context, index),
       type: BottomNavigationBarType.fixed,
       selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+      unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Books'),
@@ -78,12 +88,15 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
   }
 
   void _onTabTapped(BuildContext context, int index) {
-    // Nếu đang ở tab hiện tại và đó là tab Home, refresh data
-    if (index == widget.currentIndex && index == 0) {
-      _refreshHomeData();
+    // If clicking the current tab (same tab), consider refreshing
+    if (index == widget.currentIndex) {
+      // For Home tab, refresh data
+      if (index == 0) {
+        _refreshHomeData();
+      }
     }
 
-    // Điều hướng đến tab tương ứng
+    // Navigate to the corresponding tab
     switch (index) {
       case 0:
         GoRouter.of(context).go('/');
@@ -92,7 +105,7 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
         GoRouter.of(context).go('/books');
         break;
       case 2:
-        GoRouter.of(context).go('/due-progress'); // Tab DueProgress mới
+        GoRouter.of(context).go('/due-progress');
         break;
       case 3:
         GoRouter.of(context).go('/learning');
@@ -104,23 +117,62 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
   }
 
   void _refreshHomeData() {
-    // Cập nhật thời gian refresh
-    _lastHomeRefreshTime = DateTime.now();
+    // Update refresh time
+    final now = DateTime.now();
+    if (_lastHomeRefreshTime != null &&
+        now.difference(_lastHomeRefreshTime!).inSeconds < 5) {
+      // Avoid refreshing too frequently
+      return;
+    }
+    _lastHomeRefreshTime = now;
 
-    final progressViewModel = context.read<ProgressViewModel>();
-    final learningStatsViewModel = context.read<LearningStatsViewModel>();
+    try {
+      final progressViewModel = context.read<ProgressViewModel>();
+      final learningStatsViewModel = context.read<LearningStatsViewModel>();
 
-    // Reset error và load dữ liệu mới
-    progressViewModel.clearError();
-    learningStatsViewModel.clearError();
+      // Reset error and prepare to load new data
+      progressViewModel.clearError();
+      learningStatsViewModel.clearError();
 
-    // Load dữ liệu mới từ server
-    learningStatsViewModel.loadAllStats(refreshCache: true);
+      // Load new data from server
+      learningStatsViewModel.loadAllStats(refreshCache: true);
 
-    // Load progress data nếu đã đăng nhập
-    final authViewModel = context.read<AuthViewModel>();
-    if (authViewModel.currentUser != null) {
-      progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
+      // Load progress data if logged in
+      final authViewModel = context.read<AuthViewModel>();
+      if (authViewModel.currentUser != null) {
+        progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
+      }
+    } catch (e) {
+      debugPrint('Error in _refreshHomeData: $e');
+    }
+  }
+
+  void _refreshLearningData() {
+    // Safety check to prevent multiple calls
+    if (_needsRefresh) return;
+    _needsRefresh = true;
+
+    try {
+      // Schedule data update outside of the build cycle
+      Future.microtask(() {
+        if (!mounted) return;
+
+        try {
+          // Don't use context.read here, use Provider.of with listen: false
+          final viewModel = Provider.of<LearningStatsViewModel>(
+            context,
+            listen: false,
+          );
+          viewModel.loadAllStats(refreshCache: false);
+        } catch (e) {
+          debugPrint('Error refreshing learning data: $e');
+        } finally {
+          _needsRefresh = false;
+        }
+      });
+    } catch (e) {
+      _needsRefresh = false;
+      debugPrint('Error scheduling learning data refresh: $e');
     }
   }
 }
