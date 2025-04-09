@@ -166,19 +166,33 @@ class ProgressViewModel extends ChangeNotifier {
     }
   }
 
-  /// Load progress for current user and a specific module
-  Future<ProgressDetail?> loadCurrentUserProgressByModule(
-    String moduleId,
-  ) async {
+  /// Load progress for a specific module
+  Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
     _setLoading(true);
     _errorMessage = null;
 
     try {
-      final progress = await progressRepository.getCurrentUserProgressByModule(
+      // Lấy danh sách progress cho module này
+      final progressList = await progressRepository.getProgressByModuleId(
         moduleId,
+        page: 0,
+        size: 1, // Chỉ lấy 1 progress
       );
-      _selectedProgress = progress;
-      return progress;
+
+      // Nếu có progress nào, lấy progress đầu tiên
+      if (progressList.isNotEmpty) {
+        // Lấy chi tiết của progress
+        final progressDetail = await progressRepository.getProgressById(
+          progressList[0].id,
+        );
+        _selectedProgress = progressDetail;
+        debugPrint('Progress found for module: YES');
+        return progressDetail;
+      } else {
+        debugPrint('Progress not found for module');
+        _selectedProgress = null;
+        return null;
+      }
     } on AppException catch (e) {
       _errorMessage = e.message;
       _selectedProgress = null;
@@ -253,7 +267,7 @@ class ProgressViewModel extends ChangeNotifier {
   /// Create a new progress record
   Future<ProgressDetail?> createProgress({
     required String moduleId,
-    required String userId,
+    String? userId, // Optional userId
     DateTime? firstLearningDate,
     CycleStudied? cyclesStudied,
     DateTime? nextStudyDate,
@@ -265,7 +279,7 @@ class ProgressViewModel extends ChangeNotifier {
     try {
       final progress = await progressRepository.createProgress(
         moduleId: moduleId,
-        userId: userId,
+        userId: userId, // Pass optional userId
         firstLearningDate: firstLearningDate,
         cyclesStudied: cyclesStudied,
         nextStudyDate: nextStudyDate,

@@ -171,24 +171,21 @@ class ProgressRepositoryImpl implements ProgressRepository {
     String moduleId,
   ) async {
     try {
-      final response = await _apiClient.get(
-        ApiEndpoints.currentUserProgressByModule(moduleId),
-      );
+      // Mặc dù API đã thay đổi, vẫn giữ lại signature để đảm bảo tương thích
+      // Bây giờ gọi API để lấy tất cả progress của module
+      final progressList = await getProgressByModuleId(moduleId, size: 1);
 
-      if (response['success'] == true) {
-        if (response['data'] == null) {
-          return null;
-        }
-        return ProgressDetail.fromJson(response['data']);
-      } else {
-        return null;
+      if (progressList.isNotEmpty) {
+        // Lấy chi tiết của progress đầu tiên
+        return await getProgressById(progressList[0].id);
       }
+      return null;
     } on NotFoundException {
       return null;
     } on AppException {
       rethrow;
     } catch (e) {
-      throw UnexpectedException('Failed to get current user progress: $e');
+      throw UnexpectedException('Failed to get module progress: $e');
     }
   }
 
@@ -283,14 +280,19 @@ class ProgressRepositoryImpl implements ProgressRepository {
   @override
   Future<ProgressDetail> createProgress({
     required String moduleId,
-    required String userId,
+    String? userId, // Changed to optional
     DateTime? firstLearningDate,
     CycleStudied? cyclesStudied,
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
     try {
-      final data = <String, dynamic>{'moduleId': moduleId, 'userId': userId};
+      final data = <String, dynamic>{'moduleId': moduleId};
+
+      // Only add userId if provided
+      if (userId != null) {
+        data['userId'] = userId;
+      }
 
       if (firstLearningDate != null) {
         data['firstLearningDate'] = _formatDate(firstLearningDate);

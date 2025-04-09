@@ -50,7 +50,7 @@ abstract class ProgressRepository {
   /// Create a new progress record
   Future<ProgressDetail> createProgress({
     required String moduleId,
-    required String userId,
+    String? userId, // Changed to optional
     DateTime? firstLearningDate,
     CycleStudied? cyclesStudied,
     DateTime? nextStudyDate,

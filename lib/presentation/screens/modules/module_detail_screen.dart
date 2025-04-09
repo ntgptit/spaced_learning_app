@@ -39,7 +39,12 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     if (!mounted) return;
 
     if (authViewModel.isAuthenticated) {
-      await progressViewModel.loadCurrentUserProgressByModule(moduleId);
+      await progressViewModel.loadModuleProgress(moduleId);
+
+      // Thêm log để kiểm tra
+      debugPrint(
+        'Progress loaded: ${progressViewModel.selectedProgress != null ? 'YES' : 'NO'}',
+      );
     }
   }
 
@@ -111,6 +116,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final moduleViewModel = context.watch<ModuleViewModel>();
     final progressViewModel = context.watch<ProgressViewModel>();
     final module = moduleViewModel.selectedModule;
+
+    debugPrint(
+      'Building screen - Progress exists: ${progressViewModel.selectedProgress != null}',
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(module?.title ?? 'Module Details')),
