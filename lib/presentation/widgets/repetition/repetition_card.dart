@@ -295,18 +295,6 @@ class RepetitionCard extends StatelessWidget {
               onPressed: onMarkCompleted!,
               showScoreIndicator: true, // Show the % icon
             ),
-
-          // Potential Skip Button (using e.g., surface variant?)
-          // if (onSkip != null)
-          //   _buildActionButton(
-          //     textTheme: textTheme,
-          //     colorScheme: colorScheme,
-          //     foregroundColor: colorScheme.onSurfaceVariant, // Example subtle color
-          //     containerColors: (container: colorScheme.surfaceContainerHighest, onContainer: colorScheme.onSurfaceVariant), // Example
-          //     label: 'Skip',
-          //     icon: Icons.skip_next_outlined, // Or Icons.redo
-          //     onPressed: onSkip!,
-          //   ),
         ],
       ),
     );
@@ -332,22 +320,6 @@ class RepetitionCard extends StatelessWidget {
     ).copyWith(
       // Remove default min size to allow button to shrink wrap content
       minimumSize: WidgetStateProperty.all(Size.zero),
-      // M3 state layer opacity - FlexColorScheme often handles this,
-      // but you can define it explicitly if needed.
-      // overlayColor: WidgetStateProperty.resolveWith<Color?>(
-      //   (Set<WidgetState> states) {
-      //     if (states.contains(WidgetState.pressed)) {
-      //       return foregroundColor.withOpacity(0.12); // M3 press opacity
-      //     }
-      //     if (states.contains(WidgetState.hovered)) {
-      //       return foregroundColor.withOpacity(0.08); // M3 hover opacity
-      //     }
-      //     if (states.contains(WidgetState.focused)) {
-      //       return foregroundColor.withOpacity(0.12); // M3 focus opacity
-      //     }
-      //     return null; // Defer to default value
-      //   },
-      // ),
     );
 
     // Score Indicator styling using the container/onContainer pair
