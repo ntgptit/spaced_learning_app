@@ -3,16 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
+import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_header_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/repetition_list_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/reschedule_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog_content.dart';
 
 class ProgressDetailScreen extends StatefulWidget {
   final String progressId;
+
   const ProgressDetailScreen({super.key, required this.progressId});
 
   @override
@@ -27,7 +29,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   }
 
   Future<void> _loadInitialData() => _fetchProgressAndRepetitions();
-
   Future<void> _reloadData() => _fetchProgressAndRepetitions();
 
   Future<void> _fetchProgressAndRepetitions() async {
@@ -41,7 +42,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   Future<void> _markRepetitionCompleted(String repetitionId) async {
     final score = await _showScoreInputDialog();
     if (score == null || !mounted) return;
-
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
     final updatedRepetition = await repetitionViewModel.updateRepetition(
@@ -49,18 +49,15 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       status: RepetitionStatus.completed,
     );
     if (!mounted || updatedRepetition == null) return;
-
     await progressViewModel.updateProgress(
       widget.progressId,
       percentComplete: score,
     );
     if (!mounted) return;
-
     final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
       updatedRepetition.moduleProgressId,
     );
     if (!mounted) return;
-
     allCompleted
         ? _handleCycleCompletion()
         : _handleSingleCompletion(
@@ -77,8 +74,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       status: RepetitionStatus.skipped,
     );
     if (!mounted || updatedRepetition == null) return;
-
-    _showSnackBar('Repetition marked as skipped');
+    SnackBarUtils.show(context, 'Repetition marked as skipped');
     await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
   }
 
@@ -86,7 +82,9 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     String repetitionId,
     DateTime currentDate,
     bool rescheduleFollowing,
-  ) => _showRescheduleDialog(repetitionId, currentDate);
+  ) async {
+    await _showRescheduleDialog(repetitionId, currentDate);
+  }
 
   Future<void> _refreshRepetitionsAndProgress(
     RepetitionViewModel repetitionViewModel,
@@ -97,15 +95,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   }
 
   void _showSnackBar(String message, {Color? backgroundColor}) {
-    if (!mounted) return;
-    final theme = Theme.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor:
-            backgroundColor ?? theme.colorScheme.surfaceContainerHighest,
-      ),
-    );
+    SnackBarUtils.show(context, message, backgroundColor: backgroundColor);
   }
 
   void _showCompletionSnackBar(double score) =>
@@ -192,116 +182,32 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     String repetitionId,
     DateTime currentDate,
   ) async {
-    var selectedDate = currentDate;
-    bool rescheduleFollowing = false; // Khởi tạo trạng thái toggle là false
-
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final currentRepetition = repetitionViewModel.repetitions.firstWhere(
       (r) => r.id == repetitionId,
-      orElse: () => throw Exception('Repetition not found'),
     );
-
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder:
-          (context) => StatefulBuilder(
-            builder:
-                (context, setState) => AlertDialog(
-                  title: Text(
-                    'Reschedule Repetition #${_formatRepetitionOrder(currentRepetition.repetitionOrder)}',
-                  ),
-                  content: SizedBox(
-                    width:
-                        double
-                            .maxFinite, // Đảm bảo dialog chiếm toàn bộ chiều rộng
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Current date: ${DateFormat('dd MMM yyyy').format(currentDate)}',
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('Select new date:'),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width:
-                                double
-                                    .maxFinite, // Đảm bảo CalendarDatePicker chiếm toàn bộ chiều rộng
-                            child: CalendarDatePicker(
-                              initialDate: currentDate,
-                              firstDate: DateTime.now().subtract(
-                                const Duration(days: 7),
-                              ),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                              onDateChanged:
-                                  (date) => setState(() => selectedDate = date),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Reschedule following repetitions\nAdjust all future repetitions based on this new date',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                              Switch(
-                                value: rescheduleFollowing,
-                                onChanged:
-                                    (value) => setState(
-                                      () => rescheduleFollowing = value,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      onPressed:
-                          () => Navigator.pop(context, {
-                            'date': selectedDate,
-                            'rescheduleFollowing':
-                                rescheduleFollowing, // Sử dụng giá trị toggle
-                          }),
-                      child: const Text('Reschedule'),
-                    ),
-                  ],
-                ),
-          ),
+    final result = await RescheduleDialog.show(
+      context,
+      initialDate: currentDate,
+      title: 'Reschedule Repetition #${currentRepetition.formatOrder()}',
     );
-
-    if (result == null || !mounted) return;
-
-    final newDate = result['date'] as DateTime;
-    final rescheduleFollowingResult = result['rescheduleFollowing'] as bool;
-    final updatedRepetition = await repetitionViewModel.updateRepetition(
-      repetitionId,
-      reviewDate: newDate,
-      rescheduleFollowing:
-          rescheduleFollowingResult, // Sử dụng giá trị từ toggle
-    );
-    if (!mounted || updatedRepetition == null) return;
-
-    _showSnackBar(
-      'Repetition rescheduled to ${DateFormat('dd MMM yyyy').format(newDate)}',
-    );
-    await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
+    if (result != null && mounted) {
+      final newDate = result['date'] as DateTime;
+      final rescheduleFollowing = result['rescheduleFollowing'] as bool;
+      final updatedRepetition = await repetitionViewModel.updateRepetition(
+        repetitionId,
+        reviewDate: newDate,
+        rescheduleFollowing: rescheduleFollowing,
+      );
+      if (mounted && updatedRepetition != null) {
+        _showSnackBar(
+          'Repetition rescheduled to ${DateFormat('dd MMM yyyy').format(newDate)}',
+        );
+        await repetitionViewModel.loadRepetitionsByProgressId(
+          widget.progressId,
+        );
+      }
+    }
   }
 
   void _handleCycleCompletion() {
@@ -316,21 +222,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   ) {
     _showCompletionSnackBar(score);
     _refreshRepetitionsAndProgress(repetitionViewModel, progressViewModel);
-  }
-
-  String _formatRepetitionOrder(RepetitionOrder order) {
-    switch (order) {
-      case RepetitionOrder.firstRepetition:
-        return '1';
-      case RepetitionOrder.secondRepetition:
-        return '2';
-      case RepetitionOrder.thirdRepetition:
-        return '3';
-      case RepetitionOrder.fourthRepetition:
-        return '4';
-      case RepetitionOrder.fifthRepetition:
-        return '5';
-    }
   }
 
   @override
@@ -359,7 +250,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   Widget _buildScreenContent(ProgressViewModel progressViewModel) {
     final theme = Theme.of(context);
     if (progressViewModel.isLoading) {
-      return const Center(child: AppLoadingIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     if (progressViewModel.errorMessage != null) {
       return Center(
@@ -373,7 +264,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     if (progress == null) {
       return const Center(child: Text('Progress not found'));
     }
-
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [

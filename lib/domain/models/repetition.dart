@@ -1,10 +1,8 @@
-// lib/domain/models/repetition.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'repetition.freezed.dart';
 part 'repetition.g.dart';
 
-/// Enum for repetition order
 enum RepetitionOrder {
   @JsonValue('FIRST_REPETITION')
   firstRepetition,
@@ -18,7 +16,6 @@ enum RepetitionOrder {
   fifthRepetition,
 }
 
-/// Enum for repetition status
 enum RepetitionStatus {
   @JsonValue('NOT_STARTED')
   notStarted,
@@ -28,7 +25,6 @@ enum RepetitionStatus {
   skipped,
 }
 
-/// Repetition model
 @freezed
 abstract class Repetition with _$Repetition {
   const factory Repetition({
@@ -43,4 +39,37 @@ abstract class Repetition with _$Repetition {
 
   factory Repetition.fromJson(Map<String, dynamic> json) =>
       _$RepetitionFromJson(json);
+}
+
+// Extension để thêm các phương thức formatOrder và formatFullOrder
+extension RepetitionExtensions on Repetition {
+  String formatOrder() {
+    switch (repetitionOrder) {
+      case RepetitionOrder.firstRepetition:
+        return '1';
+      case RepetitionOrder.secondRepetition:
+        return '2';
+      case RepetitionOrder.thirdRepetition:
+        return '3';
+      case RepetitionOrder.fourthRepetition:
+        return '4';
+      case RepetitionOrder.fifthRepetition:
+        return '5';
+    }
+  }
+
+  String formatFullOrder() {
+    switch (repetitionOrder) {
+      case RepetitionOrder.firstRepetition:
+        return 'Repetition 1';
+      case RepetitionOrder.secondRepetition:
+        return 'Repetition 2';
+      case RepetitionOrder.thirdRepetition:
+        return 'Repetition 3';
+      case RepetitionOrder.fourthRepetition:
+        return 'Repetition 4';
+      case RepetitionOrder.fifthRepetition:
+        return 'Repetition 5';
+    }
+  }
 }

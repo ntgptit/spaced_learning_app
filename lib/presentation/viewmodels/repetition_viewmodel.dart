@@ -1,14 +1,10 @@
-// lib/presentation/viewmodels/repetition_viewmodel.dart
 import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
 
-/// View model for repetition operations
 class RepetitionViewModel extends ChangeNotifier {
   final RepetitionRepository repetitionRepository;
-
   bool _isLoading = false;
   List<Repetition> _repetitions = [];
   Repetition? _selectedRepetition;
@@ -16,24 +12,19 @@ class RepetitionViewModel extends ChangeNotifier {
 
   RepetitionViewModel({required this.repetitionRepository});
 
-  // Getters
   bool get isLoading => _isLoading;
   List<Repetition> get repetitions => _repetitions;
   Repetition? get selectedRepetition => _selectedRepetition;
   String? get errorMessage => _errorMessage;
 
-  /// Load all repetitions with pagination
   Future<void> loadRepetitions({int page = 0, int size = 20}) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       _repetitions = await repetitionRepository.getAllRepetitions(
         page: page,
         size: size,
       );
-    } on AppException catch (e) {
-      _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
@@ -41,15 +32,11 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Load repetition by ID
   Future<void> loadRepetitionById(String id) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       _selectedRepetition = await repetitionRepository.getRepetitionById(id);
-    } on AppException catch (e) {
-      _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
@@ -57,17 +44,13 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Load repetitions by progress ID
   Future<void> loadRepetitionsByProgressId(String progressId) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       _repetitions = await repetitionRepository.getRepetitionsByProgressId(
         progressId,
       );
-    } on AppException catch (e) {
-      _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
@@ -75,22 +58,17 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Load repetition by progress ID and order
   Future<Repetition?> loadRepetitionByProgressIdAndOrder(
     String progressId,
     RepetitionOrder order,
   ) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       final repetition = await repetitionRepository
           .getRepetitionByProgressIdAndOrder(progressId, order);
       _selectedRepetition = repetition;
       return repetition;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
       return null;
@@ -99,7 +77,6 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Load repetitions due for review
   Future<void> loadDueRepetitions(
     String userId, {
     DateTime? reviewDate,
@@ -109,7 +86,6 @@ class RepetitionViewModel extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       _repetitions = await repetitionRepository.getDueRepetitions(
         userId,
@@ -118,8 +94,6 @@ class RepetitionViewModel extends ChangeNotifier {
         page: page,
         size: size,
       );
-    } on AppException catch (e) {
-      _errorMessage = e.message;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
     } finally {
@@ -127,7 +101,6 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Create a new repetition
   Future<Repetition?> createRepetition({
     required String moduleProgressId,
     required RepetitionOrder repetitionOrder,
@@ -136,7 +109,6 @@ class RepetitionViewModel extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       final repetition = await repetitionRepository.createRepetition(
         moduleProgressId: moduleProgressId,
@@ -145,9 +117,6 @@ class RepetitionViewModel extends ChangeNotifier {
         reviewDate: reviewDate,
       );
       return repetition;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
       return null;
@@ -156,21 +125,16 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Create default repetition schedule for a progress record
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       final schedule = await repetitionRepository.createDefaultSchedule(
         moduleProgressId,
       );
       return schedule;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return [];
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
       return [];
@@ -179,7 +143,6 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Update a repetition
   Future<Repetition?> updateRepetition(
     String id, {
     RepetitionStatus? status,
@@ -195,21 +158,12 @@ class RepetitionViewModel extends ChangeNotifier {
         reviewDate: reviewDate,
         rescheduleFollowing: rescheduleFollowing,
       );
-      if (_selectedRepetition?.id == id) {
-        _selectedRepetition = repetition;
-      }
+      if (_selectedRepetition?.id == id) _selectedRepetition = repetition;
       final index = _repetitions.indexWhere((r) => r.id == id);
-      if (index >= 0) {
-        _repetitions[index] = repetition;
-      }
-      if (rescheduleFollowing) {
-        // Tải lại toàn bộ danh sách nếu rescheduleFollowing
+      if (index >= 0) _repetitions[index] = repetition;
+      if (rescheduleFollowing)
         await loadRepetitionsByProgressId(repetition.moduleProgressId);
-      }
       return repetition;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
       return null;
@@ -218,24 +172,15 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Delete a repetition
   Future<bool> deleteRepetition(String id) async {
     _setLoading(true);
     _errorMessage = null;
-
     try {
       await repetitionRepository.deleteRepetition(id);
-
-      if (_selectedRepetition?.id == id) {
-        _selectedRepetition = null;
-      }
-
+      if (_selectedRepetition?.id == id) _selectedRepetition = null;
       _repetitions =
           _repetitions.where((repetition) => repetition.id != id).toList();
       return true;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return false;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred';
       return false;
@@ -244,27 +189,23 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Check if all repetitions in a cycle are completed
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
     try {
       final repetitions = await repetitionRepository.getRepetitionsByProgressId(
         progressId,
       );
       if (repetitions.isEmpty) return false;
-
       final totalCount = repetitions.length;
       final completedCount =
           repetitions
               .where((r) => r.status == RepetitionStatus.completed)
               .length;
-
       return completedCount >= totalCount;
     } catch (e) {
       return false;
     }
   }
 
-  /// Get a user-friendly description of the cycle stage
   String getCycleInfo(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
@@ -280,13 +221,11 @@ class RepetitionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Set loading state and notify listeners
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
-  /// Clear error message
   void clearError() {
     _errorMessage = null;
     notifyListeners();

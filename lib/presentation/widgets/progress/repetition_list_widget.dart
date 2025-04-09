@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
+import 'package:spaced_learning_app/presentation/utils/repetition_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
 
 typedef M3ColorPair = ({Color container, Color onContainer});
@@ -16,8 +14,7 @@ class RepetitionListWidget extends StatefulWidget {
   final CycleStudied currentCycleStudied;
   final Future<void> Function(String) onMarkCompleted;
   final Future<void> Function(String) onMarkSkipped;
-  final Future<void> Function(String, DateTime, bool)
-  onReschedule; // Cập nhật: thêm tham số rescheduleFollowing
+  final Future<void> Function(String, DateTime, bool) onReschedule;
   final Future<void> Function() onReload;
 
   const RepetitionListWidget({
@@ -39,33 +36,27 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final _ = theme.textTheme;
-
     return Consumer<RepetitionViewModel>(
       builder: (context, viewModel, _) {
         if (viewModel.isLoading) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.all(AppDimens.paddingXL),
-              child: AppLoadingIndicator(),
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
             ),
           );
         }
-
         if (viewModel.errorMessage != null) {
           return ErrorDisplay(
             message: viewModel.errorMessage!,
-            onRetry: () {
-              viewModel.loadRepetitionsByProgressId(widget.progressId);
-            },
+            onRetry:
+                () => viewModel.loadRepetitionsByProgressId(widget.progressId),
             compact: true,
           );
         }
-
         if (viewModel.repetitions.isEmpty) {
           return _buildEmptyState(context);
         }
-
         final repetitions = List<Repetition>.from(viewModel.repetitions);
         final notStarted =
             repetitions
@@ -80,9 +71,9 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
                 .where((r) => r.status == RepetitionStatus.skipped)
                 .toList();
 
-        final notStartedByCycle = _groupRepetitionsByCycle(notStarted);
-        final completedByCycle = _groupRepetitionsByCycle(completed);
-        final skippedByCycle = _groupRepetitionsByCycle(skipped);
+        final notStartedByCycle = RepetitionUtils.groupByCycle(notStarted);
+        final completedByCycle = RepetitionUtils.groupByCycle(completed);
+        final skippedByCycle = RepetitionUtils.groupByCycle(skipped);
 
         final pendingColors = (
           container: colorScheme.primaryContainer,
@@ -130,46 +121,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     );
   }
 
-  Map<String, List<Repetition>> _groupRepetitionsByCycle(
-    List<Repetition> repetitions,
-  ) {
-    final Map<String, List<Repetition>> groupedByCycle = {};
-    repetitions.sort((a, b) {
-      if (a.createdAt == null && b.createdAt == null) return 0;
-      if (a.createdAt == null) return 1;
-      if (b.createdAt == null) return -1;
-      return a.createdAt!.compareTo(b.createdAt!);
-    });
-
-    int cycleIndex = 1;
-    int currentGroupCount = 0;
-    String currentKey = '';
-    int repIndex = 0;
-
-    while (repIndex < repetitions.length) {
-      final rep = repetitions[repIndex];
-      if (currentGroupCount < 5) {
-        if (currentGroupCount == 0) {
-          currentKey = 'Cycle $cycleIndex';
-          groupedByCycle[currentKey] = [];
-        }
-        groupedByCycle[currentKey]!.add(rep);
-        currentGroupCount++;
-        repIndex++;
-      } else {
-        cycleIndex++;
-        currentGroupCount = 0;
-      }
-    }
-
-    for (final key in groupedByCycle.keys) {
-      groupedByCycle[key]!.sort(
-        (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
-      );
-    }
-    return groupedByCycle;
-  }
-
   Widget _buildStatusSection(
     BuildContext context,
     String title,
@@ -178,24 +129,16 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     bool isHistory,
   ) {
     if (cycleGroups.isEmpty) return const SizedBox.shrink();
-
     final textTheme = Theme.of(context).textTheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(
-            top: AppDimens.spaceL,
-            bottom: AppDimens.spaceS,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingM,
-            vertical: AppDimens.paddingXS,
-          ),
+          margin: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
           decoration: BoxDecoration(
             color: colors.container,
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            borderRadius: BorderRadius.circular(8.0),
           ),
           child: Text(
             title,
@@ -220,16 +163,13 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-
     final isCurrentCycle = _isCurrentCycle(repetitions);
     final cycleNumber = int.tryParse(cycleKey.replaceAll('Cycle ', '')) ?? 1;
     final cycleName =
         isCurrentCycle
             ? widget.currentCycleStudied
             : _mapNumberToCycleStudied(cycleNumber);
-
     final cycleColors = _getCycleColors(cycleName, colorScheme);
-
     final currentBadgeColors = (
       container: colorScheme.tertiaryContainer,
       onContainer: colorScheme.onTertiaryContainer,
@@ -237,24 +177,26 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
 
     return Container(
       margin: const EdgeInsets.only(
-        left: AppDimens.paddingM,
-        bottom: AppDimens.spaceL,
-      ),
+        left: 12.0,
+        bottom: 16.0,
+      ), // AppDimens.paddingM, spaceL
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: const EdgeInsets.only(bottom: AppDimens.spaceS),
+            margin: const EdgeInsets.only(bottom: 8.0), // AppDimens.spaceS
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingS,
-                    vertical: AppDimens.paddingXXS,
-                  ),
+                    horizontal: 8.0,
+                    vertical: 2.0,
+                  ), // AppDimens.paddingS, paddingXXS
                   decoration: BoxDecoration(
                     color: cycleColors.container,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                    borderRadius: BorderRadius.circular(
+                      4.0,
+                    ), // AppDimens.radiusS
                   ),
                   child: Text(
                     _formatCycleStudied(cycleName),
@@ -265,15 +207,17 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
                   ),
                 ),
                 if (isCurrentCycle) ...[
-                  const SizedBox(width: AppDimens.spaceS),
+                  const SizedBox(width: 8.0), // AppDimens.spaceS
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimens.paddingXS,
-                      vertical: AppDimens.paddingXXS,
-                    ),
+                      horizontal: 4.0,
+                      vertical: 2.0,
+                    ), // AppDimens.paddingXS, paddingXXS
                     decoration: BoxDecoration(
                       color: currentBadgeColors.container,
-                      borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+                      borderRadius: BorderRadius.circular(
+                        2.0,
+                      ), // AppDimens.radiusXS
                     ),
                     child: Text(
                       'Current',
@@ -300,10 +244,10 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
               onReschedule:
                   isHistory
                       ? null
-                      : (currentDate) => _showReschedulePicker(
-                        context,
-                        repetition,
+                      : (currentDate) => widget.onReschedule(
+                        repetition.id,
                         currentDate,
+                        false,
                       ),
             ),
         ],
@@ -312,9 +256,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
   }
 
   bool _isCurrentCycle(List<Repetition> repetitions) {
-    if (repetitions.isEmpty) {
-      return false;
-    }
+    if (repetitions.isEmpty) return false;
     return repetitions.any((r) => r.status == RepetitionStatus.notStarted) &&
         widget.currentCycleStudied != CycleStudied.firstTime;
   }
@@ -336,7 +278,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.spaceXL),
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -345,108 +287,19 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
               'No review schedule found for this module',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: AppDimens.spaceM),
-            AppButton(
-              text: 'Create Review Schedule',
-              type: AppButtonType.primary,
+            const SizedBox(height: 12.0),
+            ElevatedButton(
               onPressed: () async {
                 final viewModel = context.read<RepetitionViewModel>();
                 await viewModel.createDefaultSchedule(widget.progressId);
                 await widget.onReload();
               },
+              child: const Text('Create Review Schedule'),
             ),
           ],
         ),
       ),
     );
-  }
-
-  // Cập nhật: Hiển thị dialog reschedule với tùy chọn rescheduleFollowing
-  Future<void> _showReschedulePicker(
-    BuildContext context,
-    Repetition repetition,
-    DateTime currentDate,
-  ) async {
-    // Khởi tạo các biến state
-    DateTime selectedDate =
-        repetition.reviewDate ?? DateTime.now().add(const Duration(days: 1));
-    bool rescheduleFollowing = false;
-
-    // Hiển thị dialog để chọn ngày và tùy chọn reschedule
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder:
-              (context, setState) => AlertDialog(
-                title: const Text('Reschedule Repetition'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Select new date:'),
-                    const SizedBox(height: AppDimens.spaceM),
-                    SizedBox(
-                      height: 300,
-                      width: 300,
-                      child: CalendarDatePicker(
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now().subtract(
-                          const Duration(days: 7),
-                        ),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        onDateChanged: (date) {
-                          setState(() {
-                            selectedDate = date;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: AppDimens.spaceM),
-                    SwitchListTile(
-                      title: const Text('Reschedule following repetitions'),
-                      subtitle: const Text(
-                        'Adjust all future repetitions based on this new date',
-                      ),
-                      value: rescheduleFollowing,
-                      onChanged: (value) {
-                        setState(() {
-                          rescheduleFollowing = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed:
-                        () => Navigator.pop(context, {
-                          'date': selectedDate,
-                          'rescheduleFollowing': rescheduleFollowing,
-                        }),
-                    child: const Text('Reschedule'),
-                  ),
-                ],
-              ),
-        );
-      },
-    );
-
-    // Nếu người dùng chọn OK, tiến hành cập nhật lịch
-    if (result != null && context.mounted) {
-      final selectedDate = result['date'] as DateTime;
-      final rescheduleFollowing = result['rescheduleFollowing'] as bool;
-
-      await widget.onReschedule(
-        repetition.id,
-        selectedDate,
-        rescheduleFollowing,
-      );
-    }
   }
 
   String _formatCycleStudied(CycleStudied cycle) {
