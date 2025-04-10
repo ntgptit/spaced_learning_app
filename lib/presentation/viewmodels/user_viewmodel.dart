@@ -1,87 +1,65 @@
-import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+// lib/presentation/viewmodels/user_viewmodel.dart
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 /// View model for user operations
-class UserViewModel extends ChangeNotifier {
+class UserViewModel extends BaseViewModel {
   final UserRepository userRepository;
 
-  bool _isLoading = false;
   User? _currentUser;
-  String? _errorMessage;
 
   UserViewModel({required this.userRepository});
 
   // Getters
-  bool get isLoading => _isLoading;
   User? get currentUser => _currentUser;
-  String? get errorMessage => _errorMessage;
 
   /// Load current user information
   Future<void> loadCurrentUser() async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _currentUser = await userRepository.getCurrentUser();
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _currentUser = await userRepository.getCurrentUser();
+        return _currentUser;
+      },
+      errorPrefix: 'Failed to load current user',
+    );
   }
 
   /// Update user profile
   Future<bool> updateProfile({String? displayName, String? password}) async {
     if (_currentUser == null) {
-      _errorMessage = 'User is not loaded';
-      notifyListeners();
+      setError('User is not loaded');
       return false;
     }
 
-    _setLoading(true);
-    _errorMessage = null;
+    final result = await safeCall<User>(
+      action: () async {
+        return userRepository.updateUser(
+          _currentUser!.id,
+          displayName: displayName,
+          password: password,
+        );
+      },
+      errorPrefix: 'Failed to update profile',
+    );
 
-    try {
-      _currentUser = await userRepository.updateUser(
-        _currentUser!.id,
-        displayName: displayName,
-        password: password,
-      );
+    if (result != null) {
+      _currentUser = result;
       return true;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return false;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return false;
-    } finally {
-      _setLoading(false);
     }
+    return false;
   }
 
   /// Check if an email is already registered
   Future<bool> isEmailAvailable(String email) async {
-    try {
-      final exists = await userRepository.checkEmailExists(email);
-      return !exists;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Set loading state and notify listeners
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  /// Clear error message
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
+    final result = await safeCall<bool>(
+      action: () async {
+        final exists = await userRepository.checkEmailExists(email);
+        return !exists;
+      },
+      errorPrefix: 'Failed to check email availability',
+      handleLoading: false,
+    );
+    return result ?? false;
   }
 }

@@ -1,58 +1,43 @@
-import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+// lib/presentation/viewmodels/book_viewmodel.dart
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/domain/repositories/book_repository.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 /// View model for book operations
-class BookViewModel extends ChangeNotifier {
+class BookViewModel extends BaseViewModel {
   final BookRepository bookRepository;
 
-  bool _isLoading = false;
   List<BookSummary> _books = [];
   BookDetail? _selectedBook;
   List<String> _categories = [];
-  String? _errorMessage;
 
   BookViewModel({required this.bookRepository});
 
   // Getters
-  bool get isLoading => _isLoading;
   List<BookSummary> get books => _books;
   BookDetail? get selectedBook => _selectedBook;
   List<String> get categories => _categories;
-  String? get errorMessage => _errorMessage;
 
   /// Load all books with pagination
   Future<void> loadBooks({int page = 0, int size = 20}) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final books = await bookRepository.getAllBooks(page: page, size: size);
-      _books = books;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _books = await bookRepository.getAllBooks(page: page, size: size);
+        return _books;
+      },
+      errorPrefix: 'Failed to load books',
+    );
   }
 
   /// Load book details by ID
   Future<void> loadBookDetails(String id) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _selectedBook = await bookRepository.getBookById(id);
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _selectedBook = await bookRepository.getBookById(id);
+        return _selectedBook;
+      },
+      errorPrefix: 'Failed to load book details',
+    );
   }
 
   /// Search books by name
@@ -61,41 +46,22 @@ class BookViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final results = await bookRepository.searchBooks(
-        query,
-        page: page,
-        size: size,
-      );
-      return results;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return [];
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return [];
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<List<BookSummary>>(
+      action: () => bookRepository.searchBooks(query, page: page, size: size),
+      errorPrefix: 'Failed to search books',
+    );
+    return result ?? [];
   }
 
   /// Load all book categories
   Future<void> loadCategories() async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _categories = await bookRepository.getAllCategories();
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _categories = await bookRepository.getAllCategories();
+        return _categories;
+      },
+      errorPrefix: 'Failed to load categories',
+    );
   }
 
   /// Filter books by status, difficulty level, and category
@@ -106,24 +72,19 @@ class BookViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _books = await bookRepository.filterBooks(
-        status: status,
-        difficultyLevel: difficultyLevel,
-        category: category,
-        page: page,
-        size: size,
-      );
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _books = await bookRepository.filterBooks(
+          status: status,
+          difficultyLevel: difficultyLevel,
+          category: category,
+          page: page,
+          size: size,
+        );
+        return _books;
+      },
+      errorPrefix: 'Failed to filter books',
+    );
   }
 
   /// Create a new book (admin only)
@@ -134,27 +95,17 @@ class BookViewModel extends ChangeNotifier {
     DifficultyLevel? difficultyLevel,
     String? category,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final book = await bookRepository.createBook(
-        name: name,
-        description: description,
-        status: status,
-        difficultyLevel: difficultyLevel,
-        category: category,
-      );
-      return book;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+    return safeCall<BookDetail>(
+      action:
+          () => bookRepository.createBook(
+            name: name,
+            description: description,
+            status: status,
+            difficultyLevel: difficultyLevel,
+            category: category,
+          ),
+      errorPrefix: 'Failed to create book',
+    );
   }
 
   /// Update a book (admin only)
@@ -166,69 +117,42 @@ class BookViewModel extends ChangeNotifier {
     DifficultyLevel? difficultyLevel,
     String? category,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
+    return safeCall<BookDetail>(
+      action: () async {
+        final book = await bookRepository.updateBook(
+          id,
+          name: name,
+          description: description,
+          status: status,
+          difficultyLevel: difficultyLevel,
+          category: category,
+        );
 
-    try {
-      final book = await bookRepository.updateBook(
-        id,
-        name: name,
-        description: description,
-        status: status,
-        difficultyLevel: difficultyLevel,
-        category: category,
-      );
+        if (_selectedBook?.id == id) {
+          _selectedBook = book;
+        }
 
-      if (_selectedBook?.id == id) {
-        _selectedBook = book;
-      }
-
-      return book;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+        return book;
+      },
+      errorPrefix: 'Failed to update book',
+    );
   }
 
   /// Delete a book (admin only)
   Future<bool> deleteBook(String id) async {
-    _setLoading(true);
-    _errorMessage = null;
+    final result = await safeCall<bool>(
+      action: () async {
+        await bookRepository.deleteBook(id);
 
-    try {
-      await bookRepository.deleteBook(id);
+        if (_selectedBook?.id == id) {
+          _selectedBook = null;
+        }
 
-      if (_selectedBook?.id == id) {
-        _selectedBook = null;
-      }
-
-      _books = _books.where((book) => book.id != id).toList();
-      return true;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return false;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Set loading state and notify listeners
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  /// Clear error message
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
+        _books = _books.where((book) => book.id != id).toList();
+        return true;
+      },
+      errorPrefix: 'Failed to delete book',
+    );
+    return result ?? false;
   }
 }

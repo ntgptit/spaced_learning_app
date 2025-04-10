@@ -1,12 +1,12 @@
-import 'package:flutter/foundation.dart';
+// lib/presentation/viewmodels/theme_viewmodel.dart
 import 'package:spaced_learning_app/core/services/storage_service.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 /// View model for theme settings
-class ThemeViewModel extends ChangeNotifier {
+class ThemeViewModel extends BaseViewModel {
   final StorageService storageService;
 
   bool _isDarkMode = false;
-  bool _isLoading = false;
 
   ThemeViewModel({required this.storageService}) {
     _loadThemePreference();
@@ -14,21 +14,20 @@ class ThemeViewModel extends ChangeNotifier {
 
   // Getters
   bool get isDarkMode => _isDarkMode;
-  bool get isLoading => _isLoading;
 
   /// Load the theme preference from storage
   Future<void> _loadThemePreference() async {
-    _isLoading = true;
-    notifyListeners();
+    beginLoading();
 
     try {
       _isDarkMode = await storageService.isDarkMode();
+      setInitialized(true);
     } catch (e) {
       // Default to light mode if there's an error
       _isDarkMode = false;
+      handleError(e, prefix: 'Failed to load theme preference');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      endLoading();
     }
   }
 
@@ -42,7 +41,7 @@ class ThemeViewModel extends ChangeNotifier {
     } catch (e) {
       // If there's an error saving, revert the change
       _isDarkMode = !_isDarkMode;
-      notifyListeners();
+      handleError(e, prefix: 'Failed to save theme preference');
     }
   }
 
@@ -58,7 +57,7 @@ class ThemeViewModel extends ChangeNotifier {
     } catch (e) {
       // If there's an error saving, revert the change
       _isDarkMode = !_isDarkMode;
-      notifyListeners();
+      handleError(e, prefix: 'Failed to save theme preference');
     }
   }
 }

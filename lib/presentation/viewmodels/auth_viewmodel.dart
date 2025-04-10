@@ -1,35 +1,33 @@
-import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+// lib/presentation/viewmodels/auth_viewmodel.dart
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/domain/models/auth_response.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/domain/repositories/auth_repository.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 /// View model for authentication
-class AuthViewModel extends ChangeNotifier {
+class AuthViewModel extends BaseViewModel {
   final AuthRepository authRepository;
   final StorageService storageService;
 
-  bool _isLoading = false;
   bool _isAuthenticated = false;
   User? _currentUser;
-  String? _errorMessage;
 
   AuthViewModel({required this.authRepository, required this.storageService}) {
     _checkAuthentication();
   }
 
   // Getters
-  bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
   User? get currentUser => _currentUser;
-  String? get errorMessage => _errorMessage;
 
   /// Check if the user is already authenticated
   Future<void> _checkAuthentication() async {
-    final token = await storageService.getToken();
-    if (token != null && token.isNotEmpty) {
-      try {
+    beginLoading();
+
+    try {
+      final token = await storageService.getToken();
+      if (token != null && token.isNotEmpty) {
         final isValid = await authRepository.validateToken(token);
         _isAuthenticated = isValid;
 
@@ -42,35 +40,29 @@ class AuthViewModel extends ChangeNotifier {
           // Token is invalid, clear it
           await storageService.clearTokens();
         }
-      } catch (e) {
+      } else {
         _isAuthenticated = false;
-        await storageService.clearTokens();
       }
-    } else {
+    } catch (e) {
       _isAuthenticated = false;
+      await storageService.clearTokens();
+      handleError(e, prefix: 'Authentication check failed');
+    } finally {
+      endLoading();
     }
-
-    notifyListeners();
   }
 
   /// Login with username/email and password
   Future<bool> login(String usernameOrEmail, String password) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final response = await authRepository.login(usernameOrEmail, password);
-      await _handleAuthResponse(response);
-      return true;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return false;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return false;
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<bool>(
+      action: () async {
+        final response = await authRepository.login(usernameOrEmail, password);
+        await _handleAuthResponse(response);
+        return true;
+      },
+      errorPrefix: 'Login failed',
+    );
+    return result ?? false;
   }
 
   /// Register a new user
@@ -81,44 +73,37 @@ class AuthViewModel extends ChangeNotifier {
     String firstName,
     String lastName,
   ) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final response = await authRepository.register(
-        username,
-        email,
-        password,
-        firstName,
-        lastName,
-      );
-      await _handleAuthResponse(response);
-      return true;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return false;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return false;
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<bool>(
+      action: () async {
+        final response = await authRepository.register(
+          username,
+          email,
+          password,
+          firstName,
+          lastName,
+        );
+        await _handleAuthResponse(response);
+        return true;
+      },
+      errorPrefix: 'Registration failed',
+    );
+    return result ?? false;
   }
 
   /// Logout the current user
   Future<void> logout() async {
-    _setLoading(true);
+    beginLoading();
 
     try {
       await storageService.clearTokens();
       await storageService.clearUserData();
       _isAuthenticated = false;
       _currentUser = null;
-      _errorMessage = null;
+      clearError();
     } catch (e) {
-      _errorMessage = 'An error occurred while logging out';
+      handleError(e, prefix: 'Logout failed');
     } finally {
-      _setLoading(false);
+      endLoading();
     }
   }
 
@@ -132,18 +117,6 @@ class AuthViewModel extends ChangeNotifier {
 
     _currentUser = response.user;
     _isAuthenticated = true;
-    _errorMessage = null;
-  }
-
-  /// Set loading state and notify listeners
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  /// Clear error message
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
+    clearError();
   }
 }

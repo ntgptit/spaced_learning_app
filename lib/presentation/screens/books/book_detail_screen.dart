@@ -89,8 +89,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   ) {
     final bookViewModel = context.watch<BookViewModel>();
 
-    if (bookViewModel.isLoading)
+    if (bookViewModel.isLoading) {
       return const Center(child: AppLoadingIndicator());
+    }
     if (bookViewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(

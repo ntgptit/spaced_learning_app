@@ -1,55 +1,41 @@
-import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
+// lib/presentation/viewmodels/module_viewmodel.dart
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/repositories/module_repository.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 /// View model for module operations
-class ModuleViewModel extends ChangeNotifier {
+class ModuleViewModel extends BaseViewModel {
   final ModuleRepository moduleRepository;
 
-  bool _isLoading = false;
   List<ModuleSummary> _modules = [];
   ModuleDetail? _selectedModule;
-  String? _errorMessage;
 
   ModuleViewModel({required this.moduleRepository});
 
   // Getters
-  bool get isLoading => _isLoading;
   List<ModuleSummary> get modules => _modules;
   ModuleDetail? get selectedModule => _selectedModule;
-  String? get errorMessage => _errorMessage;
 
   /// Load all modules with pagination
   Future<void> loadModules({int page = 0, int size = 20}) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _modules = await moduleRepository.getAllModules(page: page, size: size);
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _modules = await moduleRepository.getAllModules(page: page, size: size);
+        return _modules;
+      },
+      errorPrefix: 'Failed to load modules',
+    );
   }
 
   /// Load module details by ID
   Future<void> loadModuleDetails(String id) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _selectedModule = await moduleRepository.getModuleById(id);
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _selectedModule = await moduleRepository.getModuleById(id);
+        return _selectedModule;
+      },
+      errorPrefix: 'Failed to load module details',
+    );
   }
 
   /// Load modules by book ID
@@ -58,59 +44,35 @@ class ModuleViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      _modules = await moduleRepository.getModulesByBookId(
-        bookId,
-        page: page,
-        size: size,
-      );
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _modules = await moduleRepository.getModulesByBookId(
+          bookId,
+          page: page,
+          size: size,
+        );
+        return _modules;
+      },
+      errorPrefix: 'Failed to load modules by book',
+    );
   }
 
   /// Load all modules by book ID (without pagination)
   Future<List<ModuleSummary>> getAllModulesByBookId(String bookId) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final modules = await moduleRepository.getAllModulesByBookId(bookId);
-      return modules;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return [];
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return [];
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<List<ModuleSummary>>(
+      action: () => moduleRepository.getAllModulesByBookId(bookId),
+      errorPrefix: 'Failed to get all modules by book',
+    );
+    return result ?? [];
   }
 
   /// Get next available module number for a book
   Future<int> getNextModuleNumber(String bookId) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      return await moduleRepository.getNextModuleNumber(bookId);
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return 1; // Default to 1 if error
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return 1; // Default to 1 if error
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<int>(
+      action: () => moduleRepository.getNextModuleNumber(bookId),
+      errorPrefix: 'Failed to get next module number',
+    );
+    return result ?? 1; // Default to 1 if error
   }
 
   /// Create a new module (admin only)
@@ -120,26 +82,16 @@ class ModuleViewModel extends ChangeNotifier {
     required String title,
     int? wordCount,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-
-    try {
-      final module = await moduleRepository.createModule(
-        bookId: bookId,
-        moduleNo: moduleNo,
-        title: title,
-        wordCount: wordCount,
-      );
-      return module;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+    return safeCall<ModuleDetail>(
+      action:
+          () => moduleRepository.createModule(
+            bookId: bookId,
+            moduleNo: moduleNo,
+            title: title,
+            wordCount: wordCount,
+          ),
+      errorPrefix: 'Failed to create module',
+    );
   }
 
   /// Update a module (admin only)
@@ -149,67 +101,40 @@ class ModuleViewModel extends ChangeNotifier {
     String? title,
     int? wordCount,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
+    return safeCall<ModuleDetail>(
+      action: () async {
+        final module = await moduleRepository.updateModule(
+          id,
+          moduleNo: moduleNo,
+          title: title,
+          wordCount: wordCount,
+        );
 
-    try {
-      final module = await moduleRepository.updateModule(
-        id,
-        moduleNo: moduleNo,
-        title: title,
-        wordCount: wordCount,
-      );
+        if (_selectedModule?.id == id) {
+          _selectedModule = module;
+        }
 
-      if (_selectedModule?.id == id) {
-        _selectedModule = module;
-      }
-
-      return module;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return null;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+        return module;
+      },
+      errorPrefix: 'Failed to update module',
+    );
   }
 
   /// Delete a module (admin only)
   Future<bool> deleteModule(String id) async {
-    _setLoading(true);
-    _errorMessage = null;
+    final result = await safeCall<bool>(
+      action: () async {
+        await moduleRepository.deleteModule(id);
 
-    try {
-      await moduleRepository.deleteModule(id);
+        if (_selectedModule?.id == id) {
+          _selectedModule = null;
+        }
 
-      if (_selectedModule?.id == id) {
-        _selectedModule = null;
-      }
-
-      _modules = _modules.where((module) => module.id != id).toList();
-      return true;
-    } on AppException catch (e) {
-      _errorMessage = e.message;
-      return false;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Set loading state and notify listeners
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  /// Clear error message
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
+        _modules = _modules.where((module) => module.id != id).toList();
+        return true;
+      },
+      errorPrefix: 'Failed to delete module',
+    );
+    return result ?? false;
   }
 }

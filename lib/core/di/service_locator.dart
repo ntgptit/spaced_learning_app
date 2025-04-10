@@ -39,11 +39,16 @@ final GetIt serviceLocator = GetIt.instance;
 
 /// Initialize all dependencies
 Future<void> setupServiceLocator() async {
-  // Core services
+  // === CORE SERVICES ===
   serviceLocator.registerLazySingleton<ApiClient>(() => ApiClient());
   serviceLocator.registerLazySingleton<StorageService>(() => StorageService());
 
-  // Repositories
+  // Device Specific Service - đăng ký trước các service khác
+  serviceLocator.registerLazySingleton<DeviceSpecificService>(
+    () => DeviceSpecificService(),
+  );
+
+  // === REPOSITORIES ===
   serviceLocator.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(serviceLocator<ApiClient>()),
   );
@@ -62,21 +67,43 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(serviceLocator<ApiClient>()),
   );
-  // New repository registration
   serviceLocator.registerLazySingleton<LearningStatsRepository>(
     () => LearningStatsRepositoryImpl(serviceLocator<ApiClient>()),
   );
-  // Register LearningProgressRepository
   serviceLocator.registerLazySingleton<LearningProgressRepository>(
     () => LearningProgressRepositoryImpl(serviceLocator<ApiClient>()),
   );
 
-  // Services
+  // === SERVICES ===
+  // NotificationService
+  serviceLocator.registerLazySingleton<NotificationService>(
+    () => NotificationService(
+      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+    ),
+  );
+
+  // AlarmManagerService
+  serviceLocator.registerLazySingleton<AlarmManagerService>(
+    () => AlarmManagerService(
+      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+    ),
+  );
+
+  // LearningDataService
   serviceLocator.registerLazySingleton<LearningDataService>(
     () => LearningDataServiceImpl(serviceLocator<LearningProgressRepository>()),
   );
 
-  // ViewModels
+  // CloudReminderService
+  serviceLocator.registerLazySingleton<CloudReminderService>(
+    () => CloudReminderService(
+      storageService: serviceLocator<StorageService>(),
+      notificationService: serviceLocator<NotificationService>(),
+    ),
+  );
+
+  // === VIEWMODELS ===
+  // Đăng ký các ViewModel không phụ thuộc vào ReminderManager trước
   serviceLocator.registerFactory<AuthViewModel>(
     () => AuthViewModel(
       authRepository: serviceLocator<AuthRepository>(),
@@ -92,6 +119,7 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerFactory<ProgressViewModel>(
     () => ProgressViewModel(
       progressRepository: serviceLocator<ProgressRepository>(),
+      reminderManager: null, // Để tránh phụ thuộc vòng tròn
     ),
   );
   serviceLocator.registerFactory<RepetitionViewModel>(
@@ -105,49 +133,18 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerFactory<ThemeViewModel>(
     () => ThemeViewModel(storageService: serviceLocator<StorageService>()),
   );
-
-  // New viewmodel registrations
   serviceLocator.registerFactory<LearningStatsViewModel>(
     () => LearningStatsViewModel(
       repository: serviceLocator<LearningStatsRepository>(),
     ),
   );
-
-  // Register LearningProgressViewModel
   serviceLocator.registerFactory<LearningProgressViewModel>(
     () => LearningProgressViewModel(
       learningDataService: serviceLocator<LearningDataService>(),
     ),
   );
 
-  // Device Specific Service - đăng ký trước các service khác
-  serviceLocator.registerLazySingleton<DeviceSpecificService>(
-    () => DeviceSpecificService(),
-  );
-
-  // NotificationService
-  serviceLocator.registerLazySingleton<NotificationService>(
-    () => NotificationService(
-      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
-    ),
-  );
-
-  // AlarmManagerService
-  serviceLocator.registerLazySingleton<AlarmManagerService>(
-    () => AlarmManagerService(
-      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
-    ),
-  );
-
-  // CloudReminderService (mới)
-  serviceLocator.registerLazySingleton<CloudReminderService>(
-    () => CloudReminderService(
-      storageService: serviceLocator<StorageService>(),
-      notificationService: serviceLocator<NotificationService>(),
-    ),
-  );
-
-  // ReminderManager
+  // ReminderManager (đăng ký duy nhất một lần, sau các ViewModel cần thiết)
   serviceLocator.registerLazySingleton<ReminderManager>(
     () => ReminderManager(
       notificationService: serviceLocator<NotificationService>(),

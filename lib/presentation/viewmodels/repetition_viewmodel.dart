@@ -1,80 +1,67 @@
-import 'package:flutter/foundation.dart';
+// lib/presentation/viewmodels/repetition_viewmodel.dart
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class RepetitionViewModel extends ChangeNotifier {
+class RepetitionViewModel extends BaseViewModel {
   final RepetitionRepository repetitionRepository;
-  bool _isLoading = false;
   List<Repetition> _repetitions = [];
   Repetition? _selectedRepetition;
-  String? _errorMessage;
 
   RepetitionViewModel({required this.repetitionRepository});
 
-  bool get isLoading => _isLoading;
   List<Repetition> get repetitions => _repetitions;
   Repetition? get selectedRepetition => _selectedRepetition;
-  String? get errorMessage => _errorMessage;
 
   Future<void> loadRepetitions({int page = 0, int size = 20}) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      _repetitions = await repetitionRepository.getAllRepetitions(
-        page: page,
-        size: size,
-      );
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _repetitions = await repetitionRepository.getAllRepetitions(
+          page: page,
+          size: size,
+        );
+        return _repetitions;
+      },
+      errorPrefix: 'Failed to load repetitions',
+    );
   }
 
   Future<void> loadRepetitionById(String id) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      _selectedRepetition = await repetitionRepository.getRepetitionById(id);
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _selectedRepetition = await repetitionRepository.getRepetitionById(id);
+        return _selectedRepetition;
+      },
+      errorPrefix: 'Failed to load repetition details',
+    );
   }
 
   Future<void> loadRepetitionsByProgressId(String progressId) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      _repetitions = await repetitionRepository.getRepetitionsByProgressId(
-        progressId,
-      );
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _repetitions = await repetitionRepository.getRepetitionsByProgressId(
+          progressId,
+        );
+        return _repetitions;
+      },
+      errorPrefix: 'Failed to load repetitions by progress',
+    );
   }
 
   Future<Repetition?> loadRepetitionByProgressIdAndOrder(
     String progressId,
     RepetitionOrder order,
   ) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      final repetition = await repetitionRepository
-          .getRepetitionByProgressIdAndOrder(progressId, order);
-      _selectedRepetition = repetition;
-      return repetition;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+    return safeCall<Repetition>(
+      action: () async {
+        final repetition = await repetitionRepository
+            .getRepetitionByProgressIdAndOrder(progressId, order);
+        _selectedRepetition = repetition;
+        return repetition;
+      },
+      errorPrefix: 'Failed to load repetition by order',
+    );
   }
 
   Future<void> loadDueRepetitions(
@@ -84,21 +71,19 @@ class RepetitionViewModel extends ChangeNotifier {
     int page = 0,
     int size = 20,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      _repetitions = await repetitionRepository.getDueRepetitions(
-        userId,
-        reviewDate: reviewDate,
-        status: status,
-        page: page,
-        size: size,
-      );
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-    } finally {
-      _setLoading(false);
-    }
+    await safeCall(
+      action: () async {
+        _repetitions = await repetitionRepository.getDueRepetitions(
+          userId,
+          reviewDate: reviewDate,
+          status: status,
+          page: page,
+          size: size,
+        );
+        return _repetitions;
+      },
+      errorPrefix: 'Failed to load due repetitions',
+    );
   }
 
   Future<Repetition?> createRepetition({
@@ -107,40 +92,27 @@ class RepetitionViewModel extends ChangeNotifier {
     RepetitionStatus? status,
     DateTime? reviewDate,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      final repetition = await repetitionRepository.createRepetition(
-        moduleProgressId: moduleProgressId,
-        repetitionOrder: repetitionOrder,
-        status: status,
-        reviewDate: reviewDate,
-      );
-      return repetition;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+    return safeCall<Repetition>(
+      action:
+          () => repetitionRepository.createRepetition(
+            moduleProgressId: moduleProgressId,
+            repetitionOrder: repetitionOrder,
+            status: status,
+            reviewDate: reviewDate,
+          ),
+      errorPrefix: 'Failed to create repetition',
+    );
   }
 
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      final schedule = await repetitionRepository.createDefaultSchedule(
-        moduleProgressId,
-      );
-      return schedule;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return [];
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<List<Repetition>>(
+      action:
+          () => repetitionRepository.createDefaultSchedule(moduleProgressId),
+      errorPrefix: 'Failed to create repetition schedule',
+    );
+    return result ?? [];
   }
 
   Future<Repetition?> updateRepetition(
@@ -149,44 +121,50 @@ class RepetitionViewModel extends ChangeNotifier {
     DateTime? reviewDate,
     bool rescheduleFollowing = false,
   }) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      final repetition = await repetitionRepository.updateRepetition(
-        id,
-        status: status,
-        reviewDate: reviewDate,
-        rescheduleFollowing: rescheduleFollowing,
-      );
-      if (_selectedRepetition?.id == id) _selectedRepetition = repetition;
-      final index = _repetitions.indexWhere((r) => r.id == id);
-      if (index >= 0) _repetitions[index] = repetition;
-      if (rescheduleFollowing)
-        await loadRepetitionsByProgressId(repetition.moduleProgressId);
-      return repetition;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return null;
-    } finally {
-      _setLoading(false);
-    }
+    return safeCall<Repetition>(
+      action: () async {
+        final repetition = await repetitionRepository.updateRepetition(
+          id,
+          status: status,
+          reviewDate: reviewDate,
+          rescheduleFollowing: rescheduleFollowing,
+        );
+
+        if (_selectedRepetition?.id == id) {
+          _selectedRepetition = repetition;
+        }
+
+        final index = _repetitions.indexWhere((r) => r.id == id);
+        if (index >= 0) {
+          _repetitions[index] = repetition;
+        }
+
+        if (rescheduleFollowing) {
+          await loadRepetitionsByProgressId(repetition.moduleProgressId);
+        }
+
+        return repetition;
+      },
+      errorPrefix: 'Failed to update repetition',
+    );
   }
 
   Future<bool> deleteRepetition(String id) async {
-    _setLoading(true);
-    _errorMessage = null;
-    try {
-      await repetitionRepository.deleteRepetition(id);
-      if (_selectedRepetition?.id == id) _selectedRepetition = null;
-      _repetitions =
-          _repetitions.where((repetition) => repetition.id != id).toList();
-      return true;
-    } catch (e) {
-      _errorMessage = 'An unexpected error occurred';
-      return false;
-    } finally {
-      _setLoading(false);
-    }
+    final result = await safeCall<bool>(
+      action: () async {
+        await repetitionRepository.deleteRepetition(id);
+
+        if (_selectedRepetition?.id == id) {
+          _selectedRepetition = null;
+        }
+
+        _repetitions =
+            _repetitions.where((repetition) => repetition.id != id).toList();
+        return true;
+      },
+      errorPrefix: 'Failed to delete repetition',
+    );
+    return result ?? false;
   }
 
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
@@ -195,13 +173,16 @@ class RepetitionViewModel extends ChangeNotifier {
         progressId,
       );
       if (repetitions.isEmpty) return false;
+
       final totalCount = repetitions.length;
       final completedCount =
           repetitions
               .where((r) => r.status == RepetitionStatus.completed)
               .length;
+
       return completedCount >= totalCount;
     } catch (e) {
+      handleError(e, prefix: 'Failed to check repetition completion status');
       return false;
     }
   }
@@ -219,15 +200,5 @@ class RepetitionViewModel extends ChangeNotifier {
       case CycleStudied.moreThanThreeReviews:
         return 'Bạn đã hoàn thành hơn 3 chu kỳ học. Kiến thức đã được củng cố rất tốt!';
     }
-  }
-
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
   }
 }

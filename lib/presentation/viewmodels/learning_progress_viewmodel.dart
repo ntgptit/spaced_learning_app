@@ -3,30 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/utils/date_utils.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 /// ViewModel for managing learning progress data and state
-class LearningProgressViewModel extends ChangeNotifier {
+class LearningProgressViewModel extends BaseViewModel {
   final LearningDataService _learningDataService;
 
   List<LearningModule> _modules = [];
   List<LearningModule> _filteredModules = [];
   String _selectedBook = 'All';
   DateTime? _selectedDate;
-  bool _isLoading = true;
-  String? _errorMessage;
-  bool _isInitialized = false;
-  DateTime? _lastUpdated;
-  final bool _isRefreshing = false;
 
   // Getters
   List<LearningModule> get modules => _modules;
   List<LearningModule> get filteredModules => _filteredModules;
   String get selectedBook => _selectedBook;
   DateTime? get selectedDate => _selectedDate;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
-  bool get isInitialized => _isInitialized;
-  DateTime? get lastUpdated => _lastUpdated;
 
   LearningProgressViewModel({required LearningDataService learningDataService})
     : _learningDataService = learningDataService;
@@ -34,45 +26,38 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Initialize the ViewModel and load initial data
   Future<void> initialize() async {
     // If already initialized and recently updated, skip loading
-    if (_isInitialized && _lastUpdated != null) {
-      final now = DateTime.now();
-      if (now.difference(_lastUpdated!).inMinutes < 5) {
+    if (isInitialized && lastUpdated != null) {
+      if (!shouldRefresh()) {
         // Data is recent, no need to refresh
         return;
       }
     }
 
     // If already refreshing, don't start another refresh
-    if (_isRefreshing) return;
+    if (isRefreshing) return;
 
     await loadData();
-    _isInitialized = true;
+    setInitialized(true);
   }
 
   /// Load module data from service
   Future<void> loadData() async {
-    // Set loading state
-    _isLoading = true;
-    notifyListeners();
+    await safeCall(
+      action: () async {
+        debugPrint('LearningProgressViewModel: Loading module data');
+        final modules = await _learningDataService.getModules();
+        _modules = modules;
+        _applyFiltersWithoutNotify();
+        setInitialized(true);
 
-    _errorMessage = null;
-
-    try {
-      debugPrint('LearningProgressViewModel: Loading module data');
-      final modules = await _learningDataService.getModules();
-      _modules = modules;
-      _applyFiltersWithoutNotify();
-      _lastUpdated = DateTime.now();
-      _isInitialized = true; // Mark as initialized here
-
-      debugPrint('LearningProgressViewModel: Loaded ${modules.length} modules');
-    } catch (e) {
-      debugPrint('LearningProgressViewModel: Error loading data - $e');
-      _handleLoadError(e.toString());
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+        debugPrint(
+          'LearningProgressViewModel: Loaded ${modules.length} modules',
+        );
+        return modules;
+      },
+      errorPrefix: 'Failed to load learning modules',
+      updateTimestamp: true,
+    );
   }
 
   /// Refresh data by clearing cache and reloading
@@ -91,7 +76,7 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Apply book and date filters to the module list
   void applyFilters() {
     // Don't apply filters if refreshing
-    if (_isRefreshing) return;
+    if (isRefreshing) return;
 
     final newFilteredModules = _getFilteredModules();
 
@@ -125,7 +110,8 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Check if filtered modules list has changed
   bool _filteredModulesChanged(List<LearningModule> newModules) {
     if (_filteredModules.length != newModules.length) return true;
-    // Sử dụng moduleNo thay vì id
+
+    // Use moduleNo instead of id
     return _filteredModules.asMap().entries.any(
       (entry) =>
           entry.value.moduleNo != newModules[entry.key].moduleNo ||
@@ -157,24 +143,11 @@ class LearningProgressViewModel extends ChangeNotifier {
 
   /// Export learning data
   Future<bool> exportData() async {
-    // Prevent export during refresh
-    if (_isRefreshing) return false;
-
-    final bool wasLoading = _isLoading;
-    _isLoading = true;
-    if (!wasLoading) {
-      notifyListeners();
-    }
-
-    try {
-      final success = await _learningDataService.exportData();
-      _isLoading = false;
-      notifyListeners();
-      return success;
-    } catch (e) {
-      _handleLoadError('Error exporting data: $e');
-      return false;
-    }
+    final result = await safeCall<bool>(
+      action: () => _learningDataService.exportData(),
+      errorPrefix: 'Failed to export data',
+    );
+    return result ?? false;
   }
 
   /// Get list of unique book names with "All" as first option
@@ -183,24 +156,6 @@ class LearningProgressViewModel extends ChangeNotifier {
     final books =
         _modules.map((module) => module.bookName).toSet().toList()..sort();
     return ['All', ...books];
-  }
-
-  /// Handle load error by setting error message and disabling loading state
-  void _handleLoadError(String error) {
-    _isLoading = false;
-    _errorMessage = 'Error loading data: $error';
-    debugPrint('LearningProgressViewModel error: $_errorMessage');
-  }
-
-  /// Set the error message
-  void setErrorMessage(String? message) {
-    if (_errorMessage == message) return; // Avoid unnecessary updates
-
-    _errorMessage = message;
-    if (message != null) {
-      // Only notify if there's an actual error
-      notifyListeners();
-    }
   }
 
   /// Get count of modules due within 7 days
@@ -226,25 +181,28 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Get book stats for the selected book
   Future<Map<String, dynamic>> getBookStats() async {
     if (_selectedBook == 'All') return {};
-    try {
-      return await _learningDataService.getBookStats(_selectedBook);
-    } catch (e) {
-      setErrorMessage('Error loading book stats: $e');
-      return {};
-    }
+
+    final result = await safeCall<Map<String, dynamic>>(
+      action: () => _learningDataService.getBookStats(_selectedBook),
+      errorPrefix: 'Failed to load book statistics',
+      handleLoading: false,
+    );
+    return result ?? {};
   }
 
   /// Get dashboard stats with current filters
   Future<Map<String, dynamic>> getDashboardStats() async {
-    try {
-      final book = _selectedBook == 'All' ? null : _selectedBook;
-      return await _learningDataService.getDashboardStats(
-        book: book,
-        date: _selectedDate,
-      );
-    } catch (e) {
-      setErrorMessage('Error loading dashboard stats: $e');
-      return {};
-    }
+    final result = await safeCall<Map<String, dynamic>>(
+      action: () {
+        final book = _selectedBook == 'All' ? null : _selectedBook;
+        return _learningDataService.getDashboardStats(
+          book: book,
+          date: _selectedDate,
+        );
+      },
+      errorPrefix: 'Failed to load dashboard statistics',
+      handleLoading: false,
+    );
+    return result ?? {};
   }
 }
