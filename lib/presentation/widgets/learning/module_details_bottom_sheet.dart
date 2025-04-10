@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 // import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Aangenomen dat dit bestaat
 import 'package:spaced_learning_app/domain/models/learning_module.dart'; // Zorg voor correct pad
-import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart'; // Zorg voor correct pad
 
@@ -225,37 +224,38 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               Icons.text_fields,
               key: const Key('word_count_item'),
             ),
-            _buildDetailItem(
-              context, // Doorgeven
-              colorScheme,
-              textTheme,
-              // isDark verwijderd
-              'Progress',
-              '${module.progressLatestPercentComplete}%',
-              Icons.show_chart_outlined,
-              progressValue: module.progressLatestPercentComplete! / 100.0,
-              key: const Key('progress_item'),
-            ),
-            if (module.progressCyclesStudied != null)
+            if (module.progressLatestPercentComplete !=
+                null) // Check null before accessing
               _buildDetailItem(
                 context, // Doorgeven
                 colorScheme,
                 textTheme,
                 // isDark verwijderd
+                'Progress',
+                '${module.progressLatestPercentComplete}%',
+                Icons.show_chart_outlined,
+                progressValue: module.progressLatestPercentComplete! / 100.0,
+                key: const Key('progress_item'),
+              ),
+            // *** FIX IS HERE: Check for null and use the CycleStudied? type directly ***
+            if (module.progressCyclesStudied != null)
+              _buildDetailItem(
+                context,
+                colorScheme,
+                textTheme,
                 'Cycle',
-                CycleFormatter.format(
-                  module.progressCyclesStudied! as CycleStudied,
-                ),
+                // Pass the CycleStudied? value directly, no cast needed
+                CycleFormatter.format(module.progressCyclesStudied!),
                 Icons.autorenew,
-                // Haal kleur op via CycleFormatter, maar geef colorScheme door
-                // zodat de formatter thema-bewust kan zijn.
-                // OF: bepaal kleur hier op basis van cycle en colorScheme.
                 color: CycleFormatter.getColor(
-                  module.progressCyclesStudied! as CycleStudied,
+                  // Pass the CycleStudied? value directly, no cast needed
+                  module.progressCyclesStudied!,
                   context,
                 ),
                 key: const Key('cycle_item'),
               ),
+
+            // *** END FIX ***
             if (module.progressDueTaskCount > 0)
               _buildDetailItem(
                 context, // Doorgeven
@@ -298,19 +298,16 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         screenWidth - (AppDimens.paddingL * 2) - AppDimens.spaceL;
     final itemWidth = availableWidth / 2; // Ca. 2 items per rij
 
-    // --- BELANGRIJKE WIJZIGING: Progress Bar Kleur ---
+    // Progress Bar Kleur Bepaling (zoals eerder)
     Color progressIndicatorColor = colorScheme.error; // Standaard (laagste)
     if (progressValue != null) {
       if (progressValue >= 0.9) {
-        // Gebruik Tertiary voor Succes (aanpassen indien nodig)
-        progressIndicatorColor = colorScheme.tertiary;
+        progressIndicatorColor = colorScheme.tertiary; // Succes/Tertiary
       } else if (progressValue >= 0.7) {
-        // Gebruik Secondary voor Waarschuwing (aanpassen indien nodig)
-        progressIndicatorColor = colorScheme.secondary;
+        progressIndicatorColor =
+            colorScheme.secondary; // Waarschuwing/Secondary
       }
-      // Anders blijft het colorScheme.error
     }
-    // --- Einde Wijziging ---
 
     return Container(
       key: key,
@@ -357,7 +354,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               value: progressValue,
               backgroundColor:
                   colorScheme.surfaceContainerHighest, // Track achtergrond
-              // GEBRUIK NU DE BEREKENDE THEMA-KLEUR
               valueColor: AlwaysStoppedAnimation<Color>(progressIndicatorColor),
               borderRadius: BorderRadius.circular(AppDimens.radiusXXS),
               minHeight: AppDimens.lineProgressHeight,
@@ -409,17 +405,20 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             key: const Key('next_study_date'),
           ),
         ],
-        if (module.progressNextStudyDate != null) ...[
-          const SizedBox(height: AppDimens.spaceL),
-          _buildDateItem(
-            colorScheme,
-            textTheme,
-            'Last Study',
-            module.progressNextStudyDate!,
-            Icons.history_outlined,
-            key: const Key('last_study_date'),
-          ),
-        ],
+        // Note: The original code had a 'Last Study' section that also used progressNextStudyDate.
+        // This seems like a mistake. If you have a 'lastStudiedDate' field, use that instead.
+        // If not, remove this section or adjust the logic. Assuming removal for now:
+        // if (module.progressNextStudyDate != null) ...[
+        //   const SizedBox(height: AppDimens.spaceL),
+        //   _buildDateItem(
+        //     colorScheme,
+        //     textTheme,
+        //     'Last Study', // Should likely be a different date field
+        //     module.progressNextStudyDate!,
+        //     Icons.history_outlined,
+        //     key: const Key('last_study_date'),
+        //   ),
+        // ],
       ],
     );
   }
@@ -488,10 +487,17 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
-    // Sorteer en beperk geschiedenis (logica ongewijzigd)
-    final studyHistory = List<DateTime>.from(module.studyHistory)
-      ..sort((a, b) => b.compareTo(a));
-    final displayHistory = studyHistory.take(7).toList(); // Toon max 7
+    // Sort and limit history (logic unchanged, ensure studyHistory is DateTime list)
+    final studyHistory =
+        (module.studyHistory)
+            .map(
+              (s) => DateTime.tryParse(s),
+            ) // Safely parse strings to DateTime
+            .whereType<DateTime>() // Filter out nulls if parsing failed
+            .toList()
+          ..sort((a, b) => b.compareTo(a));
+
+    final displayHistory = studyHistory.take(7).toList(); // Show max 7
     final remainingCount = studyHistory.length - displayHistory.length;
 
     return Column(
@@ -501,7 +507,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           colorScheme,
           textTheme,
           'Study History',
-          icon: Icons.history_edu_outlined, // Ander icoon
+          icon: Icons.history_edu_outlined, // Different icon
           key: const Key('history_section_title'),
         ),
         const SizedBox(height: AppDimens.spaceS),
@@ -509,7 +515,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           colorScheme,
           textTheme,
           displayHistory,
-        ), // Geef beperkte lijst door
+        ), // Pass limited list
         if (remainingCount > 0) ...[
           const SizedBox(height: AppDimens.spaceS),
           Padding(
@@ -531,7 +537,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   Widget _buildHistoryItems(
     ColorScheme colorScheme,
     TextTheme textTheme,
-    List<DateTime> displayHistory, // Ontvangt al beperkte lijst
+    List<DateTime> displayHistory, // Receives already limited list
   ) {
     final today = DateUtils.dateOnly(DateTime.now());
 
@@ -544,33 +550,32 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             final itemDate = DateUtils.dateOnly(date);
             final isToday = itemDate.isAtSameMomentAs(today);
 
-            // Gebruik M3 kleuren consistent
+            // Use M3 colors consistently
             final Color bgColor;
             final Color fgColor;
-            final Border border; // Gebruik Border ipv BorderSide?
+            final Border border;
 
             if (isToday) {
               bgColor = colorScheme.primaryContainer;
               fgColor = colorScheme.onPrimaryContainer;
               border = Border.all(color: colorScheme.primary);
             } else {
-              bgColor =
-                  colorScheme
-                      .surfaceContainerHighest; // Iets meer contrast dan Lowest
+              bgColor = colorScheme.surfaceContainerHighest; // More contrast
               fgColor = colorScheme.onSurfaceVariant;
               border = Border.all(
                 color: colorScheme.outlineVariant,
-              ); // Subtiele rand
+              ); // Subtle border
             }
 
             final itemTextStyle = textTheme.labelMedium;
 
             return Tooltip(
-              message: DateFormat('MMMM d, yyyy').format(date),
+              message: DateFormat('MMMM d,CustomGlareDef').format(date),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimens.paddingM,
-                  vertical: AppDimens.paddingXS, // Iets meer verticale padding
+                  vertical:
+                      AppDimens.paddingXS, // Slightly more vertical padding
                 ),
                 decoration: BoxDecoration(
                   color: bgColor,
@@ -578,7 +583,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                   border: border,
                 ),
                 child: Text(
-                  DateFormat('MMM d').format(date), // Kort formaat
+                  DateFormat('MMM d').format(date), // Short format
                   style: itemTextStyle?.copyWith(
                     fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                     color: fgColor,
@@ -591,8 +596,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    // Knoppen gebruiken automatisch de thema's (ElevatedButtonTheme, OutlinedButtonTheme)
-    // Deze thema's worden correct geconfigureerd door FlexColorScheme subThemes.
+    // Buttons use themes automatically configured by FlexColorScheme
     return Padding(
       padding: const EdgeInsets.only(top: AppDimens.paddingL),
       child: Row(
@@ -603,7 +607,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             icon: const Icon(Icons.close),
             label: const Text('Close'),
             onPressed: () => Navigator.pop(context),
-            // Geen expliciete stijl nodig hier
+            // No explicit style needed here
           ),
           const SizedBox(width: AppDimens.spaceM),
           ElevatedButton.icon(
@@ -611,8 +615,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             icon: const Icon(Icons.play_arrow),
             label: const Text('Start Studying'),
             onPressed: () {
-              Navigator.pop(context); // Sluit bottom sheet
-              // Navigeer naar detail scherm (logica ongewijzigd)
+              Navigator.pop(context); // Close bottom sheet
+              // Navigate to detail screen (logic unchanged)
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -622,7 +626,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 ),
               );
             },
-            // Geen expliciete stijl nodig hier
+            // No explicit style needed here
           ),
         ],
       ),
