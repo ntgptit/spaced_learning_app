@@ -1,5 +1,3 @@
-// android/app/src/main/kotlin/com/yourapp/device/DeviceOptimizationPlugin.kt
-
 package com.example.spaced_learning_app.device
 
 import android.app.AlarmManager
@@ -29,30 +27,16 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-            "requestExactAlarmPermission" -> {
-                val success = requestExactAlarmPermission()
-                result.success(success)
-            }
-            "disableSleepingApps" -> {
-                val success = disableSleepingApps()
-                result.success(success)
-            }
-            "requestBatteryOptimization" -> {
-                val success = requestBatteryOptimization()
-                result.success(success)
-            }
-            "getDeviceInfo" -> {
-                val info = getDeviceInfo()
-                result.success(info)
-            }
-            else -> {
-                result.notImplemented()
-            }
+            "requestExactAlarmPermission" -> result.success(requestExactAlarmPermission())
+            "disableSleepingApps" -> result.success(disableSleepingApps())
+            "requestBatteryOptimization" -> result.success(requestBatteryOptimization())
+            "getDeviceInfo" -> result.success(getDeviceInfo())
+            else -> result.notImplemented()
         }
     }
 
     private fun requestExactAlarmPermission(): Boolean {
-        try {
+        return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 if (!alarmManager.canScheduleExactAlarms()) {
@@ -60,87 +44,53 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                     context.startActivity(intent)
-                    return true
                 }
             }
-            return true
+            true
         } catch (e: Exception) {
             e.printStackTrace()
-            return false
+            false
         }
     }
 
     private fun disableSleepingApps(): Boolean {
-        try {
-            val manufacturer = Build.MANUFACTURER.toLowerCase()
+        return try {
+            val manufacturer = Build.MANUFACTURER.lowercase()
 
-            when {
-                manufacturer.contains("samsung") -> {
-                    // Samsung specific
-                    try {
-                        val intent = Intent().apply {
-                            component = android.content.ComponentName(
-                                "com.samsung.android.lool",
-                                "com.samsung.android.sm.ui.battery.BatteryActivity"
-                            )
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        context.startActivity(intent)
-                        return true
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+            val intent = when {
+                manufacturer.contains("samsung") -> Intent().apply {
+                    component = android.content.ComponentName(
+                        "com.samsung.android.lool",
+                        "com.samsung.android.sm.ui.battery.BatteryActivity"
+                    )
                 }
-                manufacturer.contains("xiaomi") || manufacturer.contains("redmi") -> {
-                    // Xiaomi/MIUI specific
-                    try {
-                        val intent = Intent().apply {
-                            component = android.content.ComponentName(
-                                "com.miui.powerkeeper",
-                                "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"
-                            )
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        context.startActivity(intent)
-                        return true
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                manufacturer.contains("xiaomi") || manufacturer.contains("redmi") -> Intent().apply {
+                    component = android.content.ComponentName(
+                        "com.miui.powerkeeper",
+                        "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"
+                    )
                 }
-                manufacturer.contains("huawei") -> {
-                    // Huawei specific
-                    try {
-                        val intent = Intent().apply {
-                            component = android.content.ComponentName(
-                                "com.huawei.systemmanager",
-                                "com.huawei.systemmanager.optimize.process.ProtectActivity"
-                            )
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        context.startActivity(intent)
-                        return true
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                manufacturer.contains("huawei") -> Intent().apply {
+                    component = android.content.ComponentName(
+                        "com.huawei.systemmanager",
+                        "com.huawei.systemmanager.optimize.process.ProtectActivity"
+                    )
                 }
-                // Add other manufacturers as needed
-                else -> {
-                    // Generic battery settings
-                    val intent = Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
-                    context.startActivity(intent)
-                    return true
-                }
+                else -> Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
+            }.apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+
+            context.startActivity(intent)
+            true
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
-        return false
     }
 
     private fun requestBatteryOptimization(): Boolean {
-        try {
+        return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val packageName = context.packageName
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -151,13 +101,13 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                     context.startActivity(intent)
-                    return true
                 }
             }
+            true
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
-        return false
     }
 
     private fun getDeviceInfo(): Map<String, Any> {
@@ -168,13 +118,20 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
         info["brand"] = Build.BRAND
         info["device"] = Build.DEVICE
 
-        // Check for specific features
         val pm = context.packageManager
-        info["hasVibrator"] = pm.hasSystemFeature(PackageManager.FEATURE_VIBRATE)
-        info["hasAlarmScheduling"] = pm.hasSystemFeature("android.software.alarm")
+//        info["hasVibrator"] = pm.hasSystemFeature(PackageManager.FEATURE_VIBRATOR)
+
+        info["hasAlarmScheduling"] = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
 
         return info
     }
+
+
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)

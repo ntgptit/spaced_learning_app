@@ -284,7 +284,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 3 : 4,
-      childAspectRatio: 0.95,
+      childAspectRatio: isSmallScreen ? 1.2 : 0.95,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children:
@@ -304,7 +304,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: 1.0,
+      childAspectRatio: isSmallScreen ? 1.3 : 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: [
@@ -360,8 +360,8 @@ class LearningStatsCard extends StatelessWidget {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: isSmallScreen ? 3 : 4, // Adjusted for potential 4 items
-      childAspectRatio: 1.0,
+      crossAxisCount: isSmallScreen ? 2 : 4,
+      childAspectRatio: isSmallScreen ? 1.3 : 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children:
@@ -415,7 +415,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: 1.0,
+      childAspectRatio: isSmallScreen ? 1.3 : 1.0,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: [
@@ -480,63 +480,75 @@ class LearningStatsCard extends StatelessWidget {
                 .colorScheme
                 .surface); // Example: Theme-based text-on-star color
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(iconData, color: color, size: AppDimens.iconL),
-            if (showStar)
-              Positioned(
-                top: -AppDimens.paddingXS - 1,
-                right: -AppDimens.paddingXS - 1,
-                child: Container(
-                  padding: const EdgeInsets.all(AppDimens.paddingXXS),
-                  decoration: BoxDecoration(
-                    color: effectiveStarColor, // Use theme-derived star color
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.star,
-                    color:
-                        effectiveOnStarColor, // Use theme-derived color for star icon itself
-                    size: AppDimens.iconXXS,
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics:
+              const NeverScrollableScrollPhysics(), // Không scroll thực sự nhưng tránh overflow
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(iconData, color: color, size: AppDimens.iconL),
+                    if (showStar)
+                      Positioned(
+                        top: -AppDimens.paddingXS - 1,
+                        right: -AppDimens.paddingXS - 1,
+                        child: Container(
+                          padding: const EdgeInsets.all(AppDimens.paddingXXS),
+                          decoration: BoxDecoration(
+                            color:
+                                effectiveStarColor, // Use theme-derived star color
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.star,
+                            color:
+                                effectiveOnStarColor, // Use theme-derived color for star icon itself
+                            size: AppDimens.iconXXS,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppDimens.spaceXS),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color, // Use the passed color for emphasis
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (additionalInfo != null)
-          Text(
-            additionalInfo,
-            style: theme.textTheme.bodySmall?.copyWith(
-              // Use passed color but make it less prominent than the main value
-              color: color.withValues(alpha: AppDimens.opacityHigh),
-              fontSize: AppDimens.fontXS,
+                const SizedBox(height: AppDimens.spaceXS),
+                Text(
+                  value,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color, // Use the passed color for emphasis
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (additionalInfo != null)
+                  Text(
+                    additionalInfo,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      // Use passed color but make it less prominent than the main value
+                      color: color.withValues(alpha: AppDimens.opacityHigh),
+                      fontSize: AppDimens.fontXS,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                // Ensure label uses theme's bodySmall style and color
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                  maxLines: 2, // Allow label to wrap
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
-        // Ensure label uses theme's bodySmall style and color
-        Text(
-          label,
-          style: theme.textTheme.bodySmall,
-          textAlign: TextAlign.center,
-          maxLines: 2, // Allow label to wrap
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+        );
+      },
     );
   }
 }
