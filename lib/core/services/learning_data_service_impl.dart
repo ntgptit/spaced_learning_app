@@ -35,7 +35,7 @@ class LearningDataServiceImpl implements LearningDataService {
     if (book == 'All') {
       return modules;
     }
-    return modules.where((module) => module.book == book).toList();
+    return modules.where((module) => module.bookName == book).toList();
   }
 
   @override
@@ -46,8 +46,8 @@ class LearningDataServiceImpl implements LearningDataService {
     return modules
         .where(
           (module) =>
-              module.nextStudyDate != null &&
-              isSameDay(module.nextStudyDate!, date),
+              module.progressNextStudyDate != null &&
+              isSameDay(module.progressNextStudyDate!, date),
         )
         .toList();
   }
@@ -67,24 +67,27 @@ class LearningDataServiceImpl implements LearningDataService {
     return modules
         .where(
           (module) =>
-              module.nextStudyDate != null &&
-              module.nextStudyDate!.isAfter(
+              module.progressNextStudyDate != null &&
+              module.progressNextStudyDate!.isAfter(
                 today.subtract(const Duration(days: 1)),
               ) &&
-              module.nextStudyDate!.isBefore(dueDate),
+              module.progressNextStudyDate!.isBefore(dueDate),
         )
         .length;
   }
 
   @override
   int countCompletedModules(List<LearningModule> modules) {
-    return modules.where((module) => module.percentage == 100).length;
+    return modules
+        .where((module) => (module.progressLatestPercentComplete ?? 0) == 100)
+        .length;
   }
 
   @override
   List<String> getUniqueBooks(List<LearningModule> modules) {
     if (modules.isEmpty) return ['All'];
-    final books = modules.map((module) => module.book).toSet().toList()..sort();
+    final books =
+        modules.map((module) => module.bookName).toSet().toList()..sort();
     return ['All', ...books];
   }
 
@@ -100,7 +103,9 @@ class LearningDataServiceImpl implements LearningDataService {
 
   @override
   int getActiveModulesCount(List<LearningModule> modules) {
-    return modules.where((module) => module.percentage < 100).length;
+    return modules
+        .where((module) => (module.progressLatestPercentComplete ?? 0) < 100)
+        .length;
   }
 
   @override
@@ -109,8 +114,8 @@ class LearningDataServiceImpl implements LearningDataService {
     return modules
         .where(
           (module) =>
-              module.nextStudyDate != null &&
-              isSameDay(module.nextStudyDate!, today),
+              module.progressNextStudyDate != null &&
+              isSameDay(module.progressNextStudyDate!, today),
         )
         .toList();
   }
@@ -125,11 +130,11 @@ class LearningDataServiceImpl implements LearningDataService {
     return modules
         .where(
           (module) =>
-              module.nextStudyDate != null &&
-              module.nextStudyDate!.isAfter(
+              module.progressNextStudyDate != null &&
+              module.progressNextStudyDate!.isAfter(
                 weekStart.subtract(const Duration(days: 1)),
               ) &&
-              module.nextStudyDate!.isBefore(
+              module.progressNextStudyDate!.isBefore(
                 weekEnd.add(const Duration(days: 1)),
               ),
         )
@@ -148,11 +153,11 @@ class LearningDataServiceImpl implements LearningDataService {
     return modules
         .where(
           (module) =>
-              module.nextStudyDate != null &&
-              module.nextStudyDate!.isAfter(
+              module.progressNextStudyDate != null &&
+              module.progressNextStudyDate!.isAfter(
                 monthStart.subtract(const Duration(days: 1)),
               ) &&
-              module.nextStudyDate!.isBefore(
+              module.progressNextStudyDate!.isBefore(
                 monthEnd.add(const Duration(days: 1)),
               ),
         )

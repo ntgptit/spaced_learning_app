@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 // import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Aangenomen dat dit bestaat
 import 'package:spaced_learning_app/domain/models/learning_module.dart'; // Zorg voor correct pad
+import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart'; // Zorg voor correct pad
 
@@ -76,7 +77,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                     colorScheme,
                     textTheme,
                   ), // Geef componenten door
-                  if (module.studyHistory?.isNotEmpty ?? false) ...[
+                  if (module.studyHistory.isNotEmpty) ...[
                     const SizedBox(height: AppDimens.spaceXL),
                     _buildStudyHistorySection(
                       colorScheme,
@@ -117,7 +118,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
 
   Widget _buildModuleTitle(ColorScheme colorScheme, TextTheme textTheme) {
     Widget titleWidget = Text(
-      module.subject.isEmpty ? 'Unnamed Module' : module.subject,
+      module.moduleTitle.isEmpty ? 'Unnamed Module' : module.moduleTitle,
       style: textTheme.headlineSmall?.copyWith(
         color: colorScheme.onSurface, // Zorg voor leesbaarheid op surface
       ),
@@ -126,7 +127,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
 
     if (heroTagPrefix != null) {
       titleWidget = Hero(
-        tag: '${heroTagPrefix}_${module.id}',
+        tag:
+            '${heroTagPrefix}_${module.bookNo}_${module.moduleNo}_${module.moduleTitle}',
         child: Material(color: Colors.transparent, child: titleWidget),
       );
     }
@@ -154,7 +156,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: Text(
-              'From: ${module.book.isEmpty ? 'No Book' : module.book}',
+              'From: ${module.bookName.isEmpty ? 'No Book' : module.bookName}',
               style: textTheme.titleMedium?.copyWith(
                 color: colorScheme.primary,
               ),
@@ -219,7 +221,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               textTheme,
               // isDark verwijderd
               'Word Count',
-              module.wordCount.toString(),
+              module.moduleWordCount.toString(),
               Icons.text_fields,
               key: const Key('word_count_item'),
             ),
@@ -229,34 +231,39 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               textTheme,
               // isDark verwijderd
               'Progress',
-              '${module.percentage}%',
+              '${module.progressLatestPercentComplete}%',
               Icons.show_chart_outlined,
-              progressValue: module.percentage / 100.0,
+              progressValue: module.progressLatestPercentComplete! / 100.0,
               key: const Key('progress_item'),
             ),
-            if (module.cyclesStudied != null)
+            if (module.progressCyclesStudied != null)
               _buildDetailItem(
                 context, // Doorgeven
                 colorScheme,
                 textTheme,
                 // isDark verwijderd
                 'Cycle',
-                CycleFormatter.format(module.cyclesStudied!),
+                CycleFormatter.format(
+                  module.progressCyclesStudied! as CycleStudied,
+                ),
                 Icons.autorenew,
                 // Haal kleur op via CycleFormatter, maar geef colorScheme door
                 // zodat de formatter thema-bewust kan zijn.
                 // OF: bepaal kleur hier op basis van cycle en colorScheme.
-                color: CycleFormatter.getColor(module.cyclesStudied!, context),
+                color: CycleFormatter.getColor(
+                  module.progressCyclesStudied! as CycleStudied,
+                  context,
+                ),
                 key: const Key('cycle_item'),
               ),
-            if (module.taskCount != null && module.taskCount! > 0)
+            if (module.progressDueTaskCount > 0)
               _buildDetailItem(
                 context, // Doorgeven
                 colorScheme,
                 textTheme,
                 // isDark verwijderd
                 'Tasks',
-                module.taskCount!.toString(),
+                module.progressDueTaskCount.toString(),
                 Icons.checklist_outlined,
                 key: const Key('tasks_item'),
               ),
@@ -375,37 +382,40 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           key: const Key('dates_section_title'),
         ),
         const SizedBox(height: AppDimens.spaceS),
-        if (module.firstLearningDate != null)
+        if (module.progressFirstLearningDate != null)
           _buildDateItem(
             colorScheme,
             textTheme,
             'First Learning',
-            module.firstLearningDate!,
+            module.progressFirstLearningDate!,
             Icons.play_circle_outline,
             key: const Key('first_learning_date'),
           ),
-        if (module.nextStudyDate != null) ...[
+        if (module.progressNextStudyDate != null) ...[
           const SizedBox(height: AppDimens.spaceL),
           _buildDateItem(
             colorScheme,
             textTheme,
             'Next Study',
-            module.nextStudyDate!,
+            module.progressNextStudyDate!,
             Icons.event_available_outlined,
             // Bepaal isDue (vandaag of gisteren)
             isDue:
-                DateUtils.isSameDay(module.nextStudyDate, DateTime.now()) ||
-                module.nextStudyDate!.isBefore(DateTime.now()),
+                DateUtils.isSameDay(
+                  module.progressNextStudyDate,
+                  DateTime.now(),
+                ) ||
+                module.progressNextStudyDate!.isBefore(DateTime.now()),
             key: const Key('next_study_date'),
           ),
         ],
-        if (module.lastStudyDate != null) ...[
+        if (module.progressNextStudyDate != null) ...[
           const SizedBox(height: AppDimens.spaceL),
           _buildDateItem(
             colorScheme,
             textTheme,
             'Last Study',
-            module.lastStudyDate!,
+            module.progressNextStudyDate!,
             Icons.history_outlined,
             key: const Key('last_study_date'),
           ),
@@ -479,7 +489,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     TextTheme textTheme,
   ) {
     // Sorteer en beperk geschiedenis (logica ongewijzigd)
-    final studyHistory = List<DateTime>.from(module.studyHistory ?? [])
+    final studyHistory = List<DateTime>.from(module.studyHistory)
       ..sort((a, b) => b.compareTo(a));
     final displayHistory = studyHistory.take(7).toList(); // Toon max 7
     final remainingCount = studyHistory.length - displayHistory.length;
@@ -606,7 +616,9 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ModuleDetailScreen(moduleId: module.id),
+                  builder:
+                      (context) =>
+                          ModuleDetailScreen(moduleId: module.moduleId),
                 ),
               );
             },

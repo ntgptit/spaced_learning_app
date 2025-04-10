@@ -17,11 +17,15 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
     try {
       final response = await _apiClient.get(ApiEndpoints.learningModules);
 
+      // Kiểm tra cấu trúc response mới
       if (response['success'] == true && response['data'] != null) {
         final List<dynamic> modulesList = response['data'];
-        return modulesList
-            .map((item) => LearningModule.fromJson(item))
-            .toList();
+
+        // Chuyển đổi từ response mới sang LearningModule
+        return modulesList.map((item) {
+          final learningModuleResponse = LearningModule.fromJson(item);
+          return learningModuleResponse;
+        }).toList();
       } else {
         return [];
       }
@@ -43,9 +47,12 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
 
       if (response['success'] == true && response['data'] != null) {
         final List<dynamic> modulesList = response['data'];
-        return modulesList
-            .map((item) => LearningModule.fromJson(item))
-            .toList();
+
+        // Chuyển đổi từ response mới sang LearningModule
+        return modulesList.map((item) {
+          final learningModuleResponse = LearningModule.fromJson(item);
+          return learningModuleResponse;
+        }).toList();
       } else {
         return [];
       }

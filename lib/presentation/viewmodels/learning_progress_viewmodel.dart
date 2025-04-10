@@ -109,11 +109,15 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Get filtered modules based on current filters
   List<LearningModule> _getFilteredModules() {
     return _modules.where((module) {
-      final bookMatch = _selectedBook == 'All' || module.book == _selectedBook;
+      final bookMatch =
+          _selectedBook == 'All' || module.bookName == _selectedBook;
       final dateMatch =
           _selectedDate == null ||
-          (module.nextStudyDate != null &&
-              AppDateUtils.isSameDay(module.nextStudyDate!, _selectedDate!));
+          (module.progressNextStudyDate != null &&
+              AppDateUtils.isSameDay(
+                module.progressNextStudyDate!,
+                _selectedDate!,
+              ));
       return bookMatch && dateMatch;
     }).toList();
   }
@@ -121,8 +125,11 @@ class LearningProgressViewModel extends ChangeNotifier {
   /// Check if filtered modules list has changed
   bool _filteredModulesChanged(List<LearningModule> newModules) {
     if (_filteredModules.length != newModules.length) return true;
+    // Sử dụng moduleNo thay vì id
     return _filteredModules.asMap().entries.any(
-      (entry) => entry.value.id != newModules[entry.key].id,
+      (entry) =>
+          entry.value.moduleNo != newModules[entry.key].moduleNo ||
+          entry.value.bookNo != newModules[entry.key].bookNo,
     );
   }
 
@@ -174,7 +181,7 @@ class LearningProgressViewModel extends ChangeNotifier {
   List<String> getUniqueBooks() {
     if (_modules.isEmpty) return ['All'];
     final books =
-        _modules.map((module) => module.book).toSet().toList()..sort();
+        _modules.map((module) => module.bookName).toSet().toList()..sort();
     return ['All', ...books];
   }
 
@@ -201,8 +208,8 @@ class LearningProgressViewModel extends ChangeNotifier {
     return _filteredModules
         .where(
           (m) =>
-              m.nextStudyDate != null &&
-              m.nextStudyDate!.isBefore(
+              m.progressNextStudyDate != null &&
+              m.progressNextStudyDate!.isBefore(
                 DateTime.now().add(const Duration(days: 7)),
               ),
         )
@@ -211,7 +218,9 @@ class LearningProgressViewModel extends ChangeNotifier {
 
   /// Get count of modules with 100% completion
   int getCompletedModulesCount() {
-    return _filteredModules.where((m) => m.percentage == 100).length;
+    return _filteredModules
+        .where((m) => (m.progressLatestPercentComplete ?? 0) == 100)
+        .length;
   }
 
   /// Get book stats for the selected book

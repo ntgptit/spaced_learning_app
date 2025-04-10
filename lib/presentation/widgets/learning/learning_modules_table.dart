@@ -156,8 +156,8 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
             : theme.colorScheme.surfaceContainerLowest;
 
     final isNearDue =
-        module.nextStudyDate != null &&
-        module.nextStudyDate!.isBefore(
+        module.progressNextStudyDate != null &&
+        module.progressNextStudyDate!.isBefore(
           DateTime.now().add(const Duration(days: 3)),
         );
 
@@ -213,7 +213,9 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        module.subject.isEmpty ? 'Unnamed' : module.subject,
+                        module.moduleTitle.isEmpty
+                            ? 'Unnamed'
+                            : module.moduleTitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -221,7 +223,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                         maxLines: 2,
                       ),
                       Text(
-                        module.book.isEmpty ? 'No book' : module.book,
+                        module.bookName.isEmpty ? 'No book' : module.bookName,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -240,11 +242,11 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                     horizontal: AppDimens.paddingS,
                   ),
                   child:
-                      module.nextStudyDate != null
+                      module.progressNextStudyDate != null
                           ? Text(
                             DateFormat(
                               'MMM dd, yyyy',
-                            ).format(module.nextStudyDate!),
+                            ).format(module.progressNextStudyDate!),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: isNearDue ? theme.colorScheme.error : null,
                               fontWeight: isNearDue ? FontWeight.bold : null,
@@ -262,7 +264,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                     horizontal: AppDimens.paddingS,
                   ),
                   child:
-                      module.taskCount != null
+                      module.progressDueTaskCount != null
                           ? Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -280,7 +282,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  module.taskCount.toString(),
+                                  module.progressDueTaskCount.toString(),
                                   style: TextStyle(
                                     color: theme.colorScheme.primary,
                                     fontWeight: FontWeight.bold,
