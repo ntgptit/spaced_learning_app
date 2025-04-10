@@ -153,7 +153,7 @@ class SpacedRepetitionInfoScreen extends StatelessWidget {
                 vertical: AppDimens.paddingXXS,
               ),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppDimens.radiusS),
                 border: Border.all(color: color),
               ),

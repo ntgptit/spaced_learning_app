@@ -266,7 +266,7 @@ class RepetitionCard extends StatelessWidget {
       ), // AppDimens.paddingM
       textStyle: textTheme.labelLarge,
     ).copyWith(minimumSize: WidgetStateProperty.all(Size.zero));
-    final scoreIndicatorBg = containerColors.container.withOpacity(0.4);
+    final scoreIndicatorBg = containerColors.container.withValues(alpha: 0.4);
     final scoreIndicatorFg = containerColors.onContainer;
 
     return SizedBox(

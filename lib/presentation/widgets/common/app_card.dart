@@ -78,7 +78,7 @@ class AppCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         highlightColor: highlightColor ?? colorScheme.primaryContainer,
-        splashColor: colorScheme.primary.withOpacity(0.2),
+        splashColor: colorScheme.primary.withValues(alpha: 0.2),
         borderRadius:
             shape == null ? BorderRadius.circular(borderRadius) : null,
         customBorder: shape, // Sử dụng shape cho hiệu ứng nhấn
@@ -96,7 +96,7 @@ class AppCard extends StatelessWidget {
               shape == null ? BorderRadius.circular(borderRadius) : null,
           boxShadow: [
             BoxShadow(
-              color: effectiveShadowColor.withOpacity(0.2),
+              color: effectiveShadowColor.withValues(alpha: 0.2),
               blurRadius: AppDimens.shadowRadiusL,
               spreadRadius: AppDimens.shadowOffsetS,
               offset: const Offset(0, 3),

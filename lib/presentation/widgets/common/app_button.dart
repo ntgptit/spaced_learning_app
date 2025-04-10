@@ -170,7 +170,7 @@ class AppButton extends StatelessWidget {
         defaultElevation = 0;
         break;
       case AppButtonType.ghost:
-        defaultBackgroundColor = colorScheme.primary.withOpacity(0.1);
+        defaultBackgroundColor = colorScheme.primary.withValues(alpha: 0.1);
         defaultTextColor = colorScheme.primary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
@@ -227,7 +227,7 @@ class AppButton extends StatelessWidget {
                 effectiveElevation > 0
                     ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         spreadRadius: 0,
                         blurRadius: effectiveElevation * 2,
                         offset: Offset(0, effectiveElevation / 2),
@@ -279,8 +279,12 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             elevation: effectiveElevation,
-            disabledBackgroundColor: colorScheme.onSurface.withOpacity(0.12),
-            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+            disabledBackgroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.12,
+            ),
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.38,
+            ),
             shadowColor:
                 type == AppButtonType.ghost ? Colors.transparent : null,
           ),
@@ -304,7 +308,9 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.38,
+            ),
           ),
           child: _buildContent(
             effectiveTextColor,
@@ -325,7 +331,9 @@ class AppButton extends StatelessWidget {
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
-            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.38,
+            ),
           ),
           child: _buildContent(
             effectiveTextColor,

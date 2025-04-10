@@ -21,7 +21,9 @@ class AppDrawer extends StatelessWidget {
           UserAccountsDrawerHeader(
             decoration: BoxDecoration(color: colorScheme.primaryContainer),
             currentAccountPicture: CircleAvatar(
-              backgroundColor: colorScheme.onPrimaryContainer.withOpacity(0.1),
+              backgroundColor: colorScheme.onPrimaryContainer.withValues(
+                alpha: 0.1,
+              ),
               child: Text(
                 _getInitials(
                   authViewModel.currentUser?.displayName ??
@@ -41,7 +43,7 @@ class AppDrawer extends StatelessWidget {
             accountEmail: Text(
               authViewModel.currentUser?.email ?? '',
               style: TextStyle(
-                color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
               ),
             ),
           ),

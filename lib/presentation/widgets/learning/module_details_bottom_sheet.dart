@@ -106,8 +106,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
           // Gebruik M3 rol voor drag handle
-          color: colorScheme.onSurfaceVariant.withOpacity(
-            0.4,
+          color: colorScheme.onSurfaceVariant.withValues(
+            alpha: 0.4,
           ), // Standaard M3 stijl
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),

@@ -73,7 +73,7 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       onTap: (index) => _onTabTapped(context, index),
       type: BottomNavigationBarType.fixed,
       selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
+      unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Books'),

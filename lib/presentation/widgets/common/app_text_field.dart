@@ -161,7 +161,7 @@ class _AppTextFieldState extends State<AppTextField> {
           color:
               widget.enabled
                   ? colorScheme.onSurface
-                  : colorScheme.onSurface.withOpacity(0.38),
+                  : colorScheme.onSurface.withValues(alpha: 0.38),
         ),
         decoration: InputDecoration(
           labelText: widget.label,
@@ -224,7 +224,7 @@ class _AppTextFieldState extends State<AppTextField> {
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: colorScheme.onSurface.withOpacity(0.38),
+              color: colorScheme.onSurface.withValues(alpha: 0.38),
             ),
           ),
         ),

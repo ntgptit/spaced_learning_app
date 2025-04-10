@@ -166,7 +166,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
       child: InkWell(
         key: Key('row_$index'),
         onTap: () => _showModuleDetails(context, module),
-        splashColor: theme.colorScheme.primary.withOpacity(0.2),
+        splashColor: theme.colorScheme.primary.withValues(alpha: 0.2),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: AppDimens.paddingM,
@@ -187,7 +187,9 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                       height: AppDimens.moduleIndicatorSize,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.12),
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.12,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -274,8 +276,8 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                                   vertical: AppDimens.paddingXXS,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withOpacity(
-                                    0.12,
+                                  color: theme.colorScheme.primary.withValues(
+                                    alpha: 0.12,
                                   ),
                                   borderRadius: BorderRadius.circular(
                                     AppDimens.radiusM,
