@@ -7,7 +7,7 @@ class LearningModule {
   final String moduleTitle;
   final int moduleNo;
   final int moduleWordCount;
-  final int? progressCyclesStudied;
+  final String? progressCyclesStudied;
   final DateTime? progressNextStudyDate;
   final DateTime? progressFirstLearningDate;
   final int? progressLatestPercentComplete;
