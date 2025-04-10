@@ -3,6 +3,14 @@ import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
+// Centralized reminder schedule configuration
+class ReminderConfig {
+  static const String noonTime = '12:30 PM';
+  static const String eveningFirstTime = '9:00 PM';
+  static const String eveningSecondTime = '10:30 PM';
+  static const String endOfDayTime = '11:30 PM';
+}
+
 class ReminderSettingsScreen extends StatefulWidget {
   const ReminderSettingsScreen({super.key});
 
@@ -27,22 +35,53 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
     _loadSettings();
   }
 
+  /// Loads initial reminder settings from ReminderManager and updates the UI.
   Future<void> _loadSettings() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
+    try {
+      _remindersEnabled = _reminderManager.remindersEnabled;
+      _noonReminderEnabled = _reminderManager.noonReminderEnabled;
+      _eveningFirstReminderEnabled =
+          _reminderManager.eveningFirstReminderEnabled;
+      _eveningSecondReminderEnabled =
+          _reminderManager.eveningSecondReminderEnabled;
+      _endOfDayReminderEnabled = _reminderManager.endOfDayReminderEnabled;
+      print('Loaded settings: remindersEnabled = $_remindersEnabled'); // Debug
+    } catch (e, stackTrace) {
+      print('ERROR updating reminder setting: $e'); // In lỗi ra console
+      print('Stack trace: $stackTrace');
+      _showError('Failed to load settings: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
-    // Load settings from ReminderManager
-    _remindersEnabled = _reminderManager.remindersEnabled;
-    _noonReminderEnabled = _reminderManager.noonReminderEnabled;
-    _eveningFirstReminderEnabled = _reminderManager.eveningFirstReminderEnabled;
-    _eveningSecondReminderEnabled =
-        _reminderManager.eveningSecondReminderEnabled;
-    _endOfDayReminderEnabled = _reminderManager.endOfDayReminderEnabled;
+  /// Updates the reminder state and ensures UI reflects the change.
+  Future<void> _updateReminderSetting(
+    Future<void> Function() updateFunc,
+    Function(bool) onSuccess,
+    bool newValue,
+  ) async {
+    setState(() => _isLoading = true);
+    try {
+      await updateFunc();
+      setState(() {
+        onSuccess(newValue);
+        _isLoading = false;
+      });
+      print('Updated setting: remindersEnabled = $_remindersEnabled'); // Debug
+    } catch (e, stackTrace) {
+      print('ERROR updating reminder setting: $e'); // In lỗi ra console
+      print('Stack trace: $stackTrace');
+      _showError('Failed to update reminder: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
-    setState(() {
-      _isLoading = false;
-    });
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -110,18 +149,12 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
         style: theme.textTheme.bodySmall,
       ),
       value: _remindersEnabled,
-      onChanged: (newValue) async {
-        setState(() {
-          _remindersEnabled = newValue;
-          _isLoading = true;
-        });
-
-        await _reminderManager.setRemindersEnabled(newValue);
-
-        setState(() {
-          _isLoading = false;
-        });
-      },
+      onChanged:
+          (newValue) => _updateReminderSetting(
+            () => _reminderManager.setRemindersEnabled(newValue),
+            (value) => _remindersEnabled = value,
+            newValue,
+          ),
       secondary: Icon(
         Icons.notifications_active,
         color:
@@ -143,122 +176,62 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
           ),
           child: Text('Reminder Schedule', style: theme.textTheme.titleMedium),
         ),
-
-        // Each reminder switch
-        SwitchListTile(
-          title: const Text('Noon Reminder (12:30 PM)'),
-          subtitle: const Text('Daily check of your learning schedule'),
-          value: _noonReminderEnabled && _remindersEnabled,
+        _CustomReminderSwitch(
+          title: 'Noon Reminder (${ReminderConfig.noonTime})',
+          subtitle: 'Daily check of your learning schedule',
+          value: _noonReminderEnabled,
+          icon: Icons.wb_sunny,
+          enabled: _remindersEnabled,
+          theme: theme,
           onChanged:
-              _remindersEnabled
-                  ? (newValue) async {
-                    setState(() {
-                      _noonReminderEnabled = newValue;
-                      _isLoading = true;
-                    });
-
-                    await _reminderManager.setNoonReminderEnabled(newValue);
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                  : null,
-          secondary: Icon(
-            Icons.wb_sunny,
-            color:
-                (_noonReminderEnabled && _remindersEnabled)
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-          ),
+              (newValue) => _updateReminderSetting(
+                () => _reminderManager.setNoonReminderEnabled(newValue),
+                (value) => _noonReminderEnabled = value,
+                newValue,
+              ),
         ),
-
-        SwitchListTile(
-          title: const Text('Evening Reminder (9:00 PM)'),
-          subtitle: const Text('First reminder for unfinished tasks'),
-          value: _eveningFirstReminderEnabled && _remindersEnabled,
+        _CustomReminderSwitch(
+          title: 'Evening Reminder (${ReminderConfig.eveningFirstTime})',
+          subtitle: 'First reminder for unfinished tasks',
+          value: _eveningFirstReminderEnabled,
+          icon: Icons.nights_stay,
+          enabled: _remindersEnabled,
+          theme: theme,
           onChanged:
-              _remindersEnabled
-                  ? (newValue) async {
-                    setState(() {
-                      _eveningFirstReminderEnabled = newValue;
-                      _isLoading = true;
-                    });
-
-                    await _reminderManager.setEveningFirstReminderEnabled(
-                      newValue,
-                    );
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                  : null,
-          secondary: Icon(
-            Icons.nights_stay,
-            color:
-                (_eveningFirstReminderEnabled && _remindersEnabled)
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-          ),
+              (newValue) => _updateReminderSetting(
+                () => _reminderManager.setEveningFirstReminderEnabled(newValue),
+                (value) => _eveningFirstReminderEnabled = value,
+                newValue,
+              ),
         ),
-
-        SwitchListTile(
-          title: const Text('Late Evening Reminder (10:30 PM)'),
-          subtitle: const Text('Second reminder for unfinished tasks'),
-          value: _eveningSecondReminderEnabled && _remindersEnabled,
+        _CustomReminderSwitch(
+          title: 'Late Evening Reminder (${ReminderConfig.eveningSecondTime})',
+          subtitle: 'Second reminder for unfinished tasks',
+          value: _eveningSecondReminderEnabled,
+          icon: Icons.nightlight,
+          enabled: _remindersEnabled,
+          theme: theme,
           onChanged:
-              _remindersEnabled
-                  ? (newValue) async {
-                    setState(() {
-                      _eveningSecondReminderEnabled = newValue;
-                      _isLoading = true;
-                    });
-
-                    await _reminderManager.setEveningSecondReminderEnabled(
-                      newValue,
-                    );
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                  : null,
-          secondary: Icon(
-            Icons.nightlight,
-            color:
-                (_eveningSecondReminderEnabled && _remindersEnabled)
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-          ),
+              (newValue) => _updateReminderSetting(
+                () =>
+                    _reminderManager.setEveningSecondReminderEnabled(newValue),
+                (value) => _eveningSecondReminderEnabled = value,
+                newValue,
+              ),
         ),
-
-        SwitchListTile(
-          title: const Text('End-of-Day Reminder (11:30 PM)'),
-          subtitle: const Text('Final reminder with alarm-style notification'),
-          value: _endOfDayReminderEnabled && _remindersEnabled,
+        _CustomReminderSwitch(
+          title: 'End-of-Day Reminder (${ReminderConfig.endOfDayTime})',
+          subtitle: 'Final reminder with alarm-style notification',
+          value: _endOfDayReminderEnabled,
+          icon: Icons.bedtime,
+          enabled: _remindersEnabled,
+          theme: theme,
           onChanged:
-              _remindersEnabled
-                  ? (newValue) async {
-                    setState(() {
-                      _endOfDayReminderEnabled = newValue;
-                      _isLoading = true;
-                    });
-
-                    await _reminderManager.setEndOfDayReminderEnabled(newValue);
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                  : null,
-          secondary: Icon(
-            Icons.bedtime,
-            color:
-                (_endOfDayReminderEnabled && _remindersEnabled)
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-          ),
+              (newValue) => _updateReminderSetting(
+                () => _reminderManager.setEndOfDayReminderEnabled(newValue),
+                (value) => _endOfDayReminderEnabled = value,
+                newValue,
+              ),
         ),
       ],
     );
@@ -275,29 +248,21 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
           children: [
             Text('How It Works', style: theme.textTheme.titleMedium),
             const SizedBox(height: AppDimens.spaceM),
-
-            // Daily reminder explanation
             Text(
               '• The noon reminder will always show to help you plan your day.',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppDimens.spaceS),
-
-            // Evening reminders explanation
             Text(
               '• Evening reminders will only show if you have unfinished tasks.',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppDimens.spaceS),
-
-            // Device-specific note
             Text(
               '• This app is optimized for Samsung devices, especially the S23 Ultra.',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppDimens.spaceL),
-
-            // Battery optimization warning
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingM),
               decoration: BoxDecoration(
@@ -310,7 +275,8 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                   const SizedBox(width: AppDimens.spaceM),
                   Expanded(
                     child: Text(
-                      'Some devices may limit notifications. Please make sure to disable battery optimization for this app in your device settings.',
+                      'Some devices may limit notifications. Please make sure to '
+                      'disable battery optimization for this app in your device settings.',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onErrorContainer,
                       ),
@@ -321,6 +287,44 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A reusable widget for reminder switches.
+class _CustomReminderSwitch extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final IconData icon;
+  final bool enabled;
+  final ThemeData theme;
+  final ValueChanged<bool> onChanged;
+
+  const _CustomReminderSwitch({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.icon,
+    required this.enabled,
+    required this.theme,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      value: value && enabled,
+      onChanged: enabled ? onChanged : null,
+      secondary: Icon(
+        icon,
+        color:
+            (value && enabled)
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outline,
       ),
     );
   }

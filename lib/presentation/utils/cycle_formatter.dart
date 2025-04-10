@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
-/// Tiện ích để định dạng enum CycleStudied thành chuỗi thân thiện với người dùng
 class CycleFormatter {
-  /// Chuyển đổi enum CycleStudied thành chuỗi thân thiện với người dùng
+  /// Convert a String to a CycleStudied enum
+  static CycleStudied parseCycle(String? cycleString) {
+    switch (cycleString?.toUpperCase()) {
+      case 'FIRST_TIME':
+        return CycleStudied.firstTime;
+      case 'FIRST_REVIEW':
+        return CycleStudied.firstReview;
+      case 'SECOND_REVIEW':
+        return CycleStudied.secondReview;
+      case 'THIRD_REVIEW':
+        return CycleStudied.thirdReview;
+      case 'MORE_THAN_THREE_REVIEWS':
+        return CycleStudied.moreThanThreeReviews;
+      default:
+        return CycleStudied.firstTime; // Fallback to a default value
+    }
+  }
+
+  /// Format CycleStudied enum into a user-friendly string
   static String format(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
@@ -19,7 +36,7 @@ class CycleFormatter {
     }
   }
 
-  /// Trả về mô tả chi tiết về chu kỳ học tập
+  /// Get detailed description for a study cycle
   static String getDescription(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
@@ -35,23 +52,21 @@ class CycleFormatter {
     }
   }
 
-  /// Trả về màu gợi ý cho từng chu kỳ học tập từ AppColors
+  /// Get a suggested color for each study cycle
   static Color getColor(CycleStudied cycle, BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     switch (cycle) {
       case CycleStudied.firstTime:
-        return colorScheme.primary; // Replaces infoLight (Purple)
+        return colorScheme.primary;
       case CycleStudied.firstReview:
-        return colorScheme.tertiary; // Replaces successLight (Green)
+        return colorScheme.tertiary;
       case CycleStudied.secondReview:
-        return colorScheme.secondary; // Replaces darkOnSecondary (Accent Green)
+        return colorScheme.secondary;
       case CycleStudied.thirdReview:
-        return colorScheme
-            .primaryContainer; // Replaces infoDark (Lighter Purple)
+        return colorScheme.primaryContainer;
       case CycleStudied.moreThanThreeReviews:
-        return colorScheme
-            .tertiaryContainer; // Replaces darkTertiary (Purple 200)
+        return colorScheme.tertiaryContainer;
     }
   }
 }
