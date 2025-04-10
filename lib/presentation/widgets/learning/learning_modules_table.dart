@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -8,7 +6,7 @@ import 'package:spaced_learning_app/presentation/widgets/learning/module_details
 
 /// Simplified table widget for displaying learning modules data
 /// Optimized for mobile devices with limited columns and responsive design
-class SimplifiedLearningModulesTable extends StatefulWidget {
+class SimplifiedLearningModulesTable extends StatelessWidget {
   final List<LearningModule> modules;
   final bool isLoading;
   final ScrollController? verticalScrollController;
@@ -21,96 +19,16 @@ class SimplifiedLearningModulesTable extends StatefulWidget {
   });
 
   @override
-  State<SimplifiedLearningModulesTable> createState() =>
-      _SimplifiedLearningModulesTableState();
-}
-
-class _SimplifiedLearningModulesTableState
-    extends State<SimplifiedLearningModulesTable> {
-  // Sorting state
-  int _sortColumnIndex = 0;
-  bool _sortAscending = true;
-
-  // Sorted list of modules
-  late List<LearningModule> _sortedModules;
-
-  // Debounce timer for sorting
-  Timer? _debounceTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _sortedModules = List.from(widget.modules);
-    _sortData();
-  }
-
-  @override
-  void didUpdateWidget(SimplifiedLearningModulesTable oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.modules != widget.modules) {
-      _sortedModules = List.from(widget.modules);
-      _sortData();
-    }
-  }
-
-  @override
-  void dispose() {
-    _debounceTimer?.cancel();
-    super.dispose();
-  }
-
-  /// Sort data based on column index and direction
-  void _sortData() {
-    if (_sortedModules.isEmpty) return; // Avoid sorting empty list
-    switch (_sortColumnIndex) {
-      case 0: // Subject
-        _sortModules((module) => module.subject);
-        break;
-      case 1: // Next Study
-        _sortModules(
-          (module) => module.nextStudyDate?.millisecondsSinceEpoch ?? 0,
-        );
-        break;
-      case 2: // Tasks
-        _sortModules((module) => module.taskCount ?? 0);
-        break;
-    }
-  }
-
-  /// Generic sort function using a key extractor
-  void _sortModules<T>(T Function(LearningModule) getField) {
-    _sortedModules.sort((a, b) {
-      final aValue = getField(a);
-      final bValue = getField(b);
-
-      int comparison;
-      if (aValue == null && bValue == null) {
-        comparison = 0;
-      } else if (aValue == null) {
-        comparison = -1;
-      } else if (bValue == null) {
-        comparison = 1;
-      } else if (aValue is String && bValue is String) {
-        comparison = aValue.toLowerCase().compareTo(bValue.toLowerCase());
-      } else {
-        comparison = (aValue as Comparable).compareTo(bValue);
-      }
-
-      return _sortAscending ? comparison : -comparison;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (widget.isLoading) {
+    if (isLoading) {
       return const Center(
         child: CircularProgressIndicator(key: Key('loading_indicator')),
       );
     }
 
-    if (widget.modules.isEmpty) {
+    if (modules.isEmpty) {
       return Center(
         child: Text(
           'No data found for the selected filters',
@@ -140,7 +58,6 @@ class _SimplifiedLearningModulesTableState
                 '#',
                 'Module number',
                 flex: flexRatios[0],
-                onSort: null, // No sorting for index
                 key: const Key('header_index'),
               ),
               _buildHeaderCell(
@@ -148,8 +65,6 @@ class _SimplifiedLearningModulesTableState
                 'Subject',
                 'Module title',
                 flex: flexRatios[1],
-                onSort: () => _onSortColumn(0),
-                isActive: _sortColumnIndex == 0,
                 key: const Key('header_subject'),
               ),
               _buildHeaderCell(
@@ -157,8 +72,6 @@ class _SimplifiedLearningModulesTableState
                 'Next Study',
                 'Date for next study session',
                 flex: flexRatios[2],
-                onSort: () => _onSortColumn(1),
-                isActive: _sortColumnIndex == 1,
                 key: const Key('header_next_study'),
               ),
               _buildHeaderCell(
@@ -166,8 +79,6 @@ class _SimplifiedLearningModulesTableState
                 'Tasks',
                 'Number of pending tasks',
                 flex: flexRatios[3],
-                onSort: () => _onSortColumn(2),
-                isActive: _sortColumnIndex == 2,
                 key: const Key('header_tasks'),
               ),
             ],
@@ -177,15 +88,10 @@ class _SimplifiedLearningModulesTableState
         // Table body
         Expanded(
           child: ListView.builder(
-            controller: widget.verticalScrollController,
-            itemCount: _sortedModules.length,
+            controller: verticalScrollController,
+            itemCount: modules.length,
             itemBuilder: (context, index) {
-              return _buildTableRow(
-                context,
-                _sortedModules[index],
-                index,
-                flexRatios,
-              );
+              return _buildTableRow(context, modules[index], index, flexRatios);
             },
           ),
         ),
@@ -204,14 +110,12 @@ class _SimplifiedLearningModulesTableState
     }
   }
 
-  /// Build a header cell with optional sort controls
+  /// Build a header cell
   Widget _buildHeaderCell(
     BuildContext context,
     String title,
     String tooltip, {
     required int flex,
-    VoidCallback? onSort,
-    bool isActive = false,
     Key? key,
   }) {
     final theme = Theme.of(context);
@@ -220,34 +124,17 @@ class _SimplifiedLearningModulesTableState
       flex: flex,
       child: Tooltip(
         message: tooltip,
-        child: InkWell(
-          key: key,
-          onTap: onSort,
-          splashColor: theme.colorScheme.primary.withValues(alpha: 0.2),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.paddingS,
-              vertical: AppDimens.paddingXS,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingS,
+            vertical: AppDimens.paddingXS,
+          ),
+          child: Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (isActive)
-                  Icon(
-                    _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                    size: AppDimens.iconXS,
-                    color: theme.colorScheme.primary,
-                  ),
-              ],
-            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -279,7 +166,7 @@ class _SimplifiedLearningModulesTableState
       child: InkWell(
         key: Key('row_$index'),
         onTap: () => _showModuleDetails(context, module),
-        splashColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+        splashColor: theme.colorScheme.primary.withOpacity(0.2),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: AppDimens.paddingM,
@@ -300,9 +187,7 @@ class _SimplifiedLearningModulesTableState
                       height: AppDimens.moduleIndicatorSize,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(
-                          alpha: AppDimens.opacityMedium,
-                        ),
+                        color: theme.colorScheme.primary.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -387,8 +272,8 @@ class _SimplifiedLearningModulesTableState
                                   vertical: AppDimens.paddingXXS,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withValues(
-                                    alpha: AppDimens.opacityMedium,
+                                  color: theme.colorScheme.primary.withOpacity(
+                                    0.12,
                                   ),
                                   borderRadius: BorderRadius.circular(
                                     AppDimens.radiusM,
@@ -412,22 +297,6 @@ class _SimplifiedLearningModulesTableState
         ),
       ),
     );
-  }
-
-  /// Handle column sorting with debounce
-  void _onSortColumn(int columnIndex) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      setState(() {
-        if (_sortColumnIndex == columnIndex) {
-          _sortAscending = !_sortAscending;
-        } else {
-          _sortColumnIndex = columnIndex;
-          _sortAscending = true;
-        }
-        _sortData();
-      });
-    });
   }
 
   /// Show module details in a bottom sheet
