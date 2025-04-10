@@ -284,7 +284,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 3 : 4,
-      childAspectRatio: isSmallScreen ? 1.2 : 0.95,
+      childAspectRatio: isSmallScreen ? 0.8 : 0.8,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children:
@@ -304,7 +304,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: isSmallScreen ? 1.3 : 1.0,
+      childAspectRatio: isSmallScreen ? 0.8 : 0.6,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: [
@@ -361,7 +361,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: isSmallScreen ? 1.3 : 1.0,
+      childAspectRatio: isSmallScreen ? 0.8 : 0.75,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children:
@@ -415,7 +415,7 @@ class LearningStatsCard extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isSmallScreen ? 2 : 4,
-      childAspectRatio: isSmallScreen ? 1.3 : 1.0,
+      childAspectRatio: isSmallScreen ? 1.3 : 0.6,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children: [
