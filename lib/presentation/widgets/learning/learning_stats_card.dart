@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-// Removed direct AppColors import
-// import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart'; // Ensure path is correct
 
-/// Card displaying summarized learning statistics using Theme
 class LearningStatsCard extends StatelessWidget {
   final LearningStatsDTO stats;
   final VoidCallback? onViewDetailPressed;
@@ -19,13 +16,10 @@ class LearningStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use passed theme or get from context
     final currentTheme = theme ?? Theme.of(context);
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < AppDimens.breakpointXS;
 
-    // Define semantic colors based on the current theme once
-    // Adjust these mappings based on your AppColors and theme intent
     final Color successColor =
         currentTheme.brightness == Brightness.light
             ? const Color(0xFF4CAF50)
@@ -57,7 +51,6 @@ class LearningStatsCard extends StatelessWidget {
       alpha: 0.6,
     );
 
-    // Create a map for easier access in builders
     final semanticColors = {
       'success': successColor,
       'successDark': successDarkerColor,
@@ -72,7 +65,6 @@ class LearningStatsCard extends StatelessWidget {
     };
 
     return Card(
-      // Card theme applied automatically
       elevation: currentTheme.cardTheme.elevation ?? AppDimens.elevationS,
       shape:
           currentTheme.cardTheme.shape ??
@@ -86,7 +78,6 @@ class LearningStatsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pass theme to header
             _buildCardHeader(currentTheme),
             SizedBox(
               height: isSmallScreen ? AppDimens.spaceM : AppDimens.spaceL,
@@ -158,7 +149,6 @@ class LearningStatsCard extends StatelessWidget {
               const SizedBox(height: AppDimens.spaceL),
               Align(
                 alignment: Alignment.centerRight,
-                // TextButton uses theme automatically
                 child: TextButton.icon(
                   icon: const Icon(
                     Icons.analytics_outlined,
@@ -177,16 +167,13 @@ class LearningStatsCard extends StatelessWidget {
   Widget _buildCardHeader(ThemeData theme) {
     return Row(
       children: [
-        // Use theme's icon theme color
         Icon(Icons.book_online, color: theme.iconTheme.color),
         const SizedBox(width: AppDimens.spaceS),
-        // Use theme text style
         Text('Learning Statistics', style: theme.textTheme.titleLarge),
       ],
     );
   }
 
-  // Updated to accept a builder function for grid content
   Widget _buildStatsSection({
     required ThemeData theme,
     required Map<String, Color> semanticColors, // Receive color map
@@ -211,13 +198,11 @@ class LearningStatsCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppDimens.spaceM),
-        // Call the builder function to build the grid content
         gridContentBuilder(theme, isSmallScreen),
       ],
     );
   }
 
-  // Grid Builders now accept the semanticColors map
 
   Widget _buildModuleStatsGrid(
     ThemeData theme,
@@ -248,7 +233,6 @@ class LearningStatsCard extends StatelessWidget {
         colors['success']!, // Use success color
       ),
       _buildGridItem(
-        // Example mapping 'accentPink' to secondary
         theme,
         '${cycleStats['FIRST_REVIEW'] ?? 0}',
         '1st\nReview',
@@ -263,7 +247,6 @@ class LearningStatsCard extends StatelessWidget {
         colors['info']!, // Use info color
       ),
       _buildGridItem(
-        // Example mapping 'accentPurple' to secondary
         theme,
         '${cycleStats['THIRD_REVIEW'] ?? 0}',
         '3rd\nReview',
@@ -271,7 +254,6 @@ class LearningStatsCard extends StatelessWidget {
         colors['secondary']!, // Use secondary color again or choose another
       ),
       _buildGridItem(
-        // Example mapping 'darkTertiary' to tertiary
         theme,
         '${cycleStats['MORE_THAN_THREE_REVIEWS'] ?? 0}',
         '4th+\nReviews',
@@ -289,7 +271,6 @@ class LearningStatsCard extends StatelessWidget {
       crossAxisSpacing: AppDimens.spaceS,
       children:
           items
-              // Removed unnecessary null check
               .cast<Widget>()
               .toList(), // Filter nulls if any logic changes
     );
@@ -349,7 +330,6 @@ class LearningStatsCard extends StatelessWidget {
     bool isSmallScreen,
     Map<String, Color> colors,
   ) {
-    // Determine star color from theme
     final starColor =
         colors['warning'] ?? Colors.amber; // Fallback if warning not in map
     final onStarColor =
@@ -377,7 +357,6 @@ class LearningStatsCard extends StatelessWidget {
                   onStarColor: onStarColor,
                 ),
                 _buildGridItem(
-                  // Mapping accentPink to secondary
                   theme,
                   '${stats.streakWeeks}',
                   'Week\nStreak',
@@ -395,7 +374,6 @@ class LearningStatsCard extends StatelessWidget {
                   colors['warning']!, // Use warning color
                   additionalInfo: 'days',
                 ),
-                // Keep SizedBox if layout requires exactly 4 slots even on small screens
                 if (!isSmallScreen) const SizedBox.shrink(),
               ]
               .where((w) => w is! SizedBox || isSmallScreen || w.key != null)
@@ -420,7 +398,6 @@ class LearningStatsCard extends StatelessWidget {
       crossAxisSpacing: AppDimens.spaceS,
       children: [
         _buildGridItem(
-          // Mapping accentGreen to success
           theme,
           '${stats.totalWords}',
           'Total\nWords',
@@ -454,7 +431,6 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 
-  // Updated _buildGridItem to accept theme and use theme colors for star
   Widget _buildGridItem(
     ThemeData theme,
     String value,
@@ -466,7 +442,6 @@ class LearningStatsCard extends StatelessWidget {
     Color? starColor, // Optional override from caller
     Color? onStarColor, // Optional override from caller
   }) {
-    // Determine star colors using theme fallbacks if not provided
     final effectiveStarColor =
         starColor ??
         (theme.brightness == Brightness.light
@@ -529,14 +504,12 @@ class LearningStatsCard extends StatelessWidget {
                   Text(
                     additionalInfo,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      // Use passed color but make it less prominent than the main value
                       color: color.withValues(alpha: AppDimens.opacityHigh),
                       fontSize: AppDimens.fontXS,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                // Ensure label uses theme's bodySmall style and color
                 Text(
                   label,
                   style: theme.textTheme.bodySmall,
@@ -553,12 +526,3 @@ class LearningStatsCard extends StatelessWidget {
   }
 }
 
-// Helper extension (optional)
-// extension ColorAlpha on Color {
-//   Color withValues({double? alpha}) {
-//     if (alpha != null) {
-//       return withOpacity(alpha);
-//     }
-//     return this;
-//   }
-// }

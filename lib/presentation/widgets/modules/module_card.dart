@@ -95,7 +95,6 @@ class ModuleCard extends StatelessWidget {
           size: AppDimens.iconM,
         ),
       ),
-      // Xóa phần actions chứa button Study
     );
   }
 }

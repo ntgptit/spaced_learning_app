@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Loading indicator with different sizes and styles
 class AppLoadingIndicator extends StatelessWidget {
   final double size;
   final Color? color;
@@ -37,7 +36,6 @@ class AppLoadingIndicator extends StatelessWidget {
   }
 }
 
-/// Full screen loading indicator with optional message
 class FullScreenLoading extends StatelessWidget {
   final String? message;
   final Color? backgroundColor;
@@ -84,7 +82,6 @@ class FullScreenLoading extends StatelessWidget {
   }
 }
 
-/// Loading indicator overlay for widgets
 class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
   final Widget child;
@@ -119,7 +116,6 @@ class LoadingOverlay extends StatelessWidget {
   }
 }
 
-/// Types of loading indicators
 enum LoadingIndicatorType {
   circle,
   fadingCircle,

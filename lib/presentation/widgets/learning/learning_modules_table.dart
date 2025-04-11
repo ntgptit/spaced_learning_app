@@ -4,8 +4,6 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/module_details_bottom_sheet.dart';
 
-/// Simplified table widget for displaying learning modules data
-/// Optimized for mobile devices with limited columns and responsive design
 class SimplifiedLearningModulesTable extends StatelessWidget {
   final List<LearningModule> modules;
   final bool isLoading;
@@ -38,13 +36,11 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
       );
     }
 
-    // Responsive flex values based on screen width
     final screenWidth = MediaQuery.of(context).size.width;
     final flexRatios = _getFlexRatios(screenWidth);
 
     return Column(
       children: [
-        // Table header
         Container(
           color: theme.colorScheme.surfaceContainerHigh,
           padding: const EdgeInsets.symmetric(
@@ -85,7 +81,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
           ),
         ),
 
-        // Table body
         Expanded(
           child: ListView.builder(
             controller: verticalScrollController,
@@ -99,7 +94,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
     );
   }
 
-  /// Calculate responsive flex ratios based on screen width
   List<int> _getFlexRatios(double screenWidth) {
     if (screenWidth < 400) {
       return [1, 3, 2, 2]; // Smaller screens
@@ -110,7 +104,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
     }
   }
 
-  /// Build a header cell
   Widget _buildHeaderCell(
     BuildContext context,
     String title,
@@ -141,7 +134,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
     );
   }
 
-  /// Build a table row for a learning module
   Widget _buildTableRow(
     BuildContext context,
     LearningModule module,
@@ -174,7 +166,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Index column
               Expanded(
                 flex: flexRatios[0],
                 child: Padding(
@@ -204,7 +195,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                 ),
               ),
 
-              // Subject column
               Expanded(
                 flex: flexRatios[1],
                 child: Padding(
@@ -236,7 +226,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                 ),
               ),
 
-              // Next Study column
               Expanded(
                 flex: flexRatios[2],
                 child: Padding(
@@ -258,7 +247,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                 ),
               ),
 
-              // Tasks column
               Expanded(
                 flex: flexRatios[3],
                 child: Padding(
@@ -303,7 +291,6 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
     );
   }
 
-  /// Show module details in a bottom sheet
   void _showModuleDetails(BuildContext context, LearningModule module) {
     try {
       showModalBottomSheet(

@@ -21,7 +21,6 @@ class ScaffoldWithBottomBar extends StatefulWidget {
 }
 
 class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
-  // Track last refresh time to avoid too frequent refreshes
   DateTime? _lastHomeRefreshTime;
   DateTime? _lastTabChangeTime;
   bool _needsRefresh = false;
@@ -30,24 +29,18 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
   void didUpdateWidget(ScaffoldWithBottomBar oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // If we've switched tabs, schedule a state update after build completes
     if (widget.currentIndex != oldWidget.currentIndex) {
-      // Prevent double refreshes by tracking time
       final now = DateTime.now();
       if (_lastTabChangeTime == null ||
           now.difference(_lastTabChangeTime!).inSeconds > 2) {
         _lastTabChangeTime = now;
 
-        // Schedule refresh after the build is complete
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Check if widget is still mounted before proceeding
           if (!mounted) return;
 
-          // If switching to Home tab, refresh data
           if (widget.currentIndex == 0) {
             _refreshHomeData();
           }
-          // If switching to Stats tab (Learning Progress)
           else if (widget.currentIndex == 3) {
             _refreshLearningData();
           }
@@ -88,20 +81,16 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
   }
 
   void _onTabTapped(BuildContext context, int index) {
-    // If clicking the current tab (same tab), consider refreshing
     if (index == widget.currentIndex) {
-      // For Home tab, refresh data
       if (index == 0) {
         _refreshHomeData();
       }
 
       if (widget.currentIndex == 3) {
-        // This needs to be much more direct
         _refreshLearningData();
       }
     }
 
-    // Navigate to the corresponding tab
     switch (index) {
       case 0:
         GoRouter.of(context).go('/');
@@ -122,11 +111,9 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
   }
 
   void _refreshHomeData() {
-    // Update refresh time
     final now = DateTime.now();
     if (_lastHomeRefreshTime != null &&
         now.difference(_lastHomeRefreshTime!).inSeconds < 5) {
-      // Avoid refreshing too frequently
       return;
     }
     _lastHomeRefreshTime = now;
@@ -135,14 +122,11 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       final progressViewModel = context.read<ProgressViewModel>();
       final learningStatsViewModel = context.read<LearningStatsViewModel>();
 
-      // Reset error and prepare to load new data
       progressViewModel.clearError();
       learningStatsViewModel.clearError();
 
-      // Load new data from server
       learningStatsViewModel.loadAllStats(refreshCache: true);
 
-      // Load progress data if logged in
       final authViewModel = context.read<AuthViewModel>();
       if (authViewModel.currentUser != null) {
         progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
@@ -153,17 +137,14 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
   }
 
   void _refreshLearningData() {
-    // Safety check to prevent multiple calls
     if (_needsRefresh) return;
     _needsRefresh = true;
 
     try {
-      // Schedule data update outside of the build cycle
       Future.microtask(() {
         if (!mounted) return;
 
         try {
-          // Don't use context.read here, use Provider.of with listen: false
           final viewModel = Provider.of<LearningStatsViewModel>(
             context,
             listen: false,

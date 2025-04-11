@@ -4,7 +4,6 @@ import 'package:spaced_learning_app/core/network/api_client.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 
-/// Implementation of the UserRepository interface
 class UserRepositoryImpl implements UserRepository {
   final ApiClient _apiClient;
 
@@ -30,23 +29,7 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  // @override
-  // Future<User> getUserById(String id) async {
-  //   try {
-  //     final response = await _apiClient.get('${ApiEndpoints.users}/$id');
 
-  //     if (response['success'] == true && response['data'] != null) {
-  //       return User.fromJson(response['data']);
-  //     } else {
-  //       throw NotFoundException('User not found: ${response['message']}');
-  //     }
-  //   } catch (e) {
-  //     if (e is AppException) {
-  //       rethrow;
-  //     }
-  //     throw UnexpectedException('Failed to get user: $e');
-  //   }
-  // }
 
   @override
   Future<User> updateUser(
@@ -88,10 +71,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<bool> checkEmailExists(String email) async {
     try {
-      // This is a simplified implementation. In a real app, you would have a specific endpoint
-      // to check if an email exists, but here we'll simulate it.
 
-      // Note: In a real app, you would implement this endpoint or use a different approach
       return false;
     } catch (e) {
       return false;

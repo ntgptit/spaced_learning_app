@@ -1,8 +1,5 @@
-// lib/presentation/viewmodels/base_viewmodel.dart
 import 'package:flutter/foundation.dart';
 
-/// A base class for all ViewModels that provides common functionality
-/// for loading state, error handling, and other shared behaviors.
 abstract class BaseViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
@@ -10,22 +7,16 @@ abstract class BaseViewModel extends ChangeNotifier {
   bool _isInitialized = false;
   bool _isRefreshing = false;
 
-  /// Flag indicating if the ViewModel is currently loading data
   bool get isLoading => _isLoading;
 
-  /// Error message if any operation has failed
   String? get errorMessage => _errorMessage;
 
-  /// The time when data was last successfully updated
   DateTime? get lastUpdated => _lastUpdated;
 
-  /// Flag indicating if the ViewModel has been initialized
   bool get isInitialized => _isInitialized;
 
-  /// Flag indicating if a refresh operation is in progress
   bool get isRefreshing => _isRefreshing;
 
-  /// Set the loading state and notify listeners if state changes
   void setLoading(bool loading) {
     if (_isLoading != loading) {
       _isLoading = loading;
@@ -33,7 +24,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     }
   }
 
-  /// Begin a loading operation with safe state management
   void beginLoading() {
     final wasLoading = _isLoading;
     _isLoading = true;
@@ -42,13 +32,11 @@ abstract class BaseViewModel extends ChangeNotifier {
     }
   }
 
-  /// End a loading operation and notify listeners
   void endLoading() {
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Set the error message and notify listeners
   void setError(String? message) {
     if (_errorMessage != message) {
       _errorMessage = message;
@@ -56,7 +44,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     }
   }
 
-  /// Clear the error message if one exists and notify listeners
   void clearError() {
     if (_errorMessage != null) {
       _errorMessage = null;
@@ -64,12 +51,10 @@ abstract class BaseViewModel extends ChangeNotifier {
     }
   }
 
-  /// Update the lastUpdated timestamp to now
   void updateLastUpdated() {
     _lastUpdated = DateTime.now();
   }
 
-  /// Mark ViewModel as initialized
   void setInitialized(bool initialized) {
     if (_isInitialized != initialized) {
       _isInitialized = initialized;
@@ -77,7 +62,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     }
   }
 
-  /// Begin a refresh operation
   bool beginRefresh() {
     if (_isRefreshing) return false;
     _isRefreshing = true;
@@ -85,7 +69,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// End a refresh operation
   void endRefresh({bool successful = true}) {
     _isRefreshing = false;
     if (successful) {
@@ -94,7 +77,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     endLoading();
   }
 
-  /// Handle loading error with consistent pattern
   void handleError(dynamic error, {String prefix = 'An error occurred'}) {
     final errorMessage =
         error is Exception
@@ -108,14 +90,12 @@ abstract class BaseViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Check if data should be refreshed based on last update time
   bool shouldRefresh({Duration threshold = const Duration(minutes: 5)}) {
     if (_lastUpdated == null) return true;
     final now = DateTime.now();
     return now.difference(_lastUpdated!) > threshold;
   }
 
-  /// Safe execution of async operation with proper state management
   Future<T?> safeCall<T>({
     required Future<T> Function() action,
     String errorPrefix = 'Operation failed',

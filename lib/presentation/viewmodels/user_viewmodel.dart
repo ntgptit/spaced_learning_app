@@ -1,9 +1,7 @@
-// lib/presentation/viewmodels/user_viewmodel.dart
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-/// View model for user operations
 class UserViewModel extends BaseViewModel {
   final UserRepository userRepository;
 
@@ -11,10 +9,8 @@ class UserViewModel extends BaseViewModel {
 
   UserViewModel({required this.userRepository});
 
-  // Getters
   User? get currentUser => _currentUser;
 
-  /// Load current user information
   Future<void> loadCurrentUser() async {
     await safeCall(
       action: () async {
@@ -25,7 +21,6 @@ class UserViewModel extends BaseViewModel {
     );
   }
 
-  /// Update user profile
   Future<bool> updateProfile({String? displayName, String? password}) async {
     if (_currentUser == null) {
       setError('User is not loaded');
@@ -50,16 +45,4 @@ class UserViewModel extends BaseViewModel {
     return false;
   }
 
-  /// Check if an email is already registered
-  // Future<bool> isEmailAvailable(String email) async {
-  //   final result = await safeCall<bool>(
-  //     action: () async {
-  //       final exists = await userRepository.checkEmailExists(email);
-  //       return !exists;
-  //     },
-  //     errorPrefix: 'Failed to check email availability',
-  //     handleLoading: false,
-  //   );
-  //   return result ?? false;
-  // }
 }

@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'learning_insight.freezed.dart';
 part 'learning_insight.g.dart';
 
-/// Enum for insight types
 enum InsightType {
   @JsonValue('VOCABULARY_RATE')
   vocabularyRate,
@@ -19,7 +18,6 @@ enum InsightType {
   tip,
 }
 
-/// DTO for learning insights
 @freezed
 abstract class LearningInsightDTO with _$LearningInsightDTO {
   const factory LearningInsightDTO({

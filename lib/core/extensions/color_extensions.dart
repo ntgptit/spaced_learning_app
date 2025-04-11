@@ -1,9 +1,6 @@
-// lib/core/extensions/color_extensions.dart
 import 'package:flutter/material.dart';
 
-/// Extensions on Color for easier manipulation
 extension ColorExtensions on Color {
-  /// Creates a color with the specified opacity value
   Color withValues({int? red, int? green, int? blue, double? alpha}) {
     return Color.fromRGBO(
       red ?? (this.red * 255.0).round() & 0xff,
@@ -13,7 +10,6 @@ extension ColorExtensions on Color {
     );
   }
 
-  /// Returns a lighter version of this color
   Color lighten([double amount = 0.1]) {
     assert(amount >= 0 && amount <= 1);
 
@@ -23,7 +19,6 @@ extension ColorExtensions on Color {
     return hsl.withLightness(lightness).toColor();
   }
 
-  /// Returns a darker version of this color
   Color darken([double amount = 0.1]) {
     assert(amount >= 0 && amount <= 1);
 

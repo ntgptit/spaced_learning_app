@@ -27,8 +27,6 @@ class _DueProgressScreenState extends State<DueProgressScreen> {
   @override
   void initState() {
     super.initState();
-    // Perbaikan kritis: Menggunakan postFrameCallback untuk memastikan
-    // initState tidak memanggil notifyListeners selama proses build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });

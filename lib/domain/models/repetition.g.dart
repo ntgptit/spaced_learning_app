@@ -1,10 +1,6 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'repetition.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
 
 _Repetition _$RepetitionFromJson(Map<String, dynamic> json) => _Repetition(
   id: json['id'] as String,

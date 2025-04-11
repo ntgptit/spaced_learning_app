@@ -5,7 +5,6 @@ import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats
 
 part 'dashboard_section.freezed.dart';
 
-/// Data class for module-related statistics
 @freezed
 abstract class ModuleStats with _$ModuleStats {
   const factory ModuleStats({
@@ -14,7 +13,6 @@ abstract class ModuleStats with _$ModuleStats {
   }) = _ModuleStats;
 }
 
-/// Data class for due learning statistics
 @freezed
 abstract class DueStats with _$DueStats {
   const factory DueStats({
@@ -27,7 +25,6 @@ abstract class DueStats with _$DueStats {
   }) = _DueStats;
 }
 
-/// Data class for completed learning statistics
 @freezed
 abstract class CompletionStats with _$CompletionStats {
   const factory CompletionStats({
@@ -40,7 +37,6 @@ abstract class CompletionStats with _$CompletionStats {
   }) = _CompletionStats;
 }
 
-/// Data class for learning streak statistics
 @freezed
 abstract class StreakStats with _$StreakStats {
   const factory StreakStats({
@@ -49,7 +45,6 @@ abstract class StreakStats with _$StreakStats {
   }) = _StreakStats;
 }
 
-/// Data class for vocabulary statistics
 @freezed
 abstract class VocabularyStats with _$VocabularyStats {
   const factory VocabularyStats({
@@ -61,7 +56,6 @@ abstract class VocabularyStats with _$VocabularyStats {
   }) = _VocabularyStats;
 }
 
-/// Dashboard section for the home screen that displays learning statistics
 class DashboardSection extends StatelessWidget {
   final ModuleStats moduleStats;
   final DueStats dueStats;

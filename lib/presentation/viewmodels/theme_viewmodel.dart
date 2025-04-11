@@ -1,8 +1,6 @@
-// lib/presentation/viewmodels/theme_viewmodel.dart
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-/// View model for theme settings
 class ThemeViewModel extends BaseViewModel {
   final StorageService storageService;
 
@@ -12,10 +10,8 @@ class ThemeViewModel extends BaseViewModel {
     _loadThemePreference();
   }
 
-  // Getters
   bool get isDarkMode => _isDarkMode;
 
-  /// Load the theme preference from storage
   Future<void> _loadThemePreference() async {
     beginLoading();
 
@@ -23,7 +19,6 @@ class ThemeViewModel extends BaseViewModel {
       _isDarkMode = await storageService.isDarkMode();
       setInitialized(true);
     } catch (e) {
-      // Default to light mode if there's an error
       _isDarkMode = false;
       handleError(e, prefix: 'Failed to load theme preference');
     } finally {
@@ -31,7 +26,6 @@ class ThemeViewModel extends BaseViewModel {
     }
   }
 
-  /// Toggle between light and dark theme
   Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
     notifyListeners();
@@ -39,13 +33,11 @@ class ThemeViewModel extends BaseViewModel {
     try {
       await storageService.saveDarkMode(_isDarkMode);
     } catch (e) {
-      // If there's an error saving, revert the change
       _isDarkMode = !_isDarkMode;
       handleError(e, prefix: 'Failed to save theme preference');
     }
   }
 
-  /// Set specific theme mode
   Future<void> setDarkMode(bool isDarkMode) async {
     if (_isDarkMode == isDarkMode) return;
 
@@ -55,7 +47,6 @@ class ThemeViewModel extends BaseViewModel {
     try {
       await storageService.saveDarkMode(_isDarkMode);
     } catch (e) {
-      // If there's an error saving, revert the change
       _isDarkMode = !_isDarkMode;
       handleError(e, prefix: 'Failed to save theme preference');
     }

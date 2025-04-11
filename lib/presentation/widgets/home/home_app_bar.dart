@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Custom AppBar for the Home screen with theme toggle and notifications
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isDarkMode;
   final VoidCallback onThemeToggle;

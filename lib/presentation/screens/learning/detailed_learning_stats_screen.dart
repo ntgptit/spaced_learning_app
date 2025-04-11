@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Removed direct AppColors import as colors should come from the theme
-// import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_progress_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 
-/// Screen that displays a detailed breakdown of a specific learning statistic
 class DetailedLearningStatsScreen extends StatelessWidget {
   final String title;
   final StatCategory category;
@@ -21,30 +18,22 @@ class DetailedLearningStatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get theme data once here
     final theme = Theme.of(context);
 
     return Scaffold(
-      // Scaffold background color comes from the theme
       appBar: AppBar(
-        // AppBar theme is applied automatically
         title: Text(title),
       ),
-      // Pass theme data down if needed, or widgets can get it from context
       body: _buildBody(context, theme),
     );
   }
 
   Widget _buildBody(BuildContext context, ThemeData theme) {
-    // Use watch instead of read if you need the widget to rebuild on VM changes
-    // For loading/error states, read might be ok if triggered by initial load or retry
     final learningStatsVM = context.watch<LearningStatsViewModel>();
 
     if (learningStatsVM.isLoading) {
       return Center(
         child: AppProgressIndicator(
-          // AppProgressIndicator should ideally use theme internally
-          // If not, pass the theme color
           type: ProgressType.circular,
           label: 'Loading details...',
           size: AppDimens.circularProgressSize,
@@ -56,7 +45,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     if (learningStatsVM.errorMessage != null) {
       return Center(
         child: ErrorDisplay(
-          // ErrorDisplay should ideally use theme internally
           message: learningStatsVM.errorMessage!,
           onRetry:
               () =>
@@ -71,7 +59,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
       return Center(
         child: Text(
           'No statistics available',
-          // Use theme text style and onSurface color
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurface.withValues(
               alpha: 0.7,
@@ -83,7 +70,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppDimens.paddingL),
-      // Pass theme to the details builder
       child: _buildCategoryDetails(context, stats, theme),
     );
   }
@@ -93,7 +79,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     LearningStatsDTO stats,
     ThemeData theme,
   ) {
-    // Pass theme down to specific detail builders
     switch (category) {
       case StatCategory.modules:
         return _buildModuleDetails(context, stats, theme);
@@ -106,14 +91,12 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     }
   }
 
-  // --- Detail Section Builders ---
 
   Widget _buildModuleDetails(
     BuildContext context,
     LearningStatsDTO stats,
     ThemeData theme,
   ) {
-    // Use theme passed as argument
 
     final notStudiedCount = stats.cycleStats['NOT_STUDIED'] ?? 0;
     final firstTimeCount = stats.cycleStats['FIRST_TIME'] ?? 0;
@@ -127,7 +110,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             ? '${((firstTimeCount / stats.totalModules) * 100).toStringAsFixed(1)}%'
             : 'N/A';
 
-    // Define semantic colors based on theme (example mapping)
     final Color successColor =
         theme.brightness == Brightness.light
             ? const Color(0xFF4CAF50)
@@ -230,8 +212,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     LearningStatsDTO stats,
     ThemeData theme,
   ) {
-    // Use theme passed as argument
-    // Define semantic colors based on theme (example mapping)
     final Color successColor =
         theme.brightness == Brightness.light
             ? const Color(0xFF4CAF50)
@@ -374,8 +354,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     LearningStatsDTO stats,
     ThemeData theme,
   ) {
-    // Use theme passed as argument
-    // Define semantic colors based on theme (example mapping)
     final Color warningColor =
         theme.brightness == Brightness.light
             ? const Color(0xFFFFC107)
@@ -446,7 +424,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         Text('Streak Benefits', style: theme.textTheme.titleLarge),
         const SizedBox(height: AppDimens.spaceL),
         Card(
-          // Card theme applied automatically
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
@@ -466,7 +443,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                   '• Increases effectiveness of spaced repetition\n'
                   '• Helps achieve learning goals faster',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    // Use theme's onSurface color, perhaps slightly less prominent
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
                   ),
                 ),
@@ -483,8 +459,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     LearningStatsDTO stats,
     ThemeData theme,
   ) {
-    // Use theme passed as argument
-    // Define semantic colors based on theme (example mapping)
     final Color successColor =
         theme.brightness == Brightness.light
             ? const Color(0xFF4CAF50)
@@ -569,7 +543,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
         ),
         const SizedBox(height: AppDimens.spaceXL),
         Card(
-          // Card theme applied automatically
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
@@ -589,7 +562,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                   '• Group related words together\n'
                   '• Review right before sleep for better retention',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    // Use theme's onSurface color, perhaps slightly less prominent
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
                   ),
                 ),
@@ -601,7 +573,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     );
   }
 
-  // --- Helper Widgets ---
 
   Widget _buildProgressBar(
     BuildContext context,
@@ -611,7 +582,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     int total,
     Color color, // Color remains specific for emphasis
   ) {
-    // Use theme passed as argument
     final percentage = total > 0 ? completed / total : 0.0;
     final percentageText = (percentage * 100).toStringAsFixed(1);
 
@@ -637,11 +607,9 @@ class DetailedLearningStatsScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           child: LinearProgressIndicator(
             value: percentage,
-            // Use theme's track color
             backgroundColor:
                 theme.progressIndicatorTheme.linearTrackColor ??
                 theme.colorScheme.surfaceContainerHighest,
-            // Keep specific value color
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: AppDimens.lineProgressHeightL,
           ),
@@ -662,10 +630,8 @@ class DetailedLearningStatsScreen extends StatelessWidget {
     bool showSecondaryInfo = false,
     String secondaryInfo = '',
   }) {
-    // Use theme passed as argument
 
     return Card(
-      // Card theme applied automatically
       margin: const EdgeInsets.only(bottom: AppDimens.spaceL), // Keep margin
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -681,7 +647,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
                 ), // Use specific color for icon
                 const SizedBox(width: AppDimens.spaceS),
                 Expanded(
-                  // Use theme text style for title
                   child: Text(title, style: theme.textTheme.titleMedium),
                 ),
               ],
@@ -689,7 +654,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             const SizedBox(height: AppDimens.spaceS),
             Text(
               value,
-              // Use theme text style, but override color for emphasis
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color, // Use specific color for value
@@ -699,10 +663,8 @@ class DetailedLearningStatsScreen extends StatelessWidget {
               const SizedBox(height: AppDimens.spaceXS),
               Text(
                 secondaryInfo,
-                // Use theme text style, but adjust color based on the main emphasis color
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontStyle: FontStyle.italic,
-                  // Make secondary info slightly less prominent than main value color
                   color: color.withValues(alpha: 0.85),
                 ),
               ),
@@ -710,7 +672,6 @@ class DetailedLearningStatsScreen extends StatelessWidget {
             const SizedBox(height: AppDimens.spaceS),
             Text(
               description,
-              // Use theme text style and color for description
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(
                   alpha: 0.7,
@@ -726,15 +687,5 @@ class DetailedLearningStatsScreen extends StatelessWidget {
   }
 }
 
-/// Categories of learning statistics for detail views
 enum StatCategory { modules, dueSessions, streaks, vocabulary }
 
-// Helper extension (optional, if you prefer .withValues over .withOpacity)
-// extension ColorAlpha on Color {
-//   Color withValues({double? alpha}) {
-//     if (alpha != null) {
-//       return withOpacity(alpha ?? 1.0);
-//     }
-//     return this;
-//   }
-// }

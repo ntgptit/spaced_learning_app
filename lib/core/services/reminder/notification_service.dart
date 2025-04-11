@@ -1,4 +1,3 @@
-// lib/core/services/reminder/notification_service.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
@@ -7,7 +6,6 @@ import 'package:spaced_learning_app/core/services/reminder/device_specific_servi
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Service for handling local notifications in the app
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -18,48 +16,39 @@ class NotificationService {
     : _deviceSpecificService =
           deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
 
-  // Channel IDs
   static const String regularChannelId = 'spaced_learning_reminders';
   static const String importantChannelId =
       'spaced_learning_important_reminders';
   static const String alarmChannelId = 'spaced_learning_alarms';
 
-  // Notification IDs
   static const int noonReminderId = 1001;
   static const int eveningFirstReminderId = 1002;
   static const int eveningSecondReminderId = 1003;
   static const int endOfDayReminderId = 1004;
 
-  /// Initialize the notification service based on device
   Future<bool> initialize() async {
     if (_isInitialized) return true;
 
     try {
-      // Initialize timezone data
       tz.initializeTimeZones();
 
-      // Get local timezone
       final String timeZoneName = tz.local.name;
       debugPrint('Local timezone: $timeZoneName');
 
-      // Android initialization settings with device-specific adjustments
       final AndroidInitializationSettings androidSettings =
           _getAndroidSettings();
 
-      // iOS initialization settings
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: true,
         requestBadgePermission: true,
         requestSoundPermission: true,
       );
 
-      // Initialize settings
       final initSettings = InitializationSettings(
         android: androidSettings,
         iOS: iosSettings,
       );
 
-      // Initialize plugin
       final bool? initialized = await _notificationsPlugin.initialize(
         initSettings,
         onDidReceiveNotificationResponse: _onNotificationTapped,
@@ -70,18 +59,14 @@ class NotificationService {
         return false;
       }
 
-      // Create notification channels for Android
       final bool channelsCreated = await _createNotificationChannels();
       if (!channelsCreated) {
         debugPrint('Warning: Failed to create notification channels');
-        // Continue despite failure to create channels
       }
 
-      // Request permissions
       final bool permissionsGranted = await _requestPermissions();
       if (!permissionsGranted) {
         debugPrint('Warning: Notification permissions not granted');
-        // Continue despite permission issues
       }
 
       _isInitialized = true;
@@ -92,25 +77,18 @@ class NotificationService {
     }
   }
 
-  /// Get Android settings based on device type
   AndroidInitializationSettings _getAndroidSettings() {
-    // Different icon or setup based on device manufacturer or Android version
     if (_deviceSpecificService.isSamsungDevice) {
-      // Samsung-specific settings
       return const AndroidInitializationSettings('app_icon_samsung');
     } else {
-      // Default settings
       return const AndroidInitializationSettings('app_icon');
     }
   }
 
-  /// Create notification channels with device-specific adjustments
   Future<bool> _createNotificationChannels() async {
-    // Skip this method on non-Android devices
     if (!_deviceSpecificService.isAndroid) return true;
 
     try {
-      // Base channels for all Android devices
       const regularChannel = AndroidNotificationChannel(
         regularChannelId,
         'Learning Reminders',
@@ -136,20 +114,16 @@ class NotificationService {
         enableVibration: true,
       );
 
-      // lib/core/services/reminder/notification_service.dart (tiếp tục)
       final androidPlugin =
           _notificationsPlugin
               .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin
               >();
 
-      // Create base channels
-      // Bằng đoạn code sau
       await androidPlugin?.createNotificationChannel(regularChannel);
       await androidPlugin?.createNotificationChannel(importantChannel);
       await androidPlugin?.createNotificationChannel(alarmChannel);
 
-      // For Samsung devices, create additional channels if needed
       if (_deviceSpecificService.isSamsungDevice) {
         await _createSamsungSpecificChannels(androidPlugin!);
       }
@@ -161,12 +135,10 @@ class NotificationService {
     }
   }
 
-  /// Create Samsung-specific notification channels
   Future<bool> _createSamsungSpecificChannels(
     AndroidFlutterLocalNotificationsPlugin plugin,
   ) async {
     try {
-      // Samsung devices sometimes need specific channels for Edge lighting, etc.
       const samsungChannel = AndroidNotificationChannel(
         'samsung_specific_channel',
         'Samsung Special Notifications',
@@ -182,10 +154,8 @@ class NotificationService {
     }
   }
 
-  /// Request notification permissions
   Future<bool> _requestPermissions() async {
     try {
-      // Request permissions for iOS
       if (!_deviceSpecificService.isAndroid) {
         final ios =
             _notificationsPlugin
@@ -201,7 +171,6 @@ class NotificationService {
         return result ?? false;
       }
 
-      // Android permissions are handled in the manifest
       return true;
     } catch (e) {
       debugPrint('Error requesting notification permissions: $e');
@@ -209,16 +178,11 @@ class NotificationService {
     }
   }
 
-  /// Handle notification taps
   void _onNotificationTapped(NotificationResponse response) {
-    // Handle the notification tap based on the payload
     debugPrint('Notification tapped: ${response.payload}');
 
-    // You can navigate to specific screens based on the payload
-    // Example: navigatorKey.currentState?.pushNamed('/learning', arguments: response.payload);
   }
 
-  /// Show a basic notification immediately
   Future<bool> showNotification({
     required int id,
     required String title,
@@ -232,7 +196,6 @@ class NotificationService {
     }
 
     try {
-      // Create Android-specific details
       final androidDetails = AndroidNotificationDetails(
         isImportant ? importantChannelId : regularChannelId,
         isImportant ? 'Important Reminders' : 'Learning Reminders',
@@ -248,20 +211,17 @@ class NotificationService {
                 : AndroidNotificationCategory.message,
       );
 
-      // Create iOS-specific details
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
       );
 
-      // Create notification details
       final details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
 
-      // Show the notification
       await _notificationsPlugin.show(
         id,
         title,
@@ -277,7 +237,6 @@ class NotificationService {
     }
   }
 
-  /// Schedule a notification for a specific time
   Future<bool> scheduleNotification({
     required int id,
     required String title,
@@ -293,7 +252,6 @@ class NotificationService {
     }
 
     try {
-      // Create Android-specific details
       final androidDetails = AndroidNotificationDetails(
         isAlarmStyle
             ? alarmChannelId
@@ -332,26 +290,22 @@ class NotificationService {
                     : null),
       );
 
-      // Create iOS-specific details
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
       );
 
-      // Create notification details
       final details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
 
-      // Convert scheduledTime to TZDateTime
       final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(
         scheduledTime,
         tz.local,
       );
 
-      // Schedule the notification
       await _notificationsPlugin.zonedSchedule(
         id,
         title,
@@ -377,7 +331,6 @@ class NotificationService {
     }
   }
 
-  /// Cancel a specific notification
   Future<bool> cancelNotification(int id) async {
     try {
       await _notificationsPlugin.cancel(id);
@@ -389,7 +342,6 @@ class NotificationService {
     }
   }
 
-  /// Cancel all notifications
   Future<bool> cancelAllNotifications() async {
     try {
       await _notificationsPlugin.cancelAll();
@@ -401,7 +353,6 @@ class NotificationService {
     }
   }
 
-  /// Schedule a notification for the noon reminder
   Future<bool> scheduleNoonReminder() async {
     final now = DateTime.now();
     final scheduledTime = DateTime(
@@ -412,7 +363,6 @@ class NotificationService {
       AppConstants.noonReminderMinute,
     );
 
-    // If the time has already passed today, schedule for tomorrow
     final effectiveTime =
         scheduledTime.isBefore(now)
             ? scheduledTime.add(const Duration(days: 1))
@@ -427,7 +377,6 @@ class NotificationService {
     );
   }
 
-  /// Schedule a notification for the first evening reminder
   Future<bool> scheduleEveningFirstReminder() async {
     final now = DateTime.now();
     final scheduledTime = DateTime(
@@ -438,7 +387,6 @@ class NotificationService {
       AppConstants.eveningFirstReminderMinute,
     );
 
-    // If the time has already passed today, schedule for tomorrow
     final effectiveTime =
         scheduledTime.isBefore(now)
             ? scheduledTime.add(const Duration(days: 1))
@@ -453,7 +401,6 @@ class NotificationService {
     );
   }
 
-  /// Schedule a notification for the second evening reminder
   Future<bool> scheduleEveningSecondReminder() async {
     final now = DateTime.now();
     final scheduledTime = DateTime(
@@ -464,7 +411,6 @@ class NotificationService {
       AppConstants.eveningSecondReminderMinute,
     );
 
-    // If the time has already passed today, schedule for tomorrow
     final effectiveTime =
         scheduledTime.isBefore(now)
             ? scheduledTime.add(const Duration(days: 1))
@@ -479,7 +425,6 @@ class NotificationService {
     );
   }
 
-  /// Schedule a notification for the end-of-day reminder
   Future<bool> scheduleEndOfDayReminder({bool useAlarmStyle = false}) async {
     final now = DateTime.now();
     final scheduledTime = DateTime(
@@ -490,7 +435,6 @@ class NotificationService {
       AppConstants.endOfDayReminderMinute,
     );
 
-    // If the time has already passed today, schedule for tomorrow
     final effectiveTime =
         scheduledTime.isBefore(now)
             ? scheduledTime.add(const Duration(days: 1))
@@ -506,6 +450,5 @@ class NotificationService {
     );
   }
 
-  /// Check if service is initialized
   bool get isInitialized => _isInitialized;
 }

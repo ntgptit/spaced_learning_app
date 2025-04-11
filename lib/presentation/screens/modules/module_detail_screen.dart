@@ -1,4 +1,3 @@
-// lib/presentation/screens/modules/module_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +40,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final module = moduleViewModel.selectedModule;
     if (module == null) return;
 
-    // Kiểm tra rõ ràng hơn về progress
     if (module.progress.isNotEmpty) {
       final progressId = module.progress[0].id;
       await progressViewModel.loadProgressDetails(progressId);
@@ -50,7 +48,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       await progressViewModel.loadModuleProgress(moduleId);
     }
 
-    // Log sau khi tất cả quá trình tải đã hoàn tất
     debugPrint(
       'After loading - Progress exists: ${progressViewModel.selectedProgress != null}',
     );
@@ -115,7 +112,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
   void _navigateToProgress(String progressId) {
     if (mounted) {
-      // Cập nhật điều hướng với GoRouter
       GoRouter.of(context).push('/learning/progress/$progressId');
     }
   }
@@ -126,7 +122,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final progressViewModel = context.watch<ProgressViewModel>();
     final module = moduleViewModel.selectedModule;
 
-    // Kiểm tra cả hai nơi có thể chứa thông tin progress
     final bool hasProgress =
         progressViewModel.selectedProgress != null ||
         (module?.progress != null && module!.progress.isNotEmpty);
@@ -145,7 +140,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
         onRefresh: _loadData,
         onProgressTap: _navigateToProgress,
       ),
-      // Cải tiến điều kiện hiển thị
       floatingActionButton:
           module != null && !hasProgress
               ? FloatingActionButton.extended(

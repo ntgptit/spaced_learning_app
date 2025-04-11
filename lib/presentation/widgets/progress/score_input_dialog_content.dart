@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Dialog content for inputting test scores, styled with AppTheme.
 class ScoreInputDialogContent extends StatefulWidget {
   final double initialScore; // Điểm khởi tạo, mặc định là 80
   final ValueChanged<double> onScoreChangedFinal; // Callback khi xác nhận
@@ -55,7 +54,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
               extentOffset: selection.extentOffset.clamp(0, textValue.length),
             );
           } catch (e) {
-            // Bỏ qua lỗi nếu vị trí con trỏ không hợp lệ
           }
         }
       });
@@ -177,7 +175,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
   }
 }
 
-/// A button for quickly selecting predefined scores (Styled with M3)
 class _ScoreButton extends StatelessWidget {
   final int score;
   final bool isSelected;

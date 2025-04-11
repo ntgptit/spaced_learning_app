@@ -1,10 +1,6 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'progress.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
 
 _ProgressSummary _$ProgressSummaryFromJson(Map<String, dynamic> json) =>
     _ProgressSummary(

@@ -1,4 +1,3 @@
-// lib/core/services/reminder/reminder_manager.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
@@ -7,7 +6,6 @@ import 'package:spaced_learning_app/core/services/reminder/notification_service.
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 
-/// Manager for handling all reminder-related operations
 class ReminderManager {
   final NotificationService _notificationService;
   final StorageService _storageService;
@@ -15,7 +13,6 @@ class ReminderManager {
   final DeviceSpecificService _deviceSpecificService;
   bool _isInitialized = false;
 
-  // Preference keys
   static const String _enabledKey = 'reminders_enabled';
   static const String _noonReminderKey = 'noon_reminder_enabled';
   static const String _eveningFirstReminderKey =
@@ -24,14 +21,12 @@ class ReminderManager {
       'evening_second_reminder_enabled';
   static const String _endOfDayReminderKey = 'end_of_day_reminder_enabled';
 
-  // Default settings
   bool _remindersEnabled = true;
   bool _noonReminderEnabled = true;
   bool _eveningFirstReminderEnabled = true;
   bool _eveningSecondReminderEnabled = true;
   bool _endOfDayReminderEnabled = true;
 
-  // Constructor
   ReminderManager({
     NotificationService? notificationService,
     StorageService? storageService,
@@ -45,31 +40,24 @@ class ReminderManager {
        _deviceSpecificService =
            deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
 
-  /// Initialize the reminder manager
   Future<bool> initialize() async {
     if (_isInitialized) return true;
 
     try {
-      // Load user preferences
       await _loadPreferences();
 
-      // Initialize notification service
       final bool notificationsInitialized =
           await _notificationService.initialize();
       if (!notificationsInitialized) {
         debugPrint('Warning: Failed to initialize notification service');
-        // Continue anyway
       }
 
-      // Initialize device-specific services
       final bool deviceServicesInitialized =
           await _deviceSpecificService.initialize();
       if (!deviceServicesInitialized) {
         debugPrint('Warning: Failed to initialize device-specific services');
-        // Continue anyway
       }
 
-      // Schedule initial reminders if enabled
       if (_remindersEnabled) {
         await scheduleAllReminders();
       }
@@ -82,7 +70,6 @@ class ReminderManager {
     }
   }
 
-  /// Load reminder preferences from storage
   Future<void> _loadPreferences() async {
     try {
       final _ = await SharedPreferences.getInstance();
@@ -105,11 +92,9 @@ class ReminderManager {
       debugPrint('- End of day: $_endOfDayReminderEnabled');
     } catch (e) {
       debugPrint('Error loading reminder preferences: $e');
-      // Use default values
     }
   }
 
-  /// Save reminder preferences to storage
   Future<bool> _savePreferences() async {
     try {
       await _storageService.setBool(_enabledKey, _remindersEnabled);
@@ -133,10 +118,8 @@ class ReminderManager {
     }
   }
 
-  /// Check if the user has pending tasks for today
   Future<bool> hasPendingTasksToday() async {
     try {
-      // Get the current user ID
       final userData = await _storageService.getUserData();
       final userId = userData?['id'];
 
@@ -145,13 +128,11 @@ class ReminderManager {
         return false; // Not logged in
       }
 
-      // Load due progress for today
       await _progressViewModel.loadDueProgress(
         userId.toString(),
         studyDate: DateTime.now(),
       );
 
-      // Check if there are any due tasks
       final hasTasks = _progressViewModel.progressRecords.isNotEmpty;
       debugPrint('Pending tasks check: ${hasTasks ? 'Has tasks' : 'No tasks'}');
       return hasTasks;
@@ -161,7 +142,6 @@ class ReminderManager {
     }
   }
 
-  /// Schedule all reminders with device-specific optimizations
   Future<bool> scheduleAllReminders() async {
     try {
       if (!_isInitialized) {
@@ -172,26 +152,21 @@ class ReminderManager {
         }
       }
 
-      // Cancel existing reminders first
       await _notificationService.cancelAllNotifications();
 
-      // Only proceed if reminders are globally enabled
       if (!_remindersEnabled) {
         debugPrint('Reminders are disabled, not scheduling any reminders');
         return true;
       }
 
-      // Schedule noon reminder (always shows regardless of pending tasks)
       if (_noonReminderEnabled) {
         final bool noonResult =
             await _notificationService.scheduleNoonReminder();
         debugPrint('Noon reminder scheduled: $noonResult');
       }
 
-      // Check if the user has pending tasks
       final hasPendingTasks = await hasPendingTasksToday();
 
-      // Only schedule evening and end-of-day reminders if there are pending tasks
       if (hasPendingTasks) {
         if (_eveningFirstReminderEnabled) {
           final bool eveningFirstResult =
@@ -206,7 +181,6 @@ class ReminderManager {
         }
 
         if (_endOfDayReminderEnabled) {
-          // For end-of-day reminders, use alarm style only on compatible devices
           final useAlarmStyle =
               _deviceSpecificService.isAndroid &&
               (_deviceSpecificService.isSamsungDevice ||
@@ -231,13 +205,10 @@ class ReminderManager {
     }
   }
 
-  /// Update reminders after task completion
   Future<bool> updateRemindersAfterTaskCompletion() async {
     try {
-      // Check if there are still pending tasks
       final stillHasPendingTasks = await hasPendingTasksToday();
 
-      // If all tasks are completed, cancel the evening and end-of-day reminders
       if (!stillHasPendingTasks) {
         debugPrint(
           'All tasks completed, cancelling evening and end-of-day reminders',
@@ -259,7 +230,6 @@ class ReminderManager {
     }
   }
 
-  // Getters for current settings
   bool get remindersEnabled => _remindersEnabled;
   bool get noonReminderEnabled => _noonReminderEnabled;
   bool get eveningFirstReminderEnabled => _eveningFirstReminderEnabled;
@@ -267,7 +237,6 @@ class ReminderManager {
   bool get endOfDayReminderEnabled => _endOfDayReminderEnabled;
   bool get isInitialized => _isInitialized;
 
-  // Setters with automatic scheduling
   Future<bool> setRemindersEnabled(bool value) async {
     if (_remindersEnabled == value) return true;
 

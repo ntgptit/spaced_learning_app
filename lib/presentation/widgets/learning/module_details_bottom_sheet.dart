@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// Verwijder import AppColors als het niet meer nodig is na refactoring
-// import 'package:spaced_learning_app/core/theme/app_colors.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Aangenomen dat dit bestaat
 import 'package:spaced_learning_app/domain/models/learning_module.dart'; // Zorg voor correct pad
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
@@ -25,27 +23,20 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     final colorScheme = theme.colorScheme; // Haal ColorScheme op
     final textTheme = theme.textTheme; // Haal TextTheme op
     final mediaQuery = MediaQuery.of(context);
-    // isDark is niet meer nodig, ColorScheme handelt dit af
-    // final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       key: const Key('module_details_bottom_sheet'),
-      // Gebruik M3 aanbevolen kleur voor bottom sheet achtergrond
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow, // Gebruik M3 rol
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppDimens.radiusL), // Bovenste hoeken afronden
         ),
-        // Schaduw/tint wordt idealiter beheerd door BottomSheetThemeData
-        // (geconfigureerd door FlexColorScheme subThemes)
       ),
-      // constraints moeten buiten worden ingesteld bij het aanroepen van showModalBottomSheet
       child: Column(
         mainAxisSize: MainAxisSize.min, // Krimpen naar inhoud
         children: [
           _buildDragHandle(colorScheme), // Geef alleen colorScheme door
           Flexible(
-            // Toestaan dat inhoud scrollt indien nodig
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
                 left: AppDimens.paddingL,
@@ -105,7 +96,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         width: AppDimens.moduleIndicatorSize,
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
-          // Gebruik M3 rol voor drag handle
           color: colorScheme.onSurfaceVariant.withValues(
             alpha: 0.4,
           ), // Standaard M3 stijl
@@ -199,7 +189,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     BuildContext context, // Behoud context voor MediaQuery
     ColorScheme colorScheme,
     TextTheme textTheme,
-    // isDark verwijderd
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +207,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               context, // Doorgeven voor breedteberekening
               colorScheme,
               textTheme,
-              // isDark verwijderd
               'Word Count',
               module.moduleWordCount.toString(),
               Icons.text_fields,
@@ -230,38 +218,32 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 context, // Doorgeven
                 colorScheme,
                 textTheme,
-                // isDark verwijderd
                 'Progress',
                 '${module.progressLatestPercentComplete}%',
                 Icons.show_chart_outlined,
                 progressValue: module.progressLatestPercentComplete! / 100.0,
                 key: const Key('progress_item'),
               ),
-            // *** FIX IS HERE: Check for null and use the CycleStudied? type directly ***
             if (module.progressCyclesStudied != null)
               _buildDetailItem(
                 context,
                 colorScheme,
                 textTheme,
                 'Cycle',
-                // Pass the CycleStudied? value directly, no cast needed
                 CycleFormatter.format(module.progressCyclesStudied!),
                 Icons.autorenew,
                 color: CycleFormatter.getColor(
-                  // Pass the CycleStudied? value directly, no cast needed
                   module.progressCyclesStudied!,
                   context,
                 ),
                 key: const Key('cycle_item'),
               ),
 
-            // *** END FIX ***
             if (module.progressDueTaskCount > 0)
               _buildDetailItem(
                 context, // Doorgeven
                 colorScheme,
                 textTheme,
-                // isDark verwijderd
                 'Tasks',
                 module.progressDueTaskCount.toString(),
                 Icons.checklist_outlined,
@@ -277,7 +259,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     BuildContext context, // Voor MediaQuery
     ColorScheme colorScheme,
     TextTheme textTheme,
-    // isDark verwijderd
     String label,
     String value,
     IconData icon, {
@@ -287,18 +268,15 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }) {
     final effectiveColor =
         color ?? colorScheme.primary; // Gebruik override of primary
-    // M3 kleuren voor achtergrond en rand
     final bgColor =
         colorScheme.surfaceContainerLowest; // Zeer subtiele achtergrond
     final borderColor = colorScheme.outlineVariant; // Zeer subtiele rand
 
-    // Responsive breedteberekening
     final screenWidth = MediaQuery.of(context).size.width;
     final availableWidth =
         screenWidth - (AppDimens.paddingL * 2) - AppDimens.spaceL;
     final itemWidth = availableWidth / 2; // Ca. 2 items per rij
 
-    // Progress Bar Kleur Bepaling (zoals eerder)
     Color progressIndicatorColor = colorScheme.error; // Standaard (laagste)
     if (progressValue != null) {
       if (progressValue >= 0.9) {
@@ -348,7 +326,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: AppDimens.spaceS),
-          // Progress Indicator (indien aanwezig)
           if (progressValue != null)
             LinearProgressIndicator(
               value: progressValue,
@@ -359,7 +336,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               minHeight: AppDimens.lineProgressHeight,
             )
           else
-            // Placeholder om hoogte consistent te houden
             const SizedBox(height: AppDimens.lineProgressHeight),
         ],
       ),
@@ -395,7 +371,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             'Next Study',
             module.progressNextStudyDate!,
             Icons.event_available_outlined,
-            // Bepaal isDue (vandaag of gisteren)
             isDue:
                 DateUtils.isSameDay(
                   module.progressNextStudyDate,
@@ -405,20 +380,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             key: const Key('next_study_date'),
           ),
         ],
-        // Note: The original code had a 'Last Study' section that also used progressNextStudyDate.
-        // This seems like a mistake. If you have a 'lastStudiedDate' field, use that instead.
-        // If not, remove this section or adjust the logic. Assuming removal for now:
-        // if (module.progressNextStudyDate != null) ...[
-        //   const SizedBox(height: AppDimens.spaceL),
-        //   _buildDateItem(
-        //     colorScheme,
-        //     textTheme,
-        //     'Last Study', // Should likely be a different date field
-        //     module.progressNextStudyDate!,
-        //     Icons.history_outlined,
-        //     key: const Key('last_study_date'),
-        //   ),
-        // ],
       ],
     );
   }
@@ -432,7 +393,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     bool isDue = false,
     Key? key,
   }) {
-    // Gebruik thema kleuren, error indien 'isDue'
     final Color effectiveColor =
         isDue ? colorScheme.error : colorScheme.primary;
     final Color labelColor = colorScheme.onSurfaceVariant;
@@ -467,7 +427,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         if (isDue)
           Padding(
             padding: const EdgeInsets.only(left: AppDimens.spaceS),
-            // Gebruik standaard Chip met M3 error container kleuren
             child: Chip(
               label: const Text('Due'), // Simpel label
               labelStyle: textTheme.labelSmall?.copyWith(
@@ -487,7 +446,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
-    // Sort and limit history (logic unchanged, ensure studyHistory is DateTime list)
     final studyHistory =
         (module.studyHistory)
             .map(
@@ -550,7 +508,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             final itemDate = DateUtils.dateOnly(date);
             final isToday = itemDate.isAtSameMomentAs(today);
 
-            // Use M3 colors consistently
             final Color bgColor;
             final Color fgColor;
             final Border border;
@@ -596,7 +553,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    // Buttons use themes automatically configured by FlexColorScheme
     return Padding(
       padding: const EdgeInsets.only(top: AppDimens.paddingL),
       child: Row(
@@ -607,7 +563,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             icon: const Icon(Icons.close),
             label: const Text('Close'),
             onPressed: () => Navigator.pop(context),
-            // No explicit style needed here
           ),
           const SizedBox(width: AppDimens.spaceM),
           ElevatedButton.icon(
@@ -616,7 +571,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             label: const Text('Start Studying'),
             onPressed: () {
               Navigator.pop(context); // Close bottom sheet
-              // Navigate to detail screen (logic unchanged)
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -626,7 +580,6 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 ),
               );
             },
-            // No explicit style needed here
           ),
         ],
       ),

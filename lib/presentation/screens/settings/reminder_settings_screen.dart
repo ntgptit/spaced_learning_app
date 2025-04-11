@@ -3,7 +3,6 @@ import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-// Centralized reminder schedule configuration
 class ReminderConfig {
   static const String noonTime = '12:30 PM';
   static const String eveningFirstTime = '9:00 PM';
@@ -22,7 +21,6 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
   final ReminderManager _reminderManager = serviceLocator<ReminderManager>();
   bool _isLoading = false;
 
-  // Local state for the switches
   bool _remindersEnabled = true;
   bool _noonReminderEnabled = true;
   bool _eveningFirstReminderEnabled = true;
@@ -35,7 +33,6 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
     _loadSettings();
   }
 
-  /// Loads initial reminder settings from ReminderManager and updates the UI.
   Future<void> _loadSettings() async {
     setState(() => _isLoading = true);
     try {
@@ -56,7 +53,6 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
     }
   }
 
-  /// Updates the reminder state and ensures UI reflects the change.
   Future<void> _updateReminderSetting(
     Future<void> Function() updateFunc,
     Function(bool) onSuccess,
@@ -292,7 +288,6 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
   }
 }
 
-/// A reusable widget for reminder switches.
 class _CustomReminderSwitch extends StatelessWidget {
   final String title;
   final String subtitle;

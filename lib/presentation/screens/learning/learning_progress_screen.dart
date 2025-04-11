@@ -24,7 +24,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Delay initialization to avoid build-time state changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeViewModel();
     });
@@ -33,16 +32,13 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Check if this is the first load
     if (_isFirstLoad) {
       _isFirstLoad = false;
-      // The initialization is already handled in initState
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh data when app comes to foreground
     if (state == AppLifecycleState.resumed) {
       _refreshData();
     }
@@ -58,7 +54,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   void _initializeViewModel() {
     if (!mounted) return;
 
-    // Use a Future.microtask to avoid build-time state changes
     Future.microtask(() {
       if (!mounted) return;
 
@@ -71,7 +66,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         'LearningProgressScreen: Initializing view model - isInitialized=${viewModel.isInitialized}',
       );
 
-      // Always load data when this screen appears, regardless of initialization state
       viewModel.loadData();
     });
   }
@@ -103,9 +97,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       lastDate: DateTime(2026),
     );
 
-    // Only update if a date was selected and it's different
     if (picked != null && picked != viewModel.selectedDate && mounted) {
-      // Schedule state update after the current frame
       Future.microtask(() {
         if (!mounted) return;
         viewModel.setSelectedDate(picked);
@@ -156,7 +148,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     );
   }
 
-  // Safe refresh method
   void _safeRefreshData() {
     if (!mounted) return;
 
@@ -238,7 +229,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       books: viewModel.getUniqueBooks(),
       onBookChanged: (value) {
         if (value != null) {
-          // Safe state update
           Future.microtask(() {
             if (!mounted) return;
             viewModel.setSelectedBook(value);
@@ -247,7 +237,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       },
       onDateSelected: () => _selectDate(context, viewModel),
       onDateCleared: () {
-        // Safe state update
         Future.microtask(() {
           if (!mounted) return;
           viewModel.clearDateFilter();

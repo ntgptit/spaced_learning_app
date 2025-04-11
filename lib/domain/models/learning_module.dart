@@ -1,11 +1,7 @@
-// lib/domain/models/learning_module.dart
 import 'package:spaced_learning_app/domain/models/progress.dart'; // Import CycleStudied enum
 
-// Helper function to parse CycleStudied from String based on @JsonValue
-// (Place this inside the class or make it top-level)
 CycleStudied? _parseCycleStudied(String? value) {
   if (value == null) return null;
-  // Mapping based on @JsonValue in progress.dart
   const map = {
     'FIRST_TIME': CycleStudied.firstTime,
     'FIRST_REVIEW': CycleStudied.firstReview,
@@ -16,10 +12,8 @@ CycleStudied? _parseCycleStudied(String? value) {
   return map[value.toUpperCase()]; // Case-insensitive matching
 }
 
-// Helper function to serialize CycleStudied to String based on @JsonValue
 String? _serializeCycleStudied(CycleStudied? cycle) {
   if (cycle == null) return null;
-  // Mapping based on @JsonValue in progress.dart
   const map = {
     CycleStudied.firstTime: 'FIRST_TIME',
     CycleStudied.firstReview: 'FIRST_REVIEW',
@@ -30,14 +24,12 @@ String? _serializeCycleStudied(CycleStudied? cycle) {
   return map[cycle];
 }
 
-/// Model representing a learning module in the learning progress interface
 class LearningModule {
   final String bookName;
   final int bookNo;
   final String moduleTitle;
   final int moduleNo;
   final int moduleWordCount;
-  // *** CHANGE TYPE HERE ***
   final CycleStudied? progressCyclesStudied; // Changed from String?
   final DateTime? progressNextStudyDate;
   final DateTime? progressFirstLearningDate;
@@ -62,7 +54,6 @@ class LearningModule {
     required this.studyHistory,
   });
 
-  /// Factory method to create a LearningModule from JSON
   factory LearningModule.fromJson(Map<String, dynamic> json) {
     return LearningModule(
       bookName: json['bookName'] ?? '',
@@ -70,7 +61,6 @@ class LearningModule {
       moduleTitle: json['moduleTitle'] ?? '',
       moduleNo: json['moduleNo'] ?? 0,
       moduleWordCount: json['moduleWordCount'] ?? 0,
-      // *** UPDATE PARSING HERE ***
       progressCyclesStudied: _parseCycleStudied(
         json['progressCyclesStudied'] as String?,
       ),
@@ -88,7 +78,6 @@ class LearningModule {
           json['progressLatestPercentComplete'] as int?,
       progressDueTaskCount: json['progressDueTaskCount'] ?? 0,
       moduleId: json['moduleId'] ?? '',
-      // Ensure studyHistory parsing handles potential non-string elements safely
       studyHistory:
           (json['studyHistory'] as List<dynamic>?)
               ?.map((e) => e.toString())
@@ -97,7 +86,6 @@ class LearningModule {
     );
   }
 
-  /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'bookName': bookName,
@@ -105,7 +93,6 @@ class LearningModule {
       'moduleTitle': moduleTitle,
       'moduleNo': moduleNo,
       'moduleWordCount': moduleWordCount,
-      // *** UPDATE SERIALIZATION HERE ***
       'progressCyclesStudied': _serializeCycleStudied(progressCyclesStudied),
       'progressNextStudyDate': progressNextStudyDate?.toIso8601String(),
       'progressFirstLearningDate': progressFirstLearningDate?.toIso8601String(),
@@ -116,7 +103,6 @@ class LearningModule {
     };
   }
 
-  // --- Utility Methods remain the same ---
   bool isDueToday() {
     if (progressNextStudyDate == null) return false;
     final now = DateTime.now();
@@ -145,7 +131,6 @@ class LearningModule {
     if (progressNextStudyDate == null) return false;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    // Handle different start of week if necessary (e.g., Sunday vs Monday)
     final weekStart = today.subtract(
       Duration(days: today.weekday - 1),
     ); // Assuming Monday is 1
@@ -155,7 +140,6 @@ class LearningModule {
       progressNextStudyDate!.month,
       progressNextStudyDate!.day,
     );
-    // Check if the study date falls within the week boundaries (inclusive)
     return !studyDate.isBefore(weekStart) && !studyDate.isAfter(weekEnd);
   }
 

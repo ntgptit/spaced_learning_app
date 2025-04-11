@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Light [ColorScheme] made with FlexColorScheme v8.2.0.
-/// Requires Flutter 3.22.0 or later.
 const ColorScheme lightColorScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xFF166683),
@@ -52,8 +50,6 @@ const ColorScheme lightColorScheme = ColorScheme(
   surfaceTint: Color(0xFF166683),
 );
 
-/// Dark [ColorScheme] made with FlexColorScheme v8.2.0.
-/// Requires Flutter 3.22.0 or later.
 const ColorScheme darkColorScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color(0xFF8DCFF1),

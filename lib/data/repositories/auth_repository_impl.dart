@@ -5,7 +5,6 @@ import 'package:spaced_learning_app/core/network/api_client.dart';
 import 'package:spaced_learning_app/domain/models/auth_response.dart';
 import 'package:spaced_learning_app/domain/repositories/auth_repository.dart';
 
-/// Implementation of the AuthRepository interface
 class AuthRepositoryImpl implements AuthRepository {
   final ApiClient _apiClient;
 
@@ -16,7 +15,6 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final data = {'usernameOrEmail': usernameOrEmail, 'password': password};
 
-      // Debug trước khi gọi API
       debugPrint('Calling login API with usernameOrEmail: $usernameOrEmail');
 
       final response = await _apiClient.post(ApiEndpoints.login, data: data);
@@ -65,8 +63,6 @@ class AuthRepositoryImpl implements AuthRepository {
       final response = await _apiClient.post(ApiEndpoints.register, data: data);
 
       if (response['success'] == true && response['data'] != null) {
-        // For register, the API returns a user object, not an auth response
-        // We need to login after successful registration
         return login(email, password);
       } else {
         throw AuthenticationException(
@@ -122,8 +118,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   String? getUsernameFromToken(String token) {
-    // Note: Token decoding would normally be done here, but for this app
-    // we'll leave it to the server side
     return null;
   }
 }

@@ -1,10 +1,6 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'book.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
 
 _BookSummary _$BookSummaryFromJson(Map<String, dynamic> json) => _BookSummary(
   id: json['id'] as String,

@@ -4,7 +4,6 @@ import 'package:spaced_learning_app/domain/models/user.dart';
 part 'auth_response.freezed.dart';
 part 'auth_response.g.dart';
 
-/// Authentication response model
 @freezed
 abstract class AuthResponse with _$AuthResponse {
   const factory AuthResponse({

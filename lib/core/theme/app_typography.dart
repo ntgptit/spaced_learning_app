@@ -4,15 +4,9 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Import AppDi
 
 class AppTypography {
   static TextTheme getTextTheme(Brightness brightness) {
-    // Assuming GoogleFonts is correctly imported in pubspec.yaml
     final baseTextTheme = GoogleFonts.interTextTheme(); // Use this if available
-    // final baseTextTheme =
-    //     brightness == Brightness.light
-    //         ? Typography.material2021().black
-    //         : Typography.material2021().white; // Fallback
 
     final isLight = brightness == Brightness.light;
-    // Use onSurface color from theme eventually, but define base color here
     final textColor = isLight ? Colors.black87 : Colors.white;
     final subtleTextColor =
         isLight
@@ -20,7 +14,6 @@ class AppTypography {
             : Colors.white.withValues(alpha: AppDimens.opacityTextSubtle);
 
     return baseTextTheme.copyWith(
-      // Display styles
       displayLarge: baseTextTheme.displayLarge?.copyWith(
         fontSize: AppDimens.fontDisplayL, // 57.0
         fontWeight: FontWeight.w400,
@@ -41,7 +34,6 @@ class AppTypography {
         height: 1.22, // ~44/36
       ),
 
-      // Headline styles
       headlineLarge: baseTextTheme.headlineLarge?.copyWith(
         fontSize: AppDimens.fontHeadlineL, // 32.0
         fontWeight: FontWeight.w600, // Make headlines bolder
@@ -61,7 +53,6 @@ class AppTypography {
         height: 1.33, // ~32/24
       ),
 
-      // Title styles
       titleLarge: baseTextTheme.titleLarge?.copyWith(
         fontSize: AppDimens.fontTitle, // 22.0
         fontWeight: FontWeight.w600, // Keep titles bold
@@ -84,7 +75,6 @@ class AppTypography {
         height: 1.43, // ~20/14
       ),
 
-      // Body styles
       bodyLarge: baseTextTheme.bodyLarge?.copyWith(
         fontSize: AppDimens.fontXL, // 16.0
         fontWeight: FontWeight.w400,
@@ -103,12 +93,10 @@ class AppTypography {
         fontSize: AppDimens.fontM, // 12.0
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
-        // Use subtle text color with defined opacity
         color: subtleTextColor, // Updated
         height: 1.33, // ~16/12
       ),
 
-      // Label styles
       labelLarge: baseTextTheme.labelLarge?.copyWith(
         fontSize: AppDimens.fontL, // 14.0
         fontWeight: FontWeight.w500, // Medium weight for labels

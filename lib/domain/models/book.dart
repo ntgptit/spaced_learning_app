@@ -4,7 +4,6 @@ import 'package:spaced_learning_app/domain/models/module.dart';
 part 'book.freezed.dart';
 part 'book.g.dart';
 
-/// Enum for book status
 enum BookStatus {
   @JsonValue('PUBLISHED')
   published,
@@ -14,7 +13,6 @@ enum BookStatus {
   archived,
 }
 
-/// Enum for difficulty level
 enum DifficultyLevel {
   @JsonValue('BEGINNER')
   beginner,
@@ -26,7 +24,6 @@ enum DifficultyLevel {
   expert,
 }
 
-/// Book summary model with basic information
 @freezed
 abstract class BookSummary with _$BookSummary {
   const factory BookSummary({
@@ -44,7 +41,6 @@ abstract class BookSummary with _$BookSummary {
       _$BookSummaryFromJson(json);
 }
 
-/// Detailed book model including modules
 @freezed
 abstract class BookDetail with _$BookDetail {
   const factory BookDetail({

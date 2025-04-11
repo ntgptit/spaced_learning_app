@@ -6,7 +6,6 @@ import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/network/interceptors/auth_interceptor.dart';
 import 'package:spaced_learning_app/core/network/interceptors/logging_interceptor.dart';
 
-/// API client for handling network requests
 class ApiClient {
   late final Dio _dio;
 
@@ -23,12 +22,10 @@ class ApiClient {
     _dio.options.contentType = Headers.jsonContentType;
     _dio.options.responseType = ResponseType.json;
 
-    // Add interceptors
     _dio.interceptors.add(LoggingInterceptor());
     _dio.interceptors.add(AuthInterceptor());
   }
 
-  /// Perform a GET request
   Future<dynamic> get(
     String url, {
     Map<String, dynamic>? queryParameters,
@@ -41,7 +38,6 @@ class ApiClient {
     }
   }
 
-  /// Perform a POST request
   Future<dynamic> post(String url, {dynamic data}) async {
     try {
       final response = await _dio.post(url, data: data);
@@ -51,7 +47,6 @@ class ApiClient {
     }
   }
 
-  /// Perform a PUT request
   Future<dynamic> put(String url, {dynamic data}) async {
     try {
       final response = await _dio.put(url, data: data);
@@ -61,7 +56,6 @@ class ApiClient {
     }
   }
 
-  /// Perform a DELETE request
   Future<dynamic> delete(String url) async {
     try {
       final response = await _dio.delete(url);
@@ -71,7 +65,6 @@ class ApiClient {
     }
   }
 
-  /// Process the HTTP response
   dynamic _processResponse(Response response) {
     switch (response.statusCode) {
       case 200:
@@ -117,7 +110,6 @@ class ApiClient {
     }
   }
 
-  /// Handle exceptions from HTTP requests
   dynamic _handleError(dynamic e, String? url) {
     if (e is DioException) {
       if (e.error is SocketException) {

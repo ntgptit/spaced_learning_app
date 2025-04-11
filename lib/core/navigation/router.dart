@@ -1,4 +1,3 @@
-// lib/core/navigation/router.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
@@ -26,7 +25,6 @@ class AppRouter {
     debugLogDiagnostics: true,
     initialLocation: '/',
     redirect: (context, state) {
-      // Kiểm tra auth và redirect nếu cần
       final isLoggedIn = authViewModel.isAuthenticated;
       final isGoingToLogin = state.uri.toString() == '/login';
 
@@ -39,13 +37,10 @@ class AppRouter {
       return null;
     },
     routes: [
-      // Route đăng nhập
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
-      // Shell route cho main app với bottom navigation
       ShellRoute(
         builder: (context, state, child) {
-          // Lấy index tab hiện tại dựa trên path
           int currentIndex = 0;
           final location = state.matchedLocation;
           if (location.startsWith('/books')) {
@@ -64,7 +59,6 @@ class AppRouter {
           );
         },
         routes: [
-          // Tab Home và các route con
           GoRoute(
             path: '/',
             builder: (context, state) => const HomeScreen(),
@@ -76,7 +70,6 @@ class AppRouter {
             ],
           ),
 
-          // Tab Books và các route con
           GoRoute(
             path: '/books',
             builder: (context, state) => const BooksScreen(),
@@ -88,7 +81,6 @@ class AppRouter {
                   return BookDetailScreen(bookId: bookId ?? '');
                 },
                 routes: [
-                  // Thêm các route con của BookDetailScreen nếu cần
                   GoRoute(
                     path: 'modules/:moduleId',
                     builder: (context, state) {
@@ -101,7 +93,6 @@ class AppRouter {
             ],
           ),
 
-          // Tab Learning Overview và các route con
           GoRoute(
             path: '/learning',
             builder: (context, state) => const LearningProgressScreen(),
@@ -123,7 +114,6 @@ class AppRouter {
             ],
           ),
 
-          // Tab Profile và route con nếu có
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
@@ -139,7 +129,6 @@ class AppRouter {
             builder: (context, state) => const ReminderSettingsScreen(),
           ),
 
-          // Route cho help screens - vẫn trong shell route để giữ bottom bar
           GoRoute(
             path: '/help',
             builder:
@@ -155,11 +144,9 @@ class AppRouter {
         ],
       ),
     ],
-    // Thêm route observers để theo dõi các sự kiện điều hướng
     observers: [
       GoRouterObserver(
         onPop: (route, result) {
-          // Logic để refresh dữ liệu khi pop về tab Home nếu cần
           debugPrint('Popped route: ${route.settings.name}');
         },
       ),
@@ -167,7 +154,6 @@ class AppRouter {
   );
 }
 
-// Helper class để theo dõi các sự kiện điều hướng
 class GoRouterObserver extends NavigatorObserver {
   final Function(Route<dynamic> route, dynamic result)? onPop;
 

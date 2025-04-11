@@ -1,29 +1,16 @@
-// dart format width=80
-// coverage:ignore-file
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'book.dart';
 
-// **************************************************************************
-// FreezedGenerator
-// **************************************************************************
 
-// dart format off
 T _$identity<T>(T value) => value;
 
-/// @nodoc
 mixin _$BookSummary {
 
  String get id; String get name; BookStatus get status; DifficultyLevel? get difficultyLevel; String? get category; DateTime? get createdAt; DateTime? get updatedAt; int get moduleCount;
-/// Create a copy of BookSummary
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $BookSummaryCopyWith<BookSummary> get copyWith => _$BookSummaryCopyWithImpl<BookSummary>(this as BookSummary, _$identity);
 
-  /// Serializes this BookSummary to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -44,7 +31,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $BookSummaryCopyWith<$Res>  {
   factory $BookSummaryCopyWith(BookSummary value, $Res Function(BookSummary) _then) = _$BookSummaryCopyWithImpl;
 @useResult
@@ -56,7 +42,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$BookSummaryCopyWithImpl<$Res>
     implements $BookSummaryCopyWith<$Res> {
   _$BookSummaryCopyWithImpl(this._self, this._then);
@@ -64,8 +49,6 @@ class _$BookSummaryCopyWithImpl<$Res>
   final BookSummary _self;
   final $Res Function(BookSummary) _then;
 
-/// Create a copy of BookSummary
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? difficultyLevel = freezed,Object? category = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? moduleCount = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -83,7 +66,6 @@ as int,
 }
 
 
-/// @nodoc
 @JsonSerializable()
 
 class _BookSummary implements BookSummary {
@@ -99,8 +81,6 @@ class _BookSummary implements BookSummary {
 @override final  DateTime? updatedAt;
 @override@JsonKey() final  int moduleCount;
 
-/// Create a copy of BookSummary
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$BookSummaryCopyWith<_BookSummary> get copyWith => __$BookSummaryCopyWithImpl<_BookSummary>(this, _$identity);
@@ -127,7 +107,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$BookSummaryCopyWith<$Res> implements $BookSummaryCopyWith<$Res> {
   factory _$BookSummaryCopyWith(_BookSummary value, $Res Function(_BookSummary) _then) = __$BookSummaryCopyWithImpl;
 @override @useResult
@@ -139,7 +118,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$BookSummaryCopyWithImpl<$Res>
     implements _$BookSummaryCopyWith<$Res> {
   __$BookSummaryCopyWithImpl(this._self, this._then);
@@ -147,8 +125,6 @@ class __$BookSummaryCopyWithImpl<$Res>
   final _BookSummary _self;
   final $Res Function(_BookSummary) _then;
 
-/// Create a copy of BookSummary
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? difficultyLevel = freezed,Object? category = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? moduleCount = null,}) {
   return _then(_BookSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -167,17 +143,13 @@ as int,
 }
 
 
-/// @nodoc
 mixin _$BookDetail {
 
  String get id; String get name; String? get description; BookStatus get status; DifficultyLevel? get difficultyLevel; String? get category; DateTime? get createdAt; DateTime? get updatedAt; List<ModuleDetail> get modules;
-/// Create a copy of BookDetail
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $BookDetailCopyWith<BookDetail> get copyWith => _$BookDetailCopyWithImpl<BookDetail>(this as BookDetail, _$identity);
 
-  /// Serializes this BookDetail to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -198,7 +170,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $BookDetailCopyWith<$Res>  {
   factory $BookDetailCopyWith(BookDetail value, $Res Function(BookDetail) _then) = _$BookDetailCopyWithImpl;
 @useResult
@@ -210,7 +181,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$BookDetailCopyWithImpl<$Res>
     implements $BookDetailCopyWith<$Res> {
   _$BookDetailCopyWithImpl(this._self, this._then);
@@ -218,8 +188,6 @@ class _$BookDetailCopyWithImpl<$Res>
   final BookDetail _self;
   final $Res Function(BookDetail) _then;
 
-/// Create a copy of BookDetail
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? status = null,Object? difficultyLevel = freezed,Object? category = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? modules = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -238,7 +206,6 @@ as List<ModuleDetail>,
 }
 
 
-/// @nodoc
 @JsonSerializable()
 
 class _BookDetail implements BookDetail {
@@ -256,13 +223,10 @@ class _BookDetail implements BookDetail {
  final  List<ModuleDetail> _modules;
 @override@JsonKey() List<ModuleDetail> get modules {
   if (_modules is EqualUnmodifiableListView) return _modules;
-  // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_modules);
 }
 
 
-/// Create a copy of BookDetail
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$BookDetailCopyWith<_BookDetail> get copyWith => __$BookDetailCopyWithImpl<_BookDetail>(this, _$identity);
@@ -289,7 +253,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$BookDetailCopyWith<$Res> implements $BookDetailCopyWith<$Res> {
   factory _$BookDetailCopyWith(_BookDetail value, $Res Function(_BookDetail) _then) = __$BookDetailCopyWithImpl;
 @override @useResult
@@ -301,7 +264,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$BookDetailCopyWithImpl<$Res>
     implements _$BookDetailCopyWith<$Res> {
   __$BookDetailCopyWithImpl(this._self, this._then);
@@ -309,8 +271,6 @@ class __$BookDetailCopyWithImpl<$Res>
   final _BookDetail _self;
   final $Res Function(_BookDetail) _then;
 
-/// Create a copy of BookDetail
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? status = null,Object? difficultyLevel = freezed,Object? category = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? modules = null,}) {
   return _then(_BookDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -329,4 +289,3 @@ as List<ModuleDetail>,
 
 }
 
-// dart format on

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Widget to display learning insights on the home screen using AppTheme.
 class LearningInsightsWidget extends StatelessWidget {
   final double vocabularyRate;
   final int streakDays;

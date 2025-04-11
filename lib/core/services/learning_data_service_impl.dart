@@ -1,31 +1,25 @@
-// lib/core/services/learning_data_service_impl.dart
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/domain/repositories/learning_progress_repository.dart';
 
-/// Implementation of the LearningDataService that connects to a real API
 class LearningDataServiceImpl implements LearningDataService {
   final LearningProgressRepository _repository;
 
-  // Cache for loaded modules to reduce API calls
   List<LearningModule>? _cachedModules;
 
   LearningDataServiceImpl(this._repository);
 
   @override
   Future<List<LearningModule>> getModules() async {
-    // Return cached data if available
     if (_cachedModules != null) {
       return _cachedModules!;
     }
 
     try {
-      // Get real data from repository
       final modules = await _repository.getAllModules();
       _cachedModules = modules;
       return modules;
     } catch (e) {
-      // If error occurs, return empty list
       return [];
     }
   }
@@ -164,14 +158,6 @@ class LearningDataServiceImpl implements LearningDataService {
         .toList();
   }
 
-  // @override
-  // Future<Map<String, dynamic>> getBookStats(String bookName) async {
-  //   try {
-  //     return await _repository.getBookStats(bookName);
-  //   } catch (e) {
-  //     return {};
-  //   }
-  // }
 
   @override
   Future<Map<String, dynamic>> getDashboardStats({

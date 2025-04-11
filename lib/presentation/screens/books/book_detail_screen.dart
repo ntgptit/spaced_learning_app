@@ -1,4 +1,3 @@
-// lib/presentation/screens/books/book_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -206,7 +205,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
   }
 
-  // Tiếp tục từ đoạn code trước
   Widget _buildModulesList(ModuleViewModel viewModel) {
     if (viewModel.isLoading) {
       return const Center(
@@ -256,10 +254,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               () => GoRouter.of(
                 context,
               ).push('/books/${widget.bookId}/modules/${module.id}'),
-          // onStudyPressed:
-          //     () => GoRouter.of(
-          //       context,
-          //     ).push('/books/${widget.bookId}/modules/${module.id}/study'),
         );
       },
     );

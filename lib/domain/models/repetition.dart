@@ -41,7 +41,6 @@ abstract class Repetition with _$Repetition {
       _$RepetitionFromJson(json);
 }
 
-// Extension để thêm các phương thức formatOrder và formatFullOrder
 extension RepetitionExtensions on Repetition {
   String formatOrder() {
     switch (repetitionOrder) {

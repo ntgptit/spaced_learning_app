@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 class CycleFormatter {
-  /// Convert a String to a CycleStudied enum
   static CycleStudied parseCycle(String? cycleString) {
     switch (cycleString?.toUpperCase()) {
       case 'FIRST_TIME':
@@ -20,7 +19,6 @@ class CycleFormatter {
     }
   }
 
-  /// Format CycleStudied enum into a user-friendly string
   static String format(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
@@ -36,7 +34,6 @@ class CycleFormatter {
     }
   }
 
-  /// Get detailed description for a study cycle
   static String getDescription(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
@@ -52,7 +49,6 @@ class CycleFormatter {
     }
   }
 
-  /// Get a suggested color for each study cycle
   static Color getColor(CycleStudied cycle, BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-/// Filter bar for learning screen with book and date selection
 class LearningFilterBar extends StatefulWidget {
   final String selectedBook;
   final DateTime? selectedDate;
@@ -101,7 +100,6 @@ class _LearningFilterBarState extends State<LearningFilterBar> {
     );
   }
 
-  // UI Components
   Widget _buildHeader(ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

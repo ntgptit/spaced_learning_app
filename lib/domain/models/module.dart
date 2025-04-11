@@ -4,7 +4,6 @@ import 'package:spaced_learning_app/domain/models/progress.dart';
 part 'module.freezed.dart';
 part 'module.g.dart';
 
-/// Module summary model with basic information
 @freezed
 abstract class ModuleSummary with _$ModuleSummary {
   const factory ModuleSummary({
@@ -21,7 +20,6 @@ abstract class ModuleSummary with _$ModuleSummary {
       _$ModuleSummaryFromJson(json);
 }
 
-/// Detailed module model including progress
 @freezed
 abstract class ModuleDetail with _$ModuleDetail {
   const factory ModuleDetail({

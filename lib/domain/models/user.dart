@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'user.freezed.dart';
 part 'user.g.dart';
 
-/// User model representing a user in the system
 @freezed
 abstract class User with _$User {
   const factory User({

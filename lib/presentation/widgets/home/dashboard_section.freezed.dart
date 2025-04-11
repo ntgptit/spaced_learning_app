@@ -1,23 +1,11 @@
-// dart format width=80
-// coverage:ignore-file
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'dashboard_section.dart';
 
-// **************************************************************************
-// FreezedGenerator
-// **************************************************************************
 
-// dart format off
 T _$identity<T>(T value) => value;
-/// @nodoc
 mixin _$ModuleStats {
 
  int get totalModules; Map<String, int> get cycleStats;
-/// Create a copy of ModuleStats
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $ModuleStatsCopyWith<ModuleStats> get copyWith => _$ModuleStatsCopyWithImpl<ModuleStats>(this as ModuleStats, _$identity);
@@ -41,7 +29,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $ModuleStatsCopyWith<$Res>  {
   factory $ModuleStatsCopyWith(ModuleStats value, $Res Function(ModuleStats) _then) = _$ModuleStatsCopyWithImpl;
 @useResult
@@ -53,7 +40,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$ModuleStatsCopyWithImpl<$Res>
     implements $ModuleStatsCopyWith<$Res> {
   _$ModuleStatsCopyWithImpl(this._self, this._then);
@@ -61,8 +47,6 @@ class _$ModuleStatsCopyWithImpl<$Res>
   final ModuleStats _self;
   final $Res Function(ModuleStats) _then;
 
-/// Create a copy of ModuleStats
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? totalModules = null,Object? cycleStats = null,}) {
   return _then(_self.copyWith(
 totalModules: null == totalModules ? _self.totalModules : totalModules // ignore: cast_nullable_to_non_nullable
@@ -74,7 +58,6 @@ as Map<String, int>,
 }
 
 
-/// @nodoc
 
 
 class _ModuleStats implements ModuleStats {
@@ -85,13 +68,10 @@ class _ModuleStats implements ModuleStats {
  final  Map<String, int> _cycleStats;
 @override Map<String, int> get cycleStats {
   if (_cycleStats is EqualUnmodifiableMapView) return _cycleStats;
-  // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_cycleStats);
 }
 
 
-/// Create a copy of ModuleStats
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$ModuleStatsCopyWith<_ModuleStats> get copyWith => __$ModuleStatsCopyWithImpl<_ModuleStats>(this, _$identity);
@@ -115,7 +95,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$ModuleStatsCopyWith<$Res> implements $ModuleStatsCopyWith<$Res> {
   factory _$ModuleStatsCopyWith(_ModuleStats value, $Res Function(_ModuleStats) _then) = __$ModuleStatsCopyWithImpl;
 @override @useResult
@@ -127,7 +106,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$ModuleStatsCopyWithImpl<$Res>
     implements _$ModuleStatsCopyWith<$Res> {
   __$ModuleStatsCopyWithImpl(this._self, this._then);
@@ -135,8 +113,6 @@ class __$ModuleStatsCopyWithImpl<$Res>
   final _ModuleStats _self;
   final $Res Function(_ModuleStats) _then;
 
-/// Create a copy of ModuleStats
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? totalModules = null,Object? cycleStats = null,}) {
   return _then(_ModuleStats(
 totalModules: null == totalModules ? _self.totalModules : totalModules // ignore: cast_nullable_to_non_nullable
@@ -148,12 +124,9 @@ as Map<String, int>,
 
 }
 
-/// @nodoc
 mixin _$DueStats {
 
  int get dueToday; int get dueThisWeek; int get dueThisMonth; int get wordsDueToday; int get wordsDueThisWeek; int get wordsDueThisMonth;
-/// Create a copy of DueStats
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $DueStatsCopyWith<DueStats> get copyWith => _$DueStatsCopyWithImpl<DueStats>(this as DueStats, _$identity);
@@ -177,7 +150,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $DueStatsCopyWith<$Res>  {
   factory $DueStatsCopyWith(DueStats value, $Res Function(DueStats) _then) = _$DueStatsCopyWithImpl;
 @useResult
@@ -189,7 +161,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$DueStatsCopyWithImpl<$Res>
     implements $DueStatsCopyWith<$Res> {
   _$DueStatsCopyWithImpl(this._self, this._then);
@@ -197,8 +168,6 @@ class _$DueStatsCopyWithImpl<$Res>
   final DueStats _self;
   final $Res Function(DueStats) _then;
 
-/// Create a copy of DueStats
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? dueToday = null,Object? dueThisWeek = null,Object? dueThisMonth = null,Object? wordsDueToday = null,Object? wordsDueThisWeek = null,Object? wordsDueThisMonth = null,}) {
   return _then(_self.copyWith(
 dueToday: null == dueToday ? _self.dueToday : dueToday // ignore: cast_nullable_to_non_nullable
@@ -214,7 +183,6 @@ as int,
 }
 
 
-/// @nodoc
 
 
 class _DueStats implements DueStats {
@@ -228,8 +196,6 @@ class _DueStats implements DueStats {
 @override final  int wordsDueThisWeek;
 @override final  int wordsDueThisMonth;
 
-/// Create a copy of DueStats
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$DueStatsCopyWith<_DueStats> get copyWith => __$DueStatsCopyWithImpl<_DueStats>(this, _$identity);
@@ -253,7 +219,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$DueStatsCopyWith<$Res> implements $DueStatsCopyWith<$Res> {
   factory _$DueStatsCopyWith(_DueStats value, $Res Function(_DueStats) _then) = __$DueStatsCopyWithImpl;
 @override @useResult
@@ -265,7 +230,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$DueStatsCopyWithImpl<$Res>
     implements _$DueStatsCopyWith<$Res> {
   __$DueStatsCopyWithImpl(this._self, this._then);
@@ -273,8 +237,6 @@ class __$DueStatsCopyWithImpl<$Res>
   final _DueStats _self;
   final $Res Function(_DueStats) _then;
 
-/// Create a copy of DueStats
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? dueToday = null,Object? dueThisWeek = null,Object? dueThisMonth = null,Object? wordsDueToday = null,Object? wordsDueThisWeek = null,Object? wordsDueThisMonth = null,}) {
   return _then(_DueStats(
 dueToday: null == dueToday ? _self.dueToday : dueToday // ignore: cast_nullable_to_non_nullable
@@ -290,12 +252,9 @@ as int,
 
 }
 
-/// @nodoc
 mixin _$CompletionStats {
 
  int get completedToday; int get completedThisWeek; int get completedThisMonth; int get wordsCompletedToday; int get wordsCompletedThisWeek; int get wordsCompletedThisMonth;
-/// Create a copy of CompletionStats
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $CompletionStatsCopyWith<CompletionStats> get copyWith => _$CompletionStatsCopyWithImpl<CompletionStats>(this as CompletionStats, _$identity);
@@ -319,7 +278,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $CompletionStatsCopyWith<$Res>  {
   factory $CompletionStatsCopyWith(CompletionStats value, $Res Function(CompletionStats) _then) = _$CompletionStatsCopyWithImpl;
 @useResult
@@ -331,7 +289,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$CompletionStatsCopyWithImpl<$Res>
     implements $CompletionStatsCopyWith<$Res> {
   _$CompletionStatsCopyWithImpl(this._self, this._then);
@@ -339,8 +296,6 @@ class _$CompletionStatsCopyWithImpl<$Res>
   final CompletionStats _self;
   final $Res Function(CompletionStats) _then;
 
-/// Create a copy of CompletionStats
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? completedToday = null,Object? completedThisWeek = null,Object? completedThisMonth = null,Object? wordsCompletedToday = null,Object? wordsCompletedThisWeek = null,Object? wordsCompletedThisMonth = null,}) {
   return _then(_self.copyWith(
 completedToday: null == completedToday ? _self.completedToday : completedToday // ignore: cast_nullable_to_non_nullable
@@ -356,7 +311,6 @@ as int,
 }
 
 
-/// @nodoc
 
 
 class _CompletionStats implements CompletionStats {
@@ -370,8 +324,6 @@ class _CompletionStats implements CompletionStats {
 @override final  int wordsCompletedThisWeek;
 @override final  int wordsCompletedThisMonth;
 
-/// Create a copy of CompletionStats
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$CompletionStatsCopyWith<_CompletionStats> get copyWith => __$CompletionStatsCopyWithImpl<_CompletionStats>(this, _$identity);
@@ -395,7 +347,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$CompletionStatsCopyWith<$Res> implements $CompletionStatsCopyWith<$Res> {
   factory _$CompletionStatsCopyWith(_CompletionStats value, $Res Function(_CompletionStats) _then) = __$CompletionStatsCopyWithImpl;
 @override @useResult
@@ -407,7 +358,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$CompletionStatsCopyWithImpl<$Res>
     implements _$CompletionStatsCopyWith<$Res> {
   __$CompletionStatsCopyWithImpl(this._self, this._then);
@@ -415,8 +365,6 @@ class __$CompletionStatsCopyWithImpl<$Res>
   final _CompletionStats _self;
   final $Res Function(_CompletionStats) _then;
 
-/// Create a copy of CompletionStats
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? completedToday = null,Object? completedThisWeek = null,Object? completedThisMonth = null,Object? wordsCompletedToday = null,Object? wordsCompletedThisWeek = null,Object? wordsCompletedThisMonth = null,}) {
   return _then(_CompletionStats(
 completedToday: null == completedToday ? _self.completedToday : completedToday // ignore: cast_nullable_to_non_nullable
@@ -432,12 +380,9 @@ as int,
 
 }
 
-/// @nodoc
 mixin _$StreakStats {
 
  int get streakDays; int get streakWeeks;
-/// Create a copy of StreakStats
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $StreakStatsCopyWith<StreakStats> get copyWith => _$StreakStatsCopyWithImpl<StreakStats>(this as StreakStats, _$identity);
@@ -461,7 +406,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $StreakStatsCopyWith<$Res>  {
   factory $StreakStatsCopyWith(StreakStats value, $Res Function(StreakStats) _then) = _$StreakStatsCopyWithImpl;
 @useResult
@@ -473,7 +417,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$StreakStatsCopyWithImpl<$Res>
     implements $StreakStatsCopyWith<$Res> {
   _$StreakStatsCopyWithImpl(this._self, this._then);
@@ -481,8 +424,6 @@ class _$StreakStatsCopyWithImpl<$Res>
   final StreakStats _self;
   final $Res Function(StreakStats) _then;
 
-/// Create a copy of StreakStats
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? streakDays = null,Object? streakWeeks = null,}) {
   return _then(_self.copyWith(
 streakDays: null == streakDays ? _self.streakDays : streakDays // ignore: cast_nullable_to_non_nullable
@@ -494,7 +435,6 @@ as int,
 }
 
 
-/// @nodoc
 
 
 class _StreakStats implements StreakStats {
@@ -504,8 +444,6 @@ class _StreakStats implements StreakStats {
 @override final  int streakDays;
 @override final  int streakWeeks;
 
-/// Create a copy of StreakStats
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$StreakStatsCopyWith<_StreakStats> get copyWith => __$StreakStatsCopyWithImpl<_StreakStats>(this, _$identity);
@@ -529,7 +467,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$StreakStatsCopyWith<$Res> implements $StreakStatsCopyWith<$Res> {
   factory _$StreakStatsCopyWith(_StreakStats value, $Res Function(_StreakStats) _then) = __$StreakStatsCopyWithImpl;
 @override @useResult
@@ -541,7 +478,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$StreakStatsCopyWithImpl<$Res>
     implements _$StreakStatsCopyWith<$Res> {
   __$StreakStatsCopyWithImpl(this._self, this._then);
@@ -549,8 +485,6 @@ class __$StreakStatsCopyWithImpl<$Res>
   final _StreakStats _self;
   final $Res Function(_StreakStats) _then;
 
-/// Create a copy of StreakStats
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? streakDays = null,Object? streakWeeks = null,}) {
   return _then(_StreakStats(
 streakDays: null == streakDays ? _self.streakDays : streakDays // ignore: cast_nullable_to_non_nullable
@@ -562,12 +496,9 @@ as int,
 
 }
 
-/// @nodoc
 mixin _$VocabularyStats {
 
  int get totalWords; int get learnedWords; int get pendingWords; double get vocabularyCompletionRate; double get weeklyNewWordsRate;
-/// Create a copy of VocabularyStats
-/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $VocabularyStatsCopyWith<VocabularyStats> get copyWith => _$VocabularyStatsCopyWithImpl<VocabularyStats>(this as VocabularyStats, _$identity);
@@ -591,7 +522,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class $VocabularyStatsCopyWith<$Res>  {
   factory $VocabularyStatsCopyWith(VocabularyStats value, $Res Function(VocabularyStats) _then) = _$VocabularyStatsCopyWithImpl;
 @useResult
@@ -603,7 +533,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class _$VocabularyStatsCopyWithImpl<$Res>
     implements $VocabularyStatsCopyWith<$Res> {
   _$VocabularyStatsCopyWithImpl(this._self, this._then);
@@ -611,8 +540,6 @@ class _$VocabularyStatsCopyWithImpl<$Res>
   final VocabularyStats _self;
   final $Res Function(VocabularyStats) _then;
 
-/// Create a copy of VocabularyStats
-/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? totalWords = null,Object? learnedWords = null,Object? pendingWords = null,Object? vocabularyCompletionRate = null,Object? weeklyNewWordsRate = null,}) {
   return _then(_self.copyWith(
 totalWords: null == totalWords ? _self.totalWords : totalWords // ignore: cast_nullable_to_non_nullable
@@ -627,7 +554,6 @@ as double,
 }
 
 
-/// @nodoc
 
 
 class _VocabularyStats implements VocabularyStats {
@@ -640,8 +566,6 @@ class _VocabularyStats implements VocabularyStats {
 @override final  double vocabularyCompletionRate;
 @override final  double weeklyNewWordsRate;
 
-/// Create a copy of VocabularyStats
-/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$VocabularyStatsCopyWith<_VocabularyStats> get copyWith => __$VocabularyStatsCopyWithImpl<_VocabularyStats>(this, _$identity);
@@ -665,7 +589,6 @@ String toString() {
 
 }
 
-/// @nodoc
 abstract mixin class _$VocabularyStatsCopyWith<$Res> implements $VocabularyStatsCopyWith<$Res> {
   factory _$VocabularyStatsCopyWith(_VocabularyStats value, $Res Function(_VocabularyStats) _then) = __$VocabularyStatsCopyWithImpl;
 @override @useResult
@@ -677,7 +600,6 @@ $Res call({
 
 
 }
-/// @nodoc
 class __$VocabularyStatsCopyWithImpl<$Res>
     implements _$VocabularyStatsCopyWith<$Res> {
   __$VocabularyStatsCopyWithImpl(this._self, this._then);
@@ -685,8 +607,6 @@ class __$VocabularyStatsCopyWithImpl<$Res>
   final _VocabularyStats _self;
   final $Res Function(_VocabularyStats) _then;
 
-/// Create a copy of VocabularyStats
-/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? totalWords = null,Object? learnedWords = null,Object? pendingWords = null,Object? vocabularyCompletionRate = null,Object? weeklyNewWordsRate = null,}) {
   return _then(_VocabularyStats(
 totalWords: null == totalWords ? _self.totalWords : totalWords // ignore: cast_nullable_to_non_nullable
@@ -701,4 +621,3 @@ as double,
 
 }
 
-// dart format on

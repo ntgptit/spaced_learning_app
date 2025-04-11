@@ -3,7 +3,6 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
 
-/// A card widget displaying book summary information synced with ModuleCard
 class BookCard extends StatelessWidget {
   final BookSummary book;
   final VoidCallback? onTap;
@@ -64,7 +63,6 @@ class BookCard extends StatelessWidget {
               : null,
       content: _buildContent(theme, colorScheme),
       trailing: Center(
-        // Wrap the Icon in a Center widget to vertically center it
         child: Icon(
           Icons.navigate_next,
           color: colorScheme.onSurfaceVariant,
@@ -165,7 +163,6 @@ class BookCard extends StatelessWidget {
   }
 }
 
-/// Private widget for reusable badge styling
 class _Badge extends StatelessWidget {
   final Color backgroundColor;
   final Color foregroundColor;

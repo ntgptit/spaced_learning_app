@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_insight.dart';
 
-/// Card widget hiển thị learning insights, sử dụng AppTheme đã được áp dụng.
 class LearningInsightsCard extends StatelessWidget {
   final List<LearningInsightDTO> insights;
   final String? title;

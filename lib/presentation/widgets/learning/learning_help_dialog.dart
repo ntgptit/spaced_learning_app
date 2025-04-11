@@ -3,7 +3,6 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
-/// Dialog hiển thị thông tin trợ giúp về màn hình Learning Progress
 class LearningHelpDialog extends StatelessWidget {
   const LearningHelpDialog({super.key});
 

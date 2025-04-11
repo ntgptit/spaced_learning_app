@@ -1,4 +1,3 @@
-// lib/core/services/reminder/alarm_manager_service.dart
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +6,6 @@ import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
 
-/// Callback functions must be top-level or static
 @pragma('vm:entry-point')
 void noonReminderCallback() {
   _triggerBackgroundCheck(AppConstants.noonReminderCallbackId);
@@ -28,21 +26,17 @@ void endOfDayReminderCallback() {
   _triggerBackgroundCheck(AppConstants.endOfDayReminderCallbackId);
 }
 
-/// Helper function to trigger a background task from callback
 @pragma('vm:entry-point')
 Future<void> _triggerBackgroundCheck(int callbackId) async {
   try {
     final prefs = await SharedPreferences.getInstance();
 
-    // Mark that this callback was triggered
     await prefs.setInt('last_triggered_callback', callbackId);
     await prefs.setInt(
       'last_triggered_time',
       DateTime.now().millisecondsSinceEpoch,
     );
 
-    // In a real app, we would trigger a work manager task or similar to show notifications
-    // For this example, we'll just set a flag that will be checked when the app is opened
     debugPrint('Alarm callback triggered: $callbackId at ${DateTime.now()}');
   } catch (e) {
     print(
@@ -51,7 +45,6 @@ Future<void> _triggerBackgroundCheck(int callbackId) async {
   }
 }
 
-/// Service for integrating with Android's AlarmManager for precise alarms
 class AlarmManagerService {
   final DeviceSpecificService _deviceSpecificService;
   bool _isInitialized = false;
@@ -60,19 +53,16 @@ class AlarmManagerService {
     : _deviceSpecificService =
           deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
 
-  /// Initialize the alarm manager service with device-specific adjustments
   Future<bool> initialize() async {
     if (_isInitialized) return true;
 
     try {
-      // Check if running on Android
       if (!_deviceSpecificService.isAndroid) {
         debugPrint('Not on Android, using local notifications only');
         _isInitialized = true;
         return true;
       }
 
-      // Initialize the alarm manager plugin
       final bool initialized = await AndroidAlarmManager.initialize();
       if (!initialized) {
         debugPrint('Failed to initialize AndroidAlarmManager');
@@ -81,11 +71,9 @@ class AlarmManagerService {
 
       debugPrint('AlarmManager initialized successfully');
 
-      // On Android 12+, we need to request SCHEDULE_EXACT_ALARM permission
       if (_deviceSpecificService.sdkVersion >= 31) {
         final bool permissionGranted = await _requestExactAlarmPermission();
         debugPrint('Exact alarm permission granted: $permissionGranted');
-        // Continue even if permission is not granted, as we'll fall back to normal alarms
       }
 
       _isInitialized = true;
@@ -97,7 +85,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Request permission for exact alarms (Android 12+)
   Future<bool> _requestExactAlarmPermission() async {
     try {
       const methodChannel = MethodChannel('com.yourapp.device/optimization');
@@ -114,7 +101,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Schedule all fixed-time alarms
   Future<bool> scheduleFixedTimeAlarms() async {
     if (!_isInitialized) {
       final bool initialized = await initialize();
@@ -127,7 +113,6 @@ class AlarmManagerService {
     }
 
     try {
-      // Create a list to track success/failure of each alarm
       final List<bool> results = await Future.wait([
         _scheduleNoonReminder(),
         _scheduleEveningFirstReminder(),
@@ -135,7 +120,6 @@ class AlarmManagerService {
         _scheduleEndOfDayReminder(),
       ]);
 
-      // Check if all alarms were scheduled successfully
       final bool allSuccessful = results.every((result) => result);
       debugPrint(
         'All fixed-time alarms scheduled successfully: $allSuccessful',
@@ -147,7 +131,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Schedule the noon reminder (12:30 PM)
   Future<bool> _scheduleNoonReminder() async {
     try {
       final alarmTime = _createTime(
@@ -173,7 +156,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Schedule the first evening reminder (9:00 PM)
   Future<bool> _scheduleEveningFirstReminder() async {
     try {
       final alarmTime = _createTime(
@@ -199,7 +181,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Schedule the second evening reminder (10:30 PM)
   Future<bool> _scheduleEveningSecondReminder() async {
     try {
       final alarmTime = _createTime(
@@ -225,7 +206,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Schedule the end-of-day reminder (11:30 PM)
   Future<bool> _scheduleEndOfDayReminder() async {
     try {
       final alarmTime = _createTime(
@@ -251,12 +231,10 @@ class AlarmManagerService {
     }
   }
 
-  /// Create a DateTime for the specified hour and minute
   DateTime _createTime(int hour, int minute) {
     final now = DateTime.now();
     var scheduledTime = DateTime(now.year, now.month, now.day, hour, minute);
 
-    // If the time has already passed today, schedule for tomorrow
     if (scheduledTime.isBefore(now)) {
       scheduledTime = scheduledTime.add(const Duration(days: 1));
     }
@@ -264,7 +242,6 @@ class AlarmManagerService {
     return scheduledTime;
   }
 
-  /// Cancel a specific alarm
   Future<bool> cancelAlarm(int id) async {
     try {
       if (!_deviceSpecificService.isAndroid) {
@@ -281,7 +258,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Cancel all alarms
   Future<bool> cancelAllAlarms() async {
     try {
       if (!_deviceSpecificService.isAndroid) {
@@ -305,7 +281,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Check if any alarm has been triggered recently
   Future<int?> getLastTriggeredAlarmId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -316,7 +291,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Get the time of the last triggered alarm
   Future<DateTime?> getLastTriggeredTime() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -333,7 +307,6 @@ class AlarmManagerService {
     }
   }
 
-  /// Clear the last triggered alarm data
   Future<bool> clearLastTriggeredData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -346,6 +319,5 @@ class AlarmManagerService {
     }
   }
 
-  /// Check if service is initialized
   bool get isInitialized => _isInitialized;
 }

@@ -17,7 +17,6 @@ import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart'
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize dependency injection
   await setupServiceLocator();
 
   runApp(const MyApp());
@@ -30,7 +29,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // ViewModels
         ChangeNotifierProvider(create: (_) => serviceLocator<ThemeViewModel>()),
         ChangeNotifierProvider(create: (_) => serviceLocator<AuthViewModel>()),
         ChangeNotifierProvider(create: (_) => serviceLocator<UserViewModel>()),
@@ -68,12 +66,10 @@ class AppWithRouter extends StatelessWidget {
     final themeViewModel = context.watch<ThemeViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
 
-    // Tạo router với auth view model
     final appRouter = AppRouter(authViewModel);
 
     return MaterialApp.router(
       title: 'Spaced Learning App',
-      // Sử dụng FlexThemeData.light cho chủ đề sáng
       theme: FlexThemeData.light(
         scheme: FlexScheme.shark, // Chọn một scheme có sẵn
         useMaterial3: true, // Sử dụng Material 3
@@ -84,7 +80,6 @@ class AppWithRouter extends StatelessWidget {
         surfaceMode: FlexSurfaceMode.highScaffoldLowSurfaces,
         blendLevel: 10, // Mức độ pha trộn màu
       ),
-      // Sử dụng FlexThemeData.dark cho chủ đề tối
       darkTheme: FlexThemeData.dark(
         scheme: FlexScheme.shark, // Đảm bảo sáng và tối đồng bộ
         useMaterial3: true,

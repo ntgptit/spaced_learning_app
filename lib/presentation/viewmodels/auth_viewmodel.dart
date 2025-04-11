@@ -1,11 +1,9 @@
-// lib/presentation/viewmodels/auth_viewmodel.dart
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/domain/models/auth_response.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/domain/repositories/auth_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-/// View model for authentication
 class AuthViewModel extends BaseViewModel {
   final AuthRepository authRepository;
   final StorageService storageService;
@@ -17,11 +15,9 @@ class AuthViewModel extends BaseViewModel {
     _checkAuthentication();
   }
 
-  // Getters
   bool get isAuthenticated => _isAuthenticated;
   User? get currentUser => _currentUser;
 
-  /// Check if the user is already authenticated
   Future<void> _checkAuthentication() async {
     beginLoading();
 
@@ -37,7 +33,6 @@ class AuthViewModel extends BaseViewModel {
             _currentUser = User.fromJson(userData);
           }
         } else {
-          // Token is invalid, clear it
           await storageService.clearTokens();
         }
       } else {
@@ -52,7 +47,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  /// Login with username/email and password
   Future<bool> login(String usernameOrEmail, String password) async {
     final result = await safeCall<bool>(
       action: () async {
@@ -65,7 +59,6 @@ class AuthViewModel extends BaseViewModel {
     return result ?? false;
   }
 
-  /// Register a new user
   Future<bool> register(
     String username,
     String email,
@@ -90,7 +83,6 @@ class AuthViewModel extends BaseViewModel {
     return result ?? false;
   }
 
-  /// Logout the current user
   Future<void> logout() async {
     beginLoading();
 
@@ -107,7 +99,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  /// Save authentication data from response
   Future<void> _handleAuthResponse(AuthResponse response) async {
     await storageService.saveToken(response.token);
     if (response.refreshToken != null) {

@@ -1,4 +1,3 @@
-/// Base Exception class for all app exceptions
 abstract class AppException implements Exception {
   final String message;
   final String? prefix;
@@ -12,13 +11,11 @@ abstract class AppException implements Exception {
   }
 }
 
-/// Exception for failed authentication
 class AuthenticationException extends AppException {
   AuthenticationException([String? message, String? url])
     : super(message ?? 'Authentication failed', 'Authentication Error: ', url);
 }
 
-/// Exception for bad request/input validation errors
 class BadRequestException extends AppException {
   final Map<String, dynamic>? errors;
 
@@ -26,19 +23,16 @@ class BadRequestException extends AppException {
     : super(message ?? 'Invalid request', 'Bad Request: ', url);
 }
 
-/// Exception for data formatting errors
 class DataFormatException extends AppException {
   DataFormatException([String? message, String? url])
     : super(message ?? 'Invalid data format', 'Data Format Error: ', url);
 }
 
-/// Exception for forbidden access
 class ForbiddenException extends AppException {
   ForbiddenException([String? message, String? url])
     : super(message ?? 'Access denied', 'Forbidden: ', url);
 }
 
-/// Exception for general HTTP errors
 class HttpException extends AppException {
   final int statusCode;
 
@@ -50,31 +44,26 @@ class HttpException extends AppException {
       );
 }
 
-/// Exception for no internet connection
 class NoInternetException extends AppException {
   NoInternetException([String? message])
     : super(message ?? 'No internet connection', 'Connection Error: ', null);
 }
 
-/// Exception for resource not found errors
 class NotFoundException extends AppException {
   NotFoundException([String? message, String? url])
     : super(message ?? 'Resource not found', 'Not Found: ', url);
 }
 
-/// Exception for server errors
 class ServerException extends AppException {
   ServerException([String? message, String? url])
     : super(message ?? 'Server error occurred', 'Server Error: ', url);
 }
 
-/// Exception for timeout errors
 class TimeoutException extends AppException {
   TimeoutException([String? message, String? url])
     : super(message ?? 'Operation timed out', 'Timeout: ', url);
 }
 
-/// Exception for unexpected errors
 class UnexpectedException extends AppException {
   UnexpectedException([String? message, String? url])
     : super(message ?? 'Unexpected error occurred', 'Unexpected Error: ', url);
