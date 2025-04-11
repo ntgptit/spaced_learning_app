@@ -24,21 +24,21 @@ class ApiEndpoints {
   static final String modules = '$basePath/modules';
   static String modulesByBook(String bookId) =>
       '$basePath/modules/book/$bookId';
-  static String allModulesByBook(String bookId) =>
-      '$basePath/modules/book/$bookId/all';
-  static String nextModuleNumber(String bookId) =>
-      '$basePath/modules/book/$bookId/next-number';
+  // static String allModulesByBook(String bookId) =>       // <-- Không sử dụng
+  //     '$basePath/modules/book/$bookId/all';
+  // static String nextModuleNumber(String bookId) =>        // <-- Không sử dụng
+  //     '$basePath/modules/book/$bookId/next-number';
 
   // Progress related endpoints
   static final String progress = '$basePath/progress';
-  static String progressByUser(String userId) =>
-      '$basePath/progress/user/$userId';
-  static String progressByUserAndBook(String userId, String bookId) =>
-      '$basePath/progress/user/$userId/book/$bookId';
-  static String progressByUserAndModule(String userId, String moduleId) =>
-      '$basePath/progress/user/$userId/module/$moduleId';
-  static String moduleProgress(String moduleId) =>
-      '$basePath/progress/module/$moduleId';
+  // static String progressByUser(String userId) =>            // <-- Không sử dụng
+  //     '$basePath/progress/user/$userId';
+  // static String progressByUserAndBook(String userId, String bookId) => // <-- Không sử dụng
+  //     '$basePath/progress/user/$userId/book/$bookId';
+  // static String progressByUserAndModule(String userId, String moduleId) => // <-- Không sử dụng
+  //     '$basePath/progress/user/$userId/module/$moduleId';
+  // static String moduleProgress(String moduleId) =>           // <-- Không sử dụng (Function definition)
+  //     '$basePath/progress/module/$moduleId';
   static String dueProgress(String userId) => '$basePath/progress/due';
 
   // Repetition related endpoints
@@ -47,24 +47,24 @@ class ApiEndpoints {
       '$basePath/repetitions/progress/$progressId';
   static String repetitionSchedule(String progressId) =>
       '$basePath/repetitions/progress/$progressId/schedule';
-  static String dueRepetitions(String userId) =>
-      '$basePath/repetitions/user/$userId/due';
-  static String repetitionByOrder(String progressId, String order) =>
-      '$basePath/repetitions/progress/$progressId/order/$order';
+  // static String dueRepetitions(String userId) =>          // <-- Không sử dụng
+  //     '$basePath/repetitions/user/$userId/due';
+  // static String repetitionByOrder(String progressId, String order) => // <-- Không sử dụng
+  //     '$basePath/repetitions/progress/$progressId/order/$order';
 
   // Learning Statistics endpoints
   static final String dashboardStats = '$basePath/stats/dashboard';
-  static String userDashboardStats(String userId) =>
-      '$basePath/stats/users/$userId/dashboard';
+  // static String userDashboardStats(String userId) =>      // <-- Không sử dụng
+  //     '$basePath/stats/users/$userId/dashboard';
   static final String learningInsights = '$basePath/stats/insights';
-  static String userLearningInsights(String userId) =>
-      '$basePath/stats/users/$userId/insights';
+  // static String userLearningInsights(String userId) =>    // <-- Không sử dụng
+  //     '$basePath/stats/users/$userId/insights';
 
   // Learning Progress endpoints
   static final String learningModules = '$basePath/learning/modules';
   static final String dueModules = '$basePath/learning/modules/due';
-  static final String completedModules = '$basePath/learning/modules/completed';
+  // static final String completedModules = '$basePath/learning/modules/completed'; // <-- Không sử dụng
   static final String uniqueBooks = '$basePath/learning/books';
-  static final String bookStats = '$basePath/learning/books/{book}/stats';
+  // static final String bookStats = '$basePath/learning/books/{book}/stats'; // <-- Không sử dụng
   static final String exportData = '$basePath/learning/export';
 }

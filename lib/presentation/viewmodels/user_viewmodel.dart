@@ -51,15 +51,15 @@ class UserViewModel extends BaseViewModel {
   }
 
   /// Check if an email is already registered
-  Future<bool> isEmailAvailable(String email) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        final exists = await userRepository.checkEmailExists(email);
-        return !exists;
-      },
-      errorPrefix: 'Failed to check email availability',
-      handleLoading: false,
-    );
-    return result ?? false;
-  }
+  // Future<bool> isEmailAvailable(String email) async {
+  //   final result = await safeCall<bool>(
+  //     action: () async {
+  //       final exists = await userRepository.checkEmailExists(email);
+  //       return !exists;
+  //     },
+  //     errorPrefix: 'Failed to check email availability',
+  //     handleLoading: false,
+  //   );
+  //   return result ?? false;
+  // }
 }

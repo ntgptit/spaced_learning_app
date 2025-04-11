@@ -43,7 +43,7 @@ abstract class LearningDataService {
   List<LearningModule> getDueThisMonth(List<LearningModule> modules);
 
   /// Get book statistics by name
-  Future<Map<String, dynamic>> getBookStats(String bookName);
+  // Future<Map<String, dynamic>> getBookStats(String bookName);
 
   /// Get dashboard statistics with optional filters
   Future<Map<String, dynamic>> getDashboardStats({

@@ -30,23 +30,23 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  @override
-  Future<User> getUserById(String id) async {
-    try {
-      final response = await _apiClient.get('${ApiEndpoints.users}/$id');
+  // @override
+  // Future<User> getUserById(String id) async {
+  //   try {
+  //     final response = await _apiClient.get('${ApiEndpoints.users}/$id');
 
-      if (response['success'] == true && response['data'] != null) {
-        return User.fromJson(response['data']);
-      } else {
-        throw NotFoundException('User not found: ${response['message']}');
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to get user: $e');
-    }
-  }
+  //     if (response['success'] == true && response['data'] != null) {
+  //       return User.fromJson(response['data']);
+  //     } else {
+  //       throw NotFoundException('User not found: ${response['message']}');
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to get user: $e');
+  //   }
+  // }
 
   @override
   Future<User> updateUser(

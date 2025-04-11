@@ -33,20 +33,20 @@ class ProgressViewModel extends BaseViewModel {
   ProgressDetail? get selectedProgress => _selectedProgress;
 
   /// Load all progress records with pagination
-  Future<void> loadProgressRecords({int page = 0, int size = 20}) async {
-    if (isLoading) return; // Prevent duplicate calls
+  // Future<void> loadProgressRecords({int page = 0, int size = 20}) async {
+  //   if (isLoading) return; // Prevent duplicate calls
 
-    await safeCall(
-      action: () async {
-        _progressRecords = await progressRepository.getAllProgress(
-          page: page,
-          size: size,
-        );
-        return _progressRecords;
-      },
-      errorPrefix: 'Failed to load progress records',
-    );
-  }
+  //   await safeCall(
+  //     action: () async {
+  //       _progressRecords = await progressRepository.getAllProgress(
+  //         page: page,
+  //         size: size,
+  //       );
+  //       return _progressRecords;
+  //     },
+  //     errorPrefix: 'Failed to load progress records',
+  //   );
+  // }
 
   /// Load progress details by ID
   Future<void> loadProgressDetails(String id) async {
@@ -64,94 +64,94 @@ class ProgressViewModel extends BaseViewModel {
   }
 
   /// Load progress records by user ID
-  Future<void> loadProgressByUserId(
-    String userId, {
-    int page = 0,
-    int size = 20,
-  }) async {
-    await safeCall(
-      action: () async {
-        _progressRecords = await progressRepository.getProgressByUserId(
-          userId,
-          page: page,
-          size: size,
-        );
-        return _progressRecords;
-      },
-      errorPrefix: 'Failed to load progress by user',
-    );
-  }
+  // Future<void> loadProgressByUserId(
+  //   String userId, {
+  //   int page = 0,
+  //   int size = 20,
+  // }) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _progressRecords = await progressRepository.getProgressByUserId(
+  //         userId,
+  //         page: page,
+  //         size: size,
+  //       );
+  //       return _progressRecords;
+  //     },
+  //     errorPrefix: 'Failed to load progress by user',
+  //   );
+  // }
 
   /// Load progress records by module ID
-  Future<void> loadProgressByModuleId(
-    String moduleId, {
-    int page = 0,
-    int size = 20,
-  }) async {
-    await safeCall(
-      action: () async {
-        _progressRecords = await progressRepository.getProgressByModuleId(
-          moduleId,
-          page: page,
-          size: size,
-        );
-        return _progressRecords;
-      },
-      errorPrefix: 'Failed to load progress by module',
-    );
-  }
+  // Future<void> loadProgressByModuleId(
+  //   String moduleId, {
+  //   int page = 0,
+  //   int size = 20,
+  // }) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _progressRecords = await progressRepository.getProgressByModuleId(
+  //         moduleId,
+  //         page: page,
+  //         size: size,
+  //       );
+  //       return _progressRecords;
+  //     },
+  //     errorPrefix: 'Failed to load progress by module',
+  //   );
+  // }
 
   /// Load progress records by user ID and book ID
-  Future<void> loadProgressByUserAndBook(
-    String userId,
-    String bookId, {
-    int page = 0,
-    int size = 20,
-  }) async {
-    await safeCall(
-      action: () async {
-        _progressRecords = await progressRepository.getProgressByUserAndBook(
-          userId,
-          bookId,
-          page: page,
-          size: size,
-        );
-        return _progressRecords;
-      },
-      errorPrefix: 'Failed to load progress by user and book',
-    );
-  }
+  // Future<void> loadProgressByUserAndBook(
+  //   String userId,
+  //   String bookId, {
+  //   int page = 0,
+  //   int size = 20,
+  // }) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _progressRecords = await progressRepository.getProgressByUserAndBook(
+  //         userId,
+  //         bookId,
+  //         page: page,
+  //         size: size,
+  //       );
+  //       return _progressRecords;
+  //     },
+  //     errorPrefix: 'Failed to load progress by user and book',
+  //   );
+  // }
 
   /// Load progress by user ID and module ID
-  Future<ProgressDetail?> loadProgressByUserAndModule(
-    String userId,
-    String moduleId,
-  ) async {
-    if (_isLoadingDetails) return null; // Prevent duplicate calls
+  // Future<ProgressDetail?> loadProgressByUserAndModule(
+  //   String userId,
+  //   String moduleId,
+  // ) async {
+  //   if (_isLoadingDetails) return null; // Prevent duplicate calls
 
-    _isLoadingDetails = true;
-    clearError();
+  //   _isLoadingDetails = true;
+  //   clearError();
 
-    try {
-      final progress = await progressRepository.getProgressByUserAndModule(
-        userId,
-        moduleId,
-      );
-      _selectedProgress = progress;
-      return progress;
-    } catch (e) {
-      if (e.toString().contains('not found')) {
-        // If not found, return null but don't set error (this is expected)
-        _selectedProgress = null;
-        return null;
-      }
-      handleError(e, prefix: 'Failed to load progress by user and module');
-      return null;
-    } finally {
-      _isLoadingDetails = false;
-      notifyListeners();
-    }
-  }
+  //   try {
+  //     final progress = await progressRepository.getProgressByUserAndModule(
+  //       userId,
+  //       moduleId,
+  //     );
+  //     _selectedProgress = progress;
+  //     return progress;
+  //   } catch (e) {
+  //     if (e.toString().contains('not found')) {
+  //       // If not found, return null but don't set error (this is expected)
+  //       _selectedProgress = null;
+  //       return null;
+  //     }
+  //     handleError(e, prefix: 'Failed to load progress by user and module');
+  //     return null;
+  //   } finally {
+  //     _isLoadingDetails = false;
+  //     notifyListeners();
+  //   }
+  // }
 
   /// Load progress for a specific module
   Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
@@ -299,56 +299,56 @@ class ProgressViewModel extends BaseViewModel {
   }
 
   /// Delete a progress record
-  Future<bool> deleteProgress(String id) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        await progressRepository.deleteProgress(id);
+  // Future<bool> deleteProgress(String id) async {
+  //   final result = await safeCall<bool>(
+  //     action: () async {
+  //       await progressRepository.deleteProgress(id);
 
-        if (_selectedProgress?.id == id) {
-          _selectedProgress = null;
-        }
+  //       if (_selectedProgress?.id == id) {
+  //         _selectedProgress = null;
+  //       }
 
-        _progressRecords =
-            _progressRecords.where((progress) => progress.id != id).toList();
+  //       _progressRecords =
+  //           _progressRecords.where((progress) => progress.id != id).toList();
 
-        // Update reminders after deleting progress
-        if (reminderManager != null) {
-          await reminderManager!.scheduleAllReminders();
-        }
+  //       // Update reminders after deleting progress
+  //       if (reminderManager != null) {
+  //         await reminderManager!.scheduleAllReminders();
+  //       }
 
-        return true;
-      },
-      errorPrefix: 'Failed to delete progress',
-    );
-    return result ?? false;
-  }
+  //       return true;
+  //     },
+  //     errorPrefix: 'Failed to delete progress',
+  //   );
+  //   return result ?? false;
+  // }
 
   /// Refresh progress details
-  Future<void> refreshProgressDetails(String progressId) async {
-    if (_isLoadingDetails) return; // Prevent duplicate calls
+  // Future<void> refreshProgressDetails(String progressId) async {
+  //   if (_isLoadingDetails) return; // Prevent duplicate calls
 
-    _isLoadingDetails = true;
-    notifyListeners();
+  //   _isLoadingDetails = true;
+  //   notifyListeners();
 
-    try {
-      _selectedProgress = await progressRepository.getProgressById(progressId);
-      // lib/presentation/viewmodels/progress_viewmodel.dart (tiếp theo)
-    } catch (e) {
-      // Just log the error, don't set error message to avoid UI disruption
-      debugPrint('Error refreshing progress details: $e');
-    } finally {
-      _isLoadingDetails = false;
-      notifyListeners();
-    }
-  }
+  //   try {
+  //     _selectedProgress = await progressRepository.getProgressById(progressId);
+  //     // lib/presentation/viewmodels/progress_viewmodel.dart (tiếp theo)
+  //   } catch (e) {
+  //     // Just log the error, don't set error message to avoid UI disruption
+  //     debugPrint('Error refreshing progress details: $e');
+  //   } finally {
+  //     _isLoadingDetails = false;
+  //     notifyListeners();
+  //   }
+  // }
 
   /// Get the count of due progress records
-  int getDueTodayCount() {
-    try {
-      return _progressRecords.length;
-    } catch (e) {
-      debugPrint('Error getting due progress count: $e');
-      return 0;
-    }
-  }
+  // int getDueTodayCount() {
+  //   try {
+  //     return _progressRecords.length;
+  //   } catch (e) {
+  //     debugPrint('Error getting due progress count: $e');
+  //     return 0;
+  //   }
+  // }
 }

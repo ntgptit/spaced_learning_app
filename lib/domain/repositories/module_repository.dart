@@ -16,27 +16,27 @@ abstract class ModuleRepository {
   });
 
   /// Get all modules by book ID (without pagination)
-  Future<List<ModuleSummary>> getAllModulesByBookId(String bookId);
+  // Future<List<ModuleSummary>> getAllModulesByBookId(String bookId);
 
   /// Get next available module number for a book
-  Future<int> getNextModuleNumber(String bookId);
+  // Future<int> getNextModuleNumber(String bookId);
 
   /// Create a new module (admin only)
-  Future<ModuleDetail> createModule({
-    required String bookId,
-    required int moduleNo,
-    required String title,
-    int? wordCount,
-  });
+  // Future<ModuleDetail> createModule({
+  //   required String bookId,
+  //   required int moduleNo,
+  //   required String title,
+  //   int? wordCount,
+  // });
 
   /// Update a module (admin only)
-  Future<ModuleDetail> updateModule(
-    String id, {
-    int? moduleNo,
-    String? title,
-    int? wordCount,
-  });
+  // Future<ModuleDetail> updateModule(
+  //   String id, {
+  //   int? moduleNo,
+  //   String? title,
+  //   int? wordCount,
+  // });
 
   /// Delete a module by ID (admin only)
-  Future<void> deleteModule(String id);
+  // Future<void> deleteModule(String id);
 }

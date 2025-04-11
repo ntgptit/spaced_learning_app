@@ -56,33 +56,33 @@ class ProgressRepositoryImpl implements ProgressRepository {
     }
   }
 
-  @override
-  Future<List<ProgressSummary>> getProgressByUserId(
-    String userId, {
-    int page = 0,
-    int size = 20,
-  }) async {
-    try {
-      final response = await _apiClient.get(
-        ApiEndpoints.progressByUser(userId),
-        queryParameters: {'page': page, 'size': size},
-      );
+  // @override
+  // Future<List<ProgressSummary>> getProgressByUserId(
+  //   String userId, {
+  //   int page = 0,
+  //   int size = 20,
+  // }) async {
+  //   try {
+  //     final response = await _apiClient.get(
+  //       ApiEndpoints.progressByUser(userId),
+  //       queryParameters: {'page': page, 'size': size},
+  //     );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> progressList = response['content'];
-        return progressList
-            .map((item) => ProgressSummary.fromJson(item))
-            .toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to get progress by user: $e');
-    }
-  }
+  //     if (response['success'] == true && response['content'] != null) {
+  //       final List<dynamic> progressList = response['content'];
+  //       return progressList
+  //           .map((item) => ProgressSummary.fromJson(item))
+  //           .toList();
+  //     } else {
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to get progress by user: $e');
+  //   }
+  // }
 
   @override
   Future<List<ProgressSummary>> getProgressByModuleId(
@@ -112,59 +112,59 @@ class ProgressRepositoryImpl implements ProgressRepository {
     }
   }
 
-  @override
-  Future<List<ProgressSummary>> getProgressByUserAndBook(
-    String userId,
-    String bookId, {
-    int page = 0,
-    int size = 20,
-  }) async {
-    try {
-      final response = await _apiClient.get(
-        ApiEndpoints.progressByUserAndBook(userId, bookId),
-        queryParameters: {'page': page, 'size': size},
-      );
+  // @override
+  // Future<List<ProgressSummary>> getProgressByUserAndBook(
+  //   String userId,
+  //   String bookId, {
+  //   int page = 0,
+  //   int size = 20,
+  // }) async {
+  //   try {
+  //     final response = await _apiClient.get(
+  //       ApiEndpoints.progressByUserAndBook(userId, bookId),
+  //       queryParameters: {'page': page, 'size': size},
+  //     );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> progressList = response['content'];
-        return progressList
-            .map((item) => ProgressSummary.fromJson(item))
-            .toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to get progress by user and book: $e');
-    }
-  }
+  //     if (response['success'] == true && response['content'] != null) {
+  //       final List<dynamic> progressList = response['content'];
+  //       return progressList
+  //           .map((item) => ProgressSummary.fromJson(item))
+  //           .toList();
+  //     } else {
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to get progress by user and book: $e');
+  //   }
+  // }
 
-  @override
-  Future<ProgressDetail> getProgressByUserAndModule(
-    String userId,
-    String moduleId,
-  ) async {
-    try {
-      final response = await _apiClient.get(
-        ApiEndpoints.progressByUserAndModule(userId, moduleId),
-      );
+  // @override
+  // Future<ProgressDetail> getProgressByUserAndModule(
+  //   String userId,
+  //   String moduleId,
+  // ) async {
+  //   try {
+  //     final response = await _apiClient.get(
+  //       ApiEndpoints.progressByUserAndModule(userId, moduleId),
+  //     );
 
-      if (response['success'] == true && response['data'] != null) {
-        return ProgressDetail.fromJson(response['data']);
-      } else {
-        throw NotFoundException('Progress not found: ${response['message']}');
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException(
-        'Failed to get progress by user and module: $e',
-      );
-    }
-  }
+  //     if (response['success'] == true && response['data'] != null) {
+  //       return ProgressDetail.fromJson(response['data']);
+  //     } else {
+  //       throw NotFoundException('Progress not found: ${response['message']}');
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException(
+  //       'Failed to get progress by user and module: $e',
+  //     );
+  //   }
+  // }
 
   @override
   Future<ProgressDetail?> getCurrentUserProgressByModule(
@@ -376,23 +376,23 @@ class ProgressRepositoryImpl implements ProgressRepository {
     }
   }
 
-  @override
-  Future<void> deleteProgress(String id) async {
-    try {
-      final response = await _apiClient.delete('${ApiEndpoints.progress}/$id');
+  // @override
+  // Future<void> deleteProgress(String id) async {
+  //   try {
+  //     final response = await _apiClient.delete('${ApiEndpoints.progress}/$id');
 
-      if (response == null || response['success'] != true) {
-        throw BadRequestException(
-          'Failed to delete progress: ${response?['message']}',
-        );
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to delete progress: $e');
-    }
-  }
+  //     if (response == null || response['success'] != true) {
+  //       throw BadRequestException(
+  //         'Failed to delete progress: ${response?['message']}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to delete progress: $e');
+  //   }
+  // }
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

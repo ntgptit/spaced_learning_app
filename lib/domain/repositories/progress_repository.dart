@@ -9,11 +9,11 @@ abstract class ProgressRepository {
   Future<ProgressDetail> getProgressById(String id);
 
   /// Get progress records by user ID
-  Future<List<ProgressSummary>> getProgressByUserId(
-    String userId, {
-    int page = 0,
-    int size = 20,
-  });
+  // Future<List<ProgressSummary>> getProgressByUserId(
+  //   String userId, {
+  //   int page = 0,
+  //   int size = 20,
+  // });
 
   /// Get progress records by module ID
   Future<List<ProgressSummary>> getProgressByModuleId(
@@ -23,18 +23,18 @@ abstract class ProgressRepository {
   });
 
   /// Get progress records by user ID and book ID
-  Future<List<ProgressSummary>> getProgressByUserAndBook(
-    String userId,
-    String bookId, {
-    int page = 0,
-    int size = 20,
-  });
+  // Future<List<ProgressSummary>> getProgressByUserAndBook(
+  //   String userId,
+  //   String bookId, {
+  //   int page = 0,
+  //   int size = 20,
+  // });
 
   /// Get progress for a specific user and module
-  Future<ProgressDetail> getProgressByUserAndModule(
-    String userId,
-    String moduleId,
-  );
+  // Future<ProgressDetail> getProgressByUserAndModule(
+  //   String userId,
+  //   String moduleId,
+  // );
 
   /// Get progress for current user and a specific module
   Future<ProgressDetail?> getCurrentUserProgressByModule(String moduleId);
@@ -67,5 +67,5 @@ abstract class ProgressRepository {
   });
 
   /// Delete a progress record
-  Future<void> deleteProgress(String id);
+  // Future<void> deleteProgress(String id);
 }

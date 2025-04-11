@@ -6,7 +6,7 @@ abstract class UserRepository {
   Future<User> getCurrentUser();
 
   /// Get user by ID
-  Future<User> getUserById(String id);
+  // Future<User> getUserById(String id);
 
   /// Update user data
   Future<User> updateUser(String id, {String? displayName, String? password});

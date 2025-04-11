@@ -164,14 +164,14 @@ class LearningDataServiceImpl implements LearningDataService {
         .toList();
   }
 
-  @override
-  Future<Map<String, dynamic>> getBookStats(String bookName) async {
-    try {
-      return await _repository.getBookStats(bookName);
-    } catch (e) {
-      return {};
-    }
-  }
+  // @override
+  // Future<Map<String, dynamic>> getBookStats(String bookName) async {
+  //   try {
+  //     return await _repository.getBookStats(bookName);
+  //   } catch (e) {
+  //     return {};
+  //   }
+  // }
 
   @override
   Future<Map<String, dynamic>> getDashboardStats({

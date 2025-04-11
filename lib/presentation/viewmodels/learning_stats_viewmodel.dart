@@ -78,41 +78,41 @@ class LearningStatsViewModel extends BaseViewModel {
   }
 
   /// Load dashboard statistics for a specific user (admin only)
-  Future<void> loadUserDashboardStats(
-    String userId, {
-    bool refreshCache = false,
-  }) async {
-    if (!beginRefresh()) return;
+  // Future<void> loadUserDashboardStats(
+  //   String userId, {
+  //   bool refreshCache = false,
+  // }) async {
+  //   if (!beginRefresh()) return;
 
-    await safeCall(
-      action: () async {
-        _stats = await _repository.getUserDashboardStats(
-          userId,
-          refreshCache: refreshCache,
-        );
-        setInitialized(true);
-        return _stats;
-      },
-      errorPrefix: 'Failed to load user dashboard statistics',
-      handleLoading: false, // Already handled by beginRefresh
-      updateTimestamp: true,
-    );
-    endRefresh();
-  }
+  //   await safeCall(
+  //     action: () async {
+  //       _stats = await _repository.getUserDashboardStats(
+  //         userId,
+  //         refreshCache: refreshCache,
+  //       );
+  //       setInitialized(true);
+  //       return _stats;
+  //     },
+  //     errorPrefix: 'Failed to load user dashboard statistics',
+  //     handleLoading: false, // Already handled by beginRefresh
+  //     updateTimestamp: true,
+  //   );
+  //   endRefresh();
+  // }
 
   /// Load learning insights for a specific user (admin only)
-  Future<void> loadUserLearningInsights(String userId) async {
-    if (!beginRefresh()) return;
+  // Future<void> loadUserLearningInsights(String userId) async {
+  //   if (!beginRefresh()) return;
 
-    await safeCall(
-      action: () async {
-        _insights = await _repository.getUserLearningInsights(userId);
-        return _insights;
-      },
-      errorPrefix: 'Failed to load user learning insights',
-      handleLoading: false, // Already handled by beginRefresh
-      updateTimestamp: true,
-    );
-    endRefresh();
-  }
+  //   await safeCall(
+  //     action: () async {
+  //       _insights = await _repository.getUserLearningInsights(userId);
+  //       return _insights;
+  //     },
+  //     errorPrefix: 'Failed to load user learning insights',
+  //     handleLoading: false, // Already handled by beginRefresh
+  //     updateTimestamp: true,
+  //   );
+  //   endRefresh();
+  // }
 }

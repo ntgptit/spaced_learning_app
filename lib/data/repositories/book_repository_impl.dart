@@ -138,103 +138,103 @@ class BookRepositoryImpl implements BookRepository {
     }
   }
 
-  @override
-  Future<BookDetail> createBook({
-    required String name,
-    String? description,
-    BookStatus? status,
-    DifficultyLevel? difficultyLevel,
-    String? category,
-  }) async {
-    try {
-      final data = <String, dynamic>{'name': name};
+  // @override
+  // Future<BookDetail> createBook({
+  //   required String name,
+  //   String? description,
+  //   BookStatus? status,
+  //   DifficultyLevel? difficultyLevel,
+  //   String? category,
+  // }) async {
+  //   try {
+  //     final data = <String, dynamic>{'name': name};
 
-      if (description != null) {
-        data['description'] = description;
-      }
+  //     if (description != null) {
+  //       data['description'] = description;
+  //     }
 
-      if (status != null) {
-        data['status'] = status.toString().split('.').last.toUpperCase();
-      }
+  //     if (status != null) {
+  //       data['status'] = status.toString().split('.').last.toUpperCase();
+  //     }
 
-      if (difficultyLevel != null) {
-        data['difficultyLevel'] =
-            difficultyLevel.toString().split('.').last.toUpperCase();
-      }
+  //     if (difficultyLevel != null) {
+  //       data['difficultyLevel'] =
+  //           difficultyLevel.toString().split('.').last.toUpperCase();
+  //     }
 
-      if (category != null) {
-        data['category'] = category;
-      }
+  //     if (category != null) {
+  //       data['category'] = category;
+  //     }
 
-      final response = await _apiClient.post(ApiEndpoints.books, data: data);
+  //     final response = await _apiClient.post(ApiEndpoints.books, data: data);
 
-      if (response['success'] == true && response['data'] != null) {
-        return BookDetail.fromJson(response['data']);
-      } else {
-        throw BadRequestException(
-          'Failed to create book: ${response['message']}',
-        );
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to create book: $e');
-    }
-  }
+  //     if (response['success'] == true && response['data'] != null) {
+  //       return BookDetail.fromJson(response['data']);
+  //     } else {
+  //       throw BadRequestException(
+  //         'Failed to create book: ${response['message']}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to create book: $e');
+  //   }
+  // }
 
-  @override
-  Future<BookDetail> updateBook(
-    String id, {
-    String? name,
-    String? description,
-    BookStatus? status,
-    DifficultyLevel? difficultyLevel,
-    String? category,
-  }) async {
-    try {
-      final data = <String, dynamic>{};
+  // @override
+  // Future<BookDetail> updateBook(
+  //   String id, {
+  //   String? name,
+  //   String? description,
+  //   BookStatus? status,
+  //   DifficultyLevel? difficultyLevel,
+  //   String? category,
+  // }) async {
+  //   try {
+  //     final data = <String, dynamic>{};
 
-      if (name != null) {
-        data['name'] = name;
-      }
+  //     if (name != null) {
+  //       data['name'] = name;
+  //     }
 
-      if (description != null) {
-        data['description'] = description;
-      }
+  //     if (description != null) {
+  //       data['description'] = description;
+  //     }
 
-      if (status != null) {
-        data['status'] = status.toString().split('.').last.toUpperCase();
-      }
+  //     if (status != null) {
+  //       data['status'] = status.toString().split('.').last.toUpperCase();
+  //     }
 
-      if (difficultyLevel != null) {
-        data['difficultyLevel'] =
-            difficultyLevel.toString().split('.').last.toUpperCase();
-      }
+  //     if (difficultyLevel != null) {
+  //       data['difficultyLevel'] =
+  //           difficultyLevel.toString().split('.').last.toUpperCase();
+  //     }
 
-      if (category != null) {
-        data['category'] = category;
-      }
+  //     if (category != null) {
+  //       data['category'] = category;
+  //     }
 
-      final response = await _apiClient.put(
-        '${ApiEndpoints.books}/$id',
-        data: data,
-      );
+  //     final response = await _apiClient.put(
+  //       '${ApiEndpoints.books}/$id',
+  //       data: data,
+  //     );
 
-      if (response['success'] == true && response['data'] != null) {
-        return BookDetail.fromJson(response['data']);
-      } else {
-        throw BadRequestException(
-          'Failed to update book: ${response['message']}',
-        );
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to update book: $e');
-    }
-  }
+  //     if (response['success'] == true && response['data'] != null) {
+  //       return BookDetail.fromJson(response['data']);
+  //     } else {
+  //       throw BadRequestException(
+  //         'Failed to update book: ${response['message']}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to update book: $e');
+  //   }
+  // }
 
   @override
   Future<void> deleteBook(String id) async {

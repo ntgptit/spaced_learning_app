@@ -64,26 +64,26 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
     }
   }
 
-  @override
-  Future<List<LearningModule>> getCompletedModules() async {
-    try {
-      final response = await _apiClient.get(ApiEndpoints.completedModules);
+  // @override
+  // Future<List<LearningModule>> getCompletedModules() async {
+  //   try {
+  //     final response = await _apiClient.get(ApiEndpoints.completedModules);
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> modulesList = response['data'];
-        return modulesList
-            .map((item) => LearningModule.fromJson(item))
-            .toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to get completed modules: $e');
-    }
-  }
+  //     if (response['success'] == true && response['data'] != null) {
+  //       final List<dynamic> modulesList = response['data'];
+  //       return modulesList
+  //           .map((item) => LearningModule.fromJson(item))
+  //           .toList();
+  //     } else {
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to get completed modules: $e');
+  //   }
+  // }
 
   @override
   Future<List<String>> getUniqueBooks() async {
@@ -124,27 +124,27 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
     }
   }
 
-  @override
-  Future<Map<String, dynamic>> getBookStats(String bookName) async {
-    try {
-      final response = await _apiClient.get(
-        ApiEndpoints.bookStats.replaceFirst('{book}', bookName),
-      );
+  // @override
+  // Future<Map<String, dynamic>> getBookStats(String bookName) async {
+  //   try {
+  //     final response = await _apiClient.get(
+  //       ApiEndpoints.bookStats.replaceFirst('{book}', bookName),
+  //     );
 
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'] as Map<String, dynamic>;
-      } else {
-        throw BadRequestException(
-          'Failed to get book stats: ${response['message']}',
-        );
-      }
-    } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
-      throw UnexpectedException('Failed to get book stats: $e');
-    }
-  }
+  //     if (response['success'] == true && response['data'] != null) {
+  //       return response['data'] as Map<String, dynamic>;
+  //     } else {
+  //       throw BadRequestException(
+  //         'Failed to get book stats: ${response['message']}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (e is AppException) {
+  //       rethrow;
+  //     }
+  //     throw UnexpectedException('Failed to get book stats: $e');
+  //   }
+  // }
 
   @override
   Future<Map<String, dynamic>> getDashboardStats({

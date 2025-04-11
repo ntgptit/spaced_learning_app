@@ -10,7 +10,7 @@ abstract class LearningProgressRepository {
   Future<List<LearningModule>> getDueModules(int daysThreshold);
 
   /// Get modules that are completed (100% progress)
-  Future<List<LearningModule>> getCompletedModules();
+  // Future<List<LearningModule>> getCompletedModules();
 
   /// Get all unique book names
   Future<List<String>> getUniqueBooks();
@@ -19,7 +19,7 @@ abstract class LearningProgressRepository {
   Future<Map<String, dynamic>> exportData();
 
   /// Get book statistics
-  Future<Map<String, dynamic>> getBookStats(String bookName);
+  // Future<Map<String, dynamic>> getBookStats(String bookName);
 
   /// Get dashboard statistics
   Future<Map<String, dynamic>> getDashboardStats({

@@ -7,14 +7,14 @@ abstract class LearningStatsRepository {
   Future<LearningStatsDTO> getDashboardStats({bool refreshCache = false});
 
   /// Get dashboard statistics for a specific user (admin only)
-  Future<LearningStatsDTO> getUserDashboardStats(
-    String userId, {
-    bool refreshCache = false,
-  });
+  // Future<LearningStatsDTO> getUserDashboardStats(
+  //   String userId, {
+  //   bool refreshCache = false,
+  // });
 
   /// Get learning insights for current user
   Future<List<LearningInsightDTO>> getLearningInsights();
 
   /// Get learning insights for a specific user (admin only)
-  Future<List<LearningInsightDTO>> getUserLearningInsights(String userId);
+  // Future<List<LearningInsightDTO>> getUserLearningInsights(String userId);
 }

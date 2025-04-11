@@ -14,28 +14,28 @@ class RepetitionViewModel extends BaseViewModel {
   List<Repetition> get repetitions => _repetitions;
   Repetition? get selectedRepetition => _selectedRepetition;
 
-  Future<void> loadRepetitions({int page = 0, int size = 20}) async {
-    await safeCall(
-      action: () async {
-        _repetitions = await repetitionRepository.getAllRepetitions(
-          page: page,
-          size: size,
-        );
-        return _repetitions;
-      },
-      errorPrefix: 'Failed to load repetitions',
-    );
-  }
+  // Future<void> loadRepetitions({int page = 0, int size = 20}) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _repetitions = await repetitionRepository.getAllRepetitions(
+  //         page: page,
+  //         size: size,
+  //       );
+  //       return _repetitions;
+  //     },
+  //     errorPrefix: 'Failed to load repetitions',
+  //   );
+  // }
 
-  Future<void> loadRepetitionById(String id) async {
-    await safeCall(
-      action: () async {
-        _selectedRepetition = await repetitionRepository.getRepetitionById(id);
-        return _selectedRepetition;
-      },
-      errorPrefix: 'Failed to load repetition details',
-    );
-  }
+  // Future<void> loadRepetitionById(String id) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _selectedRepetition = await repetitionRepository.getRepetitionById(id);
+  //       return _selectedRepetition;
+  //     },
+  //     errorPrefix: 'Failed to load repetition details',
+  //   );
+  // }
 
   Future<void> loadRepetitionsByProgressId(String progressId) async {
     await safeCall(
@@ -49,60 +49,60 @@ class RepetitionViewModel extends BaseViewModel {
     );
   }
 
-  Future<Repetition?> loadRepetitionByProgressIdAndOrder(
-    String progressId,
-    RepetitionOrder order,
-  ) async {
-    return safeCall<Repetition>(
-      action: () async {
-        final repetition = await repetitionRepository
-            .getRepetitionByProgressIdAndOrder(progressId, order);
-        _selectedRepetition = repetition;
-        return repetition;
-      },
-      errorPrefix: 'Failed to load repetition by order',
-    );
-  }
+  // Future<Repetition?> loadRepetitionByProgressIdAndOrder(
+  //   String progressId,
+  //   RepetitionOrder order,
+  // ) async {
+  //   return safeCall<Repetition>(
+  //     action: () async {
+  //       final repetition = await repetitionRepository
+  //           .getRepetitionByProgressIdAndOrder(progressId, order);
+  //       _selectedRepetition = repetition;
+  //       return repetition;
+  //     },
+  //     errorPrefix: 'Failed to load repetition by order',
+  //   );
+  // }
 
-  Future<void> loadDueRepetitions(
-    String userId, {
-    DateTime? reviewDate,
-    RepetitionStatus? status,
-    int page = 0,
-    int size = 20,
-  }) async {
-    await safeCall(
-      action: () async {
-        _repetitions = await repetitionRepository.getDueRepetitions(
-          userId,
-          reviewDate: reviewDate,
-          status: status,
-          page: page,
-          size: size,
-        );
-        return _repetitions;
-      },
-      errorPrefix: 'Failed to load due repetitions',
-    );
-  }
+  // Future<void> loadDueRepetitions(
+  //   String userId, {
+  //   DateTime? reviewDate,
+  //   RepetitionStatus? status,
+  //   int page = 0,
+  //   int size = 20,
+  // }) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _repetitions = await repetitionRepository.getDueRepetitions(
+  //         userId,
+  //         reviewDate: reviewDate,
+  //         status: status,
+  //         page: page,
+  //         size: size,
+  //       );
+  //       return _repetitions;
+  //     },
+  //     errorPrefix: 'Failed to load due repetitions',
+  //   );
+  // }
 
-  Future<Repetition?> createRepetition({
-    required String moduleProgressId,
-    required RepetitionOrder repetitionOrder,
-    RepetitionStatus? status,
-    DateTime? reviewDate,
-  }) async {
-    return safeCall<Repetition>(
-      action:
-          () => repetitionRepository.createRepetition(
-            moduleProgressId: moduleProgressId,
-            repetitionOrder: repetitionOrder,
-            status: status,
-            reviewDate: reviewDate,
-          ),
-      errorPrefix: 'Failed to create repetition',
-    );
-  }
+  // Future<Repetition?> createRepetition({
+  //   required String moduleProgressId,
+  //   required RepetitionOrder repetitionOrder,
+  //   RepetitionStatus? status,
+  //   DateTime? reviewDate,
+  // }) async {
+  //   return safeCall<Repetition>(
+  //     action:
+  //         () => repetitionRepository.createRepetition(
+  //           moduleProgressId: moduleProgressId,
+  //           repetitionOrder: repetitionOrder,
+  //           status: status,
+  //           reviewDate: reviewDate,
+  //         ),
+  //     errorPrefix: 'Failed to create repetition',
+  //   );
+  // }
 
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
@@ -149,23 +149,23 @@ class RepetitionViewModel extends BaseViewModel {
     );
   }
 
-  Future<bool> deleteRepetition(String id) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        await repetitionRepository.deleteRepetition(id);
+  // Future<bool> deleteRepetition(String id) async {
+  //   final result = await safeCall<bool>(
+  //     action: () async {
+  //       await repetitionRepository.deleteRepetition(id);
 
-        if (_selectedRepetition?.id == id) {
-          _selectedRepetition = null;
-        }
+  //       if (_selectedRepetition?.id == id) {
+  //         _selectedRepetition = null;
+  //       }
 
-        _repetitions =
-            _repetitions.where((repetition) => repetition.id != id).toList();
-        return true;
-      },
-      errorPrefix: 'Failed to delete repetition',
-    );
-    return result ?? false;
-  }
+  //       _repetitions =
+  //           _repetitions.where((repetition) => repetition.id != id).toList();
+  //       return true;
+  //     },
+  //     errorPrefix: 'Failed to delete repetition',
+  //   );
+  //   return result ?? false;
+  // }
 
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
     try {

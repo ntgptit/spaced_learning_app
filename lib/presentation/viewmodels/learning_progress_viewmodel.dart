@@ -179,16 +179,16 @@ class LearningProgressViewModel extends BaseViewModel {
   }
 
   /// Get book stats for the selected book
-  Future<Map<String, dynamic>> getBookStats() async {
-    if (_selectedBook == 'All') return {};
+  // Future<Map<String, dynamic>> getBookStats() async {
+  //   if (_selectedBook == 'All') return {};
 
-    final result = await safeCall<Map<String, dynamic>>(
-      action: () => _learningDataService.getBookStats(_selectedBook),
-      errorPrefix: 'Failed to load book statistics',
-      handleLoading: false,
-    );
-    return result ?? {};
-  }
+  //   final result = await safeCall<Map<String, dynamic>>(
+  //     action: () => _learningDataService.getBookStats(_selectedBook),
+  //     errorPrefix: 'Failed to load book statistics',
+  //     handleLoading: false,
+  //   );
+  //   return result ?? {};
+  // }
 
   /// Get dashboard stats with current filters
   Future<Map<String, dynamic>> getDashboardStats() async {

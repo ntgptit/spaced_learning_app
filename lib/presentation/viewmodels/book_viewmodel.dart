@@ -88,55 +88,55 @@ class BookViewModel extends BaseViewModel {
   }
 
   /// Create a new book (admin only)
-  Future<BookDetail?> createBook({
-    required String name,
-    String? description,
-    BookStatus? status,
-    DifficultyLevel? difficultyLevel,
-    String? category,
-  }) async {
-    return safeCall<BookDetail>(
-      action:
-          () => bookRepository.createBook(
-            name: name,
-            description: description,
-            status: status,
-            difficultyLevel: difficultyLevel,
-            category: category,
-          ),
-      errorPrefix: 'Failed to create book',
-    );
-  }
+  // Future<BookDetail?> createBook({
+  //   required String name,
+  //   String? description,
+  //   BookStatus? status,
+  //   DifficultyLevel? difficultyLevel,
+  //   String? category,
+  // }) async {
+  //   return safeCall<BookDetail>(
+  //     action:
+  //         () => bookRepository.createBook(
+  //           name: name,
+  //           description: description,
+  //           status: status,
+  //           difficultyLevel: difficultyLevel,
+  //           category: category,
+  //         ),
+  //     errorPrefix: 'Failed to create book',
+  //   );
+  // }
 
   /// Update a book (admin only)
-  Future<BookDetail?> updateBook(
-    String id, {
-    String? name,
-    String? description,
-    BookStatus? status,
-    DifficultyLevel? difficultyLevel,
-    String? category,
-  }) async {
-    return safeCall<BookDetail>(
-      action: () async {
-        final book = await bookRepository.updateBook(
-          id,
-          name: name,
-          description: description,
-          status: status,
-          difficultyLevel: difficultyLevel,
-          category: category,
-        );
+  // Future<BookDetail?> updateBook(
+  //   String id, {
+  //   String? name,
+  //   String? description,
+  //   BookStatus? status,
+  //   DifficultyLevel? difficultyLevel,
+  //   String? category,
+  // }) async {
+  //   return safeCall<BookDetail>(
+  //     action: () async {
+  //       final book = await bookRepository.updateBook(
+  //         id,
+  //         name: name,
+  //         description: description,
+  //         status: status,
+  //         difficultyLevel: difficultyLevel,
+  //         category: category,
+  //       );
 
-        if (_selectedBook?.id == id) {
-          _selectedBook = book;
-        }
+  //       if (_selectedBook?.id == id) {
+  //         _selectedBook = book;
+  //       }
 
-        return book;
-      },
-      errorPrefix: 'Failed to update book',
-    );
-  }
+  //       return book;
+  //     },
+  //     errorPrefix: 'Failed to update book',
+  //   );
+  // }
 
   /// Delete a book (admin only)
   Future<bool> deleteBook(String id) async {

@@ -17,15 +17,15 @@ class ModuleViewModel extends BaseViewModel {
   ModuleDetail? get selectedModule => _selectedModule;
 
   /// Load all modules with pagination
-  Future<void> loadModules({int page = 0, int size = 20}) async {
-    await safeCall(
-      action: () async {
-        _modules = await moduleRepository.getAllModules(page: page, size: size);
-        return _modules;
-      },
-      errorPrefix: 'Failed to load modules',
-    );
-  }
+  // Future<void> loadModules({int page = 0, int size = 20}) async {
+  //   await safeCall(
+  //     action: () async {
+  //       _modules = await moduleRepository.getAllModules(page: page, size: size);
+  //       return _modules;
+  //     },
+  //     errorPrefix: 'Failed to load modules',
+  //   );
+  // }
 
   /// Load module details by ID
   Future<void> loadModuleDetails(String id) async {
@@ -58,83 +58,83 @@ class ModuleViewModel extends BaseViewModel {
   }
 
   /// Load all modules by book ID (without pagination)
-  Future<List<ModuleSummary>> getAllModulesByBookId(String bookId) async {
-    final result = await safeCall<List<ModuleSummary>>(
-      action: () => moduleRepository.getAllModulesByBookId(bookId),
-      errorPrefix: 'Failed to get all modules by book',
-    );
-    return result ?? [];
-  }
+  // Future<List<ModuleSummary>> getAllModulesByBookId(String bookId) async {
+  //   final result = await safeCall<List<ModuleSummary>>(
+  //     action: () => moduleRepository.getAllModulesByBookId(bookId),
+  //     errorPrefix: 'Failed to get all modules by book',
+  //   );
+  //   return result ?? [];
+  // }
 
-  /// Get next available module number for a book
-  Future<int> getNextModuleNumber(String bookId) async {
-    final result = await safeCall<int>(
-      action: () => moduleRepository.getNextModuleNumber(bookId),
-      errorPrefix: 'Failed to get next module number',
-    );
-    return result ?? 1; // Default to 1 if error
-  }
+  // /// Get next available module number for a book
+  // Future<int> getNextModuleNumber(String bookId) async {
+  //   final result = await safeCall<int>(
+  //     action: () => moduleRepository.getNextModuleNumber(bookId),
+  //     errorPrefix: 'Failed to get next module number',
+  //   );
+  //   return result ?? 1; // Default to 1 if error
+  // }
 
   /// Create a new module (admin only)
-  Future<ModuleDetail?> createModule({
-    required String bookId,
-    required int moduleNo,
-    required String title,
-    int? wordCount,
-  }) async {
-    return safeCall<ModuleDetail>(
-      action:
-          () => moduleRepository.createModule(
-            bookId: bookId,
-            moduleNo: moduleNo,
-            title: title,
-            wordCount: wordCount,
-          ),
-      errorPrefix: 'Failed to create module',
-    );
-  }
+  // Future<ModuleDetail?> createModule({
+  //   required String bookId,
+  //   required int moduleNo,
+  //   required String title,
+  //   int? wordCount,
+  // }) async {
+  //   return safeCall<ModuleDetail>(
+  //     action:
+  //         () => moduleRepository.createModule(
+  //           bookId: bookId,
+  //           moduleNo: moduleNo,
+  //           title: title,
+  //           wordCount: wordCount,
+  //         ),
+  //     errorPrefix: 'Failed to create module',
+  //   );
+  // }
 
   /// Update a module (admin only)
-  Future<ModuleDetail?> updateModule(
-    String id, {
-    int? moduleNo,
-    String? title,
-    int? wordCount,
-  }) async {
-    return safeCall<ModuleDetail>(
-      action: () async {
-        final module = await moduleRepository.updateModule(
-          id,
-          moduleNo: moduleNo,
-          title: title,
-          wordCount: wordCount,
-        );
+  // Future<ModuleDetail?> updateModule(
+  //   String id, {
+  //   int? moduleNo,
+  //   String? title,
+  //   int? wordCount,
+  // }) async {
+  //   return safeCall<ModuleDetail>(
+  //     action: () async {
+  //       final module = await moduleRepository.updateModule(
+  //         id,
+  //         moduleNo: moduleNo,
+  //         title: title,
+  //         wordCount: wordCount,
+  //       );
 
-        if (_selectedModule?.id == id) {
-          _selectedModule = module;
-        }
+  //       if (_selectedModule?.id == id) {
+  //         _selectedModule = module;
+  //       }
 
-        return module;
-      },
-      errorPrefix: 'Failed to update module',
-    );
-  }
+  //       return module;
+  //     },
+  //     errorPrefix: 'Failed to update module',
+  //   );
+  // }
 
   /// Delete a module (admin only)
-  Future<bool> deleteModule(String id) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        await moduleRepository.deleteModule(id);
+  // Future<bool> deleteModule(String id) async {
+  //   final result = await safeCall<bool>(
+  //     action: () async {
+  //       await moduleRepository.deleteModule(id);
 
-        if (_selectedModule?.id == id) {
-          _selectedModule = null;
-        }
+  //       if (_selectedModule?.id == id) {
+  //         _selectedModule = null;
+  //       }
 
-        _modules = _modules.where((module) => module.id != id).toList();
-        return true;
-      },
-      errorPrefix: 'Failed to delete module',
-    );
-    return result ?? false;
-  }
+  //       _modules = _modules.where((module) => module.id != id).toList();
+  //       return true;
+  //     },
+  //     errorPrefix: 'Failed to delete module',
+  //   );
+  //   return result ?? false;
+  // }
 }

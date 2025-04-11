@@ -28,23 +28,23 @@ abstract class BookRepository {
   });
 
   /// Create a new book (admin only)
-  Future<BookDetail> createBook({
-    required String name,
-    String? description,
-    BookStatus? status,
-    DifficultyLevel? difficultyLevel,
-    String? category,
-  });
+  // Future<BookDetail> createBook({
+  //   required String name,
+  //   String? description,
+  //   BookStatus? status,
+  //   DifficultyLevel? difficultyLevel,
+  //   String? category,
+  // });
 
   /// Update a book (admin only)
-  Future<BookDetail> updateBook(
-    String id, {
-    String? name,
-    String? description,
-    BookStatus? status,
-    DifficultyLevel? difficultyLevel,
-    String? category,
-  });
+  // Future<BookDetail> updateBook(
+  //   String id, {
+  //   String? name,
+  //   String? description,
+  //   BookStatus? status,
+  //   DifficultyLevel? difficultyLevel,
+  //   String? category,
+  // });
 
   /// Delete a book by ID (admin only)
   Future<void> deleteBook(String id);
