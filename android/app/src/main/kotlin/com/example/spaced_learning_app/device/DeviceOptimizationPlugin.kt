@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
+import android.os.Vibrator
+import android.os.VibratorManager // Đảm bảo import này
 import android.provider.Settings
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -56,7 +58,6 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
     private fun disableSleepingApps(): Boolean {
         return try {
             val manufacturer = Build.MANUFACTURER.lowercase()
-
             val intent = when {
                 manufacturer.contains("samsung") -> Intent().apply {
                     component = android.content.ComponentName(
@@ -80,7 +81,6 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
             }.apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-
             context.startActivity(intent)
             true
         } catch (e: Exception) {
@@ -112,26 +112,35 @@ class DeviceOptimizationPlugin : FlutterPlugin, MethodCallHandler {
 
     private fun getDeviceInfo(): Map<String, Any> {
         val info = HashMap<String, Any>()
-        info["manufacturer"] = Build.MANUFACTURER
-        info["model"] = Build.MODEL
+        info["manufacturer"] = Build.MANUFACTURER ?: "Unknown"
+        info["model"] = Build.MODEL ?: "Unknown"
         info["sdkVersion"] = Build.VERSION.SDK_INT
-        info["brand"] = Build.BRAND
-        info["device"] = Build.DEVICE
+        info["brand"] = Build.BRAND ?: "Unknown"
+        info["device"] = Build.DEVICE ?: "Unknown"
 
-        val pm = context.packageManager
-//        info["hasVibrator"] = pm.hasSystemFeature(PackageManager.FEATURE_VIBRATOR)
+        try {
+            info["hasVibrator"] = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // API 31+
+                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                vibratorManager?.defaultVibrator?.hasVibrator() ?: false
+            } else {
+                @Suppress("DEPRECATION")
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                vibrator?.hasVibrator() ?: false
+            }
+        } catch (e: Exception) {
+            info["hasVibrator"] = false
+            e.printStackTrace()
+        }
 
         info["hasAlarmScheduling"] = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.canScheduleExactAlarms()
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+            alarmManager?.canScheduleExactAlarms() ?: false
         } else {
             true
         }
 
         return info
     }
-
-
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
