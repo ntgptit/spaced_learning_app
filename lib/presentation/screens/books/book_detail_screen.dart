@@ -1,14 +1,16 @@
+// lib/presentation/screens/books/book_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/book_detail_tabs.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/common_book.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/module_card.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final String bookId;
@@ -18,11 +20,34 @@ class BookDetailScreen extends StatefulWidget {
   State<BookDetailScreen> createState() => _BookDetailScreenState();
 }
 
-class _BookDetailScreenState extends State<BookDetailScreen> {
+class _BookDetailScreenState extends State<BookDetailScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolled = false;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _scrollController.addListener(_onScroll);
     _loadData();
+  }
+
+  void _onScroll() {
+    final isScrolled = _scrollController.offset > 0;
+    if (isScrolled != _isScrolled) {
+      setState(() {
+        _isScrolled = isScrolled;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -37,28 +62,229 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final moduleViewModel = context.watch<ModuleViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
     final book = bookViewModel.selectedBook;
+    final colorScheme = theme.colorScheme;
+
+    if (bookViewModel.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Book Details')),
+        body: const Center(child: AppLoadingIndicator()),
+      );
+    }
+
+    if (bookViewModel.errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Book Details')),
+        body: Center(
+          child: ErrorDisplay(
+            message: bookViewModel.errorMessage!,
+            onRetry: _loadData,
+          ),
+        ),
+      );
+    }
+
+    if (book == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Book Details')),
+        body: const Center(child: Text('Book not found')),
+      );
+    }
 
     return Scaffold(
-      appBar: _buildAppBar(theme, book, authViewModel),
-      body: _buildBody(theme, book, moduleViewModel),
-      floatingActionButton: _buildFloatingActionButton(authViewModel, book),
+      body: NestedScrollView(
+        controller: _scrollController,
+        headerSliverBuilder:
+            (context, innerBoxIsScrolled) => [
+              _buildFlexibleAppBar(
+                theme,
+                colorScheme,
+                book,
+                authViewModel,
+                innerBoxIsScrolled,
+              ),
+            ],
+        body: Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              labelColor: colorScheme.primary,
+              unselectedLabelColor: colorScheme.onSurfaceVariant,
+              indicatorColor: colorScheme.primary,
+              indicatorWeight: 3,
+              indicatorSize: TabBarIndicatorSize.label,
+              tabs: const [
+                Tab(icon: Icon(Icons.info_outline), text: 'Overview'),
+                Tab(icon: Icon(Icons.view_module_outlined), text: 'Modules'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Overview Tab
+                  BookOverviewTab(book: book),
+
+                  // Modules Tab
+                  BookModulesTab(
+                    bookId: widget.bookId,
+                    viewModel: moduleViewModel,
+                    onRetry:
+                        () =>
+                            moduleViewModel.loadModulesByBookId(widget.bookId),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton:
+          authViewModel.currentUser?.roles?.contains('ADMIN') == true
+              ? FloatingActionButton.extended(
+                onPressed:
+                    () =>
+                        GoRouter.of(context).push('/modules/create/${book.id}'),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Module'),
+              )
+              : null,
     );
   }
 
-  AppBar _buildAppBar(
+  SliverAppBar _buildFlexibleAppBar(
     ThemeData theme,
-    BookDetail? book,
+    ColorScheme colorScheme,
+    BookDetail book,
     AuthViewModel authViewModel,
+    bool innerBoxIsScrolled,
   ) {
-    return AppBar(
-      title: Text(book?.name ?? 'Book Details'),
+    final statusColor = _getStatusColor(book.status);
+    final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
+
+    return SliverAppBar(
+      expandedHeight: 240.0,
+      floating: false,
+      pinned: true,
+      forceElevated: _isScrolled || innerBoxIsScrolled,
+      backgroundColor:
+          _isScrolled
+              ? theme.appBarTheme.backgroundColor
+              : colorScheme.surfaceContainerHigh,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => GoRouter.of(context).pop(),
+        color: _isScrolled ? null : colorScheme.onSurfaceVariant,
+      ),
       actions: [
         if (authViewModel.currentUser?.roles?.contains('ADMIN') == true)
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuSelection(value, book),
             itemBuilder: (context) => _buildPopupMenuItems(theme),
+            icon: Icon(
+              Icons.more_vert,
+              color: _isScrolled ? null : colorScheme.onSurfaceVariant,
+            ),
           ),
       ],
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.all(0),
+        expandedTitleScale: 1.0,
+        title:
+            _isScrolled
+                ? Padding(
+                  padding: const EdgeInsets.only(left: 56.0, right: 56.0),
+                  child: Text(
+                    book.name,
+                    style: theme.textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                )
+                : const SizedBox.shrink(),
+        background: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppDimens.paddingL,
+            AppDimens.paddingXXL + kToolbarHeight,
+            AppDimens.paddingL,
+            AppDimens.paddingL,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Book Banner
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Book "Cover"
+                  Hero(
+                    tag: 'book-${book.id}',
+                    child: BookCoverWidget(book: book),
+                  ),
+                  const SizedBox(width: AppDimens.spaceL),
+                  // Book Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          book.name,
+                          style: theme.textTheme.headlineSmall,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppDimens.spaceS),
+                        Row(
+                          children: [
+                            InfoChipWidget(
+                              label: _formatStatus(book.status),
+                              backgroundColor: statusColor.withOpacity(0.2),
+                              textColor: statusColor,
+                            ),
+                            if (book.difficultyLevel != null) ...[
+                              const SizedBox(width: AppDimens.spaceXS),
+                              InfoChipWidget(
+                                label: difficultyData.text,
+                                backgroundColor: difficultyData.color
+                                    .withOpacity(0.2),
+                                textColor: difficultyData.color,
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (book.category != null) ...[
+                          const SizedBox(height: AppDimens.spaceXS),
+                          InfoChipWidget(
+                            label: book.category!,
+                            backgroundColor: colorScheme.tertiaryContainer,
+                            textColor: colorScheme.onTertiaryContainer,
+                            icon: Icons.category_outlined,
+                          ),
+                        ],
+                        const SizedBox(height: AppDimens.spaceS),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.bookmark_border,
+                              size: AppDimens.iconS,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: AppDimens.spaceXXS),
+                            Text(
+                              '${book.modules.length} ${book.modules.length == 1 ? 'module' : 'modules'}',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -69,6 +295,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         child: ListTile(
           leading: Icon(Icons.edit, color: theme.colorScheme.primary),
           title: const Text('Edit Book'),
+          contentPadding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
         ),
       ),
       PopupMenuItem<String>(
@@ -76,213 +304,22 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         child: ListTile(
           leading: Icon(Icons.delete, color: theme.colorScheme.error),
           title: const Text('Delete Book'),
+          contentPadding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
         ),
       ),
     ];
   }
 
-  Widget _buildBody(
-    ThemeData theme,
-    BookDetail? book,
-    ModuleViewModel moduleViewModel,
-  ) {
-    final bookViewModel = context.watch<BookViewModel>();
-
-    if (bookViewModel.isLoading) {
-      return const Center(child: AppLoadingIndicator());
-    }
-    if (bookViewModel.errorMessage != null) {
-      return Center(
-        child: ErrorDisplay(
-          message: bookViewModel.errorMessage!,
-          onRetry: _loadData,
-        ),
-      );
-    }
-    if (book == null) return const Center(child: Text('Book not found'));
-
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildBookHeader(theme, book),
-          const SizedBox(height: 16),
-          if (book.description?.isNotEmpty == true) ...[
-            Text('Description', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(book.description!, style: theme.textTheme.bodyLarge),
-            const SizedBox(height: 24),
-          ],
-          Text('Modules', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 8),
-          _buildModulesList(moduleViewModel),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBookHeader(ThemeData theme, BookDetail book) {
-    final statusColor = _getStatusColor(book.status);
-    final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(book.name, style: theme.textTheme.headlineMedium),
-            ),
-            _buildStatusChip(theme, book.status, statusColor),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 16,
-          runSpacing: 8,
-          children: [
-            if (book.category != null) Chip(label: Text(book.category!)),
-            _buildDifficultyChip(theme, difficultyData),
-            _buildModulesCount(theme, book.modules.length),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusChip(
-    ThemeData theme,
-    BookStatus status,
-    Color statusColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        _formatStatus(status),
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: statusColor,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDifficultyChip(
-    ThemeData theme,
-    ({Color color, String text}) data,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: data.color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        data.text,
-        style: theme.textTheme.bodySmall?.copyWith(color: data.color),
-      ),
-    );
-  }
-
-  Widget _buildModulesCount(ThemeData theme, int count) {
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: 'Modules: ',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          TextSpan(text: count.toString(), style: theme.textTheme.bodyMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModulesList(ModuleViewModel viewModel) {
-    if (viewModel.isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: AppLoadingIndicator(),
-        ),
-      );
-    }
-
-    if (viewModel.errorMessage != null) {
-      return ErrorDisplay(
-        message: viewModel.errorMessage!,
-        onRetry: () => viewModel.loadModulesByBookId(widget.bookId),
-        compact: true,
-      );
-    }
-
-    if (viewModel.modules.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
-        child: Center(
-          child: Column(
-            children: [
-              const Text('No modules available for this book'),
-              const SizedBox(height: 8),
-              AppButton(
-                text: 'Refresh',
-                type: AppButtonType.outline,
-                onPressed: () => viewModel.loadModulesByBookId(widget.bookId),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: viewModel.modules.length,
-      itemBuilder: (context, index) {
-        final module = viewModel.modules[index];
-        return ModuleCard(
-          module: module,
-          onTap:
-              () => GoRouter.of(
-                context,
-              ).push('/books/${widget.bookId}/modules/${module.id}'),
-        );
-      },
-    );
-  }
-
-  FloatingActionButton? _buildFloatingActionButton(
-    AuthViewModel authViewModel,
-    BookDetail? book,
-  ) {
-    return authViewModel.currentUser?.roles?.contains('ADMIN') == true &&
-            book != null
-        ? FloatingActionButton(
-          onPressed:
-              () => GoRouter.of(context).push('/modules/create/${book.id}'),
-          child: const Icon(Icons.add),
-        )
-        : null;
-  }
-
-  void _handleMenuSelection(String value, BookDetail? book) {
-    if (book == null) return;
+  void _handleMenuSelection(String value, BookDetail book) {
     if (value == 'edit') {
       GoRouter.of(context).push('/books/edit/${book.id}');
     } else if (value == 'delete') {
-      _showDeleteConfirmation(context, book);
+      _showDeleteConfirmation(book);
     }
   }
 
-  void _showDeleteConfirmation(BuildContext context, BookDetail book) {
+  void _showDeleteConfirmation(BookDetail book) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
@@ -300,7 +337,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   style: TextStyle(color: theme.colorScheme.outline),
                 ),
               ),
-              TextButton(
+              ElevatedButton.icon(
                 onPressed: () async {
                   Navigator.of(context).pop();
                   final bookViewModel = context.read<BookViewModel>();
@@ -311,13 +348,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       SnackBar(
                         content: const Text('Book deleted successfully'),
                         backgroundColor: theme.colorScheme.primary,
+                        behavior: SnackBarBehavior.floating,
                       ),
                     );
                   }
                 },
-                child: Text(
-                  'Delete',
-                  style: TextStyle(color: theme.colorScheme.error),
+                icon: const Icon(Icons.delete),
+                label: const Text('Delete'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.error,
+                  foregroundColor: theme.colorScheme.onError,
                 ),
               ),
             ],
@@ -341,13 +381,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     DifficultyLevel? level,
   ) {
     if (level == null) return (color: Colors.grey, text: 'Unknown');
+
     switch (level) {
       case DifficultyLevel.beginner:
         return (color: Colors.green, text: 'Beginner');
       case DifficultyLevel.intermediate:
-        return (color: Colors.red, text: 'Intermediate');
+        return (color: theme.colorScheme.tertiary, text: 'Intermediate');
       case DifficultyLevel.advanced:
-        return (color: Colors.amber, text: 'Advanced');
+        return (color: theme.colorScheme.secondary, text: 'Advanced');
       case DifficultyLevel.expert:
         return (color: theme.colorScheme.error, text: 'Expert');
     }
