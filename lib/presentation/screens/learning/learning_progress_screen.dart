@@ -32,16 +32,13 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_isFirstLoad) {
-      _isFirstLoad = false;
-    }
+    if (!_isFirstLoad) return;
+    _isFirstLoad = false;
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _refreshData();
-    }
+    if (state == AppLifecycleState.resumed) _refreshData();
   }
 
   @override
@@ -51,40 +48,21 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     super.dispose();
   }
 
-  void _initializeViewModel() {
-    if (!mounted) return;
+  void _initializeViewModel() => runSafe(() {
+    context.read<LearningProgressViewModel>().loadData();
+  });
 
-    Future.microtask(() {
-      if (!mounted) return;
+  void _refreshData() => runSafe(() {
+    context.read<LearningProgressViewModel>().refreshData();
+  });
 
-      final viewModel = Provider.of<LearningProgressViewModel>(
-        context,
-        listen: false,
-      );
-
-      debugPrint(
-        'LearningProgressScreen: Initializing view model - isInitialized=${viewModel.isInitialized}',
-      );
-
-      viewModel.loadData();
-    });
-  }
-
-  void _refreshData() {
-    if (!mounted) return;
-
-    Future.microtask(() {
-      if (!mounted) return;
-
-      final viewModel = Provider.of<LearningProgressViewModel>(
-        context,
-        listen: false,
-      );
-
-      debugPrint('LearningProgressScreen: Refreshing data');
-      viewModel.refreshData();
-    });
-  }
+  void _safeRefreshData() => runSafe(() {
+    try {
+      context.read<LearningProgressViewModel>().refreshData();
+    } catch (e) {
+      debugPrint('Error refreshing data: $e');
+    }
+  });
 
   void _showHelpDialog() {
     showDialog(
@@ -120,31 +98,14 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
 
   void _showExportResult(bool success) {
     final theme = Theme.of(context);
-    _showSnackBar(
-      success
-          ? 'Data exported successfully. The file was saved to your downloads folder.'
-          : 'Failed to export data. Please try again.',
-      success ? theme.colorScheme.tertiary : theme.colorScheme.error,
-      duration: const Duration(seconds: 3),
-    );
-  }
+    final message =
+        success
+            ? 'Data exported successfully. The file was saved to your downloads folder.'
+            : 'Failed to export data. Please try again.';
+    final color =
+        success ? theme.colorScheme.tertiary : theme.colorScheme.error;
 
-  void _safeRefreshData() {
-    if (!mounted) return;
-
-    Future.microtask(() {
-      if (!mounted) return;
-
-      try {
-        final viewModel = Provider.of<LearningProgressViewModel>(
-          context,
-          listen: false,
-        );
-        viewModel.refreshData();
-      } catch (e) {
-        debugPrint('Error refreshing data: $e');
-      }
-    });
+    _showSnackBar(message, color, duration: const Duration(seconds: 3));
   }
 
   @override
@@ -185,11 +146,10 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
             AppDimens.paddingL,
             AppDimens.paddingL,
             AppDimens.paddingL,
-            2, // Bỏ padding bottom để tăng không gian
+            2,
           ),
           child: Column(
             children: [
-              // Sử dụng LearningFilterBar mới - chỉ cần truyền thống kê, không cần truyền các callbacks
               LearningFilterBar(
                 totalCount: totalModules,
                 dueCount: dueModules,
@@ -257,5 +217,13 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         onHelpPressed: _showHelpDialog,
       ),
     );
+  }
+
+  void runSafe(VoidCallback block) {
+    if (!mounted) return;
+    Future.microtask(() {
+      if (!mounted) return;
+      block();
+    });
   }
 }
