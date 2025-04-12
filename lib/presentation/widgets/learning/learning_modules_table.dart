@@ -253,35 +253,32 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingS,
                   ),
-                  child:
-                      module.progressDueTaskCount != null
-                          ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppDimens.paddingS,
-                                  vertical: AppDimens.paddingXXS,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withValues(
-                                    alpha: 0.12,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppDimens.radiusM,
-                                  ),
-                                ),
-                                child: Text(
-                                  module.progressDueTaskCount.toString(),
-                                  style: TextStyle(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                          : const Text('-'),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.paddingS,
+                          vertical: AppDimens.paddingXXS,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.12,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppDimens.radiusM,
+                          ),
+                        ),
+                        child: Text(
+                          module.progressDueTaskCount.toString(),
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
