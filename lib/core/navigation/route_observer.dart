@@ -1,4 +1,3 @@
-// lib/core/navigation/route_observer.dart
 import 'package:flutter/material.dart';
 
 class AppRouteObserver extends NavigatorObserver {
@@ -25,7 +24,6 @@ class AppRouteObserver extends NavigatorObserver {
     _routeAwareWidgets.remove(routeAware);
   }
 
-  // Đăng ký handler cho một route cụ thể
   void addRouteHandler(String routePath, Function handler) {
     if (!_routeHandlers.containsKey(routePath)) {
       _routeHandlers[routePath] = [];
@@ -79,7 +77,6 @@ class AppRouteObserver extends NavigatorObserver {
   void _notifyRouteHandlers(Route route) {
     final String routeName = route.settings.name ?? '';
 
-    // Gọi các handler đã đăng ký cho route này
     _routeHandlers.forEach((path, handlers) {
       if (routeName.startsWith(path)) {
         for (var handler in handlers) {

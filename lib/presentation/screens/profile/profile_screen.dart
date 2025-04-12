@@ -10,7 +10,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-// Định nghĩa lớp User giả định
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

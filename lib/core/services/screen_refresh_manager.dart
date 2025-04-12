@@ -1,4 +1,3 @@
-// lib/core/services/screen_refresh_manager.dart
 import 'package:flutter/material.dart';
 
 class ScreenRefreshManager {
@@ -9,10 +8,8 @@ class ScreenRefreshManager {
 
   ScreenRefreshManager._internal();
 
-  // Lưu trữ các callback refresh cho mỗi screen path
   final Map<String, List<VoidCallback>> _refreshCallbacks = {};
 
-  // Đăng ký callback refresh cho một screen path
   void registerRefreshCallback(String screenPath, VoidCallback callback) {
     if (!_refreshCallbacks.containsKey(screenPath)) {
       _refreshCallbacks[screenPath] = [];
@@ -22,7 +19,6 @@ class ScreenRefreshManager {
     }
   }
 
-  // Hủy đăng ký callback refresh
   void unregisterRefreshCallback(String screenPath, VoidCallback callback) {
     if (_refreshCallbacks.containsKey(screenPath)) {
       _refreshCallbacks[screenPath]!.remove(callback);
@@ -32,7 +28,6 @@ class ScreenRefreshManager {
     }
   }
 
-  // Gọi tất cả callback refresh cho một screen path
   void refreshScreen(String screenPath) {
     debugPrint('Refreshing screen: $screenPath');
     if (_refreshCallbacks.containsKey(screenPath)) {
@@ -42,7 +37,6 @@ class ScreenRefreshManager {
     }
   }
 
-  // Gọi tất cả callback refresh cho tất cả các screen path bắt đầu bằng prefix
   void refreshScreensWithPrefix(String prefix) {
     _refreshCallbacks.forEach((path, callbacks) {
       if (path.startsWith(prefix)) {
@@ -54,7 +48,6 @@ class ScreenRefreshManager {
     });
   }
 
-  // Gọi tất cả callback refresh cho tất cả các screen
   void refreshAllScreens() {
     _refreshCallbacks.forEach((path, callbacks) {
       debugPrint('Refreshing all screens: $path');

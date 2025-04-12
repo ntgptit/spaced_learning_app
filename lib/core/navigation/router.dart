@@ -1,4 +1,3 @@
-// lib/core/navigation/router.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/navigation/route_observer.dart';

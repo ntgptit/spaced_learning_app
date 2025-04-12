@@ -1,4 +1,3 @@
-// lib/presentation/widgets/common/scaffold_with_bottom_bar.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
@@ -35,7 +34,6 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
 
-          // Refresh màn hình tương ứng với tab hiện tại
           switch (widget.currentIndex) {
             case 0:
               _refreshManager.refreshScreen('/');
@@ -91,7 +89,6 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
 
   void _onTabTapped(BuildContext context, int index) {
     if (index == widget.currentIndex) {
-      // Nếu user tap vào tab hiện tại, gọi refresh cho tab đó
       switch (index) {
         case 0:
           _refreshManager.refreshScreen('/');

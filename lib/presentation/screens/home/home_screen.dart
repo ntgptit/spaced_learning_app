@@ -1,4 +1,3 @@
-// lib/presentation/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -34,7 +33,6 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
   void initState() {
     super.initState();
 
-    // Đăng ký refresh callback
     _refreshManager.registerRefreshCallback('/', _refreshData);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,14 +42,12 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
 
   @override
   void dispose() {
-    // Hủy đăng ký refresh callback
     _refreshManager.unregisterRefreshCallback('/', _refreshData);
     super.dispose();
   }
 
   @override
   void refreshData() {
-    // Implement từ ViewModelRefresher mixin
     _refreshData();
   }
 
@@ -153,7 +149,6 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
             const SizedBox(height: AppDimens.spaceXL),
             _buildQuickActionsSection(),
 
-            // Ensure the height is enough for pulling the refresh indicator
             SizedBox(height: MediaQuery.of(context).size.height * 0.1),
           ],
         ),
@@ -249,7 +244,6 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
       insights: statsViewModel.insights,
       title: 'Learning Insights',
       onViewMorePressed: () {
-        // Optionally navigate to a detailed insights screen
       },
     );
   }
@@ -266,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
         GoRouter.of(context).go('/learning');
       },
       onVocabularyStatsPressed: () {
-        // Navigate to vocabulary stats screen when implemented
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Vocabulary stats coming soon')),
         );

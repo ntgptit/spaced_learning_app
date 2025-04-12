@@ -1,4 +1,3 @@
-// lib/presentation/screens/learning/learning_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
@@ -28,10 +27,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Đăng ký refresh callback với key duy nhất
     _refreshManager.registerRefreshCallback('/learning', _refreshData);
 
-    // Khởi tạo ViewModel sau khi khung hình đầu tiên được vẽ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeViewModel();
     });
