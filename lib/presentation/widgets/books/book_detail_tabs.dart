@@ -10,7 +10,6 @@ import 'package:spaced_learning_app/presentation/widgets/books/stat_item.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-/// Tab hiển thị tổng quan về sách
 class BookOverviewTab extends StatelessWidget {
   final BookDetail book;
 
@@ -27,7 +26,6 @@ class BookOverviewTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Book Description
           if (book.description?.isNotEmpty == true) ...[
             _buildSectionTitle(
               theme,
@@ -50,7 +48,6 @@ class BookOverviewTab extends StatelessWidget {
             const SizedBox(height: AppDimens.spaceXL),
           ],
 
-          // Modules Overview
           _buildSectionTitle(
             theme,
             'Modules Overview',
@@ -60,12 +57,10 @@ class BookOverviewTab extends StatelessWidget {
           _buildModuleStats(theme, colorScheme, book),
           const SizedBox(height: AppDimens.spaceL),
 
-          // Book Metadata
           _buildSectionTitle(theme, 'Book Details', Icons.info_outline),
           const SizedBox(height: AppDimens.spaceS),
           _buildMetadataCard(theme, colorScheme, book),
 
-          // Thêm khoảng trống cuối
           const SizedBox(height: AppDimens.paddingXL),
         ],
       ),
@@ -217,7 +212,6 @@ class BookOverviewTab extends StatelessWidget {
   }
 }
 
-/// Tab hiển thị danh sách các module
 class BookModulesTab extends StatelessWidget {
   final String bookId;
   final ModuleViewModel viewModel;

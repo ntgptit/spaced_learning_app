@@ -1,4 +1,3 @@
-// lib/presentation/screens/books/books_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -7,10 +6,8 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
-// Importing necessary widgets from presentation/widgets/books
 import 'package:spaced_learning_app/presentation/widgets/books/book_filter_panel.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_list_card.dart';
-// Importing common widgets
 import 'package:spaced_learning_app/presentation/widgets/common/app_empty_state.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
@@ -75,7 +72,6 @@ class _BooksScreenState extends State<BooksScreen>
   Future<void> _loadData({bool forceRefresh = false}) async {
     final bookViewModel = context.read<BookViewModel>();
     try {
-      // Load categories first if not already loaded or forcing refresh
       if (_categories.isEmpty || forceRefresh) {
         await bookViewModel.loadCategories();
         if (mounted) {
@@ -84,7 +80,6 @@ class _BooksScreenState extends State<BooksScreen>
           });
         }
       }
-      // Load books (or reload if forceRefresh is true)
       await bookViewModel.loadBooks(); // This applies current filters if any
     } catch (e) {
       final errorMessage =
@@ -121,9 +116,7 @@ class _BooksScreenState extends State<BooksScreen>
       _selectedStatus = null;
       _selectedDifficulty = null;
     });
-    // Load all books without filters
     context.read<BookViewModel>().loadBooks();
-    // Optionally close the filter panel if open
     if (_isFilterExpanded) {
       _toggleFilterPanel();
     }
@@ -135,7 +128,6 @@ class _BooksScreenState extends State<BooksScreen>
       setState(() {
         _isSearching = false;
       });
-      // Reload books, potentially applying existing filters
       return bookViewModel.filterBooks(
         status: _selectedStatus,
         difficultyLevel: _selectedDifficulty,
@@ -145,7 +137,6 @@ class _BooksScreenState extends State<BooksScreen>
     setState(() {
       _isSearching = true;
     });
-    // Perform search using the view model
     await bookViewModel.searchBooks(query);
   }
 
@@ -167,7 +158,6 @@ class _BooksScreenState extends State<BooksScreen>
     final colorScheme = theme.colorScheme;
     final authViewModel = context.watch<AuthViewModel>();
 
-    // Show login prompt if user is not logged in
     if (authViewModel.currentUser == null) {
       return _buildLoginPrompt(theme);
     }
@@ -183,7 +173,6 @@ class _BooksScreenState extends State<BooksScreen>
           children: [
             _buildSearchAndFilterBar(theme, colorScheme),
 
-            // Animated filter panel
             AnimatedBuilder(
               animation: _filterAnimation,
               builder: (context, child) {
@@ -221,7 +210,6 @@ class _BooksScreenState extends State<BooksScreen>
                       : const SizedBox.shrink(),
             ),
 
-            // Book list section
             Expanded(
               child: Consumer<BookViewModel>(
                 builder: (context, bookViewModel, child) {
@@ -338,7 +326,6 @@ class _BooksScreenState extends State<BooksScreen>
       ),
       child: Row(
         children: [
-          // Search field
           Expanded(
             child: SizedBox(
               height: AppDimens.textFieldHeight,
@@ -395,7 +382,6 @@ class _BooksScreenState extends State<BooksScreen>
             ),
           ),
 
-          // Filter button with active filter indicator
           Padding(
             padding: const EdgeInsets.only(left: AppDimens.paddingM),
             child: Badge(
@@ -428,12 +414,10 @@ class _BooksScreenState extends State<BooksScreen>
     ThemeData theme,
     String title,
   ) {
-    // Show loading indicator
     if (viewModel.isLoading) {
       return const Center(child: AppLoadingIndicator());
     }
 
-    // Show error display
     if (viewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(
@@ -443,18 +427,15 @@ class _BooksScreenState extends State<BooksScreen>
       );
     }
 
-    // Show empty state if no books match criteria
     if (viewModel.books.isEmpty) {
       return _buildEmptyState(theme);
     }
 
-    // List view for books
     return RefreshIndicator(
       onRefresh: () => _loadData(forceRefresh: true),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // Section Header
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppDimens.paddingL,
@@ -475,7 +456,6 @@ class _BooksScreenState extends State<BooksScreen>
             ),
           ),
 
-          // Books list
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppDimens.paddingL,

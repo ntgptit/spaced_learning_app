@@ -29,18 +29,14 @@ class BookListCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Sử dụng BookCover widget
               BookCover(book: book, theme: theme),
 
-              // Spacing
               const SizedBox(width: AppDimens.spaceL),
 
-              // Book details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
                     Text(
                       book.name,
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -52,7 +48,6 @@ class BookListCard extends StatelessWidget {
 
                     const SizedBox(height: AppDimens.spaceS),
 
-                    // Module count
                     Row(
                       children: [
                         Icon(
@@ -72,7 +67,6 @@ class BookListCard extends StatelessWidget {
 
                     const SizedBox(height: AppDimens.spaceS),
 
-                    // Status and difficulty badges
                     Row(
                       children: [
                         _buildStatusBadge(book.status, theme),
@@ -83,7 +77,6 @@ class BookListCard extends StatelessWidget {
                       ],
                     ),
 
-                    // Timestamps
                     if (book.createdAt != null) ...[
                       const SizedBox(height: AppDimens.spaceS),
                       Row(
@@ -107,7 +100,6 @@ class BookListCard extends StatelessWidget {
                 ),
               ),
 
-              // Navigation chevron
               Icon(
                 Icons.chevron_right,
                 color: colorScheme.onSurfaceVariant,
@@ -120,7 +112,6 @@ class BookListCard extends StatelessWidget {
     );
   }
 
-  // Các phương thức còn lại (_buildStatusBadge, _buildDifficultyBadge, _formatDate) giữ nguyên
   Widget _buildStatusBadge(BookStatus status, ThemeData theme) {
     final colorScheme = theme.colorScheme;
 

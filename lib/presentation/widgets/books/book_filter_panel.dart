@@ -1,4 +1,3 @@
-// lib/presentation/widgets/books/book_filter_panel.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
@@ -57,7 +56,6 @@ class BookFilterPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Active filters display
           if (selectedCategory != null ||
               selectedStatus != null ||
               selectedDifficulty != null)
@@ -113,7 +111,6 @@ class BookFilterPanel extends StatelessWidget {
               ),
             ),
 
-          // Category filter
           _buildFilterSection(
             theme,
             'Category',
@@ -144,7 +141,6 @@ class BookFilterPanel extends StatelessWidget {
             ),
           ),
 
-          // Status filter
           _buildFilterSection(
             theme,
             'Status',
@@ -175,7 +171,6 @@ class BookFilterPanel extends StatelessWidget {
             ),
           ),
 
-          // Difficulty filter
           _buildFilterSection(
             theme,
             'Difficulty',
@@ -206,7 +201,6 @@ class BookFilterPanel extends StatelessWidget {
             ),
           ),
 
-          // Apply button
           Center(
             child: Padding(
               padding: const EdgeInsets.only(top: AppDimens.paddingM),

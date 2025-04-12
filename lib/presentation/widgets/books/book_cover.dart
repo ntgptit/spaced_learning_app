@@ -10,7 +10,6 @@ class BookCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Compute a consistent color based on book name
     final bookIdHash = book.id.hashCode;
     final hue = (bookIdHash % 360).abs().toDouble();
     const saturation = 0.6;
@@ -40,7 +39,6 @@ class BookCover extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Pattern on cover
           ClipRRect(
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             child: CustomPaint(
@@ -55,7 +53,6 @@ class BookCover extends StatelessWidget {
             ),
           ),
 
-          // Book title and icon
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -85,7 +82,6 @@ class BookCover extends StatelessWidget {
             ),
           ),
 
-          // Category badge at bottom
           if (book.category != null)
             Positioned(
               bottom: 0,
@@ -132,17 +128,14 @@ class _BookPatternPainter extends CustomPainter {
           ..strokeWidth = 0.8
           ..style = PaintingStyle.stroke;
 
-    // Horizontal lines
     final spacingY = size.height / (lineCount + 1);
     for (int i = 1; i <= lineCount; i++) {
       final y = spacingY * i;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
 
-    // Diagonal line
     canvas.drawLine(const Offset(0, 0), Offset(size.width, size.height), paint);
 
-    // Border
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
   }
 

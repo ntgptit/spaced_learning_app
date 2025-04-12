@@ -1,4 +1,3 @@
-// lib/presentation/screens/books/book_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -122,10 +121,8 @@ class _BookDetailScreenState extends State<BookDetailScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Overview Tab
                   BookOverviewTab(book: book),
 
-                  // Modules Tab
                   BookModulesTab(
                     bookId: widget.bookId,
                     viewModel: moduleViewModel,
@@ -153,7 +150,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
 
     return SliverAppBar(
-      expandedHeight: AppDimens.bannerHeight + 5,
+      expandedHeight: AppDimens.bannerHeight - 20,
       floating: false,
       pinned: true,
       forceElevated: _isScrolled || innerBoxIsScrolled,
@@ -183,24 +180,21 @@ class _BookDetailScreenState extends State<BookDetailScreen>
         background: Padding(
           padding: const EdgeInsets.fromLTRB(
             AppDimens.paddingL,
-            AppDimens.paddingXXL + kToolbarHeight,
+            kToolbarHeight,
             AppDimens.paddingL,
             AppDimens.paddingL,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Book Banner
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Book "Cover"
                   Hero(
                     tag: 'book-${book.id}',
                     child: BookCover(book: book.toSummary(), theme: theme),
                   ),
                   const SizedBox(width: AppDimens.spaceL),
-                  // Book Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
