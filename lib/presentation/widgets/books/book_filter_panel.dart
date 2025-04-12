@@ -118,7 +118,7 @@ class BookFilterPanel extends StatelessWidget {
             theme,
             'Category',
             Icons.category_outlined,
-            colorScheme.tertiary,
+            colorScheme.primary,
             Wrap(
               spacing: AppDimens.spaceXS,
               runSpacing: AppDimens.spaceXS,
@@ -180,7 +180,7 @@ class BookFilterPanel extends StatelessWidget {
             theme,
             'Difficulty',
             Icons.signal_cellular_alt_outlined,
-            colorScheme.secondary,
+            colorScheme.primary,
             Wrap(
               spacing: AppDimens.spaceXS,
               runSpacing: AppDimens.spaceXS,
