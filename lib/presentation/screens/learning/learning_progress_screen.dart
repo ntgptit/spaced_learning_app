@@ -1,6 +1,10 @@
+// lib/presentation/screens/learning/learning_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/learning_module.dart';
+import 'package:spaced_learning_app/presentation/mixins/view_model_refresher.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer.dart';
@@ -15,52 +19,85 @@ class LearningProgressScreen extends StatefulWidget {
 }
 
 class _LearningProgressScreenState extends State<LearningProgressScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, ViewModelRefresher {
   final ScrollController _verticalScrollController = ScrollController();
-  bool _isFirstLoad = true;
+  final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // Đăng ký refresh callback với key duy nhất
+    _refreshManager.registerRefreshCallback('/learning', _refreshData);
+
+    // Khởi tạo ViewModel sau khi khung hình đầu tiên được vẽ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeViewModel();
     });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isFirstLoad) return;
-    _isFirstLoad = false;
-  }
-
-  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refreshData();
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
   }
 
   @override
   void dispose() {
+    _refreshManager.unregisterRefreshCallback('/learning', _refreshData);
     WidgetsBinding.instance.removeObserver(this);
     _verticalScrollController.dispose();
     super.dispose();
   }
 
-  void _initializeViewModel() => runSafe(() {
-    context.read<LearningProgressViewModel>().loadData();
+  @override
+  void refreshData() {
+    _refreshData();
+  }
+
+  void _initializeViewModel() => _runSafe(() {
+    final viewModel = context.read<LearningProgressViewModel?>();
+    if (viewModel != null) {
+      viewModel.loadData();
+    } else {
+      _showSnackBar(
+        'Error: Learning data not available',
+        Theme.of(context).colorScheme.error,
+      );
+    }
   });
 
-  void _refreshData() => runSafe(() {
-    context.read<LearningProgressViewModel>().refreshData();
+  void _refreshData() => _runSafe(() {
+    final viewModel = context.read<LearningProgressViewModel?>();
+    if (viewModel != null) {
+      viewModel.refreshData();
+    } else {
+      _showSnackBar(
+        'Error: Unable to refresh data',
+        Theme.of(context).colorScheme.error,
+      );
+    }
   });
 
-  void _safeRefreshData() => runSafe(() {
+  void _safeRefreshData() => _runSafe(() {
+    final viewModel = context.read<LearningProgressViewModel?>();
+    if (viewModel == null) {
+      _showSnackBar(
+        'Error: Unable to refresh data',
+        Theme.of(context).colorScheme.error,
+      );
+      return;
+    }
     try {
-      context.read<LearningProgressViewModel>().refreshData();
+      viewModel.refreshData();
     } catch (e) {
-      debugPrint('Error refreshing data: $e');
+      _showSnackBar(
+        'Failed to refresh data: $e',
+        Theme.of(context).colorScheme.error,
+        retryAction: _safeRefreshData,
+      );
     }
   });
 
@@ -96,12 +133,12 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     );
   }
 
-  void _showExportResult(bool success) {
+  void _showExportResult(bool success, {String? errorMessage}) {
     final theme = Theme.of(context);
     final message =
         success
             ? 'Data exported successfully. The file was saved to your downloads folder.'
-            : 'Failed to export data. Please try again.';
+            : errorMessage ?? 'Failed to export data. Please try again.';
     final color =
         success ? theme.colorScheme.tertiary : theme.colorScheme.error;
 
@@ -135,39 +172,75 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   }
 
   Widget _buildBody() {
-    return Consumer<LearningProgressViewModel>(
-      builder: (context, viewModel, _) {
-        final dueModules = viewModel.getDueModulesCount();
-        final totalModules = viewModel.filteredModules.length;
-        final completedModules = viewModel.getCompletedModulesCount();
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: AppDimens.paddingL,
+        right: AppDimens.paddingL,
+        top: AppDimens.paddingL,
+        bottom: 2, // Bỏ padding bottom
+      ),
+      child: Column(
+        children: [
+          _buildFilterBar(),
+          const SizedBox(height: AppDimens.spaceL),
+          Expanded(child: _buildContent()),
+          _buildFooter(),
+        ],
+      ),
+    );
+  }
 
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppDimens.paddingL,
-            AppDimens.paddingL,
-            AppDimens.paddingL,
-            2,
+  Widget _buildFilterBar() {
+    return Selector<LearningProgressViewModel, (int, int, int)>(
+      selector:
+          (_, viewModel) => (
+            viewModel.filteredModules.length,
+            viewModel.getDueModulesCount(),
+            viewModel.getCompletedModulesCount(),
           ),
-          child: Column(
-            children: [
-              LearningFilterBar(
-                totalCount: totalModules,
-                dueCount: dueModules,
-                completeCount: completedModules,
-              ),
-              const SizedBox(height: AppDimens.spaceL),
-              if (viewModel.errorMessage != null && !viewModel.isLoading)
-                _buildErrorDisplay(viewModel),
-              Expanded(child: _buildModulesTable(viewModel)),
-              _buildFooter(viewModel, totalModules, completedModules),
-            ],
+      builder:
+          (_, data, __) => LearningFilterBar(
+            totalCount: data.$1,
+            dueCount: data.$2,
+            completeCount: data.$3,
           ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Selector<
+      LearningProgressViewModel,
+      (bool, String?, List<LearningModule>)
+    >(
+      selector:
+          (_, viewModel) => (
+            viewModel.isLoading,
+            viewModel.errorMessage,
+            viewModel.filteredModules,
+          ),
+      builder: (_, data, __) {
+        final isLoading = data.$1;
+        final errorMessage = data.$2;
+        final modules = data.$3;
+
+        if (isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (errorMessage != null) {
+          return _buildErrorDisplay(errorMessage);
+        }
+
+        return SimplifiedLearningModulesTable(
+          modules: modules,
+          isLoading: false,
+          verticalScrollController: _verticalScrollController,
         );
       },
     );
   }
 
-  Widget _buildErrorDisplay(LearningProgressViewModel viewModel) {
+  Widget _buildErrorDisplay(String errorMessage) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -182,7 +255,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
           const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: Text(
-              viewModel.errorMessage!,
+              errorMessage,
               style: TextStyle(color: theme.colorScheme.error),
             ),
           ),
@@ -192,38 +265,46 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     );
   }
 
-  Widget _buildModulesTable(LearningProgressViewModel viewModel) {
-    return SimplifiedLearningModulesTable(
-      modules: viewModel.filteredModules,
-      isLoading: viewModel.isLoading,
-      verticalScrollController: _verticalScrollController,
+  Widget _buildFooter() {
+    return Selector<LearningProgressViewModel, (int, int)>(
+      selector:
+          (_, viewModel) => (
+            viewModel.filteredModules.length,
+            viewModel.getCompletedModulesCount(),
+          ),
+      builder:
+          (_, data, __) => SizedBox(
+            width: double.infinity,
+            child: LearningFooter(
+              totalModules: data.$1,
+              completedModules: data.$2,
+              onExportData: () async {
+                final viewModel = context.read<LearningProgressViewModel?>();
+                if (viewModel == null) {
+                  _showSnackBar(
+                    'Error: Unable to export data',
+                    Theme.of(context).colorScheme.error,
+                  );
+                  return;
+                }
+                try {
+                  final success = await viewModel.exportData();
+                  _showExportResult(success);
+                } catch (e) {
+                  _showExportResult(
+                    false,
+                    errorMessage: 'Failed to export data: $e',
+                  );
+                }
+              },
+              onHelpPressed: _showHelpDialog,
+            ),
+          ),
     );
   }
 
-  Widget _buildFooter(
-    LearningProgressViewModel viewModel,
-    int totalModules,
-    int completedModules,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      child: LearningFooter(
-        totalModules: totalModules,
-        completedModules: completedModules,
-        onExportData: () async {
-          final success = await viewModel.exportData();
-          _showExportResult(success);
-        },
-        onHelpPressed: _showHelpDialog,
-      ),
-    );
-  }
-
-  void runSafe(VoidCallback block) {
+  void _runSafe(VoidCallback block) {
     if (!mounted) return;
-    Future.microtask(() {
-      if (!mounted) return;
-      block();
-    });
+    Future.microtask(block);
   }
 }

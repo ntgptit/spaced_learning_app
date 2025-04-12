@@ -1,5 +1,7 @@
+// lib/core/navigation/router.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spaced_learning_app/core/navigation/route_observer.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
@@ -16,6 +18,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bo
 
 class AppRouter {
   final AuthViewModel authViewModel;
+  final AppRouteObserver routeObserver = AppRouteObserver();
 
   AppRouter(this.authViewModel);
 
@@ -35,6 +38,14 @@ class AppRouter {
       }
       return null;
     },
+    observers: [
+      routeObserver, // Thêm route observer vào danh sách observers
+      GoRouterObserver(
+        onPop: (route, result) {
+          debugPrint('Popped route: ${route.settings.name}');
+        },
+      ),
+    ],
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
@@ -136,13 +147,6 @@ class AppRouter {
             ],
           ),
         ],
-      ),
-    ],
-    observers: [
-      GoRouterObserver(
-        onPop: (route, result) {
-          debugPrint('Popped route: ${route.settings.name}');
-        },
       ),
     ],
   );

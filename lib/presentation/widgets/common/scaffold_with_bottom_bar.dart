@@ -1,9 +1,7 @@
+// lib/presentation/widgets/common/scaffold_with_bottom_bar.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
+import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 
 class ScaffoldWithBottomBar extends StatefulWidget {
@@ -21,9 +19,8 @@ class ScaffoldWithBottomBar extends StatefulWidget {
 }
 
 class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
-  DateTime? _lastHomeRefreshTime;
   DateTime? _lastTabChangeTime;
-  bool _needsRefresh = false;
+  final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
 
   @override
   void didUpdateWidget(ScaffoldWithBottomBar oldWidget) {
@@ -38,11 +35,23 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
 
-          if (widget.currentIndex == 0) {
-            _refreshHomeData();
-          }
-          else if (widget.currentIndex == 3) {
-            _refreshLearningData();
+          // Refresh màn hình tương ứng với tab hiện tại
+          switch (widget.currentIndex) {
+            case 0:
+              _refreshManager.refreshScreen('/');
+              break;
+            case 1:
+              _refreshManager.refreshScreen('/books');
+              break;
+            case 2:
+              _refreshManager.refreshScreen('/due-progress');
+              break;
+            case 3:
+              _refreshManager.refreshScreen('/learning');
+              break;
+            case 4:
+              _refreshManager.refreshScreen('/profile');
+              break;
           }
         });
       }
@@ -82,12 +91,23 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
 
   void _onTabTapped(BuildContext context, int index) {
     if (index == widget.currentIndex) {
-      if (index == 0) {
-        _refreshHomeData();
-      }
-
-      if (widget.currentIndex == 3) {
-        _refreshLearningData();
+      // Nếu user tap vào tab hiện tại, gọi refresh cho tab đó
+      switch (index) {
+        case 0:
+          _refreshManager.refreshScreen('/');
+          break;
+        case 1:
+          _refreshManager.refreshScreen('/books');
+          break;
+        case 2:
+          _refreshManager.refreshScreen('/due-progress');
+          break;
+        case 3:
+          _refreshManager.refreshScreen('/learning');
+          break;
+        case 4:
+          _refreshManager.refreshScreen('/profile');
+          break;
       }
     }
 
@@ -107,58 +127,6 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       case 4:
         GoRouter.of(context).go('/profile');
         break;
-    }
-  }
-
-  void _refreshHomeData() {
-    final now = DateTime.now();
-    if (_lastHomeRefreshTime != null &&
-        now.difference(_lastHomeRefreshTime!).inSeconds < 5) {
-      return;
-    }
-    _lastHomeRefreshTime = now;
-
-    try {
-      final progressViewModel = context.read<ProgressViewModel>();
-      final learningStatsViewModel = context.read<LearningStatsViewModel>();
-
-      progressViewModel.clearError();
-      learningStatsViewModel.clearError();
-
-      learningStatsViewModel.loadAllStats(refreshCache: true);
-
-      final authViewModel = context.read<AuthViewModel>();
-      if (authViewModel.currentUser != null) {
-        progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
-      }
-    } catch (e) {
-      debugPrint('Error in _refreshHomeData: $e');
-    }
-  }
-
-  void _refreshLearningData() {
-    if (_needsRefresh) return;
-    _needsRefresh = true;
-
-    try {
-      Future.microtask(() {
-        if (!mounted) return;
-
-        try {
-          final viewModel = Provider.of<LearningStatsViewModel>(
-            context,
-            listen: false,
-          );
-          viewModel.loadAllStats(refreshCache: false);
-        } catch (e) {
-          debugPrint('Error refreshing learning data: $e');
-        } finally {
-          _needsRefresh = false;
-        }
-      });
-    } catch (e) {
-      _needsRefresh = false;
-      debugPrint('Error scheduling learning data refresh: $e');
     }
   }
 }
