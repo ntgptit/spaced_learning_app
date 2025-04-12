@@ -58,3 +58,34 @@ abstract class BookDetail with _$BookDetail {
   factory BookDetail.fromJson(Map<String, dynamic> json) =>
       _$BookDetailFromJson(json);
 }
+
+extension BookDetailMapper on BookDetail {
+  BookSummary toSummary() {
+    return BookSummary(
+      id: id,
+      name: name,
+      status: status,
+      difficultyLevel: difficultyLevel,
+      category: category,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      moduleCount: modules.length,
+    );
+  }
+}
+
+extension BookSummaryMapper on BookSummary {
+  BookDetail toDetail({List<ModuleDetail> modules = const []}) {
+    return BookDetail(
+      id: id,
+      name: name,
+      status: status,
+      difficultyLevel: difficultyLevel,
+      category: category,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      description: null, // Vì BookSummary không có description
+      modules: modules,
+    );
+  }
+}

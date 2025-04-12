@@ -1,118 +1,110 @@
-// ✅ BOOK WIDGETS - FIXED FOR MOBILE (Responsive + FlexRender)
-
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
-import 'package:spaced_learning_app/presentation/widgets/books/book_pattern_painter.dart'
-    show BookPatternPainter;
 
-class BookCoverWidget extends StatelessWidget {
-  final BookDetail book;
-  final double? width;
-  final double? height;
-  final BorderRadius? borderRadius;
-  final EdgeInsets? padding;
+class BookCover extends StatelessWidget {
+  final BookSummary book;
+  final ThemeData theme;
 
-  const BookCoverWidget({
-    super.key,
-    required this.book,
-    this.width,
-    this.height,
-    this.borderRadius,
-    this.padding,
-  });
+  const BookCover({super.key, required this.book, required this.theme});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final itemWidth = width ?? screenWidth * 0.38;
-    final itemHeight = height ?? itemWidth * 1.4;
-    final effectiveBorderRadius =
-        borderRadius ?? BorderRadius.circular(AppDimens.radiusM);
-
-    final hue = (book.name.hashCode % 360).abs().toDouble();
-    final backgroundColor = HSLColor.fromAHSL(1.0, hue, 0.6, 0.75).toColor();
-
+    // Compute a consistent color based on book name
+    final bookIdHash = book.id.hashCode;
+    final hue = (bookIdHash % 360).abs().toDouble();
+    const saturation = 0.6;
+    const lightness = 0.75;
+    final coverColor =
+        HSLColor.fromAHSL(1.0, hue, saturation, lightness).toColor();
     return Container(
-      width: itemWidth,
-      height: itemHeight,
-      padding: padding ?? const EdgeInsets.all(AppDimens.paddingS),
+      width: AppDimens.thumbnailSizeS, // 80.0
+      height:
+          AppDimens.thumbnailSizeM *
+          0.85, // 102.0 (adjusted to maintain aspect ratio)
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [backgroundColor, backgroundColor.withValues(alpha: 0.8)],
+
+          colors: [coverColor, coverColor.withValues(alpha: 0.8)],
         ),
-        borderRadius: effectiveBorderRadius,
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: effectiveBorderRadius,
-              child: CustomPaint(
-                painter: BookPatternPainter(
-                  patternColor: Colors.white.withValues(alpha: 0.15),
-                ),
+          // Pattern on cover
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            child: CustomPaint(
+              painter: _BookPatternPainter(
+                patternColor: Colors.white.withValues(alpha: 0.2),
+                lineCount: 3,
+              ),
+              size: const Size(
+                AppDimens.thumbnailSizeS,
+                AppDimens.thumbnailSizeM * 0.85,
               ),
             ),
           ),
+
+          // Book title and icon
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.menu_book,
-                  size: AppDimens.iconXL,
+                  size: AppDimens.iconL,
                   color: Colors.white.withValues(alpha: 0.9),
                 ),
-                const SizedBox(height: AppDimens.spaceS),
+                const SizedBox(height: AppDimens.spaceXS),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingXS,
                   ),
                   child: Text(
                     book.name,
-                    style: theme.textTheme.titleSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
             ),
           ),
+
+          // Category badge at bottom
           if (book.category != null)
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppDimens.paddingXXS,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: effectiveBorderRadius.bottomLeft,
-                    bottomRight: effectiveBorderRadius.bottomRight,
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(AppDimens.radiusM),
+                    bottomRight: Radius.circular(AppDimens.radiusM),
                   ),
                 ),
                 child: Text(
-                  book.category!,
+                  book.category ?? '',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: Colors.white,
+                    fontSize: 8,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -124,4 +116,36 @@ class BookCoverWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+class _BookPatternPainter extends CustomPainter {
+  final Color patternColor;
+  final int lineCount;
+
+  _BookPatternPainter({required this.patternColor, required this.lineCount});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = patternColor
+          ..strokeWidth = 0.8
+          ..style = PaintingStyle.stroke;
+
+    // Horizontal lines
+    final spacingY = size.height / (lineCount + 1);
+    for (int i = 1; i <= lineCount; i++) {
+      final y = spacingY * i;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+
+    // Diagonal line
+    canvas.drawLine(const Offset(0, 0), Offset(size.width, size.height), paint);
+
+    // Border
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

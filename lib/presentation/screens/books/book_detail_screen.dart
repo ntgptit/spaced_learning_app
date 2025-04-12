@@ -153,7 +153,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
 
     return SliverAppBar(
-      expandedHeight: AppDimens.bannerHeight,
+      expandedHeight: AppDimens.bannerHeight + 5,
       floating: false,
       pinned: true,
       forceElevated: _isScrolled || innerBoxIsScrolled,
@@ -197,7 +197,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
                   // Book "Cover"
                   Hero(
                     tag: 'book-${book.id}',
-                    child: BookCoverWidget(book: book, width: 100, height: 100),
+                    child: BookCover(book: book.toSummary(), theme: theme),
                   ),
                   const SizedBox(width: AppDimens.spaceL),
                   // Book Info
