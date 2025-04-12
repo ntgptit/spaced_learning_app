@@ -149,10 +149,10 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
       elevation: 1,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
+        padding: const EdgeInsets.all(AppDimens.paddingM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -161,7 +161,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
             isSmallScreen
                 ? _buildSmallScreenFilters(theme)
                 : _buildWideScreenFilters(theme),
-            const SizedBox(height: AppDimens.spaceL),
+            const SizedBox(height: AppDimens.spaceM),
             _buildStatsRow(theme),
           ],
         ),
@@ -298,7 +298,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
 
     return Container(
       key: const Key('book_dropdown'),
-      height: AppDimens.buttonHeightL,
+      height: AppDimens.buttonHeightM, // Giảm chiều cao một chút
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -315,7 +315,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
               padding: const EdgeInsets.only(left: AppDimens.paddingM),
               child: Icon(
                 Icons.menu_book_outlined,
-                size: AppDimens.iconM,
+                size: AppDimens.iconS,
                 color: theme.colorScheme.primary,
               ),
             ),
@@ -371,7 +371,9 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
           label: const Text('Select Date'),
           onPressed: widget.onDateSelected,
           style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(AppDimens.buttonHeightL),
+            minimumSize: const Size.fromHeight(
+              AppDimens.buttonHeightM,
+            ), // Giảm chiều cao một chút
             padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -387,7 +389,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
         )
         : Container(
           key: const Key('selected_date_container'),
-          height: AppDimens.buttonHeightL,
+          height: AppDimens.buttonHeightM, // Giảm chiều cao một chút
           padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerLowest,
@@ -509,7 +511,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
               const SizedBox(width: AppDimens.spaceXXS),
               Text(
                 label,
-                style: theme.textTheme.bodySmall?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -518,7 +520,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
           const SizedBox(height: AppDimens.spaceXXS),
           Text(
             count.toString(),
-            style: theme.textTheme.titleLarge?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: color,
             ),
