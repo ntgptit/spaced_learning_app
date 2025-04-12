@@ -33,7 +33,6 @@ class _BooksScreenState extends State<BooksScreen>
   DifficultyLevel? _selectedDifficulty;
   bool _isFilterExpanded = false;
   bool _isScrolled = false;
-  final bool _isListView = true; // Always use list view per requirement
 
   late AnimationController _filterAnimationController;
   late Animation<double> _filterAnimation;
