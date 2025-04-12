@@ -203,7 +203,6 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 
-
   Widget _buildModuleStatsGrid(
     ThemeData theme,
     bool isSmallScreen,
@@ -270,9 +269,7 @@ class LearningStatsCard extends StatelessWidget {
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
       children:
-          items
-              .cast<Widget>()
-              .toList(), // Filter nulls if any logic changes
+          items.cast<Widget>().toList(), // Filter nulls if any logic changes
     );
   }
 
@@ -525,4 +522,3 @@ class LearningStatsCard extends StatelessWidget {
     );
   }
 }
-

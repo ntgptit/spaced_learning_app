@@ -86,25 +86,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     });
   }
 
-  Future<void> _selectDate(
-    BuildContext context,
-    LearningProgressViewModel viewModel,
-  ) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: viewModel.selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2026),
-    );
-
-    if (picked != null && picked != viewModel.selectedDate && mounted) {
-      Future.microtask(() {
-        if (!mounted) return;
-        viewModel.setSelectedDate(picked);
-      });
-    }
-  }
-
   void _showHelpDialog() {
     showDialog(
       context: context,
@@ -199,52 +180,30 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         final totalModules = viewModel.filteredModules.length;
         final completedModules = viewModel.getCompletedModulesCount();
 
-        return Column(
-          children: [
-            _buildFilterBar(
-              viewModel,
-              totalModules,
-              dueModules,
-              completedModules,
-            ),
-            if (viewModel.errorMessage != null && !viewModel.isLoading)
-              _buildErrorDisplay(viewModel),
-            Expanded(child: _buildModulesTable(viewModel)),
-            _buildFooter(viewModel, totalModules, completedModules),
-          ],
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppDimens.paddingL,
+            AppDimens.paddingL,
+            AppDimens.paddingL,
+            2, // Bỏ padding bottom để tăng không gian
+          ),
+          child: Column(
+            children: [
+              // Sử dụng LearningFilterBar mới - chỉ cần truyền thống kê, không cần truyền các callbacks
+              LearningFilterBar(
+                totalCount: totalModules,
+                dueCount: dueModules,
+                completeCount: completedModules,
+              ),
+              const SizedBox(height: AppDimens.spaceL),
+              if (viewModel.errorMessage != null && !viewModel.isLoading)
+                _buildErrorDisplay(viewModel),
+              Expanded(child: _buildModulesTable(viewModel)),
+              _buildFooter(viewModel, totalModules, completedModules),
+            ],
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildFilterBar(
-    LearningProgressViewModel viewModel,
-    int totalModules,
-    int dueModules,
-    int completedModules,
-  ) {
-    return LearningFilterBar(
-      selectedBook: viewModel.selectedBook,
-      selectedDate: viewModel.selectedDate,
-      books: viewModel.getUniqueBooks(),
-      onBookChanged: (value) {
-        if (value != null) {
-          Future.microtask(() {
-            if (!mounted) return;
-            viewModel.setSelectedBook(value);
-          });
-        }
-      },
-      onDateSelected: () => _selectDate(context, viewModel),
-      onDateCleared: () {
-        Future.microtask(() {
-          if (!mounted) return;
-          viewModel.clearDateFilter();
-        });
-      },
-      totalCount: totalModules,
-      dueCount: dueModules,
-      completeCount: completedModules,
     );
   }
 
@@ -252,7 +211,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingL),
-      margin: const EdgeInsets.all(AppDimens.paddingL),
+      margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingL),
       decoration: BoxDecoration(
         color: theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
