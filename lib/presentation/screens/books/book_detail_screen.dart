@@ -180,7 +180,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
         background: Padding(
           padding: const EdgeInsets.fromLTRB(
             AppDimens.paddingL,
-            kToolbarHeight,
+            AppDimens.paddingL + kToolbarHeight,
             AppDimens.paddingL,
             AppDimens.paddingL,
           ),
