@@ -61,12 +61,7 @@ class AppRouter {
           GoRoute(
             path: '/',
             builder: (context, state) => const HomeScreen(),
-            routes: [
-              // GoRoute(
-              //   path: 'learning-stats',
-              //   builder: (context, state) => const LearningStatsScreen(),
-              // ),
-            ],
+            routes: [],
           ),
 
           GoRoute(
