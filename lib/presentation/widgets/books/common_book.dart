@@ -1,4 +1,4 @@
-// lib/presentation/widgets/books/book_widgets.dart
+// lib/presentation/widgets/books/common_book.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
@@ -14,8 +14,8 @@ class BookCoverWidget extends StatelessWidget {
   const BookCoverWidget({
     super.key,
     required this.book,
-    this.width = 110, // Điều chỉnh từ 100 lên 110
-    this.height = 150, // Điều chỉnh từ 140 lên 150
+    this.width = AppDimens.thumbnailSizeM, // 120.0
+    this.height = AppDimens.thumbnailSizeL, // 160.0
     this.borderRadius,
     this.padding,
   });
@@ -24,8 +24,7 @@ class BookCoverWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final effectiveBorderRadius =
-        borderRadius ??
-        BorderRadius.circular(AppDimens.radiusM); // Khôi phục về radiusM
+        borderRadius ?? BorderRadius.circular(AppDimens.radiusM);
 
     // Tạo màu nhất quán dựa trên tên sách
     final bookNameHash = book.name.hashCode;
@@ -43,13 +42,13 @@ class BookCoverWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [backgroundColor, backgroundColor.withOpacity(0.8)],
+          colors: [backgroundColor, backgroundColor.withValues(alpha: 0.8)],
         ),
         borderRadius: effectiveBorderRadius,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 7, // Điều chỉnh từ 6 lên 7
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 7,
             offset: const Offset(0, 3),
           ),
         ],
@@ -62,7 +61,7 @@ class BookCoverWidget extends StatelessWidget {
               borderRadius: effectiveBorderRadius,
               child: CustomPaint(
                 painter: BookPatternPainter(
-                  patternColor: Colors.white.withOpacity(0.2),
+                  patternColor: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ),
@@ -71,24 +70,19 @@ class BookCoverWidget extends StatelessWidget {
           // Tiêu đề sách
           Center(
             child: Padding(
-              padding: const EdgeInsets.all(
-                AppDimens.paddingS,
-              ), // Khôi phục về paddingS
+              padding: const EdgeInsets.all(AppDimens.paddingS),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.menu_book,
-                    size: width / 4.5, // Điều chỉnh từ width/5 lên width/4.5
-                    color: Colors.white.withOpacity(0.9),
+                    size: AppDimens.iconL,
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
-                  const SizedBox(
-                    height: AppDimens.spaceS,
-                  ), // Khôi phục về spaceS
+                  const SizedBox(height: AppDimens.spaceS),
                   Text(
                     book.name,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      // Khôi phục về titleSmall
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -109,10 +103,10 @@ class BookCoverWidget extends StatelessWidget {
               right: 0,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  vertical: AppDimens.paddingXXS, // Khôi phục về paddingXXS
+                  vertical: AppDimens.paddingXXS,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.only(
                     bottomLeft: effectiveBorderRadius.bottomLeft,
                     bottomRight: effectiveBorderRadius.bottomRight,
@@ -121,7 +115,6 @@ class BookCoverWidget extends StatelessWidget {
                 child: Text(
                   book.category!,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    // Khôi phục về labelSmall
                     color: Colors.white,
                   ),
                   maxLines: 1,
@@ -141,18 +134,14 @@ class BookPatternPainter extends CustomPainter {
   final Color patternColor;
   final int lineCount;
 
-  BookPatternPainter({
-    required this.patternColor,
-    this.lineCount = 5,
-  }); // Khôi phục về 5
+  BookPatternPainter({required this.patternColor, this.lineCount = 5});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
           ..color = patternColor
-          ..strokeWidth =
-              0.9 // Điều chỉnh từ 0.8 lên 0.9
+          ..strokeWidth = 0.9
           ..style = PaintingStyle.stroke;
 
     // Vẽ đường kẻ ngang
@@ -164,7 +153,6 @@ class BookPatternPainter extends CustomPainter {
 
     // Vẽ mẫu chéo
     canvas.drawLine(const Offset(0, 0), Offset(size.width, size.height), paint);
-
     canvas.drawLine(Offset(size.width, 0), Offset(0, size.height), paint);
 
     // Thêm viền
@@ -196,20 +184,16 @@ class FilterChipWidget extends StatelessWidget {
       label: Text(label),
       deleteIcon: const Icon(Icons.close, size: 16),
       onDeleted: onDeleted,
-      backgroundColor: color.withOpacity(0.12),
+      backgroundColor: color.withValues(alpha: 0.12),
       labelStyle: TextStyle(color: color),
       deleteIconColor: color,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          AppDimens.radiusM,
-        ), // Khôi phục về radiusM
-        side: BorderSide(color: color.withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        side: BorderSide(color: color.withValues(alpha: 0.2)),
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 6,
-      ), // Điều chỉnh từ 4 lên 6
+      padding: const EdgeInsets.symmetric(horizontal: 6),
     );
   }
 }
@@ -235,24 +219,29 @@ class MetadataItemWidget extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: AppDimens.iconM, // Khôi phục về iconM
-          color: theme.colorScheme.primary.withOpacity(0.7),
+          size: AppDimens.iconM,
+          color: theme.colorScheme.primary.withValues(alpha: 0.7),
         ),
-        const SizedBox(width: AppDimens.spaceM), // Khôi phục về spaceM
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+        const SizedBox(width: AppDimens.spaceM),
+        Expanded(
+          // Wrap Column with Expanded
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-            Text(
-              value,
-              style: theme.textTheme.bodyLarge, // Khôi phục về bodyLarge
-            ),
-          ],
+              Text(
+                value,
+                style: theme.textTheme.bodyLarge,
+                overflow: TextOverflow.ellipsis, // Prevent long value overflow
+                maxLines: 1, // Adjust if needed (e.g., for long IDs)
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -279,35 +268,33 @@ class StatItemWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Column(
+      mainAxisSize: MainAxisSize.min, // Ensure column doesn't take extra height
       children: [
         Container(
-          padding: const EdgeInsets.all(
-            AppDimens.paddingM,
-          ), // Khôi phục về paddingM
+          padding: const EdgeInsets.all(AppDimens.paddingM),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: AppDimens.iconL,
-          ), // Khôi phục về iconL
+          child: Icon(icon, color: color, size: AppDimens.iconL),
         ),
-        const SizedBox(height: AppDimens.spaceS), // Khôi phục về spaceS
+        const SizedBox(height: AppDimens.spaceS),
         Text(
           value,
           style: theme.textTheme.headlineSmall?.copyWith(
-            // Khôi phục về headlineSmall
             fontWeight: FontWeight.bold,
             color: color,
           ),
         ),
+        const SizedBox(height: AppDimens.spaceXS), // Consistent small space
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
+          textAlign: TextAlign.center, // Center align label
+          maxLines: 2, // Allow label to wrap to two lines
+          overflow: TextOverflow.ellipsis, // Add ellipsis if it exceeds 2 lines
         ),
       ],
     );
@@ -335,30 +322,23 @@ class InfoChipWidget extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS, // Khôi phục về paddingS
-        vertical: AppDimens.paddingXXS / 2, // Giữ ở giữa paddingXXS và 1px
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingXXS / 2 + 1,
       ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(
-          AppDimens.radiusS,
-        ), // Khôi phục về radiusS
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: AppDimens.iconXS,
-              color: textColor,
-            ), // Khôi phục về iconXS
-            const SizedBox(width: AppDimens.spaceXXS), // Khôi phục về spaceXXS
+            Icon(icon, size: AppDimens.iconXS, color: textColor),
+            const SizedBox(width: AppDimens.spaceXXS),
           ],
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
-              // Khôi phục về labelSmall
               color: textColor,
               fontWeight: FontWeight.bold,
             ),
@@ -371,7 +351,7 @@ class InfoChipWidget extends StatelessWidget {
 
 /// Card Widget hiển thị module
 class ModuleCardWidget extends StatelessWidget {
-  final dynamic module;
+  final dynamic module; // Consider using a specific type like ModuleSummary
   final int index;
   final VoidCallback onTap;
 
@@ -387,69 +367,63 @@ class ModuleCardWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Lấy thông tin từ module object (cần điều chỉnh tên thuộc tính nếu khác)
+    final String title = module.title ?? 'Unnamed Module';
+    final int? wordCount = module.wordCount; // Giả sử có thuộc tính wordCount
+
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          AppDimens.radiusL,
-        ), // Khôi phục về radiusL
-        side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
-      margin: const EdgeInsets.only(
-        bottom: AppDimens.paddingM,
-      ), // Khôi phục về paddingM
+      margin: const EdgeInsets.only(bottom: AppDimens.paddingM),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(
-          AppDimens.radiusL,
-        ), // Khôi phục về radiusL
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
         child: Padding(
-          padding: const EdgeInsets.all(
-            AppDimens.paddingL,
-          ), // Khôi phục về paddingL
+          padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Row(
             children: [
               // Chỉ báo số module
               Container(
-                width: 36, // Điều chỉnh từ 32 lên 36 (gốc là 40)
-                height: 36, // Điều chỉnh từ 32 lên 36 (gốc là 40)
+                width: AppDimens.moduleIndicatorSize,
+                height: AppDimens.moduleIndicatorSize,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Text(
-                    '${index + 1}',
+                    '${index + 1}', // Hiển thị số thứ tự (bắt đầu từ 1)
                     style: theme.textTheme.titleMedium?.copyWith(
-                      // Khôi phục về titleMedium
                       fontWeight: FontWeight.bold,
                       color: colorScheme.primary,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: AppDimens.spaceL), // Khôi phục về spaceL
+              const SizedBox(width: AppDimens.spaceL),
               // Thông tin module
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      module.title,
+                      title,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        // Khôi phục về titleMedium
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (module.wordCount != null) ...[
-                      const SizedBox(
-                        height: AppDimens.spaceXS,
-                      ), // Khôi phục về spaceXS
+                    if (wordCount != null && wordCount > 0) ...[
+                      const SizedBox(height: AppDimens.spaceXS),
                       Text(
-                        '${module.wordCount} words',
+                        '$wordCount words',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -461,7 +435,7 @@ class ModuleCardWidget extends StatelessWidget {
               // Chỉ báo mũi tên
               Icon(
                 Icons.arrow_forward_ios,
-                size: AppDimens.iconS, // Khôi phục về iconS
+                size: AppDimens.iconS,
                 color: colorScheme.onSurfaceVariant,
               ),
             ],
@@ -495,22 +469,16 @@ class BookGridItemWidget extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(
-            AppDimens.radiusL,
-          ), // Khôi phục về radiusL
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
           child: Container(
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(
-                AppDimens.radiusL,
-              ), // Khôi phục về radiusL
+              borderRadius: BorderRadius.circular(AppDimens.radiusL),
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.shadow.withOpacity(
-                    0.08,
-                  ), // Khôi phục về 0.08
-                  blurRadius: 8, // Khôi phục về 8
-                  offset: const Offset(0, 2), // Khôi phục về 2
+                  color: colorScheme.shadow.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -520,20 +488,22 @@ class BookGridItemWidget extends StatelessWidget {
               children: [
                 // Color band at top based on difficulty
                 Container(
-                  height: 4, // Khôi phục về 4
+                  height: 4,
                   color: getDifficultyColor(book.difficultyLevel, colorScheme),
                 ),
 
                 // Book "cover" area
                 AspectRatio(
-                  aspectRatio: 3 / 4, // Khôi phục về 3/4
+                  aspectRatio: 3 / 4,
                   child: Container(
-                    color: colorScheme.surfaceContainerHighest,
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.5,
+                    ),
                     child: Center(
                       child: Icon(
                         Icons.menu_book,
-                        size: AppDimens.iconXXL, // Khôi phục về iconXXL
-                        color: colorScheme.primary.withOpacity(0.7),
+                        size: AppDimens.iconXXL,
+                        color: colorScheme.primary.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -542,64 +512,58 @@ class BookGridItemWidget extends StatelessWidget {
                 // Book info
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(
-                      AppDimens.paddingS, // Khôi phục về paddingS
-                    ),
+                    padding: const EdgeInsets.all(AppDimens.paddingS),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
                           child: Text(
                             book.name,
                             style: theme.textTheme.titleSmall?.copyWith(
-                              // Khôi phục về titleSmall
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Flexible(
-                          child: Row(
-                            children: [
-                              if (book.category != null) ...[
-                                Expanded(
-                                  child: Text(
-                                    book.category!,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal:
-                                      AppDimens
-                                          .paddingXS, // Khôi phục về paddingXS
-                                  vertical:
-                                      AppDimens
-                                          .paddingXXS, // Khôi phục về paddingXXS
-                                ),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(
-                                    AppDimens.radiusXS, // Khôi phục về radiusXS
-                                  ),
-                                ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (book.category != null)
+                              Expanded(
                                 child: Text(
-                                  formatStatus(book.status),
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    // Khôi phục về labelSmall
-                                    color: statusColor,
-                                    fontWeight: FontWeight.bold,
+                                  book.category!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )
+                            else
+                              const Spacer(),
+
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimens.paddingXS,
+                                vertical: AppDimens.paddingXXS,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(
+                                  AppDimens.radiusXS,
                                 ),
                               ),
-                            ],
-                          ),
+                              child: Text(
+                                formatStatus(book.status),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -616,11 +580,11 @@ class BookGridItemWidget extends StatelessWidget {
   Color getStatusColor(BookStatus status, ColorScheme colorScheme) {
     switch (status) {
       case BookStatus.published:
-        return Colors.green;
+        return Colors.green; // Consider theme.colorScheme.tertiary
       case BookStatus.draft:
         return colorScheme.secondary;
       case BookStatus.archived:
-        return Colors.grey;
+        return colorScheme.onSurfaceVariant;
     }
   }
 
@@ -628,9 +592,9 @@ class BookGridItemWidget extends StatelessWidget {
     if (level == null) return colorScheme.surfaceContainerHighest;
     switch (level) {
       case DifficultyLevel.beginner:
-        return Colors.green;
+        return Colors.green; // Consider theme.colorScheme.tertiary
       case DifficultyLevel.intermediate:
-        return colorScheme.tertiary;
+        return colorScheme.primary;
       case DifficultyLevel.advanced:
         return colorScheme.secondary;
       case DifficultyLevel.expert:

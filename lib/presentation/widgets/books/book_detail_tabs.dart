@@ -1,10 +1,14 @@
 // lib/presentation/widgets/books/book_detail_tabs.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/books/common_book.dart';
+// Đảm bảo bạn đã import common_book.dart và các file cần thiết khác
+import 'package:spaced_learning_app/presentation/widgets/books/metadata_item.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/module_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/stat_item.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
@@ -19,8 +23,10 @@ class BookOverviewTab extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // *** Quay lại sử dụng SingleChildScrollView + Column ***
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppDimens.paddingL),
+      physics: const BouncingScrollPhysics(), // Thêm hiệu ứng cuộn nảy nhẹ
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -33,12 +39,13 @@ class BookOverviewTab extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.spaceS),
             Container(
+              width: double.infinity, // Đảm bảo container chiếm đủ rộng
               padding: const EdgeInsets.all(AppDimens.paddingL),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(AppDimens.radiusL),
                 border: Border.all(
-                  color: colorScheme.outlineVariant.withOpacity(0.5),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                 ),
               ),
               child: Text(book.description!, style: theme.textTheme.bodyLarge),
@@ -53,6 +60,7 @@ class BookOverviewTab extends StatelessWidget {
             Icons.view_module_outlined,
           ),
           const SizedBox(height: AppDimens.spaceS),
+          // Giữ nguyên _buildModuleStats với Expanded bên trong Row
           _buildModuleStats(theme, colorScheme, book),
           const SizedBox(height: AppDimens.spaceXL),
 
@@ -60,11 +68,15 @@ class BookOverviewTab extends StatelessWidget {
           _buildSectionTitle(theme, 'Book Details', Icons.info_outline),
           const SizedBox(height: AppDimens.spaceS),
           _buildMetadataCard(theme, colorScheme, book),
+
+          // Thêm một khoảng trống cuối cùng để tránh chạm đáy màn hình
+          const SizedBox(height: AppDimens.paddingXL),
         ],
       ),
     );
   }
 
+  // _buildSectionTitle giữ nguyên
   Widget _buildSectionTitle(ThemeData theme, String title, IconData icon) {
     return Row(
       children: [
@@ -80,6 +92,7 @@ class BookOverviewTab extends StatelessWidget {
     );
   }
 
+  // _buildModuleStats giữ nguyên (vẫn dùng Expanded bên trong Row)
   Widget _buildModuleStats(
     ThemeData theme,
     ColorScheme colorScheme,
@@ -88,57 +101,71 @@ class BookOverviewTab extends StatelessWidget {
     final totalModules = book.modules.length;
 
     return Container(
+      width: double.infinity, // Đảm bảo container chiếm đủ rộng
       padding: const EdgeInsets.all(AppDimens.paddingL),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
-      child: Column(
+      child: Row(
+        // Row vẫn là cấu trúc chính
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              StatItemWidget(
-                value: totalModules.toString(),
-                label: 'Total Modules',
-                icon: Icons.menu_book_outlined,
-                color: colorScheme.primary,
-              ),
-              StatItemWidget(
-                value:
-                    totalModules > 0
-                        ? '${_calculateCompletionPercentage(book)}%'
-                        : '0%',
-                label: 'Completion',
-                icon: Icons.bar_chart_rounded,
-                color: colorScheme.tertiary,
-              ),
-              StatItemWidget(
-                value: _calculateEstimatedTime(book),
-                label: 'Est. Time',
-                icon: Icons.access_time,
-                color: colorScheme.secondary,
-              ),
-            ],
+          Expanded(
+            // StatItem được bọc trong Expanded
+            child: StatItemWidget(
+              value: totalModules.toString(),
+              label: 'Total Modules',
+              icon: Icons.menu_book_outlined,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: AppDimens.spaceM), // Khoảng cách giữa các item
+          Expanded(
+            // StatItem được bọc trong Expanded
+            child: StatItemWidget(
+              value:
+                  totalModules > 0
+                      ? '${_calculateCompletionPercentage(book)}%'
+                      : '0%',
+              label: 'Completion',
+              icon: Icons.bar_chart_rounded,
+              color: colorScheme.tertiary,
+            ),
+          ),
+          const SizedBox(width: AppDimens.spaceM), // Khoảng cách giữa các item
+          Expanded(
+            // StatItem được bọc trong Expanded
+            child: StatItemWidget(
+              value: _calculateEstimatedTime(book),
+              label: 'Est. Time',
+              icon: Icons.access_time,
+              color: colorScheme.secondary,
+            ),
           ),
         ],
       ),
     );
   }
 
+  // _buildMetadataCard giữ nguyên
   Widget _buildMetadataCard(
     ThemeData theme,
     ColorScheme colorScheme,
     BookDetail book,
   ) {
     return Container(
+      width: double.infinity, // Đảm bảo container chiếm đủ rộng
       padding: const EdgeInsets.all(AppDimens.paddingL),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,43 +198,44 @@ class BookOverviewTab extends StatelessWidget {
     );
   }
 
+  // Các hàm helper giữ nguyên
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return DateFormat('dd MMM yy').format(date);
   }
 
   String _calculateCompletionPercentage(BookDetail book) {
     if (book.modules.isEmpty) return '0';
-    // Trong ứng dụng thực, sẽ tính toán dựa trên dữ liệu hoàn thành thực tế
-    // Đây chỉ là một giá trị giả định
-    return '42';
+    final int completedModules =
+        book.modules
+            .where(
+              (m) =>
+                  (m.progress.isNotEmpty &&
+                      m.progress.first.percentComplete == 100.0),
+            )
+            .length;
+    if (book.modules.isEmpty) return '0';
+    return ((completedModules / book.modules.length) * 100).toStringAsFixed(0);
   }
 
   String _calculateEstimatedTime(BookDetail book) {
-    // Giá trị giả định
     final totalWords = book.modules.fold<int>(
       0,
       (sum, module) => sum + (module.wordCount ?? 0),
     );
-
     if (totalWords == 0) return '0 min';
-
-    // Giả sử tốc độ đọc trung bình là 200 từ/phút
     final minutes = (totalWords / 200).ceil();
-
     if (minutes < 60) {
       return '$minutes min';
     } else {
       final hours = (minutes / 60).floor();
       final remainingMinutes = minutes % 60;
-      if (remainingMinutes == 0) {
-        return '$hours hr';
-      }
+      if (remainingMinutes == 0) return '$hours hr';
       return '$hours hr $remainingMinutes min';
     }
   }
 }
 
-/// Tab hiển thị danh sách modules
+// BookModulesTab giữ nguyên như phiên bản trước
 class BookModulesTab extends StatelessWidget {
   final String bookId;
   final ModuleViewModel viewModel;
@@ -239,23 +267,25 @@ class BookModulesTab extends StatelessWidget {
       return _buildEmptyModulesState(theme, colorScheme);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        vertical: AppDimens.paddingL,
-        horizontal: AppDimens.paddingL,
-      ),
+    // Sử dụng ListView.separated để thêm khoảng cách dễ dàng hơn
+    return ListView.separated(
+      padding: const EdgeInsets.all(AppDimens.paddingL), // Thêm padding chung
       itemCount: viewModel.modules.length,
       itemBuilder: (context, index) {
         final module = viewModel.modules[index];
         return ModuleCardWidget(
           module: module,
           index: index,
-          onTap:
-              () => GoRouter.of(
-                context,
-              ).push('/books/$bookId/modules/${module.id}'),
+          onTap: () {
+            final moduleId = module.id;
+            GoRouter.of(context).push('/books/$bookId/modules/$moduleId');
+          },
         );
       },
+      separatorBuilder:
+          (context, index) => const SizedBox(
+            height: AppDimens.spaceM,
+          ), // Khoảng cách giữa các card
     );
   }
 
@@ -269,13 +299,21 @@ class BookModulesTab extends StatelessWidget {
             Icon(
               Icons.view_module_outlined,
               size: AppDimens.iconXXL,
-              color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
-              'No modules available for this book',
+              'No modules available for this book yet',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDimens.spaceS),
+            Text(
+              'Check back later or add a new module if you have permission.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

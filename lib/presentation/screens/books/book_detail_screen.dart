@@ -7,8 +7,9 @@ import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/book_cover.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_detail_tabs.dart';
-import 'package:spaced_learning_app/presentation/widgets/books/common_book.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/info_chip.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
@@ -138,16 +139,6 @@ class _BookDetailScreenState extends State<BookDetailScreen>
           ],
         ),
       ),
-      floatingActionButton:
-          authViewModel.currentUser?.roles?.contains('ADMIN') == true
-              ? FloatingActionButton.extended(
-                onPressed:
-                    () =>
-                        GoRouter.of(context).push('/modules/create/${book.id}'),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Module'),
-              )
-              : null,
     );
   }
 
@@ -162,7 +153,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
 
     return SliverAppBar(
-      expandedHeight: 240.0,
+      expandedHeight: AppDimens.bannerHeight,
       floating: false,
       pinned: true,
       forceElevated: _isScrolled || innerBoxIsScrolled,
@@ -175,17 +166,6 @@ class _BookDetailScreenState extends State<BookDetailScreen>
         onPressed: () => GoRouter.of(context).pop(),
         color: _isScrolled ? null : colorScheme.onSurfaceVariant,
       ),
-      actions: [
-        if (authViewModel.currentUser?.roles?.contains('ADMIN') == true)
-          PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuSelection(value, book),
-            itemBuilder: (context) => _buildPopupMenuItems(theme),
-            icon: Icon(
-              Icons.more_vert,
-              color: _isScrolled ? null : colorScheme.onSurfaceVariant,
-            ),
-          ),
-      ],
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.all(0),
         expandedTitleScale: 1.0,
@@ -217,7 +197,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
                   // Book "Cover"
                   Hero(
                     tag: 'book-${book.id}',
-                    child: BookCoverWidget(book: book),
+                    child: BookCoverWidget(book: book, width: 100, height: 100),
                   ),
                   const SizedBox(width: AppDimens.spaceL),
                   // Book Info
@@ -236,7 +216,9 @@ class _BookDetailScreenState extends State<BookDetailScreen>
                           children: [
                             InfoChipWidget(
                               label: _formatStatus(book.status),
-                              backgroundColor: statusColor.withOpacity(0.2),
+                              backgroundColor: statusColor.withValues(
+                                alpha: 0.2,
+                              ),
                               textColor: statusColor,
                             ),
                             if (book.difficultyLevel != null) ...[
@@ -244,7 +226,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
                               InfoChipWidget(
                                 label: difficultyData.text,
                                 backgroundColor: difficultyData.color
-                                    .withOpacity(0.2),
+                                    .withValues(alpha: 0.2),
                                 textColor: difficultyData.color,
                               ),
                             ],
@@ -285,83 +267,6 @@ class _BookDetailScreenState extends State<BookDetailScreen>
           ),
         ),
       ),
-    );
-  }
-
-  List<PopupMenuItem<String>> _buildPopupMenuItems(ThemeData theme) {
-    return [
-      PopupMenuItem<String>(
-        value: 'edit',
-        child: ListTile(
-          leading: Icon(Icons.edit, color: theme.colorScheme.primary),
-          title: const Text('Edit Book'),
-          contentPadding: EdgeInsets.zero,
-          visualDensity: VisualDensity.compact,
-        ),
-      ),
-      PopupMenuItem<String>(
-        value: 'delete',
-        child: ListTile(
-          leading: Icon(Icons.delete, color: theme.colorScheme.error),
-          title: const Text('Delete Book'),
-          contentPadding: EdgeInsets.zero,
-          visualDensity: VisualDensity.compact,
-        ),
-      ),
-    ];
-  }
-
-  void _handleMenuSelection(String value, BookDetail book) {
-    if (value == 'edit') {
-      GoRouter.of(context).push('/books/edit/${book.id}');
-    } else if (value == 'delete') {
-      _showDeleteConfirmation(book);
-    }
-  }
-
-  void _showDeleteConfirmation(BookDetail book) {
-    final theme = Theme.of(context);
-    showDialog(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Delete Book'),
-            content: Text(
-              'Are you sure you want to delete "${book.name}"? This action cannot be undone.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(color: theme.colorScheme.outline),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  final bookViewModel = context.read<BookViewModel>();
-                  final success = await bookViewModel.deleteBook(book.id);
-                  if (success && context.mounted) {
-                    GoRouter.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Book deleted successfully'),
-                        backgroundColor: theme.colorScheme.primary,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.delete),
-                label: const Text('Delete'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                  foregroundColor: theme.colorScheme.onError,
-                ),
-              ),
-            ],
-          ),
     );
   }
 

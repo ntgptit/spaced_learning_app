@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
-import 'package:spaced_learning_app/presentation/widgets/books/common_book.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/filter_chip.dart';
 
 class BookFilterPanel extends StatelessWidget {
   final List<String> categories;
@@ -48,7 +48,7 @@ class BookFilterPanel extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

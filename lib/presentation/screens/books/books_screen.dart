@@ -1,3 +1,4 @@
+// lib/presentation/screens/books/books_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -6,8 +7,11 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
+// Importing necessary widgets from presentation/widgets/books
 import 'package:spaced_learning_app/presentation/widgets/books/book_filter_panel.dart';
-import 'package:spaced_learning_app/presentation/widgets/books/common_book.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/book_list_card.dart';
+// Importing common widgets
+import 'package:spaced_learning_app/presentation/widgets/common/app_empty_state.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
@@ -29,8 +33,8 @@ class _BooksScreenState extends State<BooksScreen>
   DifficultyLevel? _selectedDifficulty;
   bool _isFilterExpanded = false;
   bool _isScrolled = false;
+  final bool _isListView = true; // Always use list view per requirement
 
-  // Animation controllers
   late AnimationController _filterAnimationController;
   late Animation<double> _filterAnimation;
 
@@ -39,7 +43,6 @@ class _BooksScreenState extends State<BooksScreen>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
 
-    // Initialize animations
     _filterAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -49,7 +52,6 @@ class _BooksScreenState extends State<BooksScreen>
       curve: Curves.easeInOut,
     );
 
-    // Listen to scroll to handle app bar elevation
     _scrollController.addListener(_onScroll);
   }
 
@@ -65,26 +67,31 @@ class _BooksScreenState extends State<BooksScreen>
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _filterAnimationController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool forceRefresh = false}) async {
     final bookViewModel = context.read<BookViewModel>();
     try {
-      await bookViewModel.loadCategories();
-      if (mounted) {
-        setState(() {
-          _categories = bookViewModel.categories;
-        });
+      // Load categories first if not already loaded or forcing refresh
+      if (_categories.isEmpty || forceRefresh) {
+        await bookViewModel.loadCategories();
+        if (mounted) {
+          setState(() {
+            _categories = bookViewModel.categories;
+          });
+        }
       }
-      await bookViewModel.loadBooks();
+      // Load books (or reload if forceRefresh is true)
+      await bookViewModel.loadBooks(); // This applies current filters if any
     } catch (e) {
       final errorMessage =
           e is AppException
               ? e.message
-              : 'An unexpected error occurred while loading data. Please try again.';
+              : 'An unexpected error occurred. Please try again.';
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -115,20 +122,32 @@ class _BooksScreenState extends State<BooksScreen>
       _selectedStatus = null;
       _selectedDifficulty = null;
     });
+    // Load all books without filters
     context.read<BookViewModel>().loadBooks();
+    // Optionally close the filter panel if open
+    if (_isFilterExpanded) {
+      _toggleFilterPanel();
+    }
   }
 
   Future<void> _searchBooks(String query) async {
+    final bookViewModel = context.read<BookViewModel>();
     if (query.isEmpty) {
       setState(() {
         _isSearching = false;
       });
-      return _loadData();
+      // Reload books, potentially applying existing filters
+      return bookViewModel.filterBooks(
+        status: _selectedStatus,
+        difficultyLevel: _selectedDifficulty,
+        category: _selectedCategory,
+      );
     }
     setState(() {
       _isSearching = true;
     });
-    await context.read<BookViewModel>().searchBooks(query);
+    // Perform search using the view model
+    await bookViewModel.searchBooks(query);
   }
 
   void _toggleFilterPanel() {
@@ -147,11 +166,9 @@ class _BooksScreenState extends State<BooksScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final mediaQuery = MediaQuery.of(context);
     final authViewModel = context.watch<AuthViewModel>();
-    final bookViewModel = context.watch<BookViewModel>();
-    final isSmallScreen = mediaQuery.size.width < AppDimens.breakpointS;
 
+    // Show login prompt if user is not logged in
     if (authViewModel.currentUser == null) {
       return _buildLoginPrompt(theme);
     }
@@ -165,14 +182,15 @@ class _BooksScreenState extends State<BooksScreen>
             ],
         body: Column(
           children: [
-            _buildSearchAndFilterBar(theme, colorScheme, isSmallScreen),
+            _buildSearchAndFilterBar(theme, colorScheme),
 
-            // Filter panel - Animated
+            // Animated filter panel
             AnimatedBuilder(
               animation: _filterAnimation,
               builder: (context, child) {
                 return SizeTransition(
                   sizeFactor: _filterAnimation,
+                  axisAlignment: -1.0, // Ensures it expands downwards
                   child: child,
                 );
               },
@@ -184,21 +202,15 @@ class _BooksScreenState extends State<BooksScreen>
                         selectedStatus: _selectedStatus,
                         selectedDifficulty: _selectedDifficulty,
                         onCategorySelected: (category) {
-                          setState(() {
-                            _selectedCategory = category;
-                          });
+                          setState(() => _selectedCategory = category);
                           _applyFilters();
                         },
                         onStatusSelected: (status) {
-                          setState(() {
-                            _selectedStatus = status;
-                          });
+                          setState(() => _selectedStatus = status);
                           _applyFilters();
                         },
                         onDifficultySelected: (difficulty) {
-                          setState(() {
-                            _selectedDifficulty = difficulty;
-                          });
+                          setState(() => _selectedDifficulty = difficulty);
                           _applyFilters();
                         },
                         onFiltersApplied: () {
@@ -210,12 +222,16 @@ class _BooksScreenState extends State<BooksScreen>
                       : const SizedBox.shrink(),
             ),
 
-            // Book list
+            // Book list section
             Expanded(
-              child: _buildBooksList(
-                bookViewModel,
-                theme,
-                _isSearching ? 'Search results' : 'Books Library',
+              child: Consumer<BookViewModel>(
+                builder: (context, bookViewModel, child) {
+                  return _buildBooksList(
+                    bookViewModel,
+                    theme,
+                    _isSearching ? 'Search results' : 'Books Library',
+                  );
+                },
               ),
             ),
           ],
@@ -223,11 +239,10 @@ class _BooksScreenState extends State<BooksScreen>
       ),
       floatingActionButton:
           authViewModel.currentUser?.roles?.contains('ADMIN') == true
-              ? FloatingActionButton.extended(
+              ? FloatingActionButton(
                 onPressed: () => GoRouter.of(context).push('/books/create'),
-                label: const Text('Add Book'),
-                icon: const Icon(Icons.add),
-                elevation: 4,
+                tooltip: 'Add Book',
+                child: const Icon(Icons.add),
               )
               : null,
     );
@@ -249,7 +264,7 @@ class _BooksScreenState extends State<BooksScreen>
             Icon(
               Icons.lock_outline,
               size: AppDimens.iconXXL,
-              color: theme.colorScheme.primary.withOpacity(0.6),
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
@@ -294,18 +309,14 @@ class _BooksScreenState extends State<BooksScreen>
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh_outlined),
-          onPressed: _loadData,
+          onPressed: () => _loadData(forceRefresh: true),
           tooltip: 'Refresh',
         ),
       ],
     );
   }
 
-  Widget _buildSearchAndFilterBar(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    bool isSmallScreen,
-  ) {
+  Widget _buildSearchAndFilterBar(ThemeData theme, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppDimens.paddingL,
@@ -316,10 +327,10 @@ class _BooksScreenState extends State<BooksScreen>
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         boxShadow:
-            _isScrolled
+            _isScrolled || _isFilterExpanded
                 ? [
                   BoxShadow(
-                    color: theme.colorScheme.shadow.withOpacity(0.05),
+                    color: theme.colorScheme.shadow.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -328,25 +339,14 @@ class _BooksScreenState extends State<BooksScreen>
       ),
       child: Row(
         children: [
-          // Search field with expansion animation
+          // Search field
           Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
+            child: SizedBox(
               height: AppDimens.textFieldHeight,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(AppDimens.radiusL),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                ),
-              ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search books...',
-                  hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
                   prefixIcon: Icon(
                     Icons.search,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -362,70 +362,53 @@ class _BooksScreenState extends State<BooksScreen>
                               _searchController.clear();
                               _searchBooks('');
                             },
+                            tooltip: 'Clear search',
                           )
                           : null,
-                  border: InputBorder.none,
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainerLowest,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingM,
-                    vertical: AppDimens.paddingS,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                    borderSide: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                    borderSide: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 1.5,
+                    ),
                   ),
                 ),
                 onChanged: _searchBooks,
+                onSubmitted: _searchBooks,
               ),
             ),
           ),
 
-          // Filter button with indicator
+          // Filter button with active filter indicator
           Padding(
             padding: const EdgeInsets.only(left: AppDimens.paddingM),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Material(
-                  color:
-                      _isFilterExpanded
-                          ? theme.colorScheme.primaryContainer
-                          : theme.colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusL),
-                  child: InkWell(
-                    onTap: _toggleFilterPanel,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusL),
-                    child: Container(
-                      padding: const EdgeInsets.all(AppDimens.paddingM),
-                      child: Icon(
-                        _isFilterExpanded
-                            ? Icons.filter_list
-                            : Icons.filter_alt_outlined,
-                        color:
-                            _isFilterExpanded
-                                ? theme.colorScheme.onPrimaryContainer
-                                : theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
+            child: Badge(
+              label: Text(_getActiveFilterCount().toString()),
+              isLabelVisible: _getActiveFilterCount() > 0,
+              child: IconButton.filledTonal(
+                icon: Icon(
+                  _isFilterExpanded ? Icons.filter_list_off : Icons.filter_list,
                 ),
-                if (_selectedCategory != null ||
-                    _selectedStatus != null ||
-                    _selectedDifficulty != null)
-                  Positioned(
-                    top: -5,
-                    right: -5,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        _getActiveFilterCount().toString(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+                onPressed: _toggleFilterPanel,
+                tooltip: _isFilterExpanded ? 'Hide filters' : 'Show filters',
+              ),
             ),
           ),
         ],
@@ -446,37 +429,41 @@ class _BooksScreenState extends State<BooksScreen>
     ThemeData theme,
     String title,
   ) {
+    // Show loading indicator
     if (viewModel.isLoading) {
       return const Center(child: AppLoadingIndicator());
     }
 
+    // Show error display
     if (viewModel.errorMessage != null) {
       return Center(
         child: ErrorDisplay(
           message: viewModel.errorMessage!,
-          onRetry: _loadData,
+          onRetry: () => _loadData(forceRefresh: true),
         ),
       );
     }
 
+    // Show empty state if no books match criteria
     if (viewModel.books.isEmpty) {
       return _buildEmptyState(theme);
     }
 
+    // List view for books
     return RefreshIndicator(
-      onRefresh: _loadData,
+      onRefresh: () => _loadData(forceRefresh: true),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           // Section Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppDimens.paddingL,
-                AppDimens.paddingL,
-                AppDimens.paddingL,
-                AppDimens.paddingS,
-              ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppDimens.paddingL,
+              AppDimens.paddingL,
+              AppDimens.paddingL,
+              AppDimens.paddingS,
+            ),
+            sliver: SliverToBoxAdapter(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -484,13 +471,12 @@ class _BooksScreenState extends State<BooksScreen>
                     '$title (${viewModel.books.length})',
                     style: theme.textTheme.titleLarge,
                   ),
-                  // View toggle buttons would go here if implementing grid view
                 ],
               ),
             ),
           ),
 
-          // Books grid
+          // Books list
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppDimens.paddingL,
@@ -498,16 +484,10 @@ class _BooksScreenState extends State<BooksScreen>
               AppDimens.paddingL,
               AppDimens.paddingXXXL,
             ),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: AppDimens.paddingM,
-                crossAxisSpacing: AppDimens.paddingM,
-                childAspectRatio: 0.7, // Changed from 0.75 to fix overflow
-              ),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
                 final book = viewModel.books[index];
-                return BookGridItemWidget(
+                return BookListCard(
                   book: book,
                   onTap: () => GoRouter.of(context).push('/books/${book.id}'),
                 );
@@ -520,42 +500,16 @@ class _BooksScreenState extends State<BooksScreen>
   }
 
   Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingXL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _isSearching ? Icons.search_off : Icons.book_outlined,
-              size: AppDimens.iconXXL * 2,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.2),
-            ),
-            const SizedBox(height: AppDimens.spaceXL),
-            Text(
-              _isSearching
-                  ? 'No books found matching your search'
-                  : 'No books available',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            ElevatedButton.icon(
-              onPressed:
-                  _isSearching
-                      ? () {
-                        _searchController.clear();
-                        _searchBooks('');
-                      }
-                      : _loadData,
-              icon: Icon(_isSearching ? Icons.clear : Icons.refresh),
-              label: Text(_isSearching ? 'Clear Search' : 'Refresh'),
-            ),
-          ],
-        ),
-      ),
+    return AppEmptyState(
+      icon: _isSearching ? Icons.search_off : Icons.book_outlined,
+      title: _isSearching ? 'No books found' : 'No books available',
+      message:
+          _isSearching
+              ? 'Try adjusting your search or filters.'
+              : 'Check back later or refresh.',
+      buttonText: _isSearching ? 'Clear Search & Filters' : 'Refresh',
+      onButtonPressed:
+          _isSearching ? _resetFilters : () => _loadData(forceRefresh: true),
     );
   }
 }
