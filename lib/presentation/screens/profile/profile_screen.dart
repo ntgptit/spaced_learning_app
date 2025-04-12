@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
@@ -8,6 +9,8 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'
 import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+
+// Định nghĩa lớp User giả định
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -24,7 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _runSafe(_loadUserData);
   }
 
   @override
@@ -34,34 +37,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final userViewModel = context.read<UserViewModel>();
+    final userViewModel = context.read<UserViewModel?>();
+    if (userViewModel == null) return;
     await userViewModel.loadCurrentUser();
-    if (userViewModel.currentUser != null) {
+    if (mounted && userViewModel.currentUser != null) {
       _displayNameController.text =
           userViewModel.currentUser!.displayName ?? '';
     }
   }
 
   Future<void> _updateProfile() async {
-    if (_formKey.currentState!.validate()) {
-      final userViewModel = context.read<UserViewModel>();
+    if (_formKey.currentState?.validate() != true) return;
+    final userViewModel = context.read<UserViewModel?>();
+    if (userViewModel == null) return;
+
+    try {
       final success = await userViewModel.updateProfile(
         displayName: _displayNameController.text,
       );
-
-      if (success && mounted) {
+      if (!mounted) return;
+      if (success) {
         await _loadUserData();
         setState(() => _isEditing = false);
-        _showSuccessMessage();
+        _showSnackBar('Profile updated successfully', Colors.green);
+      } else {
+        _showSnackBar('Failed to update profile', Colors.red);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error updating profile: $e', Colors.red);
       }
     }
   }
 
   Future<void> _logout() async {
-    final authViewModel = context.read<AuthViewModel>();
-    await authViewModel.logout();
-    if (mounted && !authViewModel.isAuthenticated) {
-      Navigator.of(context).pushReplacementNamed('/login');
+    final authViewModel = context.read<AuthViewModel?>();
+    if (authViewModel == null) return;
+
+    try {
+      await authViewModel.logout();
+      if (mounted && !authViewModel.isAuthenticated) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error logging out: $e', Colors.red);
+      }
     }
   }
 
@@ -75,69 +96,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _resetForm() {
-    final userViewModel = context.read<UserViewModel>();
-    if (userViewModel.currentUser != null) {
+    final userViewModel = context.read<UserViewModel?>();
+    if (userViewModel?.currentUser != null) {
       _displayNameController.text =
-          userViewModel.currentUser!.displayName ?? '';
+          userViewModel!.currentUser!.displayName ?? '';
     }
   }
 
-  void _showSuccessMessage() {
+  void _showSnackBar(String message, Color backgroundColor) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully')),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: const Duration(seconds: 3),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final authViewModel = context.watch<AuthViewModel>();
-    final userViewModel = context.watch<UserViewModel>();
-
-    if (authViewModel.currentUser == null) {
-      return const Center(child: Text('Please log in to view your profile'));
-    }
-
-    if (userViewModel.isLoading) {
-      return const Center(child: AppLoadingIndicator());
-    }
-
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _loadUserData,
-        child: _buildContent(authViewModel, userViewModel),
-      ),
+      body: RefreshIndicator(onRefresh: _loadUserData, child: _buildContent()),
     );
   }
 
-  Widget _buildContent(
-    AuthViewModel authViewModel,
-    UserViewModel userViewModel,
-  ) {
+  Widget _buildContent() {
+    return Selector<AuthViewModel, User?>(
+      selector: (_, authViewModel) => authViewModel.currentUser,
+      builder: (_, user, __) {
+        if (user == null) {
+          return const Center(
+            child: Text('Please log in to view your profile'),
+          );
+        }
+        return Selector<UserViewModel, (bool, String?, User?)>(
+          selector:
+              (_, userViewModel) => (
+                userViewModel.isLoading,
+                userViewModel.errorMessage,
+                userViewModel.currentUser,
+              ),
+          builder: (_, data, __) {
+            final isLoading = data.$1;
+            final errorMessage = data.$2;
+            final currentUser = data.$3 ?? user;
+
+            if (isLoading) {
+              return const Center(child: AppLoadingIndicator());
+            }
+
+            return ListView(
+              padding: const EdgeInsets.only(
+                left: AppDimens.paddingL,
+                right: AppDimens.paddingL,
+                top: AppDimens.paddingL,
+              ),
+              children: [
+                const SizedBox(height: AppDimens.spaceL),
+                _buildAvatar(currentUser),
+                const SizedBox(height: AppDimens.spaceL),
+                if (errorMessage != null) _buildErrorDisplay(errorMessage),
+                _isEditing
+                    ? _buildEditProfileForm()
+                    : _buildProfileInfo(currentUser),
+                const SizedBox(height: AppDimens.spaceXXL),
+                _buildSettingsSection(),
+                const SizedBox(height: AppDimens.spaceXL),
+                _buildLogoutButton(),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAvatar(User user) {
     final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.all(AppDimens.paddingL),
-      children: [
-        const SizedBox(height: AppDimens.spaceL),
-        _buildAvatar(theme, authViewModel.currentUser),
-        const SizedBox(height: AppDimens.spaceL),
-        if (userViewModel.errorMessage != null)
-          _buildErrorDisplay(userViewModel),
-        _isEditing
-            ? _buildEditProfileForm()
-            : _buildProfileInfo(
-              theme,
-              userViewModel.currentUser ?? authViewModel.currentUser!,
-            ),
-        const SizedBox(height: AppDimens.spaceXXL),
-        _buildSettingsSection(theme),
-        const SizedBox(height: AppDimens.spaceXL),
-        _buildLogoutButton(),
-        const SizedBox(height: AppDimens.spaceXL),
-      ],
-    );
-  }
-
-  Widget _buildAvatar(ThemeData theme, dynamic user) {
     return Center(
       child: CircleAvatar(
         radius: AppDimens.avatarSizeL,
@@ -152,18 +188,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildErrorDisplay(UserViewModel userViewModel) {
+  Widget _buildErrorDisplay(String errorMessage) {
     return ErrorDisplay(
-      message: userViewModel.errorMessage!,
+      message: errorMessage,
       compact: true,
       onRetry: () {
-        userViewModel.clearError();
-        _loadUserData();
+        final userViewModel = context.read<UserViewModel?>();
+        userViewModel?.clearError();
+        _runSafe(_loadUserData);
       },
     );
   }
 
-  Widget _buildProfileInfo(ThemeData theme, dynamic currentUser) {
+  Widget _buildProfileInfo(User currentUser) {
+    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -211,6 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildEditProfileForm() {
+    Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -227,6 +266,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 hint: 'Enter your display name',
                 controller: _displayNameController,
                 prefixIcon: Icons.person,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Display name cannot be empty';
+                  }
+                  if (value.length > 50) {
+                    return 'Display name must be less than 50 characters';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: AppDimens.spaceXL),
               _buildEditActions(),
@@ -265,14 +313,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           text: 'Save Changes',
           type: AppButtonType.primary,
           onPressed: _updateProfile,
-          isLoading: context.watch<UserViewModel>().isLoading,
+          isLoading: context.select<UserViewModel?, bool>(
+            (vm) => vm?.isLoading ?? false,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildSettingsSection(ThemeData theme) {
-    final themeViewModel = context.watch<ThemeViewModel>();
+  Widget _buildSettingsSection() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -281,23 +331,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Card(
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Row(
-              children: [
-                Icon(
-                  themeViewModel.isDarkMode
-                      ? Icons.dark_mode
-                      : Icons.light_mode,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: AppDimens.spaceL),
-                Expanded(
-                  child: Text('Dark Mode', style: theme.textTheme.titleMedium),
-                ),
-                Switch(
-                  value: themeViewModel.isDarkMode,
-                  onChanged: themeViewModel.setDarkMode,
-                ),
-              ],
+            child: Selector<ThemeViewModel, bool>(
+              selector: (_, themeViewModel) => themeViewModel.isDarkMode,
+              builder:
+                  (_, isDarkMode, __) => Row(
+                    children: [
+                      Icon(
+                        isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: AppDimens.spaceL),
+                      Expanded(
+                        child: Text(
+                          'Dark Mode',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      Switch(
+                        value: isDarkMode,
+                        onChanged: context.read<ThemeViewModel>().setDarkMode,
+                      ),
+                    ],
+                  ),
             ),
           ),
         ),
@@ -341,10 +396,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _getInitials(String text) {
     if (text.isEmpty) return '';
-    if (text.contains('@')) return text[0].toUpperCase();
-    final words = text.trim().split(' ');
-    return words.length == 1
-        ? words[0][0].toUpperCase()
-        : (words[0][0] + words[1][0]).toUpperCase();
+    final trimmed = text.trim();
+    if (trimmed.contains('@')) return trimmed[0].toUpperCase();
+    final words = trimmed.split(' ');
+    if (words.isEmpty) return '';
+    if (words.length == 1) return words[0][0].toUpperCase();
+    return (words[0][0] + words.last[0]).toUpperCase();
+  }
+
+  void _runSafe(VoidCallback block) {
+    if (!mounted) return;
+    Future.microtask(block);
   }
 }
