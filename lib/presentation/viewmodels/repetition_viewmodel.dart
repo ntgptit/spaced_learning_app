@@ -13,8 +13,6 @@ class RepetitionViewModel extends BaseViewModel {
   List<Repetition> get repetitions => _repetitions;
   Repetition? get selectedRepetition => _selectedRepetition;
 
-
-
   Future<void> loadRepetitionsByProgressId(String progressId) async {
     await safeCall(
       action: () async {
@@ -26,9 +24,6 @@ class RepetitionViewModel extends BaseViewModel {
       errorPrefix: 'Failed to load repetitions by progress',
     );
   }
-
-
-
 
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
@@ -46,6 +41,7 @@ class RepetitionViewModel extends BaseViewModel {
     RepetitionStatus? status,
     DateTime? reviewDate,
     bool rescheduleFollowing = false,
+    double? percentComplete,
   }) async {
     return safeCall<Repetition>(
       action: () async {
@@ -54,6 +50,7 @@ class RepetitionViewModel extends BaseViewModel {
           status: status,
           reviewDate: reviewDate,
           rescheduleFollowing: rescheduleFollowing,
+          percentComplete: percentComplete,
         );
 
         if (_selectedRepetition?.id == id) {
@@ -74,9 +71,6 @@ class RepetitionViewModel extends BaseViewModel {
       errorPrefix: 'Failed to update repetition',
     );
   }
-
-
-
 
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
     try {

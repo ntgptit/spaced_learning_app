@@ -47,13 +47,9 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final updatedRepetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.completed,
-    );
-    if (!mounted || updatedRepetition == null) return;
-    await progressViewModel.updateProgress(
-      widget.progressId,
       percentComplete: score,
     );
-    if (!mounted) return;
+    if (!mounted || updatedRepetition == null) return;
     final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
       updatedRepetition.moduleProgressId,
     );

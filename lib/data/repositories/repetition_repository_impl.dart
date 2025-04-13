@@ -9,10 +9,6 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
 
   RepetitionRepositoryImpl(this._apiClient);
 
-
-
-
-
   @override
   Future<List<Repetition>> getRepetitionsByProgressId(String progressId) async {
     try {
@@ -33,18 +29,6 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
       throw UnexpectedException('Failed to get repetitions by progress: $e');
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   Future<List<Repetition>> createDefaultSchedule(
@@ -77,6 +61,7 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
     RepetitionStatus? status,
     DateTime? reviewDate,
     bool rescheduleFollowing = false,
+    double? percentComplete,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -90,6 +75,10 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
       }
 
       data['rescheduleFollowing'] = rescheduleFollowing;
+
+      if (percentComplete != null) {
+        data['percentComplete'] = percentComplete;
+      }
 
       final response = await _apiClient.put(
         '${ApiEndpoints.repetitions}/$id',
@@ -110,8 +99,6 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
       throw UnexpectedException('Failed to update repetition: $e');
     }
   }
-
-
 
   @override
   Future<int> countByModuleProgressId(String moduleProgressId) async {
