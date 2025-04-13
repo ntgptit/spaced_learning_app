@@ -39,28 +39,46 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
   }
 
+  // lib/presentation/screens/progress/progress_detail_screen.dart
+
   Future<void> _markRepetitionCompleted(String repetitionId) async {
+    // _showScoreInputDialog giờ trả về score hoặc null (nếu cancel)
     final score = await _showScoreInputDialog();
-    if (score == null || !mounted) return;
+
+    // Kiểm tra null rõ ràng hơn
+    if (score == null) {
+      debugPrint('Score input cancelled.'); // Ghi log nếu muốn
+      return; // Thoát nếu người dùng cancel
+    }
+    if (!mounted) return;
+
+    // Debug xem giá trị score nhận được là bao nhiêu
+    debugPrint('Score received from dialog: $score');
+
     final repetitionViewModel = context.read<RepetitionViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
+
     final updatedRepetition = await repetitionViewModel.updateRepetition(
       repetitionId,
       status: RepetitionStatus.completed,
-      percentComplete: score,
+      percentComplete: score, // Truyền score (chắc chắn không null ở đây)
     );
+
     if (!mounted || updatedRepetition == null) return;
+
+    // Phần còn lại giữ nguyên...
     final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
       updatedRepetition.moduleProgressId,
     );
+
     if (!mounted) return;
-    allCompleted
-        ? _handleCycleCompletion()
-        : _handleSingleCompletion(
-          repetitionViewModel,
-          progressViewModel,
-          score,
-        );
+
+    if (allCompleted) {
+      _handleCycleCompletion();
+    } else {
+      _handleSingleCompletion(repetitionViewModel, progressViewModel, score);
+      _refreshRepetitionsAndProgress(repetitionViewModel, progressViewModel);
+    }
   }
 
   // Removed _markRepetitionSkipped function definition
@@ -138,31 +156,47 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     );
   }
 
+  // lib/presentation/screens/progress/progress_detail_screen.dart
+
   Future<double?> _showScoreInputDialog() async {
-    double? selectedScore;
-    return showDialog<double>(
+    // Tạo một ValueNotifier với giá trị khởi tạo (ví dụ: 80)
+    final scoreNotifier = ValueNotifier<double>(80.0);
+
+    // showDialog bây giờ trả về bool (true nếu Confirm, false/null nếu Cancel)
+    final confirmed = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: false, // Giữ nguyên để bắt buộc chọn
       builder:
           (dialogContext) => AlertDialog(
             title: const Text('Enter Test Score'),
             content: ScoreInputDialogContent(
-              initialScore: 80.0,
-              onScoreChangedFinal: (score) => selectedScore = score,
+              // Truyền Notifier vào widget content
+              scoreNotifier: scoreNotifier,
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
+                // Trả về false khi Cancel
+                onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
-                onPressed:
-                    () => Navigator.pop(dialogContext, selectedScore ?? 80.0),
+                // Trả về true khi Confirm
+                onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text('Confirm'),
               ),
             ],
           ),
     );
+
+    // Lấy giá trị cuối cùng từ notifier *chỉ khi* người dùng nhấn Confirm
+    if (confirmed == true) {
+      final finalScore = scoreNotifier.value;
+      scoreNotifier.dispose(); // Dọn dẹp notifier
+      return finalScore;
+    } else {
+      scoreNotifier.dispose(); // Dọn dẹp notifier nếu cancel
+      return null; // Trả về null nếu cancel
+    }
   }
 
   Future<void> _showRescheduleDialog(
