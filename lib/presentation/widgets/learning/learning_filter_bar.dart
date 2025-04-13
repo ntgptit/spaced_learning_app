@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 
 class LearningFilterBar extends StatelessWidget {
@@ -22,7 +21,7 @@ class LearningFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<LearningProgressViewModel>(
       builder: (context, viewModel, _) {
-        return _LearningFilterView(
+        return _ModernFilterView(
           selectedBook: viewModel.selectedBook,
           selectedDate: viewModel.selectedDate,
           books: viewModel.getUniqueBooks(),
@@ -52,7 +51,7 @@ class LearningFilterBar extends StatelessWidget {
             colorScheme: Theme.of(context).colorScheme,
             dialogTheme: DialogThemeData(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                borderRadius: BorderRadius.circular(16.0),
               ),
             ),
           ),
@@ -67,7 +66,7 @@ class LearningFilterBar extends StatelessWidget {
   }
 }
 
-class _LearningFilterView extends StatefulWidget {
+class _ModernFilterView extends StatefulWidget {
   final String selectedBook;
   final DateTime? selectedDate;
   final List<String> books;
@@ -78,7 +77,7 @@ class _LearningFilterView extends StatefulWidget {
   final int dueCount;
   final int completeCount;
 
-  const _LearningFilterView({
+  const _ModernFilterView({
     required this.selectedBook,
     required this.selectedDate,
     required this.books,
@@ -91,14 +90,15 @@ class _LearningFilterView extends StatefulWidget {
   });
 
   @override
-  State<_LearningFilterView> createState() => _LearningFilterViewState();
+  State<_ModernFilterView> createState() => _ModernFilterViewState();
 }
 
-class _LearningFilterViewState extends State<_LearningFilterView> {
+class _ModernFilterViewState extends State<_ModernFilterView> {
   final TextEditingController _bookSearchController = TextEditingController();
   late List<String> _filteredBooks;
-  bool _showSearch = false;
+  final bool _showSearch = false;
   Timer? _debounceTimer;
+  bool _showFilter = false;
 
   @override
   void initState() {
@@ -107,7 +107,7 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
   }
 
   @override
-  void didUpdateWidget(_LearningFilterView oldWidget) {
+  void didUpdateWidget(_ModernFilterView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.books != widget.books) {
       _filteredBooks = widget.books;
@@ -139,394 +139,321 @@ class _LearningFilterViewState extends State<_LearningFilterView> {
     });
   }
 
+  void _toggleFilter() {
+    setState(() {
+      _showFilter = !_showFilter;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isSmallScreen =
-        MediaQuery.of(context).size.width < AppDimens.breakpointXS;
+    final colorScheme = theme.colorScheme;
 
     return Card(
-      elevation: 1,
-      margin: EdgeInsets.zero,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        borderRadius: BorderRadius.circular(16.0),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withOpacity(0.3),
+          width: 1.0,
+        ),
       ),
+      child: Column(
+        children: [
+          _buildStatsRow(theme),
+          if (_showFilter) ...[
+            const Divider(height: 1),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: _showFilter ? null : 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_showSearch) _buildSearchField(theme),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _buildBookSelector(theme)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildDateSelector(theme)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildStatCard(
+                  count: widget.totalCount,
+                  label: 'Total',
+                  icon: Icons.menu_book,
+                  color: colorScheme.primary,
+                  theme: theme,
+                ),
+                _buildStatCard(
+                  count: widget.dueCount,
+                  label: 'Due',
+                  icon: Icons.access_time,
+                  color: colorScheme.error,
+                  theme: theme,
+                  highlight: widget.dueCount > 0,
+                ),
+                _buildStatCard(
+                  count: widget.completeCount,
+                  label: 'Complete',
+                  icon: Icons.check_circle_outline,
+                  color: colorScheme.tertiary,
+                  theme: theme,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              _showFilter ? Icons.filter_list_off : Icons.filter_list,
+              color:
+                  _getActiveFilterCount() > 0
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+            ),
+            tooltip: _showFilter ? 'Hide filters' : 'Show filters',
+            onPressed: _toggleFilter,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required int count,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required ThemeData theme,
+    bool highlight = false,
+  }) {
+    final textTheme = theme.textTheme;
+    final brightness = highlight ? 1.0 : 0.8;
+
+    return Card(
+      elevation: 0,
+      color: color.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingM),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(theme),
-            const SizedBox(height: AppDimens.spaceM),
-            isSmallScreen
-                ? _buildSmallScreenFilters(theme)
-                : _buildWideScreenFilters(theme),
-            const SizedBox(height: AppDimens.spaceM),
-            _buildStatsRow(theme),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 16, color: color.withOpacity(brightness)),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color.withOpacity(brightness),
+              ),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.filter_list_rounded,
-              color: theme.colorScheme.primary,
-              size: AppDimens.iconM,
-            ),
-            const SizedBox(width: AppDimens.spaceS),
-            Text(
-              'Filters',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.primary,
-              ),
-              key: const Key('filter_header'),
-            ),
-          ],
-        ),
-        if (widget.books.length > 10)
-          IconButton(
-            key: const Key('search_toggle'),
-            icon: Icon(
-              _showSearch ? Icons.search_off : Icons.search,
-              semanticLabel: _showSearch ? 'Hide search' : 'Search books',
-              color: theme.colorScheme.primary,
-            ),
-            tooltip: _showSearch ? 'Hide search' : 'Search books',
-            onPressed: () {
-              setState(() {
-                _showSearch = !_showSearch;
-                if (!_showSearch) {
-                  _bookSearchController.clear();
-                  _filteredBooks = widget.books;
-                }
-              });
-            },
-          ),
-      ],
-    );
-  }
-
-  Widget _buildWideScreenFilters(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_showSearch) _buildSearchField(theme),
-        Row(
-          children: [
-            Expanded(child: _buildBookDropdown(theme)),
-            const SizedBox(width: AppDimens.spaceM),
-            Expanded(child: _buildDateFilter(theme)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSmallScreenFilters(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_showSearch) _buildSearchField(theme),
-        _buildBookDropdown(theme),
-        const SizedBox(height: AppDimens.spaceM),
-        _buildDateFilter(theme),
-      ],
     );
   }
 
   Widget _buildSearchField(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimens.paddingM),
-      child: TextField(
-        key: const Key('book_search_field'),
-        controller: _bookSearchController,
-        decoration: InputDecoration(
-          hintText: 'Search books...',
-          filled: true,
-          fillColor: theme.colorScheme.surfaceContainerLowest,
-          prefixIcon: Icon(
-            Icons.search,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          suffixIcon:
-              _bookSearchController.text.isNotEmpty
-                  ? IconButton(
-                    key: const Key('clear_search'),
-                    icon: const Icon(Icons.clear),
-                    tooltip: 'Clear search',
-                    onPressed: () {
-                      _bookSearchController.clear();
-                      _filterBooks('');
-                    },
-                  )
-                  : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            borderSide: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(
-                alpha: AppDimens.opacityMedium,
-              ),
-            ),
-          ),
+    return TextField(
+      controller: _bookSearchController,
+      decoration: InputDecoration(
+        hintText: 'Search books...',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon:
+            _bookSearchController.text.isNotEmpty
+                ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _bookSearchController.clear();
+                    _filterBooks('');
+                  },
+                )
+                : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
         ),
-        onChanged: _filterBooks,
       ),
+      onChanged: _filterBooks,
     );
   }
 
-  Widget _buildBookDropdown(ThemeData theme) {
+  Widget _buildBookSelector(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     final effectiveBooks =
-        _filteredBooks.isEmpty
-            ? ['No books available']
-            : ['All Books', ..._filteredBooks];
-    final effectiveValue =
-        widget.books.contains(widget.selectedBook)
-            ? widget.selectedBook
-            : effectiveBooks.first;
+        _filteredBooks.isEmpty ? ['No books available'] : _filteredBooks;
+    final hasBookFilter = widget.selectedBook != 'All';
 
-    return Container(
-      key: const Key('book_dropdown'),
-      height: AppDimens.buttonHeightM, // Giảm chiều cao một chút
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(
-            alpha: AppDimens.opacityMedium,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Select Book',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: AppDimens.paddingM),
-              child: Icon(
-                Icons.menu_book_outlined,
-                size: AppDimens.iconS,
-                color: theme.colorScheme.primary,
-              ),
+        const SizedBox(height: 4),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color:
+                  hasBookFilter
+                      ? colorScheme.primary
+                      : colorScheme.outline.withOpacity(0.5),
+              width: hasBookFilter ? 2 : 1,
             ),
-            Expanded(
-              child: DropdownButton<String>(
-                value: effectiveValue,
-                isExpanded: true,
-                borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                icon: const Icon(Icons.arrow_drop_down),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingM,
-                ),
-                items:
-                    effectiveBooks
-                        .map(
-                          (book) => DropdownMenuItem(
-                            value: book,
-                            child: Tooltip(
-                              message: book,
-                              child: Text(
-                                book,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: widget.selectedBook,
+              isExpanded: true,
+              icon: Icon(
+                Icons.arrow_drop_down,
+                color: hasBookFilter ? colorScheme.primary : null,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              borderRadius: BorderRadius.circular(12),
+              items:
+                  effectiveBooks
+                      .map(
+                        (book) => DropdownMenuItem(
+                          value: book,
+                          child: Text(
+                            book,
+                            style: TextStyle(
+                              color:
+                                  book == widget.selectedBook && book != 'All'
+                                      ? colorScheme.primary
+                                      : null,
+                              fontWeight:
+                                  book == widget.selectedBook && book != 'All'
+                                      ? FontWeight.bold
+                                      : null,
                             ),
                           ),
-                        )
-                        .toList(),
-                onChanged: (value) {
-                  if (value == 'All Books') {
-                    widget.onBookChanged(null); // Clear book filter
-                  } else if (value != 'No books available') {
-                    widget.onBookChanged(value);
-                  }
-                },
-              ),
+                        ),
+                      )
+                      .toList(),
+              onChanged: widget.onBookChanged,
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildDateFilter(ThemeData theme) {
-    return widget.selectedDate == null
-        ? OutlinedButton.icon(
-          key: const Key('select_date_button'),
-          icon: Icon(
-            Icons.calendar_today,
-            size: AppDimens.iconS,
-            color: theme.colorScheme.primary,
+  Widget _buildDateSelector(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final hasDateFilter = widget.selectedDate != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Filter by Date',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colorScheme.onSurface.withOpacity(0.7),
           ),
-          label: const Text('Select Date'),
-          onPressed: widget.onDateSelected,
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(
-              AppDimens.buttonHeightM,
-            ), // Giảm chiều cao một chút
-            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            ),
-            side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(
-                alpha: AppDimens.opacityMedium,
-              ),
-            ),
-            foregroundColor: theme.colorScheme.primary,
-            backgroundColor: theme.colorScheme.surfaceContainerLowest,
-          ),
-        )
-        : Container(
-          key: const Key('selected_date_container'),
-          height: AppDimens.buttonHeightM, // Giảm chiều cao một chút
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant.withValues(
-                alpha: AppDimens.opacityMedium,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              Tooltip(
-                message: 'Selected date filter',
-                child: Icon(
-                  Icons.calendar_today,
-                  size: AppDimens.iconS,
-                  color: theme.colorScheme.primary,
+        ),
+        const SizedBox(height: 4),
+        widget.selectedDate == null
+            ? OutlinedButton.icon(
+              icon: const Icon(Icons.calendar_today, size: 18),
+              label: const Text('Select Date'),
+              onPressed: widget.onDateSelected,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              const SizedBox(width: AppDimens.spaceS),
-              Expanded(
-                child: Text(
-                  DateFormat('MMM dd, yyyy').format(widget.selectedDate!),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+            )
+            : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+              decoration: BoxDecoration(
+                border: Border.all(color: colorScheme.primary, width: 2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    size: 18,
+                    color: colorScheme.primary,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      DateFormat('MMM dd, yyyy').format(widget.selectedDate!),
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: widget.onDateCleared,
+                    child: Icon(
+                      Icons.close,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
               ),
-              IconButton(
-                key: const Key('clear_date'),
-                icon: Icon(
-                  Icons.clear,
-                  size: AppDimens.iconS,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: widget.onDateCleared,
-                tooltip: 'Clear date filter',
-              ),
-            ],
-          ),
-        );
-  }
-
-  Widget _buildStatsRow(ThemeData theme) {
-    return Container(
-      key: const Key('stats_row'),
-      padding: const EdgeInsets.symmetric(
-        vertical: AppDimens.paddingM,
-        horizontal: AppDimens.paddingL,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(theme, 'Total', widget.totalCount, Icons.book),
-          _buildDivider(theme),
-          _buildStatItem(
-            theme,
-            'Due',
-            widget.dueCount,
-            Icons.pending_actions,
-            isHighlighted: widget.dueCount > 0,
-          ),
-          _buildDivider(theme),
-          _buildStatItem(
-            theme,
-            'Completed',
-            widget.completeCount,
-            Icons.check_circle_outline,
-            isPositive: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDivider(ThemeData theme) {
-    return Container(
-      height: AppDimens.listTileHeightS - AppDimens.paddingL,
-      width: AppDimens.dividerThickness,
-      color: theme.colorScheme.outlineVariant.withValues(
-        alpha: AppDimens.opacityMedium,
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
-    ThemeData theme,
-    String label,
-    int count,
-    IconData icon, {
-    bool isHighlighted = false,
-    bool isPositive = false,
-  }) {
-    Color color = theme.colorScheme.primary;
-    if (isHighlighted) {
-      color = theme.colorScheme.error;
-    } else if (isPositive) {
-      color = theme.colorScheme.tertiary;
-    }
-
-    return Semantics(
-      label: '$label: $count items',
-      value: count.toString(),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: AppDimens.iconS, color: color),
-              const SizedBox(width: AppDimens.spaceXXS),
-              Text(
-                label,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimens.spaceXXS),
-          Text(
-            count.toString(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
             ),
-          ),
-        ],
-      ),
+      ],
     );
+  }
+
+  int _getActiveFilterCount() {
+    int count = 0;
+    if (widget.selectedBook != 'All') count++;
+    if (widget.selectedDate != null) count++;
+    return count;
   }
 }

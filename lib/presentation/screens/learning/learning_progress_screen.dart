@@ -19,19 +19,29 @@ class LearningProgressScreen extends StatefulWidget {
 
 class _LearningProgressScreenState extends State<LearningProgressScreen>
     with WidgetsBindingObserver, ViewModelRefresher {
-  final ScrollController _verticalScrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
+  bool _isScrolled = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
     _refreshManager.registerRefreshCallback('/learning', _refreshData);
+    _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeViewModel();
     });
+  }
+
+  void _onScroll() {
+    final isScrolled = _scrollController.offset > 10;
+    if (isScrolled != _isScrolled) {
+      setState(() {
+        _isScrolled = isScrolled;
+      });
+    }
   }
 
   @override
@@ -45,7 +55,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   void dispose() {
     _refreshManager.unregisterRefreshCallback('/learning', _refreshData);
     WidgetsBinding.instance.removeObserver(this);
-    _verticalScrollController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -117,6 +128,11 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       SnackBar(
         content: Text(message),
         backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        ),
+        margin: const EdgeInsets.all(16.0),
         duration: duration ?? const Duration(seconds: 4),
         action:
             retryAction != null
@@ -144,67 +160,106 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: SafeArea(child: _buildBody()),
+      body: CustomScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          _buildAppBar(colorScheme),
+          SliverToBoxAdapter(child: _buildFilterSection()),
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: _buildContentSection(),
+          ),
+        ],
+      ),
+      floatingActionButton: AnimatedOpacity(
+        opacity: _isScrolled ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 200),
+        child: FloatingActionButton(
+          onPressed: () {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOut,
+            );
+          },
+          mini: true,
+          child: const Icon(Icons.arrow_upward),
+        ),
+      ),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
+  SliverAppBar _buildAppBar(ColorScheme colorScheme) {
+    return SliverAppBar(
       title: const Text('Learning Progress'),
+      pinned: true,
+      floating: true,
+      elevation: _isScrolled ? 4 : 0,
+      shadowColor: Colors.black26,
+      backgroundColor:
+          _isScrolled
+              ? colorScheme.surface
+              : colorScheme.surface.withOpacity(0.95),
+      foregroundColor: colorScheme.onSurface,
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh),
-          onPressed: _safeRefreshData,
           tooltip: 'Refresh data',
+          onPressed: _safeRefreshData,
         ),
         IconButton(
           icon: const Icon(Icons.help_outline),
-          onPressed: _showHelpDialog,
           tooltip: 'Help',
+          onPressed: _showHelpDialog,
         ),
       ],
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildFilterSection() {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: AppDimens.paddingL,
-        right: AppDimens.paddingL,
-        top: AppDimens.paddingL,
-        bottom: 2, // Bỏ padding bottom
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         children: [
-          _buildFilterBar(),
-          const SizedBox(height: AppDimens.spaceL),
-          Expanded(child: _buildContent()),
-          _buildFooter(),
+          Selector<LearningProgressViewModel, (int, int, int)>(
+            selector:
+                (_, viewModel) => (
+                  viewModel.filteredModules.length,
+                  viewModel.getDueModulesCount(),
+                  viewModel.getCompletedModulesCount(),
+                ),
+            builder:
+                (_, data, __) => LearningFilterBar(
+                  totalCount: data.$1,
+                  dueCount: data.$2,
+                  completeCount: data.$3,
+                ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterBar() {
-    return Selector<LearningProgressViewModel, (int, int, int)>(
-      selector:
-          (_, viewModel) => (
-            viewModel.filteredModules.length,
-            viewModel.getDueModulesCount(),
-            viewModel.getCompletedModulesCount(),
+  Widget _buildContentSection() {
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: _buildContentList(),
           ),
-      builder:
-          (_, data, __) => LearningFilterBar(
-            totalCount: data.$1,
-            dueCount: data.$2,
-            completeCount: data.$3,
-          ),
+        ),
+        _buildFooter(),
+      ],
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContentList() {
     return Selector<
       LearningProgressViewModel,
       (bool, String?, List<LearningModule>)
@@ -228,10 +283,13 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
           return _buildErrorDisplay(errorMessage);
         }
 
-        return SimplifiedLearningModulesTable(
-          modules: modules,
-          isLoading: false,
-          verticalScrollController: _verticalScrollController,
+        return RefreshIndicator(
+          onRefresh: () async => _refreshData(),
+          child: SimplifiedLearningModulesTable(
+            modules: modules,
+            isLoading: false,
+            verticalScrollController: _scrollController,
+          ),
         );
       },
     );
@@ -239,25 +297,57 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
 
   Widget _buildErrorDisplay(String errorMessage) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(AppDimens.paddingL),
-      margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingL),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: theme.colorScheme.error),
-          const SizedBox(width: AppDimens.spaceM),
-          Expanded(
-            child: Text(
-              errorMessage,
-              style: TextStyle(color: theme.colorScheme.error),
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.errorContainer.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
-          ),
-          TextButton(onPressed: _safeRefreshData, child: const Text('Retry')),
-        ],
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: theme.colorScheme.onErrorContainer,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Oops! Something went wrong',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              errorMessage,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _safeRefreshData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
