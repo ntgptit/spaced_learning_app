@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/mixins/view_model_refresher.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/learning_filter_bar.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer/learning_footer.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_help_dialog.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/learning_modules_table.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/main/learning_app_bar.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/main/learning_error_view.dart';
+import 'package:spaced_learning_app/presentation/widgets/learning/main/module_list.dart';
 
 class LearningProgressScreen extends StatefulWidget {
   const LearningProgressScreen({super.key});
@@ -129,9 +129,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         content: Text(message),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(16.0),
         duration: duration ?? const Duration(seconds: 4),
         action:
@@ -160,19 +158,30 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final viewModel = context.watch<LearningProgressViewModel>();
 
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          _buildAppBar(colorScheme),
-          SliverToBoxAdapter(child: _buildFilterSection()),
+          LearningAppBar(
+            isScrolled: _isScrolled,
+            onRefresh: _safeRefreshData,
+            onHelp: _showHelpDialog,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: _buildFilterBar(viewModel),
+            ),
+          ),
           SliverFillRemaining(
             hasScrollBody: true,
-            child: _buildContentSection(),
+            child: _buildMainContent(viewModel),
           ),
         ],
       ),
@@ -194,82 +203,40 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     );
   }
 
-  SliverAppBar _buildAppBar(ColorScheme colorScheme) {
-    return SliverAppBar(
-      title: const Text('Learning Progress'),
-      pinned: true,
-      floating: true,
-      elevation: _isScrolled ? 4 : 0,
-      shadowColor: Colors.black26,
-      backgroundColor:
-          _isScrolled
-              ? colorScheme.surface
-              : colorScheme.surface.withOpacity(0.95),
-      foregroundColor: colorScheme.onSurface,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Refresh data',
-          onPressed: _safeRefreshData,
-        ),
-        IconButton(
-          icon: const Icon(Icons.help_outline),
-          tooltip: 'Help',
-          onPressed: _showHelpDialog,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFilterSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        children: [
-          Selector<LearningProgressViewModel, (int, int, int)>(
-            selector:
-                (_, viewModel) => (
-                  viewModel.filteredModules.length,
-                  viewModel.getDueModulesCount(),
-                  viewModel.getCompletedModulesCount(),
-                ),
-            builder:
-                (_, data, __) => LearningFilterBar(
-                  totalCount: data.$1,
-                  dueCount: data.$2,
-                  completeCount: data.$3,
-                ),
+  Widget _buildFilterBar(LearningProgressViewModel viewModel) {
+    return Selector<LearningProgressViewModel, (int, int, int)>(
+      selector:
+          (_, vm) => (
+            vm.filteredModules.length,
+            vm.getDueModulesCount(),
+            vm.getCompletedModulesCount(),
           ),
-        ],
-      ),
+      builder:
+          (_, data, __) => LearningFilterBar(
+            totalCount: data.$1,
+            dueCount: data.$2,
+            completeCount: data.$3,
+          ),
     );
   }
 
-  Widget _buildContentSection() {
+  Widget _buildMainContent(LearningProgressViewModel viewModel) {
     return Column(
       children: [
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildContentList(),
+            child: _buildModuleList(viewModel),
           ),
         ),
-        _buildFooter(),
+        _buildFooter(viewModel),
       ],
     );
   }
 
-  Widget _buildContentList() {
-    return Selector<
-      LearningProgressViewModel,
-      (bool, String?, List<LearningModule>)
-    >(
-      selector:
-          (_, viewModel) => (
-            viewModel.isLoading,
-            viewModel.errorMessage,
-            viewModel.filteredModules,
-          ),
+  Widget _buildModuleList(LearningProgressViewModel viewModel) {
+    return Selector<LearningProgressViewModel, (bool, String?, List<dynamic>)>(
+      selector: (_, vm) => (vm.isLoading, vm.errorMessage, vm.filteredModules),
       builder: (_, data, __) {
         final isLoading = data.$1;
         final errorMessage = data.$2;
@@ -280,112 +247,49 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         }
 
         if (errorMessage != null) {
-          return _buildErrorDisplay(errorMessage);
+          return LearningErrorView(
+            errorMessage: errorMessage,
+            onRetry: _safeRefreshData,
+          );
         }
 
-        return RefreshIndicator(
-          onRefresh: () async => _refreshData(),
-          child: SimplifiedLearningModulesTable(
-            modules: modules,
-            isLoading: false,
-            verticalScrollController: _scrollController,
-          ),
+        return ModuleList(
+          modules: modules,
+          scrollController: _scrollController,
+          onRefresh: _refreshData,
         );
       },
     );
   }
 
-  Widget _buildErrorDisplay(String errorMessage) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(24.0),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(16.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: theme.colorScheme.onErrorContainer,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Oops! Something went wrong',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              errorMessage,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _safeRefreshData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
+  Widget _buildFooter(LearningProgressViewModel viewModel) {
     return Selector<LearningProgressViewModel, (int, int)>(
       selector:
-          (_, viewModel) => (
-            viewModel.filteredModules.length,
-            viewModel.getCompletedModulesCount(),
-          ),
+          (_, vm) => (vm.filteredModules.length, vm.getCompletedModulesCount()),
       builder:
-          (_, data, __) => SizedBox(
-            width: double.infinity,
-            child: LearningFooter(
-              totalModules: data.$1,
-              completedModules: data.$2,
-              onExportData: () async {
-                final viewModel = context.read<LearningProgressViewModel?>();
-                if (viewModel == null) {
-                  _showSnackBar(
-                    'Error: Unable to export data',
-                    Theme.of(context).colorScheme.error,
-                  );
-                  return;
-                }
-                try {
-                  final success = await viewModel.exportData();
-                  _showExportResult(success);
-                } catch (e) {
-                  _showExportResult(
-                    false,
-                    errorMessage: 'Failed to export data: $e',
-                  );
-                }
-              },
-              onHelpPressed: _showHelpDialog,
-            ),
+          (_, data, __) => LearningFooter(
+            totalModules: data.$1,
+            completedModules: data.$2,
+            onExportData: () async {
+              final viewModel = context.read<LearningProgressViewModel?>();
+              if (viewModel == null) {
+                _showSnackBar(
+                  'Error: Unable to export data',
+                  Theme.of(context).colorScheme.error,
+                );
+                return;
+              }
+              try {
+                final success = await viewModel.exportData();
+                _showExportResult(success);
+              } catch (e) {
+                _showExportResult(
+                  false,
+                  errorMessage: 'Failed to export data: $e',
+                );
+              }
+            },
+            onHelpPressed: _showHelpDialog,
           ),
     );
   }
