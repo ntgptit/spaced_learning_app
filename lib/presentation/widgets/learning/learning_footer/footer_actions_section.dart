@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
 class FooterActionsSection extends StatelessWidget {
-  final VoidCallback? onExportData;
   final VoidCallback? onHelpPressed;
   final VoidCallback? onSettingsPressed;
   final VoidCallback? onFeedbackPressed;
 
   const FooterActionsSection({
     super.key,
-    this.onExportData,
     this.onHelpPressed,
     this.onSettingsPressed,
     this.onFeedbackPressed,
@@ -22,66 +20,53 @@ class FooterActionsSection extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        if (onExportData != null)
-          Tooltip(
-            message: 'Export learning data',
-            child: FilledButton.icon(
-              onPressed: onExportData,
-              icon: const Icon(Icons.download, size: 18),
-              label: const Text('Export'),
-              style: FilledButton.styleFrom(
-                backgroundColor: colorScheme.primaryContainer,
-                foregroundColor: colorScheme.onPrimaryContainer,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-            ),
+        // Đã bỏ nút Export
+        if (onSettingsPressed != null)
+          _buildActionButton(
+            context: context,
+            icon: Icons.settings_outlined,
+            tooltip: 'Settings',
+            onPressed: onSettingsPressed,
           ),
-        if (onSettingsPressed != null) ...[
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Settings',
-            child: IconButton(
-              onPressed: onSettingsPressed,
-              icon: const Icon(Icons.settings_outlined),
-              style: IconButton.styleFrom(
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                foregroundColor: colorScheme.onSurface,
-              ),
-            ),
+        if (onFeedbackPressed != null)
+          _buildActionButton(
+            context: context,
+            icon: Icons.feedback_outlined,
+            tooltip: 'Send feedback',
+            onPressed: onFeedbackPressed,
           ),
-        ],
-        if (onFeedbackPressed != null) ...[
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Send feedback',
-            child: IconButton(
-              onPressed: onFeedbackPressed,
-              icon: const Icon(Icons.feedback_outlined),
-              style: IconButton.styleFrom(
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                foregroundColor: colorScheme.onSurface,
-              ),
-            ),
+        if (onHelpPressed != null)
+          _buildActionButton(
+            context: context,
+            icon: Icons.help_outline,
+            tooltip: 'Help',
+            onPressed: onHelpPressed,
           ),
-        ],
-        if (onHelpPressed != null) ...[
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Help',
-            child: IconButton(
-              onPressed: onHelpPressed,
-              icon: const Icon(Icons.help_outline),
-              style: IconButton.styleFrom(
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                foregroundColor: colorScheme.onSurface,
-              ),
-            ),
-          ),
-        ],
       ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onPressed,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Tooltip(
+        message: tooltip,
+        child: IconButton(
+          onPressed: onPressed,
+          icon: Icon(icon),
+          style: IconButton.styleFrom(
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            foregroundColor: colorScheme.onSurface,
+            fixedSize: const Size(40, 40), // Fixed size for better proportion
+          ),
+        ),
+      ),
     );
   }
 }

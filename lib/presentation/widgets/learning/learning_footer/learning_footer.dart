@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer/footer_actions_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer/footer_progress_section.dart';
 
-class LearningFooter extends StatelessWidget {
+class LearningFooter extends StatefulWidget {
   final int totalModules;
   final int completedModules;
-  final VoidCallback? onExportData;
   final VoidCallback? onHelpPressed;
   final VoidCallback? onSettingsPressed;
   final VoidCallback? onFeedbackPressed;
@@ -14,18 +13,24 @@ class LearningFooter extends StatelessWidget {
     super.key,
     required this.totalModules,
     required this.completedModules,
-    this.onExportData,
     this.onHelpPressed,
     this.onSettingsPressed,
     this.onFeedbackPressed,
   });
 
   @override
+  State<LearningFooter> createState() => _LearningFooterState();
+}
+
+class _LearningFooterState extends State<LearningFooter> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600; // AppDimens.breakpointS
+    final isSmallScreen = size.width < 600;
 
     return Container(
       width: double.infinity,
@@ -46,22 +51,57 @@ class LearningFooter extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle for bottom sheet-like appearance
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: colorScheme.outlineVariant,
-              borderRadius: BorderRadius.circular(2),
+          // Drag handle
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // Optional: arrow indicator
+                  Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_up,
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child:
-                isSmallScreen
-                    ? _buildSmallScreenLayout()
-                    : _buildWideScreenLayout(),
+
+          // Expandable content
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _isExpanded ? null : 0,
+            curve: Curves.easeInOut,
+            child: ClipRect(
+              child: Visibility(
+                visible: _isExpanded,
+                maintainState: true,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child:
+                      isSmallScreen
+                          ? _buildSmallScreenLayout()
+                          : _buildWideScreenLayout(),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -74,17 +114,16 @@ class LearningFooter extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         FooterProgressSection(
-          totalModules: totalModules,
-          completedModules: completedModules,
+          totalModules: widget.totalModules,
+          completedModules: widget.completedModules,
         ),
         const SizedBox(height: 16),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: FooterActionsSection(
-            onExportData: onExportData,
-            onHelpPressed: onHelpPressed,
-            onSettingsPressed: onSettingsPressed,
-            onFeedbackPressed: onFeedbackPressed,
+            onHelpPressed: widget.onHelpPressed,
+            onSettingsPressed: widget.onSettingsPressed,
+            onFeedbackPressed: widget.onFeedbackPressed,
           ),
         ),
       ],
@@ -96,15 +135,14 @@ class LearningFooter extends StatelessWidget {
       children: [
         Expanded(
           child: FooterProgressSection(
-            totalModules: totalModules,
-            completedModules: completedModules,
+            totalModules: widget.totalModules,
+            completedModules: widget.completedModules,
           ),
         ),
         FooterActionsSection(
-          onExportData: onExportData,
-          onHelpPressed: onHelpPressed,
-          onSettingsPressed: onSettingsPressed,
-          onFeedbackPressed: onFeedbackPressed,
+          onHelpPressed: widget.onHelpPressed,
+          onSettingsPressed: widget.onSettingsPressed,
+          onFeedbackPressed: widget.onFeedbackPressed,
         ),
       ],
     );

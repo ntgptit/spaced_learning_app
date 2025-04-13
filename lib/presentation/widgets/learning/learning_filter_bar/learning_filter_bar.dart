@@ -31,6 +31,8 @@ class LearningFilterBar extends StatelessWidget {
           totalCount: totalCount,
           dueCount: dueCount,
           completeCount: completeCount,
+          hasActiveFilters:
+              viewModel.selectedBook != 'All' || viewModel.selectedDate != null,
         );
       },
     );
@@ -76,6 +78,7 @@ class _FilterBarContent extends StatefulWidget {
   final int totalCount;
   final int dueCount;
   final int completeCount;
+  final bool hasActiveFilters;
 
   const _FilterBarContent({
     required this.selectedBook,
@@ -87,6 +90,7 @@ class _FilterBarContent extends StatefulWidget {
     required this.totalCount,
     required this.dueCount,
     required this.completeCount,
+    required this.hasActiveFilters,
   });
 
   @override
@@ -94,12 +98,24 @@ class _FilterBarContent extends StatefulWidget {
 }
 
 class _FilterBarContentState extends State<_FilterBarContent> {
-  bool _showFilter = false;
+  bool _isExpanded = false;
 
-  void _toggleFilter() {
-    setState(() {
-      _showFilter = !_showFilter;
-    });
+  @override
+  void initState() {
+    super.initState();
+    // Automatically expand if there are active filters
+    _isExpanded = widget.hasActiveFilters;
+  }
+
+  @override
+  void didUpdateWidget(_FilterBarContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update expanded state if filters changed
+    if (widget.hasActiveFilters != oldWidget.hasActiveFilters) {
+      setState(() {
+        _isExpanded = widget.hasActiveFilters;
+      });
+    }
   }
 
   @override
@@ -118,49 +134,68 @@ class _FilterBarContentState extends State<_FilterBarContent> {
       ),
       child: Column(
         children: [
-          FilterStatsRow(
-            totalCount: widget.totalCount,
-            dueCount: widget.dueCount,
-            completeCount: widget.completeCount,
-            activeFilterCount: _getActiveFilterCount(),
-            showFilter: _showFilter,
-            onToggleFilter: _toggleFilter,
+          // Filter Stats Row is always visible
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: FilterStatsRow(
+              totalCount: widget.totalCount,
+              dueCount: widget.dueCount,
+              completeCount: widget.completeCount,
+              activeFilterCount: _getActiveFilterCount(),
+              showFilter: _isExpanded,
+              onToggleFilter: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+            ),
           ),
-          if (_showFilter) ...[
-            const Divider(height: 1),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: _showFilter ? null : 0,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilterBookSelector(
-                            selectedBook: widget.selectedBook,
-                            books: widget.books,
-                            onBookChanged: widget.onBookChanged,
+
+          // ExpansionTile replacement - manual implementation for better control
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _isExpanded ? null : 0,
+            curve: Curves.easeInOut,
+            child: ClipRect(
+              child: Visibility(
+                visible: _isExpanded,
+                maintainState: true,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(height: 8),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilterBookSelector(
+                              selectedBook: widget.selectedBook,
+                              books: widget.books,
+                              onBookChanged: widget.onBookChanged,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: FilterDateSelector(
-                            selectedDate: widget.selectedDate,
-                            onDateSelected: widget.onDateSelected,
-                            onDateCleared: widget.onDateCleared,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilterDateSelector(
+                              selectedDate: widget.selectedDate,
+                              onDateSelected: widget.onDateSelected,
+                              onDateCleared: widget.onDateCleared,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ],
+          ),
         ],
       ),
     );

@@ -144,18 +144,6 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     );
   }
 
-  void _showExportResult(bool success, {String? errorMessage}) {
-    final theme = Theme.of(context);
-    final message =
-        success
-            ? 'Data exported successfully. The file was saved to your downloads folder.'
-            : errorMessage ?? 'Failed to export data. Please try again.';
-    final color =
-        success ? theme.colorScheme.tertiary : theme.colorScheme.error;
-
-    _showSnackBar(message, color, duration: const Duration(seconds: 3));
-  }
-
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<LearningProgressViewModel>();
@@ -270,26 +258,9 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
           (_, data, __) => LearningFooter(
             totalModules: data.$1,
             completedModules: data.$2,
-            onExportData: () async {
-              final viewModel = context.read<LearningProgressViewModel?>();
-              if (viewModel == null) {
-                _showSnackBar(
-                  'Error: Unable to export data',
-                  Theme.of(context).colorScheme.error,
-                );
-                return;
-              }
-              try {
-                final success = await viewModel.exportData();
-                _showExportResult(success);
-              } catch (e) {
-                _showExportResult(
-                  false,
-                  errorMessage: 'Failed to export data: $e',
-                );
-              }
-            },
+            // Đã bỏ onExportData
             onHelpPressed: _showHelpDialog,
+            // Tùy chọn thêm các handler khác nếu cần
           ),
     );
   }
