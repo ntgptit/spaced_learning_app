@@ -8,7 +8,6 @@ class RepetitionCard extends StatelessWidget {
   final Repetition repetition;
   final bool isHistory;
   final VoidCallback? onMarkCompleted;
-  final VoidCallback? onSkip;
   final Function(DateTime)? onReschedule;
   final ThemeData? theme;
 
@@ -17,7 +16,6 @@ class RepetitionCard extends StatelessWidget {
     required this.repetition,
     this.isHistory = false,
     this.onMarkCompleted,
-    this.onSkip,
     this.onReschedule,
     this.theme,
   });

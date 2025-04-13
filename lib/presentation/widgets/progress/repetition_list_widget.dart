@@ -13,7 +13,6 @@ class RepetitionListWidget extends StatefulWidget {
   final String progressId;
   final CycleStudied currentCycleStudied;
   final Future<void> Function(String) onMarkCompleted;
-  final Future<void> Function(String) onMarkSkipped;
   final Future<void> Function(String, DateTime, bool) onReschedule;
   final Future<void> Function() onReload;
 
@@ -22,7 +21,6 @@ class RepetitionListWidget extends StatefulWidget {
     required this.progressId,
     required this.currentCycleStudied,
     required this.onMarkCompleted,
-    required this.onMarkSkipped,
     required this.onReschedule,
     required this.onReload,
   });
@@ -239,8 +237,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget> {
                   isHistory
                       ? null
                       : () => widget.onMarkCompleted(repetition.id),
-              onSkip:
-                  isHistory ? null : () => widget.onMarkSkipped(repetition.id),
               onReschedule:
                   isHistory
                       ? null

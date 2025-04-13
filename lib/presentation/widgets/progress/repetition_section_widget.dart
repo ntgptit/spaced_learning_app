@@ -37,7 +37,6 @@ class RepetitionSectionWidget extends StatelessWidget {
           isHistory: isHistory,
           onMarkCompleted:
               isHistory ? null : () => onMarkCompleted?.call(repetition.id),
-          onSkip: isHistory ? null : () => onMarkSkipped?.call(repetition.id),
           onReschedule:
               isHistory
                   ? null

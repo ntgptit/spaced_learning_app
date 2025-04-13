@@ -150,7 +150,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     final difficultyData = _getDifficultyData(theme, book.difficultyLevel);
 
     return SliverAppBar(
-      expandedHeight: AppDimens.bannerHeight - 20,
+      expandedHeight: AppDimens.bannerHeight - 4,
       floating: false,
       pinned: true,
       forceElevated: _isScrolled || innerBoxIsScrolled,

@@ -67,16 +67,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
         );
   }
 
-  Future<void> _markRepetitionSkipped(String repetitionId) async {
-    final repetitionViewModel = context.read<RepetitionViewModel>();
-    final updatedRepetition = await repetitionViewModel.updateRepetition(
-      repetitionId,
-      status: RepetitionStatus.skipped,
-    );
-    if (!mounted || updatedRepetition == null) return;
-    SnackBarUtils.show(context, 'Repetition marked as skipped');
-    await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
-  }
+  // Removed _markRepetitionSkipped function definition
 
   Future<void> _rescheduleRepetition(
     String repetitionId,
@@ -201,7 +192,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       );
       if (mounted && updatedRepetition != null) {
         _showSnackBar(
-          'Repetition rescheduled to ${DateFormat('dd MMM yyyy').format(newDate)}',
+          'Repetition rescheduled to ${DateFormat('dd MMM𒑱').format(newDate)}',
         );
         await repetitionViewModel.loadRepetitionsByProgressId(
           widget.progressId,
@@ -278,7 +269,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           progressId: widget.progressId,
           currentCycleStudied: progress.cyclesStudied,
           onMarkCompleted: _markRepetitionCompleted,
-          onMarkSkipped: _markRepetitionSkipped,
           onReschedule: _rescheduleRepetition,
           onReload: _reloadData,
         ),
