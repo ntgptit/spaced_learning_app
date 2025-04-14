@@ -315,7 +315,6 @@ class _DueProgressScreenState extends State<DueProgressScreen>
               icon: const Icon(Icons.login),
               label: const Text('Sign in'),
               onPressed: () {
-                // Navigate to login
               },
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(

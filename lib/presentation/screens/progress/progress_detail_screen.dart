@@ -39,20 +39,16 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
   }
 
-  // lib/presentation/screens/progress/progress_detail_screen.dart
 
   Future<void> _markRepetitionCompleted(String repetitionId) async {
-    // _showScoreInputDialog giờ trả về score hoặc null (nếu cancel)
     final score = await _showScoreInputDialog();
 
-    // Kiểm tra null rõ ràng hơn
     if (score == null) {
       debugPrint('Score input cancelled.'); // Ghi log nếu muốn
       return; // Thoát nếu người dùng cancel
     }
     if (!mounted) return;
 
-    // Debug xem giá trị score nhận được là bao nhiêu
     debugPrint('Score received from dialog: $score');
 
     final repetitionViewModel = context.read<RepetitionViewModel>();
@@ -66,7 +62,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
     if (!mounted || updatedRepetition == null) return;
 
-    // Phần còn lại giữ nguyên...
     final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
       updatedRepetition.moduleProgressId,
     );
@@ -81,7 +76,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     }
   }
 
-  // Removed _markRepetitionSkipped function definition
 
   Future<void> _rescheduleRepetition(
     String repetitionId,
@@ -156,13 +150,10 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     );
   }
 
-  // lib/presentation/screens/progress/progress_detail_screen.dart
 
   Future<double?> _showScoreInputDialog() async {
-    // Tạo một ValueNotifier với giá trị khởi tạo (ví dụ: 80)
     final scoreNotifier = ValueNotifier<double>(80.0);
 
-    // showDialog bây giờ trả về bool (true nếu Confirm, false/null nếu Cancel)
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false, // Giữ nguyên để bắt buộc chọn
@@ -170,17 +161,14 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           (dialogContext) => AlertDialog(
             title: const Text('Enter Test Score'),
             content: ScoreInputDialogContent(
-              // Truyền Notifier vào widget content
               scoreNotifier: scoreNotifier,
             ),
             actions: [
               TextButton(
-                // Trả về false khi Cancel
                 onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
-                // Trả về true khi Confirm
                 onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text('Confirm'),
               ),
@@ -188,7 +176,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           ),
     );
 
-    // Lấy giá trị cuối cùng từ notifier *chỉ khi* người dùng nhấn Confirm
     if (confirmed == true) {
       final finalScore = scoreNotifier.value;
       scoreNotifier.dispose(); // Dọn dẹp notifier

@@ -1,12 +1,8 @@
-// lib/presentation/widgets/progress/score_input_dialog_content.dart
 
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class ScoreInputDialogContent extends StatefulWidget {
-  // Bỏ initialScore và onScoreChangedFinal
-  // final double initialScore;
-  // final ValueChanged<double> onScoreChangedFinal;
   final ValueNotifier<double> scoreNotifier; // Thêm notifier
 
   const ScoreInputDialogContent({
@@ -20,14 +16,12 @@ class ScoreInputDialogContent extends StatefulWidget {
 }
 
 class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
-  // Giữ _currentScore để quản lý trạng thái nội bộ và binding UI
   late double _currentScore;
   late TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    // Khởi tạo state nội bộ từ giá trị ban đầu của notifier
     _currentScore = widget.scoreNotifier.value.clamp(0.0, 100.0);
     _controller = TextEditingController(text: _currentScore.toInt().toString());
     _controller.addListener(_onTextChanged);
@@ -40,16 +34,13 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
     super.dispose();
   }
 
-  // Hàm cập nhật state nội bộ VÀ notifier bên ngoài
   void _updateScore(double newScore) {
     final clampedScore = newScore.clamp(0.0, 100.0);
     if (_currentScore != clampedScore) {
       setState(() {
         _currentScore = clampedScore;
-        // Cập nhật notifier bên ngoài
         widget.scoreNotifier.value = _currentScore;
 
-        // Đồng bộ text field (giữ nguyên logic cũ)
         final scoreInt = clampedScore.toInt();
         final textValue = scoreInt.toString();
         if (_controller.text != textValue) {
@@ -61,25 +52,18 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
               extentOffset: selection.extentOffset.clamp(0, textValue.length),
             );
           } catch (e) {
-            // Bỏ qua lỗi tiềm ẩn khi thao tác text lúc đang cập nhật
           }
         }
       });
     }
   }
 
-  // Xử lý thay đổi từ TextField
   void _onTextChanged() {
     final value = double.tryParse(_controller.text);
-    // Chỉ cập nhật nếu parse thành công VÀ giá trị khác giá trị hiện tại
     if (value != null && value != _currentScore) {
       _updateScore(value);
     } else if (_controller.text.isEmpty) {
-      // Có thể xử lý trường hợp rỗng nếu muốn (vd: đặt score = 0)
-      // _updateScore(0.0);
     } else if (value == null && _controller.text.isNotEmpty) {
-      // Có thể xử lý input không hợp lệ (vd: báo lỗi, revert)
-      // Hiện tại: không làm gì cả, giữ nguyên _currentScore
     }
   }
 
@@ -94,7 +78,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
       color: colorScheme.primary,
     );
 
-    // UI giống hệt trước, chỉ khác là gọi _updateScore
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -152,7 +135,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
                         ),
                         isDense: true,
                       ),
-                      // Listener _onTextChanged sẽ gọi _updateScore
                     ),
                   ),
                 ),
@@ -162,7 +144,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
           const SizedBox(height: AppDimens.spaceL),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            // Các nút 0, 25, 50, 75, 100 giữ nguyên cách build
             children: _buildScoreButtons(colorScheme, textTheme),
           ),
         ],
@@ -177,7 +158,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
     const scoreOptions = [0, 25, 50, 75, 100];
 
     return scoreOptions.map((score) {
-      // Dùng _currentScore nội bộ để xác định trạng thái selected
       final isSelected = _currentScore.round() == score;
       return Flexible(
         child: Padding(
@@ -195,7 +175,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent> {
   }
 }
 
-// Widget _ScoreButton không thay đổi
 class _ScoreButton extends StatelessWidget {
   final int score;
   final bool isSelected;

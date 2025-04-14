@@ -31,7 +31,6 @@ class FilterBookSelector extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppDimens.spaceXS),
-        // Đặt chiều cao cố định cho container bên ngoài để đảm bảo độ cao đồng nhất
         SizedBox(
           height: 48, // Đặt chiều cao cố định giống với nút Select Date
           child: Container(

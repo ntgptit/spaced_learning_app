@@ -104,14 +104,12 @@ class _FilterBarContentState extends State<_FilterBarContent> {
   @override
   void initState() {
     super.initState();
-    // Automatically expand if there are active filters
     _isExpanded = widget.hasActiveFilters;
   }
 
   @override
   void didUpdateWidget(_FilterBarContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update expanded state if filters changed
     if (widget.hasActiveFilters != oldWidget.hasActiveFilters) {
       setState(() {
         _isExpanded = widget.hasActiveFilters;
@@ -141,7 +139,6 @@ class _FilterBarContentState extends State<_FilterBarContent> {
       ),
       child: Column(
         children: [
-          // Filter Stats Row is always visible
           GestureDetector(
             onTap: () {
               setState(() {
@@ -162,7 +159,6 @@ class _FilterBarContentState extends State<_FilterBarContent> {
             ),
           ),
 
-          // ExpansionTile replacement - manual implementation for better control
           AnimatedContainer(
             duration: const Duration(milliseconds: AppDimens.durationM),
             height: _isExpanded ? null : 0,

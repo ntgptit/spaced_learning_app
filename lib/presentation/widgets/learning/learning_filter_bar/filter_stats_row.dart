@@ -60,7 +60,6 @@ class FilterStatsRow extends StatelessWidget {
               ],
             ),
           ),
-          // Giảm kích thước padding của nút filter
           SizedBox(
             width: 40, // Thu nhỏ chiều rộng của khu vực nút
             child: IconButton(
@@ -105,7 +104,6 @@ class FilterStatsRow extends StatelessWidget {
                 ],
               ),
               tooltip: showFilter ? 'Hide filters' : 'Show filters',
-              // Giảm padding của nút
               padding: const EdgeInsets.all(AppDimens.paddingXS),
               constraints: const BoxConstraints(), // Bỏ constraints mặc định
               visualDensity:

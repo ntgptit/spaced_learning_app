@@ -16,7 +16,6 @@ class ModuleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Xác định trước các trạng thái và nội dung để tính toán chiều cao
     final hasNextStudyDate = module.progressNextStudyDate != null;
     final isOverdue =
         hasNextStudyDate &&
@@ -31,10 +30,8 @@ class ModuleCard extends StatelessWidget {
         module.progressNextStudyDate!.difference(DateTime.now()).inDays <= 2;
     final hasCycleInfo = module.progressCyclesStudied != null;
 
-    // Sử dụng ConstrainedBox để đảm bảo chiều cao tối thiểu cho tất cả card
     const double minCardHeight = 120; // Chiều cao cơ bản tối thiểu
 
-    // Color status logic
     Color statusColor = colorScheme.primary;
     if (isOverdue) {
       statusColor = colorScheme.error;
@@ -44,7 +41,6 @@ class ModuleCard extends StatelessWidget {
       statusColor = Colors.orange;
     }
 
-    // Generate cycle color if available
     Color? cycleColor;
     String? cycleText;
     if (hasCycleInfo) {
