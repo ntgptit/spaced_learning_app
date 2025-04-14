@@ -16,6 +16,7 @@ class ModuleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Xác định trước các trạng thái và nội dung để tính toán chiều cao
     final hasNextStudyDate = module.progressNextStudyDate != null;
     final isOverdue =
         hasNextStudyDate &&
@@ -30,8 +31,10 @@ class ModuleCard extends StatelessWidget {
         module.progressNextStudyDate!.difference(DateTime.now()).inDays <= 2;
     final hasCycleInfo = module.progressCyclesStudied != null;
 
+    // Sử dụng ConstrainedBox để đảm bảo chiều cao tối thiểu cho tất cả card
     const double minCardHeight = 120; // Chiều cao cơ bản tối thiểu
 
+    // Color status logic
     Color statusColor = colorScheme.primary;
     if (isOverdue) {
       statusColor = colorScheme.error;
@@ -41,6 +44,7 @@ class ModuleCard extends StatelessWidget {
       statusColor = Colors.orange;
     }
 
+    // Generate cycle color if available
     Color? cycleColor;
     String? cycleText;
     if (hasCycleInfo) {
@@ -69,32 +73,43 @@ class ModuleCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 7,
-                  child: _buildModuleInfo(
-                    theme,
-                    colorScheme,
-                    cycleText,
-                    cycleColor,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex:
+                        6, // Giảm từ 7 xuống 6 để dành không gian cho các cột khác
+                    child: Container(
+                      padding: const EdgeInsets.only(right: AppDimens.paddingS),
+                      child: _buildModuleInfo(
+                        theme,
+                        colorScheme,
+                        cycleText,
+                        cycleColor,
+                      ),
+                    ),
                   ),
-                ),
-                Expanded(
-                  flex: 4,
-                  child: _buildNextStudyInfo(
-                    theme,
-                    colorScheme,
-                    statusColor,
-                    dateFormatter,
-                    isOverdue,
-                    isDueToday,
-                    isDueSoon,
+                  Expanded(
+                    flex: 5, // Tăng từ 4 lên 5 để có thêm không gian
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimens.paddingXS,
+                      ),
+                      child: _buildNextStudyInfo(
+                        theme,
+                        colorScheme,
+                        statusColor,
+                        dateFormatter,
+                        isOverdue,
+                        isDueToday,
+                        isDueSoon,
+                      ),
+                    ),
                   ),
-                ),
-                Expanded(flex: 2, child: _buildTasksInfo(theme, colorScheme)),
-              ],
+                  Expanded(flex: 2, child: _buildTasksInfo(theme, colorScheme)),
+                ],
+              ),
             ),
           ),
         ),
@@ -111,13 +126,20 @@ class ModuleCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          module.moduleTitle.isEmpty ? 'Unnamed Module' : module.moduleTitle,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth:
+                double
+                    .infinity, // Đảm bảo không vượt quá giới hạn của container cha
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+          child: Text(
+            module.moduleTitle.isEmpty ? 'Unnamed Module' : module.moduleTitle,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         const SizedBox(height: AppDimens.spaceXS),
         Row(
