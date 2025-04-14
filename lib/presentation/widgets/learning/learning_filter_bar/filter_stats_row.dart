@@ -26,7 +26,7 @@ class FilterStatsRow extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingL,
+        horizontal: AppDimens.paddingS,
         vertical: AppDimens.paddingM,
       ),
       child: Row(
@@ -52,7 +52,7 @@ class FilterStatsRow extends StatelessWidget {
                 ),
                 _buildStatCard(
                   count: completeCount,
-                  label: 'Complete',
+                  label: 'Learned',
                   icon: Icons.check_circle_outline,
                   color: colorScheme.tertiary,
                   theme: theme,
@@ -60,47 +60,58 @@ class FilterStatsRow extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Stack(
-              children: [
-                Icon(
-                  showFilter ? Icons.filter_list_off : Icons.filter_list,
-                  color:
-                      activeFilterCount > 0
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                  size: AppDimens.iconL,
-                ),
-                if (activeFilterCount > 0)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(AppDimens.paddingXXS),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: AppDimens.badgeIconPadding * 2 + 8,
-                        minHeight: AppDimens.badgeIconPadding * 2 + 8,
-                      ),
-                      child: Text(
-                        '$activeFilterCount',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontSize: AppDimens.fontXXS,
+          // Giảm kích thước padding của nút filter
+          SizedBox(
+            width: 40, // Thu nhỏ chiều rộng của khu vực nút
+            child: IconButton(
+              icon: Stack(
+                children: [
+                  Icon(
+                    showFilter ? Icons.filter_list_off : Icons.filter_list,
+                    color:
+                        activeFilterCount > 0
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                    size:
+                        AppDimens
+                            .iconM, // Giảm kích thước icon từ iconL xuống iconM
+                  ),
+                  if (activeFilterCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(AppDimens.paddingXXS),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
                         ),
-                        textAlign: TextAlign.center,
+                        constraints: const BoxConstraints(
+                          minWidth:
+                              AppDimens.badgeIconPadding * 2 +
+                              6, // Nhỏ hơn một chút
+                          minHeight: AppDimens.badgeIconPadding * 2 + 6,
+                        ),
+                        child: Text(
+                          '$activeFilterCount',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontSize: AppDimens.fontXXS,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
+              tooltip: showFilter ? 'Hide filters' : 'Show filters',
+              // Giảm padding của nút
+              padding: const EdgeInsets.all(AppDimens.paddingXS),
+              constraints: const BoxConstraints(), // Bỏ constraints mặc định
+              visualDensity:
+                  VisualDensity.compact, // Sử dụng density nhỏ gọn hơn
+              onPressed: onToggleFilter,
             ),
-            tooltip: showFilter ? 'Hide filters' : 'Show filters',
-            iconSize: AppDimens.iconL,
-            padding: const EdgeInsets.all(AppDimens.paddingS),
-            onPressed: onToggleFilter,
           ),
         ],
       ),

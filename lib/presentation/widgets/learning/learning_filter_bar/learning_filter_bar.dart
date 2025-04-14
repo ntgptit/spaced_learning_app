@@ -179,7 +179,7 @@ class _FilterBarContentState extends State<_FilterBarContent> {
                       thickness: AppDimens.dividerThickness,
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(AppDimens.paddingL),
+                      padding: const EdgeInsets.all(AppDimens.paddingM),
                       child: Row(
                         children: [
                           Expanded(

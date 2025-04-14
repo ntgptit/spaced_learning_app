@@ -174,7 +174,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.paddingL,
+                horizontal: AppDimens.paddingM,
                 vertical: AppDimens.paddingS,
               ),
               child: _buildFilterBar(viewModel),
@@ -226,7 +226,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingL),
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
             child: _buildModuleList(viewModel),
           ),
         ),
