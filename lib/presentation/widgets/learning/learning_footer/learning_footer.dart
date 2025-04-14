@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer/footer_actions_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer/footer_progress_section.dart';
 
@@ -30,21 +31,21 @@ class _LearningFooterState extends State<LearningFooter> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
+    final isSmallScreen = size.width < AppDimens.breakpointS;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(AppDimens.radiusXXL),
+          topRight: Radius.circular(AppDimens.radiusXXL),
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.1),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
+            color: colorScheme.shadow.withOpacity(AppDimens.opacityMedium),
+            blurRadius: AppDimens.shadowRadiusL,
+            offset: const Offset(0, -AppDimens.shadowOffsetM),
           ),
         ],
       ),
@@ -59,24 +60,26 @@ class _LearningFooterState extends State<LearningFooter> {
               });
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppDimens.paddingS,
+                horizontal: AppDimens.paddingL,
+              ),
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 8),
-                    width: 40,
-                    height: 4,
+                    margin: const EdgeInsets.only(top: AppDimens.spaceS),
+                    width: AppDimens.moduleIndicatorSize,
+                    height: AppDimens.dividerThickness * 2,
                     decoration: BoxDecoration(
                       color: colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusXXS),
                     ),
                   ),
-                  // Optional: arrow indicator
                   Icon(
                     _isExpanded
                         ? Icons.keyboard_arrow_down
                         : Icons.keyboard_arrow_up,
-                    size: 20,
+                    size: AppDimens.iconM,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ],
@@ -86,7 +89,7 @@ class _LearningFooterState extends State<LearningFooter> {
 
           // Expandable content
           AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: AppDimens.durationM),
             height: _isExpanded ? null : 0,
             curve: Curves.easeInOut,
             child: ClipRect(
@@ -94,7 +97,12 @@ class _LearningFooterState extends State<LearningFooter> {
                 visible: _isExpanded,
                 maintainState: true,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimens.paddingL,
+                    0,
+                    AppDimens.paddingL,
+                    AppDimens.paddingL,
+                  ),
                   child:
                       isSmallScreen
                           ? _buildSmallScreenLayout()
@@ -117,7 +125,7 @@ class _LearningFooterState extends State<LearningFooter> {
           totalModules: widget.totalModules,
           completedModules: widget.completedModules,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDimens.spaceL),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: FooterActionsSection(

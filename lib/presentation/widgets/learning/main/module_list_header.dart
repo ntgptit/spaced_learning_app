@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class ModuleListHeader extends StatelessWidget {
   const ModuleListHeader({super.key});
@@ -9,11 +10,17 @@ class ModuleListHeader extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8, top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(
+        bottom: AppDimens.spaceS,
+        top: AppDimens.spaceL,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingM,
+      ),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Row(
         children: [

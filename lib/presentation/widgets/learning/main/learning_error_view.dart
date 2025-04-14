@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class LearningErrorView extends StatelessWidget {
   final String errorMessage;
@@ -16,15 +17,15 @@ class LearningErrorView extends StatelessWidget {
 
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppDimens.paddingXXL),
         decoration: BoxDecoration(
           color: theme.colorScheme.errorContainer.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(AppDimens.opacityMedium),
+              blurRadius: AppDimens.shadowRadiusL,
+              offset: const Offset(0, AppDimens.shadowOffsetM),
             ),
           ],
         ),
@@ -33,17 +34,17 @@ class LearningErrorView extends StatelessWidget {
           children: [
             Icon(
               Icons.error_outline,
-              size: 48,
+              size: AppDimens.iconXXL,
               color: theme.colorScheme.onErrorContainer,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimens.spaceL),
             Text(
               'Oops! Something went wrong',
               style: theme.textTheme.titleLarge?.copyWith(
                 color: theme.colorScheme.onErrorContainer,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.spaceS),
             Text(
               errorMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -51,15 +52,15 @@ class LearningErrorView extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimens.spaceXL),
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                  horizontal: AppDimens.paddingXL,
+                  vertical: AppDimens.paddingM,
                 ),
               ),
             ),

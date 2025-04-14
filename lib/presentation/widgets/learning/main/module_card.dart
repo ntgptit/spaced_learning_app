@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/module_details_bottom_sheet.dart';
@@ -50,20 +51,22 @@ class ModuleCard extends StatelessWidget {
     final dateFormatter = DateFormat('MMM dd, yyyy');
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
+      margin: const EdgeInsets.only(bottom: AppDimens.spaceS),
+      elevation: AppDimens.elevationXS,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.3),
+          color: colorScheme.outlineVariant.withOpacity(
+            AppDimens.opacityMedium,
+          ),
           width: 1,
         ),
       ),
       child: InkWell(
         onTap: () => _showModuleDetails(context, module),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -113,15 +116,15 @@ class ModuleCard extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppDimens.spaceXS),
         Row(
           children: [
             Icon(
               Icons.menu_book,
-              size: 14,
+              size: AppDimens.iconXS,
               color: colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppDimens.spaceXS),
             Expanded(
               child: Text(
                 module.bookName.isEmpty ? 'No book assigned' : module.bookName,
@@ -135,14 +138,17 @@ class ModuleCard extends StatelessWidget {
           ],
         ),
         if (cycleText != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDimens.spaceS),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingS,
+              vertical: AppDimens.paddingXXS,
+            ),
             decoration: BoxDecoration(
               color:
-                  cycleColor?.withOpacity(0.1) ??
+                  cycleColor?.withOpacity(AppDimens.opacityLight) ??
                   colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppDimens.radiusXS),
             ),
             child: Text(
               cycleText,
@@ -184,10 +190,10 @@ class ModuleCard extends StatelessWidget {
                 isOverdue
                     ? Icons.event_busy
                     : (isDueToday ? Icons.event_available : Icons.event),
-                size: 16,
+                size: AppDimens.iconS,
                 color: statusColor,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppDimens.spaceXS),
               Expanded(
                 child: Text(
                   dateFormatter.format(module.progressNextStudyDate!),
@@ -200,13 +206,16 @@ class ModuleCard extends StatelessWidget {
               ),
             ],
           ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppDimens.spaceXS),
         if (isOverdue || isDueToday || isDueSoon)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingS,
+              vertical: AppDimens.paddingXXS,
+            ),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
+              color: statusColor.withOpacity(AppDimens.opacityLight),
+              borderRadius: BorderRadius.circular(AppDimens.radiusXS),
             ),
             child: Text(
               isOverdue ? 'Overdue' : (isDueToday ? 'Due today' : 'Due soon'),
@@ -223,8 +232,8 @@ class ModuleCard extends StatelessWidget {
   Widget _buildTasksInfo(ThemeData theme, ColorScheme colorScheme) {
     return Center(
       child: Container(
-        width: 40,
-        height: 40,
+        width: AppDimens.moduleIndicatorSize + AppDimens.paddingS,
+        height: AppDimens.moduleIndicatorSize + AppDimens.paddingS,
         decoration: BoxDecoration(
           color:
               module.progressDueTaskCount > 0

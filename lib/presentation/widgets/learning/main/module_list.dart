@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_list_header.dart';
 
@@ -23,7 +24,7 @@ class ModuleList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async => onRefresh(),
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 100), // Extra space for footer
+        padding: const EdgeInsets.only(bottom: AppDimens.paddingXXXL),
         physics: const AlwaysScrollableScrollPhysics(),
         controller: scrollController,
         itemCount: modules.length + 1, // Adding header
@@ -45,30 +46,32 @@ class ModuleList extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppDimens.paddingXXL),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 120,
-              height: 120,
+              width: AppDimens.avatarSizeXXL,
+              height: AppDimens.avatarSizeXXL,
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.search_off_rounded,
-                size: 64,
-                color: theme.colorScheme.primary.withOpacity(0.5),
+                size: AppDimens.iconXXL,
+                color: theme.colorScheme.primary.withOpacity(
+                  AppDimens.opacitySemi,
+                ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimens.spaceXL),
             Text(
               'No modules found',
               style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimens.spaceS),
             Text(
               'Try adjusting your filters or check back later',
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -76,19 +79,25 @@ class ModuleList extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppDimens.spaceXXL),
             FilledButton.icon(
               onPressed: () {
                 if (scrollController != null) {
                   scrollController!.animateTo(
                     0,
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: AppDimens.durationM),
                     curve: Curves.easeOut,
                   );
                 }
               },
               icon: const Icon(Icons.filter_alt),
               label: const Text('Change filters'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingXL,
+                  vertical: AppDimens.paddingM,
+                ),
+              ),
             ),
           ],
         ),

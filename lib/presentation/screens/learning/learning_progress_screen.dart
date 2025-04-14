@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/mixins/view_model_refresher.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/learning_filter_bar.dart';
@@ -36,7 +37,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   }
 
   void _onScroll() {
-    final isScrolled = _scrollController.offset > 10;
+    final isScrolled = _scrollController.offset > AppDimens.paddingL;
     if (isScrolled != _isScrolled) {
       setState(() {
         _isScrolled = isScrolled;
@@ -129,8 +130,10 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         content: Text(message),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(16.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        ),
+        margin: const EdgeInsets.all(AppDimens.paddingL),
         duration: duration ?? const Duration(seconds: 4),
         action:
             retryAction != null
@@ -161,8 +164,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
+                horizontal: AppDimens.paddingL,
+                vertical: AppDimens.paddingS,
               ),
               child: _buildFilterBar(viewModel),
             ),
@@ -175,12 +178,12 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       ),
       floatingActionButton: AnimatedOpacity(
         opacity: _isScrolled ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: AppDimens.durationS),
         child: FloatingActionButton(
           onPressed: () {
             _scrollController.animateTo(
               0,
-              duration: const Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: AppDimens.durationM),
               curve: Curves.easeOut,
             );
           },
@@ -213,7 +216,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingL),
             child: _buildModuleList(viewModel),
           ),
         ),
@@ -231,7 +234,12 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         final modules = data.$3;
 
         if (isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppDimens.paddingL),
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
 
         if (errorMessage != null) {
@@ -258,9 +266,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
           (_, data, __) => LearningFooter(
             totalModules: data.$1,
             completedModules: data.$2,
-            // Đã bỏ onExportData
             onHelpPressed: _showHelpDialog,
-            // Tùy chọn thêm các handler khác nếu cần
           ),
     );
   }

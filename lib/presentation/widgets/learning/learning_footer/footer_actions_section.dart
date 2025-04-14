@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class FooterActionsSection extends StatelessWidget {
   final VoidCallback? onHelpPressed;
@@ -14,13 +15,9 @@ class FooterActionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Đã bỏ nút Export
         if (onSettingsPressed != null)
           _buildActionButton(
             context: context,
@@ -54,16 +51,21 @@ class FooterActionsSection extends StatelessWidget {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingXS),
       child: Tooltip(
         message: tooltip,
         child: IconButton(
           onPressed: onPressed,
           icon: Icon(icon),
+          iconSize: AppDimens.iconL,
           style: IconButton.styleFrom(
             backgroundColor: colorScheme.surfaceContainerHighest,
             foregroundColor: colorScheme.onSurface,
-            fixedSize: const Size(40, 40), // Fixed size for better proportion
+            padding: const EdgeInsets.all(AppDimens.paddingM),
+            fixedSize: const Size(
+              AppDimens.iconXL + AppDimens.paddingL,
+              AppDimens.iconXL + AppDimens.paddingL,
+            ),
           ),
         ),
       ),

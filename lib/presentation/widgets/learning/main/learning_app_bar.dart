@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class LearningAppBar extends StatelessWidget {
   final bool isScrolled;
@@ -20,8 +21,8 @@ class LearningAppBar extends StatelessWidget {
       title: const Text('Learning Progress'),
       pinned: true,
       floating: true,
-      elevation: isScrolled ? 4 : 0,
-      shadowColor: Colors.black26,
+      elevation: isScrolled ? AppDimens.elevationS : 0,
+      shadowColor: Colors.black.withOpacity(AppDimens.opacityLight),
       backgroundColor:
           isScrolled
               ? colorScheme.surface
@@ -30,12 +31,16 @@ class LearningAppBar extends StatelessWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh),
+          iconSize: AppDimens.iconL,
           tooltip: 'Refresh data',
+          padding: const EdgeInsets.all(AppDimens.paddingS),
           onPressed: onRefresh,
         ),
         IconButton(
           icon: const Icon(Icons.help_outline),
+          iconSize: AppDimens.iconL,
           tooltip: 'Help',
+          padding: const EdgeInsets.all(AppDimens.paddingS),
           onPressed: onHelp,
         ),
       ],

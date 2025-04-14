@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class FilterStatsRow extends StatelessWidget {
   final int totalCount;
@@ -24,7 +25,10 @@ class FilterStatsRow extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingM,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -57,14 +61,45 @@ class FilterStatsRow extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(
-              showFilter ? Icons.filter_list_off : Icons.filter_list,
-              color:
-                  activeFilterCount > 0
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
+            icon: Stack(
+              children: [
+                Icon(
+                  showFilter ? Icons.filter_list_off : Icons.filter_list,
+                  color:
+                      activeFilterCount > 0
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                  size: AppDimens.iconL,
+                ),
+                if (activeFilterCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppDimens.paddingXXS),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: AppDimens.badgeIconPadding * 2 + 8,
+                        minHeight: AppDimens.badgeIconPadding * 2 + 8,
+                      ),
+                      child: Text(
+                        '$activeFilterCount',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontSize: AppDimens.fontXXS,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             tooltip: showFilter ? 'Hide filters' : 'Show filters',
+            iconSize: AppDimens.iconL,
+            padding: const EdgeInsets.all(AppDimens.paddingS),
             onPressed: onToggleFilter,
           ),
         ],
@@ -83,37 +118,49 @@ class FilterStatsRow extends StatelessWidget {
     final textTheme = theme.textTheme;
     final brightness = highlight ? 1.0 : 0.8;
 
-    return Card(
-      elevation: 0,
-      color: color.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 16, color: color.withOpacity(brightness)),
-                const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+    return Expanded(
+      child: Card(
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: AppDimens.paddingXS),
+        color: color.withOpacity(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingM,
+            vertical: AppDimens.paddingS,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: AppDimens.iconS,
+                    color: color.withOpacity(brightness),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              count.toString(),
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color.withOpacity(brightness),
+                  const SizedBox(width: AppDimens.spaceXS),
+                  Text(
+                    label,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: AppDimens.spaceXS),
+              Text(
+                count.toString(),
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color.withOpacity(brightness),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

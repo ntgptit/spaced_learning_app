@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class FooterProgressSection extends StatelessWidget {
   final int totalModules;
@@ -54,22 +55,22 @@ class FooterProgressSection extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         Semantics(
           label: progressSemanticLabel,
           child: ExcludeSemantics(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppDimens.radiusXS),
               child: LinearProgressIndicator(
                 value: percent / 100,
                 backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                minHeight: 8,
+                minHeight: AppDimens.lineProgressHeight,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDimens.spaceS),
         RichText(
           text: TextSpan(
             style: theme.textTheme.bodySmall,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/filter_book_selector.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/filter_date_selector.dart';
@@ -53,7 +54,7 @@ class LearningFilterBar extends StatelessWidget {
             colorScheme: Theme.of(context).colorScheme,
             dialogTheme: DialogThemeData(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
+                borderRadius: BorderRadius.circular(AppDimens.radiusL),
               ),
             ),
           ),
@@ -124,11 +125,17 @@ class _FilterBarContentState extends State<_FilterBarContent> {
     final colorScheme = theme.colorScheme;
 
     return Card(
-      elevation: 0,
+      elevation: AppDimens.elevationS,
+      margin: const EdgeInsets.symmetric(
+        vertical: AppDimens.paddingS,
+        horizontal: AppDimens.paddingXS,
+      ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.3),
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityMedium,
+          ),
           width: 1.0,
         ),
       ),
@@ -157,21 +164,23 @@ class _FilterBarContentState extends State<_FilterBarContent> {
 
           // ExpansionTile replacement - manual implementation for better control
           AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: AppDimens.durationM),
             height: _isExpanded ? null : 0,
             curve: Curves.easeInOut,
             child: ClipRect(
               child: Visibility(
                 visible: _isExpanded,
                 maintainState: true,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Divider(height: 8),
-                      const SizedBox(height: 12),
-                      Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Divider(
+                      height: AppDimens.dividerThickness,
+                      thickness: AppDimens.dividerThickness,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(AppDimens.paddingL),
+                      child: Row(
                         children: [
                           Expanded(
                             child: FilterBookSelector(
@@ -180,7 +189,7 @@ class _FilterBarContentState extends State<_FilterBarContent> {
                               onBookChanged: widget.onBookChanged,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppDimens.spaceM),
                           Expanded(
                             child: FilterDateSelector(
                               selectedDate: widget.selectedDate,
@@ -190,8 +199,8 @@ class _FilterBarContentState extends State<_FilterBarContent> {
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
