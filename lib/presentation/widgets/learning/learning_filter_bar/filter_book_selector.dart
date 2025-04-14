@@ -25,7 +25,9 @@ class FilterBookSelector extends StatelessWidget {
         Text(
           'Select Book',
           style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
+            color: colorScheme.onSurface.withValues(
+              alpha: AppDimens.opacityHigh,
+            ),
           ),
         ),
         const SizedBox(height: AppDimens.spaceXS),
@@ -38,8 +40,8 @@ class FilterBookSelector extends StatelessWidget {
                 color:
                     hasBookFilter
                         ? colorScheme.primary
-                        : colorScheme.outline.withOpacity(
-                          AppDimens.opacitySemi,
+                        : colorScheme.outline.withValues(
+                          alpha: AppDimens.opacitySemi,
                         ),
                 width: hasBookFilter ? 2 : 1,
               ),

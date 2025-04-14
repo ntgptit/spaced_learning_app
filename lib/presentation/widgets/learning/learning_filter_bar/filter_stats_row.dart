@@ -122,7 +122,7 @@ class FilterStatsRow extends StatelessWidget {
       child: Card(
         elevation: 0,
         margin: const EdgeInsets.symmetric(horizontal: AppDimens.paddingXS),
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
@@ -140,13 +140,13 @@ class FilterStatsRow extends StatelessWidget {
                   Icon(
                     icon,
                     size: AppDimens.iconS,
-                    color: color.withOpacity(brightness),
+                    color: color.withValues(alpha: brightness),
                   ),
                   const SizedBox(width: AppDimens.spaceXS),
                   Text(
                     label,
                     style: textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -156,7 +156,7 @@ class FilterStatsRow extends StatelessWidget {
                 count.toString(),
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: color.withOpacity(brightness),
+                  color: color.withValues(alpha: brightness),
                 ),
               ),
             ],

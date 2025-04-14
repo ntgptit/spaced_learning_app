@@ -62,8 +62,8 @@ class ModuleCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           side: BorderSide(
-            color: colorScheme.outlineVariant.withOpacity(
-              AppDimens.opacityMedium,
+            color: colorScheme.outlineVariant.withValues(
+              alpha: AppDimens.opacityMedium,
             ),
             width: 1,
           ),
@@ -153,7 +153,7 @@ class ModuleCard extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color:
-                  cycleColor?.withOpacity(AppDimens.opacityLight) ??
+                  cycleColor?.withValues(alpha: AppDimens.opacityLight) ??
                   colorScheme.secondaryContainer,
               borderRadius: BorderRadius.circular(AppDimens.radiusXS),
             ),
@@ -221,7 +221,7 @@ class ModuleCard extends StatelessWidget {
               vertical: AppDimens.paddingXXS,
             ),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(AppDimens.opacityLight),
+              color: statusColor.withValues(alpha: AppDimens.opacityLight),
               borderRadius: BorderRadius.circular(AppDimens.radiusXS),
             ),
             child: Text(

@@ -19,11 +19,11 @@ class LearningErrorView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppDimens.paddingXXL),
         decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer.withOpacity(0.8),
+          color: theme.colorScheme.errorContainer.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(AppDimens.opacityMedium),
+              color: Colors.black.withValues(alpha: AppDimens.opacityMedium),
               blurRadius: AppDimens.shadowRadiusL,
               offset: const Offset(0, AppDimens.shadowOffsetM),
             ),

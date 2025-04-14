@@ -32,12 +32,8 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
   @override
   void initState() {
     super.initState();
-
     _refreshManager.registerRefreshCallback('/', _refreshData);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitialData();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
   }
 
   @override
@@ -47,66 +43,64 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
   }
 
   @override
-  void refreshData() {
-    _refreshData();
-  }
+  void refreshData() => _refreshData();
 
   Future<void> _loadInitialData() async {
     if (_isLoadingData) return;
 
-    setState(() {
-      _isLoadingData = true;
-    });
+    setState(() => _isLoadingData = true);
 
     try {
       final progressViewModel = context.read<ProgressViewModel>();
       final learningStatsViewModel = context.read<LearningStatsViewModel>();
       final authViewModel = context.read<AuthViewModel>();
 
-      await Future.wait([
+      final futures = [
         learningStatsViewModel.loadAllStats(refreshCache: false),
-        authViewModel.currentUser != null
-            ? progressViewModel.loadDueProgress(authViewModel.currentUser!.id)
-            : Future.value(),
-      ]);
+      ];
+
+      if (authViewModel.currentUser != null) {
+        futures.add(
+          progressViewModel.loadDueProgress(authViewModel.currentUser!.id),
+        );
+      }
+
+      await Future.wait(futures);
     } catch (e) {
       debugPrint('Error loading initial data: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingData = false;
-        });
-      }
     }
+
+    if (!mounted) return;
+
+    setState(() => _isLoadingData = false);
   }
 
   Future<void> _refreshData() async {
     if (_isLoadingData) return;
 
-    setState(() {
-      _isLoadingData = true;
-    });
+    setState(() => _isLoadingData = true);
 
     try {
       final progressViewModel = context.read<ProgressViewModel>();
       final learningStatsViewModel = context.read<LearningStatsViewModel>();
       final authViewModel = context.read<AuthViewModel>();
 
-      await Future.wait([
-        learningStatsViewModel.loadAllStats(refreshCache: true),
-        authViewModel.currentUser != null
-            ? progressViewModel.loadDueProgress(authViewModel.currentUser!.id)
-            : Future.value(),
-      ]);
+      final futures = [learningStatsViewModel.loadAllStats(refreshCache: true)];
+
+      if (authViewModel.currentUser != null) {
+        futures.add(
+          progressViewModel.loadDueProgress(authViewModel.currentUser!.id),
+        );
+      }
+
+      await Future.wait(futures);
     } catch (e) {
       debugPrint('Error refreshing data: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingData = false;
-        });
-      }
     }
+
+    if (!mounted) return;
+
+    setState(() => _isLoadingData = false);
   }
 
   @override
@@ -118,18 +112,15 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
       appBar: HomeAppBar(
         isDarkMode: themeViewModel.isDarkMode,
         onThemeToggle: themeViewModel.toggleTheme,
-        onMenuPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
+        onMenuPressed: () => Scaffold.of(context).openDrawer(),
       ),
       body: _buildBody(authViewModel.currentUser),
     );
   }
 
   Widget _buildBody(User? user) {
-    if (user == null) {
+    if (user == null)
       return const Center(child: Text('Please login to continue'));
-    }
 
     return RefreshIndicator(
       onRefresh: _refreshData,
@@ -139,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            WelcomeSection(user: user),
+            Center(child: WelcomeSection(user: user)),
             const SizedBox(height: AppDimens.spaceXL),
             _buildDashboardSection(),
             const SizedBox(height: AppDimens.spaceXL),
@@ -148,7 +139,6 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
             _buildDueTasksSection(),
             const SizedBox(height: AppDimens.spaceXL),
             _buildQuickActionsSection(),
-
             SizedBox(height: MediaQuery.of(context).size.height * 0.1),
           ],
         ),
@@ -167,8 +157,8 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
 
     if (statsViewModel.errorMessage != null) {
       return ErrorDisplay(
-        message: statsViewModel.errorMessage ?? 'Failed to load statistics',
-        onRetry: () => statsViewModel.loadDashboardStats(),
+        message: statsViewModel.errorMessage!,
+        onRetry: statsViewModel.loadDashboardStats,
         compact: true,
       );
     }
@@ -182,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
             AppButton(
               text: 'Load Statistics',
               type: AppButtonType.primary,
-              onPressed: () => statsViewModel.loadDashboardStats(),
+              onPressed: statsViewModel.loadDashboardStats,
             ),
           ],
         ),
@@ -223,49 +213,33 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
         vocabularyCompletionRate: stats.vocabularyCompletionRate,
         weeklyNewWordsRate: stats.weeklyNewWordsRate,
       ),
-      onViewProgress: () {
-        GoRouter.of(context).go('/learning');
-      },
+      onViewProgress: () => GoRouter.of(context).go('/learning'),
     );
   }
 
   Widget _buildInsightsSection() {
     final statsViewModel = context.watch<LearningStatsViewModel>();
 
-    if (statsViewModel.isLoading) {
-      return const SizedBox.shrink();
-    }
+    if (statsViewModel.isLoading) return const SizedBox.shrink();
 
-    if (statsViewModel.insights.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (statsViewModel.insights.isEmpty) return const SizedBox.shrink();
 
     return LearningInsightsCard(
       insights: statsViewModel.insights,
       title: 'Learning Insights',
-      onViewMorePressed: () {
-      },
+      onViewMorePressed: () {},
     );
   }
 
-  Widget _buildQuickActionsSection() {
-    return QuickActionsSection(
-      onBrowseBooksPressed: () {
-        GoRouter.of(context).go('/books');
-      },
-      onTodaysLearningPressed: () {
-        GoRouter.of(context).go('/due-progress');
-      },
-      onProgressReportPressed: () {
-        GoRouter.of(context).go('/learning');
-      },
-      onVocabularyStatsPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
+  Widget _buildQuickActionsSection() => QuickActionsSection(
+    onBrowseBooksPressed: () => GoRouter.of(context).go('/books'),
+    onTodaysLearningPressed: () => GoRouter.of(context).go('/due-progress'),
+    onProgressReportPressed: () => GoRouter.of(context).go('/learning'),
+    onVocabularyStatsPressed:
+        () => ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Vocabulary stats coming soon')),
-        );
-      },
-    );
-  }
+        ),
+  );
 
   Widget _buildDueTasksSection() {
     final progressViewModel = context.watch<ProgressViewModel>();
@@ -278,18 +252,53 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
 
     if (progressViewModel.errorMessage != null) {
       return ErrorDisplay(
-        message: progressViewModel.errorMessage ?? 'Failed to load due tasks',
+        message: progressViewModel.errorMessage!,
         onRetry: () {
           final authViewModel = context.read<AuthViewModel>();
-          if (authViewModel.currentUser != null) {
-            progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
-          }
+          if (authViewModel.currentUser == null) return;
+          progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
         },
         compact: true,
       );
     }
 
     final dueCount = progressViewModel.progressRecords.length;
+
+    if (dueCount == 0) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.paddingL),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.assignment_late,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: AppDimens.spaceS),
+                  Text(
+                    'Due Tasks',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const Divider(height: 32),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimens.paddingL),
+                  child: Text(
+                    'No tasks due today!',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Card(
       child: Padding(
@@ -311,34 +320,17 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
               ],
             ),
             const Divider(height: 32),
-            if (dueCount == 0)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppDimens.paddingL),
-                  child: Text(
-                    'No tasks due today!',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: [
-                  Text(
-                    'You have $dueCount task${dueCount > 1 ? 's' : ''} due today',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: AppDimens.spaceL),
-                  AppButton(
-                    text: 'View Due Tasks',
-                    type: AppButtonType.primary,
-                    prefixIcon: Icons.play_arrow,
-                    onPressed: () {
-                      GoRouter.of(context).go('/due-progress');
-                    },
-                  ),
-                ],
-              ),
+            Text(
+              'You have $dueCount task${dueCount > 1 ? 's' : ''} due today',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+            AppButton(
+              text: 'View Due Tasks',
+              type: AppButtonType.primary,
+              prefixIcon: Icons.play_arrow,
+              onPressed: () => GoRouter.of(context).go('/due-progress'),
+            ),
           ],
         ),
       ),

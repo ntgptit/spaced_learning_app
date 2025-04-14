@@ -151,7 +151,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.3),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -213,7 +213,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color:
-                                  cycleColor?.withOpacity(0.1) ??
+                                  cycleColor?.withValues(alpha: 0.1) ??
                                   colorScheme.secondaryContainer,
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -279,7 +279,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -351,7 +351,7 @@ class SimplifiedLearningModulesTable extends StatelessWidget {
               child: Icon(
                 Icons.search_off_rounded,
                 size: 64,
-                color: theme.colorScheme.primary.withOpacity(0.5),
+                color: theme.colorScheme.primary.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 24),

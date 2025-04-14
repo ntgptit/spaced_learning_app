@@ -25,7 +25,9 @@ class FilterDateSelector extends StatelessWidget {
         Text(
           'Filter by Date',
           style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurface.withOpacity(AppDimens.opacityHigh),
+            color: colorScheme.onSurface.withValues(
+              alpha: AppDimens.opacityHigh,
+            ),
           ),
         ),
         const SizedBox(height: AppDimens.spaceXS),

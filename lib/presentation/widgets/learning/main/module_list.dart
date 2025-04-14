@@ -60,8 +60,8 @@ class ModuleList extends StatelessWidget {
               child: Icon(
                 Icons.search_off_rounded,
                 size: AppDimens.iconXXL,
-                color: theme.colorScheme.primary.withOpacity(
-                  AppDimens.opacitySemi,
+                color: theme.colorScheme.primary.withValues(
+                  alpha: AppDimens.opacitySemi,
                 ),
               ),
             ),
