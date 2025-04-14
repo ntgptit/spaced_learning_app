@@ -5,7 +5,6 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/mixins/view_model_refresher.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/learning_filter_bar.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/learning_footer/learning_footer.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_help_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/learning_app_bar.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/learning_error_view.dart';
@@ -220,7 +219,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
             child: _buildModuleList(viewModel),
           ),
         ),
-        _buildFooter(viewModel),
+        // _buildFooter(viewModel),
       ],
     );
   }
@@ -258,18 +257,18 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     );
   }
 
-  Widget _buildFooter(LearningProgressViewModel viewModel) {
-    return Selector<LearningProgressViewModel, (int, int)>(
-      selector:
-          (_, vm) => (vm.filteredModules.length, vm.getCompletedModulesCount()),
-      builder:
-          (_, data, __) => LearningFooter(
-            totalModules: data.$1,
-            completedModules: data.$2,
-            onHelpPressed: _showHelpDialog,
-          ),
-    );
-  }
+  // Widget _buildFooter(LearningProgressViewModel viewModel) {
+  //   return Selector<LearningProgressViewModel, (int, int)>(
+  //     selector:
+  //         (_, vm) => (vm.filteredModules.length, vm.getCompletedModulesCount()),
+  //     builder:
+  //         (_, data, __) => LearningFooter(
+  //           totalModules: data.$1,
+  //           completedModules: data.$2,
+  //           onHelpPressed: _showHelpDialog,
+  //         ),
+  //   );
+  // }
 
   void _runSafe(VoidCallback block) {
     if (!mounted) return;
