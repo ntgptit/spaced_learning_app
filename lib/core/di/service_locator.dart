@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service_impl.dart';
+import 'package:spaced_learning_app/core/services/platform/device_settings_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/alarm_manager_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/cloud_reminder_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
@@ -31,6 +32,7 @@ import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_vi
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/reminder_settings_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
@@ -43,38 +45,49 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerLazySingleton<ApiClient>(() => ApiClient());
   serviceLocator.registerLazySingleton<StorageService>(() => StorageService());
 
-  // Device Specific Service - đăng ký trước các service khác
+  // Device Specific Services
   serviceLocator.registerLazySingleton<DeviceSpecificService>(
     () => DeviceSpecificService(),
+  );
+
+  serviceLocator.registerLazySingleton<DeviceSettingsService>(
+    () => DeviceSettingsService(),
   );
 
   // === REPOSITORIES ===
   serviceLocator.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<BookRepository>(
     () => BookRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<ModuleRepository>(
     () => ModuleRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<ProgressRepository>(
     () => ProgressRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<RepetitionRepository>(
     () => RepetitionRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<LearningStatsRepository>(
     () => LearningStatsRepositoryImpl(serviceLocator<ApiClient>()),
   );
+
   serviceLocator.registerLazySingleton<LearningProgressRepository>(
     () => LearningProgressRepositoryImpl(serviceLocator<ApiClient>()),
   );
 
-  // === SERVICES ===
+  // === NOTIFICATION SERVICES ===
   // NotificationService
   serviceLocator.registerLazySingleton<NotificationService>(
     () => NotificationService(
@@ -89,6 +102,7 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
+  // === DATA SERVICES ===
   // LearningDataService
   serviceLocator.registerLazySingleton<LearningDataService>(
     () => LearningDataServiceImpl(serviceLocator<LearningProgressRepository>()),
@@ -110,47 +124,72 @@ Future<void> setupServiceLocator() async {
       storageService: serviceLocator<StorageService>(),
     ),
   );
+
   serviceLocator.registerFactory<BookViewModel>(
     () => BookViewModel(bookRepository: serviceLocator<BookRepository>()),
   );
+
   serviceLocator.registerFactory<ModuleViewModel>(
     () => ModuleViewModel(moduleRepository: serviceLocator<ModuleRepository>()),
   );
-  serviceLocator.registerFactory<ProgressViewModel>(
-    () => ProgressViewModel(
-      progressRepository: serviceLocator<ProgressRepository>(),
-      reminderManager: null, // Để tránh phụ thuộc vòng tròn
-    ),
-  );
+
   serviceLocator.registerFactory<RepetitionViewModel>(
     () => RepetitionViewModel(
       repetitionRepository: serviceLocator<RepetitionRepository>(),
     ),
   );
+
   serviceLocator.registerFactory<UserViewModel>(
     () => UserViewModel(userRepository: serviceLocator<UserRepository>()),
   );
+
   serviceLocator.registerFactory<ThemeViewModel>(
     () => ThemeViewModel(storageService: serviceLocator<StorageService>()),
   );
+
   serviceLocator.registerFactory<LearningStatsViewModel>(
     () => LearningStatsViewModel(
       repository: serviceLocator<LearningStatsRepository>(),
     ),
   );
+
   serviceLocator.registerFactory<LearningProgressViewModel>(
     () => LearningProgressViewModel(
       learningDataService: serviceLocator<LearningDataService>(),
     ),
   );
 
-  // ReminderManager (đăng ký duy nhất một lần, sau các ViewModel cần thiết)
+  // Đăng ký ProgressViewModel tạm thời không có ReminderManager
+  serviceLocator.registerFactory<ProgressViewModel>(
+    () => ProgressViewModel(
+      progressRepository: serviceLocator<ProgressRepository>(),
+      reminderManager: null, // Tạm thời null
+    ),
+  );
+
+  // ReminderManager (đăng ký sau các ViewModel cần thiết nhưng không tham chiếu đến ProgressViewModel)
   serviceLocator.registerLazySingleton<ReminderManager>(
     () => ReminderManager(
       notificationService: serviceLocator<NotificationService>(),
       storageService: serviceLocator<StorageService>(),
-      progressViewModel: serviceLocator<ProgressViewModel>(),
       deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+      // Không truyền progressViewModel để tránh circular dependency
+    ),
+  );
+
+  // Ghi đè đăng ký cho ProgressViewModel với ReminderManager
+  serviceLocator.unregister<ProgressViewModel>();
+  serviceLocator.registerFactory<ProgressViewModel>(
+    () => ProgressViewModel(
+      progressRepository: serviceLocator<ProgressRepository>(),
+      reminderManager: serviceLocator<ReminderManager>(),
+    ),
+  );
+
+  // Đăng ký ReminderSettingsViewModel cuối cùng
+  serviceLocator.registerFactory<ReminderSettingsViewModel>(
+    () => ReminderSettingsViewModel(
+      reminderManager: serviceLocator<ReminderManager>(),
     ),
   );
 }

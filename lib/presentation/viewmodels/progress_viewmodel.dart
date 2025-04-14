@@ -1,3 +1,4 @@
+// lib/presentation/viewmodels/progress_viewmodel.dart
 import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
@@ -11,6 +12,7 @@ class ProgressViewModel extends BaseViewModel {
   bool _isLoadingDueProgress = false;
   bool _isLoadingDetails = false;
   bool _isUpdating = false;
+  bool _isSchedulingReminders = false;
 
   List<ProgressSummary> _progressRecords = [];
   ProgressDetail? _selectedProgress;
@@ -23,11 +25,10 @@ class ProgressViewModel extends BaseViewModel {
   bool get isLoadingDueProgress => _isLoadingDueProgress;
   bool get isLoadingDetails => _isLoadingDetails;
   bool get isUpdating => _isUpdating;
+  bool get isSchedulingReminders => _isSchedulingReminders;
 
   List<ProgressSummary> get progressRecords => _progressRecords;
   ProgressDetail? get selectedProgress => _selectedProgress;
-
-
 
   Future<void> loadProgressDetails(String id) async {
     if (_isLoadingDetails) return; // Prevent duplicate calls
@@ -42,12 +43,6 @@ class ProgressViewModel extends BaseViewModel {
     );
     _isLoadingDetails = false;
   }
-
-
-
-
-
-
 
   Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
     return safeCall<ProgressDetail?>(
@@ -101,9 +96,8 @@ class ProgressViewModel extends BaseViewModel {
 
       _progressRecords = result;
 
-      if (reminderManager != null) {
-        await reminderManager!.scheduleAllReminders();
-      }
+      // Safely schedule reminders after loading progress
+      await _scheduleReminders();
 
       updateLastUpdated();
     } catch (e) {
@@ -134,9 +128,8 @@ class ProgressViewModel extends BaseViewModel {
           percentComplete: percentComplete,
         );
 
-        if (reminderManager != null) {
-          await reminderManager!.scheduleAllReminders();
-        }
+        // Safely schedule reminders after creating progress
+        await _scheduleReminders();
 
         return progress;
       },
@@ -168,9 +161,8 @@ class ProgressViewModel extends BaseViewModel {
           _selectedProgress = progress;
         }
 
-        if (reminderManager != null) {
-          await reminderManager!.updateRemindersAfterTaskCompletion();
-        }
+        // Safely update reminders after task completion
+        await _updateRemindersAfterTaskCompletion();
 
         return progress;
       },
@@ -180,12 +172,49 @@ class ProgressViewModel extends BaseViewModel {
     return result;
   }
 
+  // Safely handle reminder scheduling
+  Future<bool> _scheduleReminders() async {
+    if (reminderManager == null) return false;
+    if (_isSchedulingReminders) return false;
 
+    _isSchedulingReminders = true;
+    try {
+      final result = await reminderManager!.scheduleAllReminders();
+      debugPrint('[ProgressViewModel] Reminders scheduled: $result');
+      return result;
+    } catch (e) {
+      debugPrint('[ProgressViewModel] Error scheduling reminders: $e');
+      return false;
+    } finally {
+      _isSchedulingReminders = false;
+    }
+  }
 
+  // Safely handle reminder updates after task completion
+  Future<bool> _updateRemindersAfterTaskCompletion() async {
+    if (reminderManager == null) return false;
+    if (_isSchedulingReminders) return false;
 
+    _isSchedulingReminders = true;
+    try {
+      final result =
+          await reminderManager!.updateRemindersAfterTaskCompletion();
+      debugPrint(
+        '[ProgressViewModel] Reminders updated after task completion: $result',
+      );
+      return result;
+    } catch (e) {
+      debugPrint(
+        '[ProgressViewModel] Error updating reminders after task completion: $e',
+      );
+      return false;
+    } finally {
+      _isSchedulingReminders = false;
+    }
+  }
 
-
-
-
-
+  // Force manual refresh of reminders, exposed to UI
+  Future<bool> refreshReminders() async {
+    return _scheduleReminders();
+  }
 }
