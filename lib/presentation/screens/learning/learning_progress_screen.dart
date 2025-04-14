@@ -19,7 +19,10 @@ class LearningProgressScreen extends StatefulWidget {
 
 class _LearningProgressScreenState extends State<LearningProgressScreen>
     with WidgetsBindingObserver, ViewModelRefresher {
-  final ScrollController _scrollController = ScrollController();
+  // Tạo hai controller riêng biệt: một cho CustomScrollView và một cho ModuleList
+  final ScrollController _mainScrollController = ScrollController();
+  final ScrollController _moduleListScrollController = ScrollController();
+
   final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
   bool _isScrolled = false;
 
@@ -28,15 +31,18 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _refreshManager.registerRefreshCallback('/learning', _refreshData);
-    _scrollController.addListener(_onScroll);
+
+    // Chỉ theo dõi controller chính cho sự kiện scroll
+    _mainScrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeViewModel();
     });
   }
 
+  // Cập nhật hàm _onScroll để chỉ sử dụng _mainScrollController
   void _onScroll() {
-    final isScrolled = _scrollController.offset > AppDimens.paddingL;
+    final isScrolled = _mainScrollController.offset > AppDimens.paddingL;
     if (isScrolled != _isScrolled) {
       setState(() {
         _isScrolled = isScrolled;
@@ -55,8 +61,12 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
   void dispose() {
     _refreshManager.unregisterRefreshCallback('/learning', _refreshData);
     WidgetsBinding.instance.removeObserver(this);
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+
+    // Đảm bảo dispose cả hai controller
+    _mainScrollController.removeListener(_onScroll);
+    _mainScrollController.dispose();
+    _moduleListScrollController.dispose();
+
     super.dispose();
   }
 
@@ -152,7 +162,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
 
     return Scaffold(
       body: CustomScrollView(
-        controller: _scrollController,
+        // Sử dụng controller chính cho CustomScrollView
+        controller: _mainScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           LearningAppBar(
@@ -180,7 +191,7 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
         duration: const Duration(milliseconds: AppDimens.durationS),
         child: FloatingActionButton(
           onPressed: () {
-            _scrollController.animateTo(
+            _mainScrollController.animateTo(
               0,
               duration: const Duration(milliseconds: AppDimens.durationM),
               curve: Curves.easeOut,
@@ -250,7 +261,8 @@ class _LearningProgressScreenState extends State<LearningProgressScreen>
 
         return ModuleList(
           modules: modules,
-          scrollController: _scrollController,
+          // Sử dụng controller riêng cho ModuleList
+          scrollController: _moduleListScrollController,
           onRefresh: _refreshData,
         );
       },
