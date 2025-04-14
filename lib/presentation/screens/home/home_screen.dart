@@ -119,8 +119,9 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
   }
 
   Widget _buildBody(User? user) {
-    if (user == null)
+    if (user == null) {
       return const Center(child: Text('Please login to continue'));
+    }
 
     return RefreshIndicator(
       onRefresh: _refreshData,
