@@ -29,53 +29,59 @@ class FilterBookSelector extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppDimens.spaceXS),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color:
-                  hasBookFilter
-                      ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(AppDimens.opacitySemi),
-              width: hasBookFilter ? 2 : 1,
-            ),
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: selectedBook,
-              isExpanded: true,
-              icon: Icon(
-                Icons.arrow_drop_down,
-                color: hasBookFilter ? colorScheme.primary : null,
-                size: AppDimens.iconL,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.paddingL,
-                vertical: AppDimens.paddingS,
+        // Đặt chiều cao cố định cho container bên ngoài để đảm bảo độ cao đồng nhất
+        SizedBox(
+          height: 48, // Đặt chiều cao cố định giống với nút Select Date
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color:
+                    hasBookFilter
+                        ? colorScheme.primary
+                        : colorScheme.outline.withOpacity(
+                          AppDimens.opacitySemi,
+                        ),
+                width: hasBookFilter ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
-              items:
-                  books
-                      .map(
-                        (book) => DropdownMenuItem(
-                          value: book,
-                          child: Text(
-                            book,
-                            style: TextStyle(
-                              color:
-                                  book == selectedBook && book != 'All'
-                                      ? colorScheme.primary
-                                      : null,
-                              fontWeight:
-                                  book == selectedBook && book != 'All'
-                                      ? FontWeight.bold
-                                      : null,
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedBook,
+                isExpanded: true,
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: hasBookFilter ? colorScheme.primary : null,
+                  size: AppDimens.iconL,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingL,
+                  vertical: AppDimens.paddingS,
+                ),
+                borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                items:
+                    books
+                        .map(
+                          (book) => DropdownMenuItem(
+                            value: book,
+                            child: Text(
+                              book,
+                              style: TextStyle(
+                                color:
+                                    book == selectedBook && book != 'All'
+                                        ? colorScheme.primary
+                                        : null,
+                                fontWeight:
+                                    book == selectedBook && book != 'All'
+                                        ? FontWeight.bold
+                                        : null,
+                              ),
                             ),
                           ),
-                        ),
-                      )
-                      .toList(),
-              onChanged: onBookChanged,
+                        )
+                        .toList(),
+                onChanged: onBookChanged,
+              ),
             ),
           ),
         ),

@@ -29,62 +29,75 @@ class FilterDateSelector extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppDimens.spaceXS),
-        selectedDate == null
-            ? OutlinedButton.icon(
-              icon: const Icon(Icons.calendar_today, size: AppDimens.iconS),
-              label: const Text('Select Date'),
-              onPressed: onDateSelected,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingL,
-                  vertical: AppDimens.paddingM,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                ),
-              ),
-            )
-            : Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.paddingL,
-                vertical: AppDimens.paddingM - 1, // Adjust for border
-              ),
-              decoration: BoxDecoration(
-                border: Border.all(color: colorScheme.primary, width: 2),
-                borderRadius: BorderRadius.circular(AppDimens.radiusM),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: AppDimens.iconS,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: AppDimens.spaceS),
-                  Expanded(
-                    child: Text(
-                      DateFormat('MMM dd, yyyy').format(selectedDate!),
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+        // Đặt chiều cao cố định cho container chứa button
+        SizedBox(
+          height: 48, // Đảm bảo chiều cao cố định
+          child:
+              selectedDate == null
+                  ? OutlinedButton.icon(
+                    icon: const Icon(
+                      Icons.calendar_today,
+                      size: AppDimens.iconS,
+                    ),
+                    label: const Text('Select Date'),
+                    onPressed: onDateSelected,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(
+                        48,
+                      ), // Đảm bảo chiều cao đủ
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimens.paddingL,
+                        vertical: AppDimens.paddingM,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimens.radiusM),
                       ),
                     ),
-                  ),
-                  InkWell(
-                    onTap: onDateCleared,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusS),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppDimens.paddingXS),
-                      child: Icon(
-                        Icons.close,
-                        size: AppDimens.iconS,
-                        color: colorScheme.primary,
-                      ),
+                  )
+                  : Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimens.paddingL,
+                      vertical: AppDimens.paddingM - 1, // Điều chỉnh cho border
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.primary, width: 2),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: AppDimens.iconS,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: AppDimens.spaceS),
+                        Expanded(
+                          child: Text(
+                            DateFormat('MMM dd, yyyy').format(selectedDate!),
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: onDateCleared,
+                          borderRadius: BorderRadius.circular(
+                            AppDimens.radiusS,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppDimens.paddingXS),
+                            child: Icon(
+                              Icons.close,
+                              size: AppDimens.iconS,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
+        ),
       ],
     );
   }

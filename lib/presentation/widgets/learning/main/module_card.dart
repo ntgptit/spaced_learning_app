@@ -16,19 +16,23 @@ class ModuleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Xác định trước các trạng thái và nội dung để tính toán chiều cao
+    final hasNextStudyDate = module.progressNextStudyDate != null;
     final isOverdue =
-        module.progressNextStudyDate != null &&
+        hasNextStudyDate &&
         module.progressNextStudyDate!.isBefore(DateTime.now()) &&
         !DateUtils.isSameDay(module.progressNextStudyDate, DateTime.now());
-
     final isDueToday =
-        module.progressNextStudyDate != null &&
+        hasNextStudyDate &&
         DateUtils.isSameDay(module.progressNextStudyDate, DateTime.now());
-
     final isDueSoon =
-        module.progressNextStudyDate != null &&
+        hasNextStudyDate &&
         module.progressNextStudyDate!.isAfter(DateTime.now()) &&
         module.progressNextStudyDate!.difference(DateTime.now()).inDays <= 2;
+    final hasCycleInfo = module.progressCyclesStudied != null;
+
+    // Sử dụng ConstrainedBox để đảm bảo chiều cao tối thiểu cho tất cả card
+    const double minCardHeight = 120; // Chiều cao cơ bản tối thiểu
 
     // Color status logic
     Color statusColor = colorScheme.primary;
@@ -43,56 +47,59 @@ class ModuleCard extends StatelessWidget {
     // Generate cycle color if available
     Color? cycleColor;
     String? cycleText;
-    if (module.progressCyclesStudied != null) {
+    if (hasCycleInfo) {
       cycleText = _formatCycleStudied(module.progressCyclesStudied!);
       cycleColor = _getCycleColor(module.progressCyclesStudied!, colorScheme);
     }
 
     final dateFormatter = DateFormat('MMM dd, yyyy');
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppDimens.spaceS),
-      elevation: AppDimens.elevationXS,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(
-            AppDimens.opacityMedium,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: minCardHeight),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: AppDimens.spaceS),
+        elevation: AppDimens.elevationXS,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withOpacity(
+              AppDimens.opacityMedium,
+            ),
+            width: 1,
           ),
-          width: 1,
         ),
-      ),
-      child: InkWell(
-        onTap: () => _showModuleDetails(context, module),
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimens.paddingL),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 7,
-                child: _buildModuleInfo(
-                  theme,
-                  colorScheme,
-                  cycleText,
-                  cycleColor,
+        child: InkWell(
+          onTap: () => _showModuleDetails(context, module),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 7,
+                  child: _buildModuleInfo(
+                    theme,
+                    colorScheme,
+                    cycleText,
+                    cycleColor,
+                  ),
                 ),
-              ),
-              Expanded(
-                flex: 4,
-                child: _buildNextStudyInfo(
-                  theme,
-                  colorScheme,
-                  statusColor,
-                  dateFormatter,
-                  isOverdue,
-                  isDueToday,
-                  isDueSoon,
+                Expanded(
+                  flex: 4,
+                  child: _buildNextStudyInfo(
+                    theme,
+                    colorScheme,
+                    statusColor,
+                    dateFormatter,
+                    isOverdue,
+                    isDueToday,
+                    isDueSoon,
+                  ),
                 ),
-              ),
-              Expanded(flex: 2, child: _buildTasksInfo(theme, colorScheme)),
-            ],
+                Expanded(flex: 2, child: _buildTasksInfo(theme, colorScheme)),
+              ],
+            ),
           ),
         ),
       ),
