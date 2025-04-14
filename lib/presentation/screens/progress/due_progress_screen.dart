@@ -348,8 +348,9 @@ class _DueProgressScreenState extends State<DueProgressScreen>
     final colorScheme = theme.colorScheme;
 
     if (progressViewModel.isLoading &&
-        progressViewModel.progressRecords.isEmpty)
+        progressViewModel.progressRecords.isEmpty) {
       return const SizedBox.shrink();
+    }
 
     if (progressViewModel.errorMessage != null) return const SizedBox.shrink();
 
