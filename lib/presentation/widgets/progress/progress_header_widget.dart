@@ -20,7 +20,6 @@ class ProgressHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('MMM dd, yyyy');
 
     final startDateText =
@@ -336,7 +335,7 @@ class ProgressHeaderWidget extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: theme.colorScheme.success.withValues(
-              alpha: 0.2,
+              alpha: 0.8,
             ), // Match progress bar
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
           ),
