@@ -3,7 +3,9 @@ import 'package:spaced_learning_app/domain/models/progress.dart';
 
 class CycleFormatter {
   static CycleStudied parseCycle(String? cycleString) {
-    switch (cycleString?.toUpperCase()) {
+    if (cycleString == null) return CycleStudied.firstTime;
+
+    switch (cycleString.toUpperCase()) {
       case 'FIRST_TIME':
         return CycleStudied.firstTime;
       case 'FIRST_REVIEW':

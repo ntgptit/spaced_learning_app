@@ -77,6 +77,7 @@ class RepetitionViewModel extends BaseViewModel {
       final repetitions = await repetitionRepository.getRepetitionsByProgressId(
         progressId,
       );
+
       if (repetitions.isEmpty) return false;
 
       final totalCount = repetitions.length;

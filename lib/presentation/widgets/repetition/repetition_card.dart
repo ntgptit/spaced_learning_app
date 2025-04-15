@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 
-typedef M3ColorPair = ({Color container, Color onContainer});
-
-class RepetitionCard extends StatelessWidget {
+class RepetitionCard extends StatefulWidget {
   final Repetition repetition;
   final bool isHistory;
   final VoidCallback? onMarkCompleted;
   final Function(DateTime)? onReschedule;
-  final ThemeData? theme;
 
   const RepetitionCard({
     super.key,
@@ -17,337 +16,355 @@ class RepetitionCard extends StatelessWidget {
     this.isHistory = false,
     this.onMarkCompleted,
     this.onReschedule,
-    this.theme,
   });
 
-  M3ColorPair _getSuccessColors(ColorScheme colorScheme) {
-    return (
-      container: colorScheme.tertiaryContainer,
-      onContainer: colorScheme.onTertiaryContainer,
+  @override
+  State<RepetitionCard> createState() => _RepetitionCardState();
+}
+
+class _RepetitionCardState extends State<RepetitionCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isHovering = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
     );
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.02,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
-  M3ColorPair _getWarningColors(ColorScheme colorScheme) {
-    return (
-      container: colorScheme.secondaryContainer,
-      onContainer: colorScheme.onSecondaryContainer,
-    );
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
-  M3ColorPair _getErrorColors(ColorScheme colorScheme) {
-    return (
-      container: colorScheme.errorContainer,
-      onContainer: colorScheme.onErrorContainer,
-    );
+  void _onHoverChanged(bool isHovering) {
+    setState(() {
+      _isHovering = isHovering;
+    });
+
+    if (isHovering) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  // Define lighter, sophisticated colors for repetition orders 1 to 5
+  Color _getRepetitionColor(int orderIndex) {
+    const List<Color> repetitionColors = [
+      Color(0xFF4CAF50), // Green 500
+      Color(0xFF2196F3), // Blue 500
+      Color(0xFFF4511E), // Deep Orange 600
+      Color(0xFFAB47BC), // Purple 400
+      Color(0xFFEF5350), // Red 400
+    ];
+    // Use modulo to cycle through colors if index exceeds 5
+    return repetitionColors[(orderIndex - 1) % repetitionColors.length];
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentTheme = theme ?? Theme.of(context);
-    final colorScheme = currentTheme.colorScheme;
-    final textTheme = currentTheme.textTheme;
-    final dateFormat = DateFormat('dd MMM yyyy');
-    final orderText = repetition.formatFullOrder();
-    final statusColors = _getStatusColors(repetition.status, colorScheme);
-    final dateText =
-        repetition.reviewDate != null
-            ? dateFormat.format(repetition.reviewDate!)
-            : 'Not scheduled';
-    final timeIndicator = _getTimeIndicator(repetition.reviewDate);
-    final indicatorColors = _getTimeIndicatorColors(
-      repetition.reviewDate,
-      colorScheme,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Determine card style based on status
+    final isCompleted = widget.repetition.status == RepetitionStatus.completed;
+    final isPending = widget.repetition.status == RepetitionStatus.notStarted;
+
+    // Check if repetition is overdue
+    final isOverdue =
+        isPending &&
+        widget.repetition.reviewDate != null &&
+        widget.repetition.reviewDate!.isBefore(DateTime.now());
+
+    // Get appropriate colors
+    Color cardColor = colorScheme.surface; // Keep neutral background
+    if (isOverdue) {
+      cardColor = colorScheme.errorContainer.withValues(alpha: 0.2);
+    }
+
+    Color borderColor = colorScheme.outlineVariant;
+    if (isOverdue) {
+      borderColor = colorScheme.error.withValues(alpha: 0.4);
+    }
+    if (isCompleted) {
+      borderColor = colorScheme.outlineVariant; // Neutral border for completed
+    }
+
+    Color textColor = colorScheme.onSurface;
+    if (isOverdue) {
+      textColor = colorScheme.error;
+    }
+    if (isCompleted) {
+      textColor = colorScheme.success; // Success color for status text
+    }
+
+    Color iconColor = colorScheme.primary;
+    if (isOverdue) {
+      iconColor = colorScheme.error;
+    }
+    if (isCompleted) {
+      iconColor = colorScheme.success; // Success color for status icon
+    }
+
+    String statusText = 'Pending';
+    if (isCompleted) {
+      statusText = 'Completed';
+    }
+    if (isOverdue) {
+      statusText = 'Overdue';
+    }
+
+    IconData statusIcon = Icons.pending;
+    if (isCompleted) {
+      statusIcon = Icons.check_circle;
+    }
+    if (isOverdue) {
+      statusIcon = Icons.warning_amber;
+    }
+
+    // Get repetition-specific color
+    final repetitionColor = _getRepetitionColor(
+      widget.repetition.repetitionOrder.index,
     );
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0), // AppDimens.paddingS
-      elevation:
-          isHistory ? (currentTheme.cardTheme.elevation ?? 1.0) * 0.5 : null,
-      color: isHistory ? colorScheme.surfaceContainerLow : null,
-      child: InkWell(
-        onTap:
-            (isHistory || repetition.status != RepetitionStatus.notStarted)
-                ? null
-                : onMarkCompleted,
-        borderRadius:
-            ((currentTheme.cardTheme.shape as RoundedRectangleBorder?)
-                    ?.borderRadius
-                as BorderRadius?) ??
-            BorderRadius.circular(12.0), // AppDimens.radiusL
-        child: Padding(
-          padding: const EdgeInsets.all(16.0), // AppDimens.paddingL
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(textTheme, colorScheme, orderText, statusColors),
-              const SizedBox(height: 12.0), // AppDimens.spaceM
-              _buildDateRow(
-                context,
-                textTheme,
-                colorScheme,
-                dateText,
-                timeIndicator,
-                indicatorColors,
+    // Format review date if available
+    final reviewDateText =
+        widget.repetition.reviewDate != null
+            ? DateFormat('MMM dd, yyyy').format(widget.repetition.reviewDate!)
+            : 'Not scheduled';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
+      child: MouseRegion(
+        onEnter: (_) => _onHoverChanged(true),
+        onExit: (_) => _onHoverChanged(false),
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Transform.scale(scale: _scaleAnimation.value, child: child);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              border: Border.all(
+                color:
+                    _isHovering
+                        ? borderColor.withValues(alpha: 0.8)
+                        : borderColor,
+                width: _isHovering ? 1.5 : 1,
               ),
-              if (!isHistory &&
-                  repetition.status == RepetitionStatus.notStarted)
-                _buildActions(context, colorScheme, textTheme),
-            ],
+              boxShadow:
+                  _isHovering
+                      ? [
+                        BoxShadow(
+                          color: colorScheme.shadow.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              clipBehavior: Clip.antiAlias,
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              child: InkWell(
+                onTap:
+                    isPending &&
+                            !widget.isHistory &&
+                            widget.onMarkCompleted != null
+                        ? widget.onMarkCompleted
+                        : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimens.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: repetitionColor.withValues(
+                                alpha: 0.1,
+                              ), // Subtle background
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                widget.repetition.formatOrder(),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: repetitionColor, // Vibrant text
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppDimens.spaceM),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.repetition.formatFullOrder(),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        colorScheme.onSurface, // Neutral title
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      statusIcon,
+                                      size: AppDimens.iconS,
+                                      color: iconColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      statusText,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: textColor,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isPending &&
+                              !widget.isHistory &&
+                              widget.onMarkCompleted != null)
+                            _buildCompletedButton(context, colorScheme),
+                        ],
+                      ),
+                      const SizedBox(height: AppDimens.spaceM),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: _buildDateInfo(
+                              theme,
+                              reviewDateText,
+                              isOverdue,
+                            ),
+                          ),
+                          if (isPending &&
+                              !widget.isHistory &&
+                              widget.onReschedule != null)
+                            _buildRescheduleButton(context, colorScheme),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(
-    TextTheme textTheme,
-    ColorScheme colorScheme,
-    String orderText,
-    M3ColorPair statusColors,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          orderText,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12.0,
-            vertical: 4.0,
-          ), // AppDimens.paddingM, paddingXS
-          decoration: BoxDecoration(
-            color: statusColors.container,
-            borderRadius: BorderRadius.circular(8.0), // AppDimens.radiusM
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _formatStatus(repetition.status),
-                style: textTheme.labelSmall?.copyWith(
-                  color: statusColors.onContainer,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (repetition.status == RepetitionStatus.completed) ...[
-                const SizedBox(width: 4.0), // AppDimens.spaceXS
-                Icon(
-                  Icons.check_circle_outline,
-                  size: 12.0,
-                  color: statusColors.onContainer,
-                ), // AppDimens.iconXS
-              ],
-              if (repetition.status == RepetitionStatus.skipped) ...[
-                const SizedBox(width: 4.0), // AppDimens.spaceXS
-                Icon(
-                  Icons.redo_outlined,
-                  size: 12.0,
-                  color: statusColors.onContainer,
-                ), // AppDimens.iconXS
-              ],
-            ],
-          ),
-        ),
-      ],
+  Widget _buildCompletedButton(BuildContext context, ColorScheme colorScheme) {
+    return IconButton(
+      icon: Icon(
+        Icons.check_circle_outline,
+        color:
+            _isHovering
+                ? colorScheme
+                    .success // Success color on hover
+                : colorScheme.primary.withValues(alpha: 0.7),
+      ),
+      onPressed: widget.onMarkCompleted,
+      tooltip: 'Mark as completed',
+      visualDensity: VisualDensity.compact,
     );
   }
 
-  Widget _buildDateRow(
-    BuildContext context,
-    TextTheme textTheme,
-    ColorScheme colorScheme,
-    String dateText,
-    String timeIndicator,
-    M3ColorPair? indicatorColors,
+  Widget _buildRescheduleButton(BuildContext context, ColorScheme colorScheme) {
+    return TextButton.icon(
+      onPressed:
+          widget.repetition.reviewDate != null
+              ? () => widget.onReschedule?.call(widget.repetition.reviewDate!)
+              : () => widget.onReschedule?.call(DateTime.now()),
+      icon: Icon(
+        Icons.event,
+        size: AppDimens.iconS,
+        color:
+            _isHovering
+                ? colorScheme.primary
+                : colorScheme.primary.withValues(alpha: 0.7),
+      ),
+      label: Text(
+        'Reschedule',
+        style: TextStyle(
+          color:
+              _isHovering
+                  ? colorScheme.primary
+                  : colorScheme.primary.withValues(alpha: 0.7),
+        ),
+      ),
+      style: TextButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingS,
+          vertical: AppDimens.paddingXS,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateInfo(
+    ThemeData theme,
+    String reviewDateText,
+    bool isOverdue,
   ) {
     return Row(
       children: [
         Icon(
-          Icons.calendar_today_outlined,
-          color: colorScheme.primary,
-          size: 16.0,
-        ), // AppDimens.iconS
-        const SizedBox(width: 8.0), // AppDimens.spaceS
+          Icons.calendar_today,
+          size: AppDimens.iconS,
+          color:
+              isOverdue
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: AppDimens.spaceXS),
         Text(
-          dateText,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+          'Review date: ',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const Spacer(),
-        if (indicatorColors != null && timeIndicator.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8.0,
-              vertical: 2.0,
-            ), // AppDimens.paddingS, paddingXXS
-            decoration: BoxDecoration(
-              color: indicatorColors.container,
-              borderRadius: BorderRadius.circular(4.0), // AppDimens.radiusS
-            ),
-            child: Text(
-              timeIndicator,
-              style: textTheme.labelSmall?.copyWith(
-                color: indicatorColors.onContainer,
-              ),
-            ),
+        Text(
+          reviewDateText,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color:
+                isOverdue
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onSurface,
           ),
+        ),
       ],
-    );
-  }
-
-  Widget _buildActions(
-    BuildContext context,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    final rescheduleColor = colorScheme.secondary;
-    final rescheduleContainerColors = _getWarningColors(colorScheme);
-    final completeColor = colorScheme.tertiary;
-    final completeContainerColors = _getSuccessColors(colorScheme);
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0), // AppDimens.paddingL
-      child: Wrap(
-        alignment: WrapAlignment.end,
-        spacing: 12.0, // AppDimens.spaceM
-        runSpacing: 8.0, // AppDimens.spaceS
-        children: [
-          if (onReschedule != null)
-            _buildActionButton(
-              textTheme: textTheme,
-              colorScheme: colorScheme,
-              foregroundColor: rescheduleColor,
-              containerColors: rescheduleContainerColors,
-              label: 'Reschedule',
-              icon: Icons.calendar_month_outlined,
-              onPressed:
-                  () => onReschedule?.call(
-                    repetition.reviewDate ?? DateTime.now(),
-                  ),
-            ),
-          if (onMarkCompleted != null)
-            _buildActionButton(
-              textTheme: textTheme,
-              colorScheme: colorScheme,
-              foregroundColor: completeColor,
-              containerColors: completeContainerColors,
-              label: 'Complete',
-              icon: Icons.check_circle_outlined,
-              onPressed: onMarkCompleted!,
-              showScoreIndicator: true,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required TextTheme textTheme,
-    required ColorScheme colorScheme,
-    required Color foregroundColor,
-    required M3ColorPair containerColors,
-    required String label,
-    required IconData icon,
-    required VoidCallback onPressed,
-    bool showScoreIndicator = false,
-  }) {
-    final buttonStyle = OutlinedButton.styleFrom(
-      foregroundColor: foregroundColor,
-      side: BorderSide(color: foregroundColor),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12.0,
-      ), // AppDimens.paddingM
-      textStyle: textTheme.labelLarge,
-    ).copyWith(minimumSize: WidgetStateProperty.all(Size.zero));
-    final scoreIndicatorBg = containerColors.container.withValues(alpha: 0.4);
-    final scoreIndicatorFg = containerColors.onContainer;
-
-    return SizedBox(
-      height: 36.0, // AppDimens.buttonHeightM
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 16.0), // AppDimens.iconS
-        label: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(label),
-            if (showScoreIndicator) ...[
-              const SizedBox(width: 8.0), // AppDimens.spaceS
-              Container(
-                padding: const EdgeInsets.all(3.0), // AppDimens.paddingXXS + 1
-                decoration: BoxDecoration(
-                  color: scoreIndicatorBg,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.percent,
-                  size: 10.0,
-                  color: scoreIndicatorFg,
-                ), // AppDimens.iconXXS
-              ),
-            ],
-          ],
-        ),
-        style: buttonStyle,
-      ),
-    );
-  }
-
-  String _formatStatus(RepetitionStatus status) {
-    switch (status) {
-      case RepetitionStatus.notStarted:
-        return 'Pending';
-      case RepetitionStatus.completed:
-        return 'Completed';
-      case RepetitionStatus.skipped:
-        return 'Skipped';
-    }
-  }
-
-  M3ColorPair _getStatusColors(
-    RepetitionStatus status,
-    ColorScheme colorScheme,
-  ) {
-    return switch (status) {
-      RepetitionStatus.notStarted => (
-        container: colorScheme.primaryContainer,
-        onContainer: colorScheme.onPrimaryContainer,
-      ),
-      RepetitionStatus.completed => _getSuccessColors(colorScheme),
-      RepetitionStatus.skipped => _getWarningColors(colorScheme),
-    };
-  }
-
-  String _getTimeIndicator(DateTime? date) {
-    if (date == null) return '';
-    final now = DateUtils.dateOnly(DateTime.now());
-    final target = DateUtils.dateOnly(date);
-    final difference = target.difference(now).inDays;
-    if (difference < 0) return 'Overdue ${-difference}d';
-    if (difference == 0) return 'Today';
-    if (difference == 1) return 'Tomorrow';
-    return 'In $difference days';
-  }
-
-  M3ColorPair? _getTimeIndicatorColors(
-    DateTime? date,
-    ColorScheme colorScheme,
-  ) {
-    if (date == null) return null;
-    final now = DateUtils.dateOnly(DateTime.now());
-    final target = DateUtils.dateOnly(date);
-    final difference = target.difference(now).inDays;
-    if (difference < 0) return _getErrorColors(colorScheme);
-    if (difference == 0) return _getSuccessColors(colorScheme);
-    if (difference <= 3) return _getWarningColors(colorScheme);
-    return (
-      container: colorScheme.secondaryContainer,
-      onContainer: colorScheme.onSecondaryContainer,
     );
   }
 }

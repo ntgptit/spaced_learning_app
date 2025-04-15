@@ -28,3 +28,9 @@ extension ColorExtensions on Color {
     return hsl.withLightness(lightness).toColor();
   }
 }
+
+extension CustomColorScheme on ColorScheme {
+  Color get success =>
+      const Color(0xFF4CAF50); // Xanh lá dịu, Material Green 500
+  Color get onSuccess => const Color(0xFFFFFFFF); // Màu chữ trên nền success
+}
