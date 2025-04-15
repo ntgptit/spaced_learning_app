@@ -15,7 +15,12 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        flutterEngine.plugins.add(DeviceOptimizationPlugin())
+        try {
+            flutterEngine.plugins.add(DeviceOptimizationPlugin())
+            Log.i(TAG, "DeviceOptimizationPlugin registered successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error registering DeviceOptimizationPlugin: ${e.message}")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

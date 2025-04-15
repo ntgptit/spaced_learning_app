@@ -1,3 +1,4 @@
+// lib/core/services/reminder/notification_service.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
@@ -54,7 +55,7 @@ class NotificationService {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
-      if (!initialized!) {
+      if (initialized != true) {
         debugPrint('Failed to initialize notifications plugin');
         return false;
       }
@@ -136,7 +137,7 @@ class NotificationService {
   }
 
   Future<bool> _createSamsungSpecificChannels(
-    AndroidFlutterLocalNotificationsPlugin plugin,
+    AndroidFlutterLocalNotificationsPlugin androidPlugin,
   ) async {
     try {
       const samsungChannel = AndroidNotificationChannel(
@@ -146,7 +147,7 @@ class NotificationService {
         importance: Importance.high,
       );
 
-      await plugin.createNotificationChannel(samsungChannel);
+      await androidPlugin.createNotificationChannel(samsungChannel);
       return true;
     } catch (e) {
       debugPrint('Error creating Samsung notification channels: $e');
@@ -180,7 +181,6 @@ class NotificationService {
 
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
-
   }
 
   Future<bool> showNotification({
@@ -332,6 +332,13 @@ class NotificationService {
   }
 
   Future<bool> cancelNotification(int id) async {
+    if (!_isInitialized) {
+      debugPrint(
+        'Notification service not initialized, skipping cancel notification',
+      );
+      return false;
+    }
+
     try {
       await _notificationsPlugin.cancel(id);
       debugPrint('Notification cancelled with id: $id');
@@ -343,6 +350,13 @@ class NotificationService {
   }
 
   Future<bool> cancelAllNotifications() async {
+    if (!_isInitialized) {
+      debugPrint(
+        'Notification service not initialized, skipping cancel all notifications',
+      );
+      return false;
+    }
+
     try {
       await _notificationsPlugin.cancelAll();
       debugPrint('All notifications cancelled');

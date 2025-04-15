@@ -29,8 +29,25 @@ class ReminderSettingsScreen extends StatelessWidget {
   }
 }
 
-class _ReminderSettingsView extends StatelessWidget {
+class _ReminderSettingsView extends StatefulWidget {
   const _ReminderSettingsView();
+
+  @override
+  State<_ReminderSettingsView> createState() => _ReminderSettingsViewState();
+}
+
+class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
+  @override
+  void initState() {
+    super.initState();
+    // Delay API call để UI hiển thị trước
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = context.read<ReminderSettingsViewModel>();
+      if (!viewModel.isInitialized) {
+        viewModel.refreshSettings();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
