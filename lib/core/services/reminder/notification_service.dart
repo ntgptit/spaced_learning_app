@@ -100,11 +100,7 @@ class NotificationService {
   }
 
   AndroidInitializationSettings _getAndroidSettings() {
-    if (_deviceSpecificService.isSamsungDevice) {
-      return const AndroidInitializationSettings('app_icon_samsung');
-    } else {
-      return const AndroidInitializationSettings('app_icon');
-    }
+      return const AndroidInitializationSettings('ic_launcher');
   }
 
   Future<bool> _createNotificationChannels() async {

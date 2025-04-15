@@ -97,10 +97,8 @@ Future<void> setupServiceLocator() async {
   final notificationService = NotificationService(
     deviceSpecificService: serviceLocator<DeviceSpecificService>(),
   );
-  await notificationService.initialize(); // Đảm bảo đã khởi tạo
-  serviceLocator.registerLazySingleton<NotificationService>(
-    () => notificationService,
-  );
+  serviceLocator.registerSingleton<NotificationService>(notificationService);
+  await notificationService.initialize();
 
   // AlarmManagerService
   serviceLocator.registerLazySingleton<AlarmManagerService>(
