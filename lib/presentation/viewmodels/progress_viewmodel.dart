@@ -1,31 +1,29 @@
 // lib/presentation/viewmodels/progress_viewmodel.dart
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
+import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:spaced_learning_app/core/events/app_events.dart';
+import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/repositories/progress_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 class ProgressViewModel extends BaseViewModel {
   final ProgressRepository progressRepository;
-  final ReminderManager? reminderManager;
+  final EventBus eventBus;
 
   bool _isLoadingDueProgress = false;
   bool _isLoadingDetails = false;
   bool _isUpdating = false;
-  bool _isSchedulingReminders = false;
 
   List<ProgressSummary> _progressRecords = [];
   ProgressDetail? _selectedProgress;
 
-  ProgressViewModel({
-    required this.progressRepository,
-    this.reminderManager, // Optional to avoid issues in unit tests
-  });
+  ProgressViewModel({required this.progressRepository, required this.eventBus});
 
   bool get isLoadingDueProgress => _isLoadingDueProgress;
   bool get isLoadingDetails => _isLoadingDetails;
   bool get isUpdating => _isUpdating;
-  bool get isSchedulingReminders => _isSchedulingReminders;
 
   List<ProgressSummary> get progressRecords => _progressRecords;
   ProgressDetail? get selectedProgress => _selectedProgress;
@@ -55,16 +53,16 @@ class ProgressViewModel extends BaseViewModel {
 
         debugPrint('Progress list length: ${progressList.length}');
 
-        if (progressList.isNotEmpty) {
-          final progressDetail = await progressRepository.getProgressById(
-            progressList[0].id,
-          );
-          _selectedProgress = progressDetail;
-          return progressDetail;
-        } else {
+        if (progressList.isEmpty) {
           _selectedProgress = null;
           return null;
         }
+
+        final progressDetail = await progressRepository.getProgressById(
+          progressList[0].id,
+        );
+        _selectedProgress = progressDetail;
+        return progressDetail;
       },
       errorPrefix: 'Failed to load module progress',
     );
@@ -96,8 +94,10 @@ class ProgressViewModel extends BaseViewModel {
 
       _progressRecords = result;
 
-      // Safely schedule reminders after loading progress
-      await _scheduleReminders();
+      // Fire event to notify about task status using event_bus library
+      eventBus.fire(
+        ProgressChangedEvent(userId: userId, hasDueTasks: result.isNotEmpty),
+      );
 
       updateLastUpdated();
     } catch (e) {
@@ -128,8 +128,12 @@ class ProgressViewModel extends BaseViewModel {
           percentComplete: percentComplete,
         );
 
-        // Safely schedule reminders after creating progress
-        await _scheduleReminders();
+        // Fire event for progress creation
+        if (userId != null) {
+          eventBus.fire(
+            ProgressChangedEvent(userId: userId, hasDueTasks: true),
+          );
+        }
 
         return progress;
       },
@@ -161,8 +165,14 @@ class ProgressViewModel extends BaseViewModel {
           _selectedProgress = progress;
         }
 
-        // Safely update reminders after task completion
-        await _updateRemindersAfterTaskCompletion();
+        // Fire event for task completion
+        final userData = await serviceLocator<StorageService>().getUserData();
+        final userId = userData?['id'];
+        if (userId != null) {
+          eventBus.fire(
+            TaskCompletedEvent(userId: userId.toString(), progressId: id),
+          );
+        }
 
         return progress;
       },
@@ -170,51 +180,5 @@ class ProgressViewModel extends BaseViewModel {
     );
     _isUpdating = false;
     return result;
-  }
-
-  // Safely handle reminder scheduling
-  Future<bool> _scheduleReminders() async {
-    if (reminderManager == null) return false;
-    if (_isSchedulingReminders) return false;
-
-    _isSchedulingReminders = true;
-    try {
-      final result = await reminderManager!.scheduleAllReminders();
-      debugPrint('[ProgressViewModel] Reminders scheduled: $result');
-      return result;
-    } catch (e) {
-      debugPrint('[ProgressViewModel] Error scheduling reminders: $e');
-      return false;
-    } finally {
-      _isSchedulingReminders = false;
-    }
-  }
-
-  // Safely handle reminder updates after task completion
-  Future<bool> _updateRemindersAfterTaskCompletion() async {
-    if (reminderManager == null) return false;
-    if (_isSchedulingReminders) return false;
-
-    _isSchedulingReminders = true;
-    try {
-      final result =
-          await reminderManager!.updateRemindersAfterTaskCompletion();
-      debugPrint(
-        '[ProgressViewModel] Reminders updated after task completion: $result',
-      );
-      return result;
-    } catch (e) {
-      debugPrint(
-        '[ProgressViewModel] Error updating reminders after task completion: $e',
-      );
-      return false;
-    } finally {
-      _isSchedulingReminders = false;
-    }
-  }
-
-  // Force manual refresh of reminders, exposed to UI
-  Future<bool> refreshReminders() async {
-    return _scheduleReminders();
   }
 }

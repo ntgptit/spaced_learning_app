@@ -1,13 +1,15 @@
 // lib/presentation/viewmodels/reminder_settings_viewmodel.dart
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:spaced_learning_app/core/events/app_events.dart';
 import 'package:spaced_learning_app/core/services/platform/device_settings_service.dart';
-import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
+import 'package:spaced_learning_app/core/services/reminder/reminder_service.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
 class ReminderSettingsViewModel extends BaseViewModel {
-  final ReminderManager _reminderManager;
-  final DeviceSettingsService _deviceSettingsService = DeviceSettingsService();
+  final ReminderService _reminderService;
+  final DeviceSettingsService _deviceSettingsService;
+  final EventBus _eventBus;
 
   bool _remindersEnabled = true;
   bool _noonReminderEnabled = true;
@@ -30,8 +32,13 @@ class ReminderSettingsViewModel extends BaseViewModel {
   bool get isIgnoringBatteryOptimizations => _isIgnoringBatteryOptimizations;
   Map<String, dynamic> get deviceInfo => _deviceInfo;
 
-  ReminderSettingsViewModel({ReminderManager? reminderManager})
-    : _reminderManager = reminderManager ?? serviceLocator<ReminderManager>() {
+  ReminderSettingsViewModel({
+    required ReminderService reminderService,
+    required DeviceSettingsService deviceSettingsService,
+    required EventBus eventBus,
+  }) : _reminderService = reminderService,
+       _deviceSettingsService = deviceSettingsService,
+       _eventBus = eventBus {
     _loadSettings();
   }
 
@@ -39,13 +46,14 @@ class ReminderSettingsViewModel extends BaseViewModel {
     beginLoading();
     try {
       // Load reminder settings
-      _remindersEnabled = _reminderManager.remindersEnabled;
-      _noonReminderEnabled = _reminderManager.noonReminderEnabled;
+      _remindersEnabled = await _reminderService.getRemindersEnabled();
+      _noonReminderEnabled = await _reminderService.getNoonReminderEnabled();
       _eveningFirstReminderEnabled =
-          _reminderManager.eveningFirstReminderEnabled;
+          await _reminderService.getEveningFirstReminderEnabled();
       _eveningSecondReminderEnabled =
-          _reminderManager.eveningSecondReminderEnabled;
-      _endOfDayReminderEnabled = _reminderManager.endOfDayReminderEnabled;
+          await _reminderService.getEveningSecondReminderEnabled();
+      _endOfDayReminderEnabled =
+          await _reminderService.getEndOfDayReminderEnabled();
 
       // Load device permissions status
       await _loadDevicePermissions();
@@ -84,9 +92,11 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
     beginLoading();
     try {
-      final success = await _reminderManager.setRemindersEnabled(value);
+      final success = await _reminderService.setRemindersEnabled(value);
       if (success) {
         _remindersEnabled = value;
+        // Fire event for setting change using event_bus library
+        _eventBus.fire(ReminderSettingsChangedEvent(enabled: value));
         notifyListeners();
       }
       return success;
@@ -104,7 +114,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
     beginLoading();
     try {
-      final success = await _reminderManager.setNoonReminderEnabled(value);
+      final success = await _reminderService.setNoonReminderEnabled(value);
       if (success) {
         _noonReminderEnabled = value;
         notifyListeners();
@@ -124,7 +134,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
     beginLoading();
     try {
-      final success = await _reminderManager.setEveningFirstReminderEnabled(
+      final success = await _reminderService.setEveningFirstReminderEnabled(
         value,
       );
       if (success) {
@@ -146,7 +156,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
     beginLoading();
     try {
-      final success = await _reminderManager.setEveningSecondReminderEnabled(
+      final success = await _reminderService.setEveningSecondReminderEnabled(
         value,
       );
       if (success) {
@@ -171,7 +181,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
     beginLoading();
     try {
-      final success = await _reminderManager.setEndOfDayReminderEnabled(value);
+      final success = await _reminderService.setEndOfDayReminderEnabled(value);
       if (success) {
         _endOfDayReminderEnabled = value;
         notifyListeners();
@@ -204,7 +214,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to request battery optimization
+  // Method to request battery optimization exemption
   Future<bool> requestBatteryOptimization() async {
     beginLoading();
     try {
@@ -247,5 +257,11 @@ class ReminderSettingsViewModel extends BaseViewModel {
     } finally {
       endLoading();
     }
+  }
+
+  @override
+  void dispose() {
+    // Clean up any resources if needed
+    super.dispose();
   }
 }

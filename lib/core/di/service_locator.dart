@@ -1,4 +1,5 @@
 // lib/core/di/service_locator.dart
+import 'package:event_bus/event_bus.dart';
 import 'package:get_it/get_it.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
@@ -8,7 +9,7 @@ import 'package:spaced_learning_app/core/services/reminder/alarm_manager_service
 import 'package:spaced_learning_app/core/services/reminder/cloud_reminder_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/notification_service.dart';
-import 'package:spaced_learning_app/core/services/reminder/reminder_manager.dart';
+import 'package:spaced_learning_app/core/services/reminder/reminder_service.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/data/repositories/auth_repository_impl.dart';
 import 'package:spaced_learning_app/data/repositories/book_repository_impl.dart';
@@ -44,6 +45,9 @@ Future<void> setupServiceLocator() async {
   // === CORE SERVICES ===
   serviceLocator.registerLazySingleton<ApiClient>(() => ApiClient());
   serviceLocator.registerLazySingleton<StorageService>(() => StorageService());
+
+  // Event Bus (singleton để chia sẻ cùng instance)
+  serviceLocator.registerLazySingleton<EventBus>(() => EventBus());
 
   // Device Specific Services
   serviceLocator.registerLazySingleton<DeviceSpecificService>(
@@ -116,8 +120,18 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
+  // ReminderService (thay thế ReminderManager)
+  serviceLocator.registerLazySingleton<ReminderService>(
+    () => ReminderService(
+      notificationService: serviceLocator<NotificationService>(),
+      storageService: serviceLocator<StorageService>(),
+      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+      progressRepository: serviceLocator<ProgressRepository>(),
+      eventBus: serviceLocator<EventBus>(),
+    ),
+  );
+
   // === VIEWMODELS ===
-  // Đăng ký các ViewModel không phụ thuộc vào ReminderManager trước
   serviceLocator.registerFactory<AuthViewModel>(
     () => AuthViewModel(
       authRepository: serviceLocator<AuthRepository>(),
@@ -131,6 +145,14 @@ Future<void> setupServiceLocator() async {
 
   serviceLocator.registerFactory<ModuleViewModel>(
     () => ModuleViewModel(moduleRepository: serviceLocator<ModuleRepository>()),
+  );
+
+  // Cập nhật ProgressViewModel với EventBus thay vì ReminderManager
+  serviceLocator.registerFactory<ProgressViewModel>(
+    () => ProgressViewModel(
+      progressRepository: serviceLocator<ProgressRepository>(),
+      eventBus: serviceLocator<EventBus>(),
+    ),
   );
 
   serviceLocator.registerFactory<RepetitionViewModel>(
@@ -159,37 +181,12 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
-  // Đăng ký ProgressViewModel tạm thời không có ReminderManager
-  serviceLocator.registerFactory<ProgressViewModel>(
-    () => ProgressViewModel(
-      progressRepository: serviceLocator<ProgressRepository>(),
-      reminderManager: null, // Tạm thời null
-    ),
-  );
-
-  // ReminderManager (đăng ký sau các ViewModel cần thiết nhưng không tham chiếu đến ProgressViewModel)
-  serviceLocator.registerLazySingleton<ReminderManager>(
-    () => ReminderManager(
-      notificationService: serviceLocator<NotificationService>(),
-      storageService: serviceLocator<StorageService>(),
-      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
-      // Không truyền progressViewModel để tránh circular dependency
-    ),
-  );
-
-  // Ghi đè đăng ký cho ProgressViewModel với ReminderManager
-  serviceLocator.unregister<ProgressViewModel>();
-  serviceLocator.registerFactory<ProgressViewModel>(
-    () => ProgressViewModel(
-      progressRepository: serviceLocator<ProgressRepository>(),
-      reminderManager: serviceLocator<ReminderManager>(),
-    ),
-  );
-
-  // Đăng ký ReminderSettingsViewModel cuối cùng
+  // Đăng ký ReminderSettingsViewModel với ReminderService & EventBus
   serviceLocator.registerFactory<ReminderSettingsViewModel>(
     () => ReminderSettingsViewModel(
-      reminderManager: serviceLocator<ReminderManager>(),
+      reminderService: serviceLocator<ReminderService>(),
+      deviceSettingsService: serviceLocator<DeviceSettingsService>(),
+      eventBus: serviceLocator<EventBus>(),
     ),
   );
 }

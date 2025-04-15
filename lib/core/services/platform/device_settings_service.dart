@@ -79,7 +79,7 @@ class DeviceSettingsService {
       return Map<String, dynamic>.from(info);
     } on PlatformException catch (e) {
       debugPrint('Error getting device info: ${e.message}');
-      return {};
+      return {'sdkVersion': 0, 'manufacturer': 'Unknown', 'model': 'Unknown'};
     }
   }
 }
