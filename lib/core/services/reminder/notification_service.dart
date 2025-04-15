@@ -1,5 +1,5 @@
 // lib/core/services/reminder/notification_service.dart
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
@@ -12,6 +12,7 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   late final DeviceSpecificService _deviceSpecificService;
   bool _isInitialized = false;
+  bool _timezonesInitialized = false;
 
   NotificationService({DeviceSpecificService? deviceSpecificService})
     : _deviceSpecificService =
@@ -31,10 +32,28 @@ class NotificationService {
     if (_isInitialized) return true;
 
     try {
-      tz.initializeTimeZones();
+      // Khởi tạo timezones an toàn
+      if (!_timezonesInitialized) {
+        try {
+          tz.initializeTimeZones();
+          _timezonesInitialized = true;
 
-      final String timeZoneName = tz.local.name;
-      debugPrint('Local timezone: $timeZoneName');
+          final String timeZoneName = tz.local.name;
+          debugPrint('Local timezone: $timeZoneName');
+        } catch (e) {
+          debugPrint('Error initializing timezone data: $e');
+          // Tiếp tục, vì một số tính năng vẫn có thể hoạt động mà không cần timezone
+        }
+      }
+
+      // Chỉ tiếp tục khởi tạo notification trên nền tảng di động
+      if (kIsWeb) {
+        debugPrint(
+          'Running on web platform, skipping native notification setup',
+        );
+        _isInitialized = true;
+        return true;
+      }
 
       final AndroidInitializationSettings androidSettings =
           _getAndroidSettings();
@@ -60,9 +79,11 @@ class NotificationService {
         return false;
       }
 
-      final bool channelsCreated = await _createNotificationChannels();
-      if (!channelsCreated) {
-        debugPrint('Warning: Failed to create notification channels');
+      if (_deviceSpecificService.isAndroid) {
+        final bool channelsCreated = await _createNotificationChannels();
+        if (!channelsCreated) {
+          debugPrint('Warning: Failed to create notification channels');
+        }
       }
 
       final bool permissionsGranted = await _requestPermissions();
@@ -190,6 +211,11 @@ class NotificationService {
     String? payload,
     bool isImportant = false,
   }) async {
+    if (kIsWeb) {
+      debugPrint('Notifications not supported on web platform');
+      return false;
+    }
+
     if (!_isInitialized) {
       final bool initialized = await initialize();
       if (!initialized) return false;
@@ -246,9 +272,19 @@ class NotificationService {
     bool isImportant = false,
     bool isAlarmStyle = false,
   }) async {
+    if (kIsWeb) {
+      debugPrint('Scheduled notifications not supported on web platform');
+      return false;
+    }
+
     if (!_isInitialized) {
       final bool initialized = await initialize();
       if (!initialized) return false;
+    }
+
+    if (!_timezonesInitialized) {
+      debugPrint('Timezones not initialized, cannot schedule notification');
+      return false;
     }
 
     try {
@@ -301,10 +337,14 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(
-        scheduledTime,
-        tz.local,
-      );
+      tz.TZDateTime tzScheduledTime;
+      try {
+        tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+      } catch (e) {
+        debugPrint('Error converting to TZ datetime: $e');
+        // Fall back to UTC if local timezone fails
+        tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.UTC);
+      }
 
       await _notificationsPlugin.zonedSchedule(
         id,
@@ -332,6 +372,11 @@ class NotificationService {
   }
 
   Future<bool> cancelNotification(int id) async {
+    if (kIsWeb) {
+      debugPrint('Notifications not supported on web platform');
+      return false;
+    }
+
     if (!_isInitialized) {
       debugPrint(
         'Notification service not initialized, skipping cancel notification',
@@ -350,6 +395,11 @@ class NotificationService {
   }
 
   Future<bool> cancelAllNotifications() async {
+    if (kIsWeb) {
+      debugPrint('Notifications not supported on web platform');
+      return false;
+    }
+
     if (!_isInitialized) {
       debugPrint(
         'Notification service not initialized, skipping cancel all notifications',
@@ -465,4 +515,5 @@ class NotificationService {
   }
 
   bool get isInitialized => _isInitialized;
+  bool get timezonesInitialized => _timezonesInitialized;
 }

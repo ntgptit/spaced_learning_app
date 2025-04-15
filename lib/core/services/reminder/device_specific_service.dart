@@ -1,3 +1,4 @@
+// lib/core/services/reminder/device_specific_service.dart
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -17,7 +18,12 @@ class DeviceSpecificService {
     if (_isInitialized) return true;
 
     try {
-      if (isAndroid) {
+      if (kIsWeb) {
+        _isInitialized = true;
+        return true;
+      }
+
+      if (_isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
 
         _deviceModel = androidInfo.model;
@@ -95,16 +101,24 @@ class DeviceSpecificService {
 
   Future<bool> _configureAndroid12Features() async {
     try {
+      if (!_isAndroid) return false;
+
       const methodChannel = MethodChannel(
         'com.example.spaced_learning_app.device/optimization',
       );
-      final bool result = await methodChannel.invokeMethod(
-        'requestExactAlarmPermission',
-      );
-      return result;
-    } on PlatformException catch (e) {
-      debugPrint('Failed to configure Android 12 features: ${e.message}');
-      return false;
+
+      try {
+        final bool result = await methodChannel.invokeMethod(
+          'requestExactAlarmPermission',
+        );
+        return result;
+      } on PlatformException catch (e) {
+        debugPrint('Failed to configure Android 12 features: ${e.message}');
+        return false;
+      } on MissingPluginException {
+        debugPrint('Plugin not available on this platform');
+        return false;
+      }
     } catch (e) {
       debugPrint('Unexpected error configuring Android 12 features: $e');
       return false;
@@ -113,14 +127,22 @@ class DeviceSpecificService {
 
   Future<bool> _configureGeneralSamsungFeatures() async {
     try {
+      if (!_isAndroid) return false;
+
       const methodChannel = MethodChannel('com.yourapp.device/optimization');
-      final bool result = await methodChannel.invokeMethod(
-        'disableSleepingApps',
-      );
-      return result;
-    } on PlatformException catch (e) {
-      debugPrint('Failed to configure Samsung features: ${e.message}');
-      return false;
+
+      try {
+        final bool result = await methodChannel.invokeMethod(
+          'disableSleepingApps',
+        );
+        return result;
+      } on PlatformException catch (e) {
+        debugPrint('Failed to configure Samsung features: ${e.message}');
+        return false;
+      } on MissingPluginException {
+        debugPrint('Plugin not available on this platform');
+        return false;
+      }
     } catch (e) {
       debugPrint('Unexpected error configuring Samsung features: $e');
       return false;
@@ -129,6 +151,8 @@ class DeviceSpecificService {
 
   Future<bool> _requestBatteryOptimizationExclusion() async {
     try {
+      if (!_isAndroid) return true;
+
       final status = await Permission.ignoreBatteryOptimizations.status;
 
       if (status.isGranted) {
@@ -148,6 +172,8 @@ class DeviceSpecificService {
   }
 
   Future<bool> _configureS23UltraFeatures() async {
+    if (!_isAndroid) return false;
+
     bool overallSuccess = true;
 
     try {
@@ -162,6 +188,9 @@ class DeviceSpecificService {
       } on PlatformException catch (e) {
         debugPrint('Failed to disable Game Optimizer: ${e.message}');
         overallSuccess = false;
+      } on MissingPluginException {
+        debugPrint('Plugin not available on this platform');
+        overallSuccess = false;
       }
 
       bool hasEdgePanel = false;
@@ -170,6 +199,8 @@ class DeviceSpecificService {
         debugPrint('Device has Edge Panel: $hasEdgePanel');
       } on PlatformException catch (e) {
         debugPrint('Failed to check Edge Panel availability: ${e.message}');
+      } on MissingPluginException {
+        debugPrint('Plugin not available on this platform');
       }
 
       if (hasEdgePanel) {
@@ -182,6 +213,9 @@ class DeviceSpecificService {
         } on PlatformException catch (e) {
           debugPrint('Failed to register Edge Panel provider: ${e.message}');
           overallSuccess = false;
+        } on MissingPluginException {
+          debugPrint('Plugin not available on this platform');
+          overallSuccess = false;
         }
       }
 
@@ -192,19 +226,22 @@ class DeviceSpecificService {
     }
   }
 
-  bool get isAndroid {
-    return defaultTargetPlatform == TargetPlatform.android;
+  bool get _isAndroid {
+    if (kIsWeb) return false;
+
+    try {
+      return defaultTargetPlatform == TargetPlatform.android;
+    } catch (e) {
+      debugPrint('Error checking platform: $e');
+      return false;
+    }
   }
 
+  bool get isAndroid => _isAndroid;
   bool get isSamsungDevice => _isSamsungDevice;
-
   bool get isS23Ultra => _isS23Ultra;
-
   String? get deviceModel => _deviceModel;
-
   int get sdkVersion => _sdkVersion;
-
   String? get manufacturer => _manufacturer;
-
   bool get isInitialized => _isInitialized;
 }

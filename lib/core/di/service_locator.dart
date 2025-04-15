@@ -39,19 +39,20 @@ import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 
 final GetIt serviceLocator = GetIt.instance;
-
-/// Initialize all dependencies
+// lib/core/di/service_locator.dart (chỉ cần cập nhật phần setupServiceLocator)
 Future<void> setupServiceLocator() async {
-  // === CORE SERVICES ===
+  // Đăng ký các dịch vụ cơ bản trước
   serviceLocator.registerLazySingleton<ApiClient>(() => ApiClient());
   serviceLocator.registerLazySingleton<StorageService>(() => StorageService());
 
   // Event Bus (singleton để chia sẻ cùng instance)
   serviceLocator.registerLazySingleton<EventBus>(() => EventBus());
 
-  // Device Specific Services
+  // Device Specific Services - khởi tạo sớm và an toàn cho multiplatform
+  final deviceSpecificService = DeviceSpecificService();
+  await deviceSpecificService.initialize(); // Đảm bảo đã khởi tạo
   serviceLocator.registerLazySingleton<DeviceSpecificService>(
-    () => DeviceSpecificService(),
+    () => deviceSpecificService,
   );
 
   serviceLocator.registerLazySingleton<DeviceSettingsService>(
@@ -92,11 +93,13 @@ Future<void> setupServiceLocator() async {
   );
 
   // === NOTIFICATION SERVICES ===
-  // NotificationService
+  // NotificationService - khởi tạo sớm
+  final notificationService = NotificationService(
+    deviceSpecificService: serviceLocator<DeviceSpecificService>(),
+  );
+  await notificationService.initialize(); // Đảm bảo đã khởi tạo
   serviceLocator.registerLazySingleton<NotificationService>(
-    () => NotificationService(
-      deviceSpecificService: serviceLocator<DeviceSpecificService>(),
-    ),
+    () => notificationService,
   );
 
   // AlarmManagerService

@@ -1,6 +1,5 @@
 // lib/core/services/platform/device_settings_service.dart
-import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,9 +8,21 @@ class DeviceSettingsService {
     'com.example.spaced_learning_app.device/optimization',
   );
 
+  // Kiểm tra xem thiết bị có phải là Android không
+  bool get isAndroid {
+    if (kIsWeb) return false;
+
+    try {
+      return defaultTargetPlatform == TargetPlatform.android;
+    } catch (e) {
+      debugPrint('Error checking platform: $e');
+      return false;
+    }
+  }
+
   // Kiểm tra xem ứng dụng có quyền đặt alarm chính xác (Android 12+)
   Future<bool> hasExactAlarmPermission() async {
-    if (!Platform.isAndroid) {
+    if (!isAndroid) {
       return true; // Mặc định true cho các platform khác Android
     }
 
@@ -34,7 +45,7 @@ class DeviceSettingsService {
 
   // Kiểm tra xem ứng dụng có đang được bỏ qua tối ưu hóa pin
   Future<bool> isIgnoringBatteryOptimizations() async {
-    if (!Platform.isAndroid) {
+    if (!isAndroid) {
       return true; // Mặc định true cho các platform khác Android
     }
 
@@ -57,7 +68,7 @@ class DeviceSettingsService {
 
   // Yêu cầu quyền đặt alarm chính xác (Android 12+)
   Future<bool> requestExactAlarmPermission() async {
-    if (!Platform.isAndroid) {
+    if (!isAndroid) {
       return true; // Mặc định true cho các platform khác Android
     }
 
@@ -80,7 +91,7 @@ class DeviceSettingsService {
 
   // Yêu cầu bỏ qua tối ưu hóa pin
   Future<bool> requestBatteryOptimization() async {
-    if (!Platform.isAndroid) {
+    if (!isAndroid) {
       return true; // Mặc định true cho các platform khác Android
     }
 
@@ -103,7 +114,7 @@ class DeviceSettingsService {
 
   // Mở cài đặt để vô hiệu hóa ứng dụng ngủ (dành riêng cho các thiết bị cụ thể)
   Future<bool> disableSleepingApps() async {
-    if (!Platform.isAndroid) {
+    if (!isAndroid) {
       return true; // Mặc định true cho các platform khác Android
     }
 
@@ -124,11 +135,11 @@ class DeviceSettingsService {
 
   // Lấy thông tin thiết bị
   Future<Map<String, dynamic>> getDeviceInfo() async {
-    if (!Platform.isAndroid) {
+    if (!isAndroid) {
       return {
         'sdkVersion': 0,
-        'manufacturer': Platform.operatingSystem,
-        'model': Platform.operatingSystemVersion,
+        'manufacturer': defaultTargetPlatform.toString(),
+        'model': 'Unknown',
       };
     }
 
