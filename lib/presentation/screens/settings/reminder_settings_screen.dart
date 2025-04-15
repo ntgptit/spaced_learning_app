@@ -1,4 +1,3 @@
-// lib/presentation/screens/settings/reminder_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
@@ -21,7 +20,6 @@ class ReminderSettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sử dụng service locator để lấy ViewModel đã đăng ký
     return ChangeNotifierProvider<ReminderSettingsViewModel>.value(
       value: serviceLocator<ReminderSettingsViewModel>(),
       child: const _ReminderSettingsView(),
@@ -40,7 +38,6 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
   @override
   void initState() {
     super.initState();
-    // Delay API call để UI hiển thị trước
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<ReminderSettingsViewModel>();
       if (!viewModel.isInitialized) {
@@ -356,8 +353,6 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
 
                       const SizedBox(height: AppDimens.spaceM),
 
-                      // Chỉ hiển thị quyền Exact Alarm trên Android 12+
-                      // Giả sử SDK Version 31 là Android 12
                       if (viewModel.deviceInfo['sdkVersion'] != null &&
                           viewModel.deviceInfo['sdkVersion'] >= 31)
                         _buildPermissionItem(

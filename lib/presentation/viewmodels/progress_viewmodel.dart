@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/progress_viewmodel.dart
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/core/di/service_locator.dart';
@@ -94,7 +93,6 @@ class ProgressViewModel extends BaseViewModel {
 
       _progressRecords = result;
 
-      // Fire event to notify about task status using event_bus library
       eventBus.fire(
         ProgressChangedEvent(userId: userId, hasDueTasks: result.isNotEmpty),
       );
@@ -128,7 +126,6 @@ class ProgressViewModel extends BaseViewModel {
           percentComplete: percentComplete,
         );
 
-        // Fire event for progress creation
         if (userId != null) {
           eventBus.fire(
             ProgressChangedEvent(userId: userId, hasDueTasks: true),
@@ -165,7 +162,6 @@ class ProgressViewModel extends BaseViewModel {
           _selectedProgress = progress;
         }
 
-        // Fire event for task completion
         final userData = await serviceLocator<StorageService>().getUserData();
         final userId = userData?['id'];
         if (userId != null) {

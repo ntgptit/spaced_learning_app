@@ -1,4 +1,3 @@
-// lib/core/events/app_events.dart
 class ProgressChangedEvent {
   final String userId;
   final bool hasDueTasks;

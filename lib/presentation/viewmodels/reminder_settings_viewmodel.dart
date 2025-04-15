@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/reminder_settings_viewmodel.dart
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/events/app_events.dart';
@@ -17,7 +16,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
   bool _eveningSecondReminderEnabled = true;
   bool _endOfDayReminderEnabled = true;
 
-  // Device permissions status
   bool _hasExactAlarmPermission = false;
   bool _isIgnoringBatteryOptimizations = false;
   Map<String, dynamic> _deviceInfo = {};
@@ -45,7 +43,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
   Future<void> _loadSettings() async {
     beginLoading();
     try {
-      // Load reminder settings
       _remindersEnabled = await _reminderService.getRemindersEnabled();
       _noonReminderEnabled = await _reminderService.getNoonReminderEnabled();
       _eveningFirstReminderEnabled =
@@ -55,7 +52,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
       _endOfDayReminderEnabled =
           await _reminderService.getEndOfDayReminderEnabled();
 
-      // Load device permissions status
       await _loadDevicePermissions();
 
       setInitialized(true);
@@ -75,7 +71,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
       _deviceInfo = await _deviceSettingsService.getDeviceInfo();
     } catch (e) {
       debugPrint('Error loading device permissions: $e');
-      // Set default values
       _hasExactAlarmPermission = false;
       _isIgnoringBatteryOptimizations = false;
       _deviceInfo = {
@@ -86,7 +81,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to set main reminders enabled/disabled
   Future<bool> setRemindersEnabled(bool value) async {
     if (_remindersEnabled == value) return true;
 
@@ -95,7 +89,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
       final success = await _reminderService.setRemindersEnabled(value);
       if (success) {
         _remindersEnabled = value;
-        // Fire event for setting change using event_bus library
         _eventBus.fire(ReminderSettingsChangedEvent(enabled: value));
         notifyListeners();
       }
@@ -108,7 +101,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to set noon reminder enabled/disabled
   Future<bool> setNoonReminderEnabled(bool value) async {
     if (_noonReminderEnabled == value) return true;
 
@@ -128,7 +120,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to set evening first reminder enabled/disabled
   Future<bool> setEveningFirstReminderEnabled(bool value) async {
     if (_eveningFirstReminderEnabled == value) return true;
 
@@ -150,7 +141,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to set evening second reminder enabled/disabled
   Future<bool> setEveningSecondReminderEnabled(bool value) async {
     if (_eveningSecondReminderEnabled == value) return true;
 
@@ -175,7 +165,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to set end of day reminder enabled/disabled
   Future<bool> setEndOfDayReminderEnabled(bool value) async {
     if (_endOfDayReminderEnabled == value) return true;
 
@@ -195,7 +184,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to request exact alarm permission
   Future<bool> requestExactAlarmPermission() async {
     beginLoading();
     try {
@@ -214,7 +202,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to request battery optimization exemption
   Future<bool> requestBatteryOptimization() async {
     beginLoading();
     try {
@@ -233,7 +220,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to disable sleeping apps
   Future<bool> disableSleepingApps() async {
     beginLoading();
     try {
@@ -247,7 +233,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
-  // Method to refresh all settings
   Future<void> refreshSettings() async {
     beginLoading();
     try {
@@ -261,7 +246,6 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
   @override
   void dispose() {
-    // Clean up any resources if needed
     super.dispose();
   }
 }

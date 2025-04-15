@@ -1,4 +1,3 @@
-// lib/core/utils/error_handler.dart
 import 'package:flutter/foundation.dart';
 
 class ErrorHandler {

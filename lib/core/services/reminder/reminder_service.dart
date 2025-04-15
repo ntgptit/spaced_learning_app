@@ -1,4 +1,3 @@
-// lib/core/services/reminder/reminder_service.dart
 import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
@@ -16,7 +15,6 @@ class ReminderService {
   final ProgressRepository _progressRepository;
   final EventBus _eventBus;
 
-  // Để quản lý subscriptions
   final List<StreamSubscription> _subscriptions = [];
 
   bool _isInitialized = false;
@@ -33,26 +31,22 @@ class ReminderService {
        _deviceSpecificService = deviceSpecificService,
        _progressRepository = progressRepository,
        _eventBus = eventBus {
-    // Lắng nghe các sự kiện
     _listenToEvents();
   }
 
   void _listenToEvents() {
-    // Đăng ký để nhận sự kiện ProgressChangedEvent
     _subscriptions.add(
       _eventBus.on<ProgressChangedEvent>().listen((event) {
         _handleProgressChanged(event);
       }),
     );
 
-    // Đăng ký để nhận sự kiện TaskCompletedEvent
     _subscriptions.add(
       _eventBus.on<TaskCompletedEvent>().listen((event) {
         _handleTaskCompleted(event);
       }),
     );
 
-    // Đăng ký để nhận sự kiện ReminderSettingsChangedEvent
     _subscriptions.add(
       _eventBus.on<ReminderSettingsChangedEvent>().listen((event) {
         _handleSettingsChanged(event);
@@ -60,7 +54,6 @@ class ReminderService {
     );
   }
 
-  // Phương thức để hủy đăng ký tất cả sự kiện khi không còn cần thiết
   void dispose() {
     for (var subscription in _subscriptions) {
       subscription.cancel();
@@ -69,19 +62,16 @@ class ReminderService {
   }
 
   void _handleProgressChanged(ProgressChangedEvent event) {
-    // Schedule reminders based on due tasks
     if (event.hasDueTasks) {
       scheduleAllReminders();
     }
   }
 
   void _handleTaskCompleted(TaskCompletedEvent event) {
-    // Update reminders after task completion
     updateRemindersAfterTaskCompletion();
   }
 
   void _handleSettingsChanged(ReminderSettingsChangedEvent event) {
-    // Enable/disable reminders based on settings
     if (event.enabled) {
       scheduleAllReminders();
     } else {
@@ -122,10 +112,7 @@ class ReminderService {
   }
 
   Future<void> _loadPreferences() async {
-    // Implementation for loading reminder preferences
     try {
-      // Sử dụng StorageService để tải tất cả cài đặt nhắc nhở từ local storage
-      // Không cần lưu trữ trong biến instance vì sẽ tải trực tiếp từ storage khi cần
       debugPrint('Reminder preferences loaded');
     } catch (e) {
       debugPrint('Error loading reminder preferences: $e');
@@ -266,7 +253,6 @@ class ReminderService {
     }
   }
 
-  // Getter methods to read reminder settings
   Future<bool> getRemindersEnabled() async {
     return await _storageService.getBool('reminders_enabled') ?? true;
   }
@@ -289,7 +275,6 @@ class ReminderService {
     return await _storageService.getBool('end_of_day_reminder_enabled') ?? true;
   }
 
-  // Setter methods to persist reminder settings and update notifications
   Future<bool> setRemindersEnabled(bool value) async {
     try {
       await _storageService.setBool('reminders_enabled', value);

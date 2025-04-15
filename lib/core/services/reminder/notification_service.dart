@@ -1,4 +1,3 @@
-// lib/core/services/reminder/notification_service.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
@@ -32,7 +31,6 @@ class NotificationService {
     if (_isInitialized) return true;
 
     try {
-      // Khởi tạo timezones an toàn
       if (!_timezonesInitialized) {
         try {
           tz.initializeTimeZones();
@@ -42,11 +40,9 @@ class NotificationService {
           debugPrint('Local timezone: $timeZoneName');
         } catch (e) {
           debugPrint('Error initializing timezone data: $e');
-          // Tiếp tục, vì một số tính năng vẫn có thể hoạt động mà không cần timezone
         }
       }
 
-      // Chỉ tiếp tục khởi tạo notification trên nền tảng di động
       if (kIsWeb) {
         debugPrint(
           'Running on web platform, skipping native notification setup',
@@ -338,7 +334,6 @@ class NotificationService {
         tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
       } catch (e) {
         debugPrint('Error converting to TZ datetime: $e');
-        // Fall back to UTC if local timezone fails
         tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.UTC);
       }
 
