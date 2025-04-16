@@ -22,7 +22,7 @@ class AppRouter {
   AppRouter(this.authViewModel);
 
   late final router = GoRouter(
-    refreshListenable: authViewModel, // Refresh khi auth state thay đổi
+    refreshListenable: authViewModel,
     debugLogDiagnostics: true,
     initialLocation: '/',
     redirect: (context, state) {
@@ -38,7 +38,7 @@ class AppRouter {
       return null;
     },
     observers: [
-      routeObserver, // Thêm route observer vào danh sách observers
+      routeObserver,
       GoRouterObserver(
         onPop: (route, result) {
           debugPrint('Popped route: ${route.settings.name}');
@@ -47,6 +47,16 @@ class AppRouter {
     ],
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+
+      // Thêm route trực tiếp cho Progress Detail screen
+      GoRoute(
+        path: '/progress/:id',
+        name: 'progressDetail',
+        builder: (context, state) {
+          final progressId = state.pathParameters['id'];
+          return ProgressDetailScreen(progressId: progressId ?? '');
+        },
+      ),
 
       ShellRoute(
         builder: (context, state, child) {

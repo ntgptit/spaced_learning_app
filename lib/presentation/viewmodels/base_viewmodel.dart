@@ -28,18 +28,23 @@ abstract class BaseViewModel extends ChangeNotifier {
     final wasLoading = _isLoading;
     _isLoading = true;
     if (!wasLoading) {
+      debugPrint('${runtimeType.toString()}: beginLoading()');
       notifyListeners();
     }
   }
 
   void endLoading() {
-    _isLoading = false;
-    notifyListeners();
+    if (_isLoading) {
+      _isLoading = false;
+      debugPrint('${runtimeType.toString()}: endLoading()');
+      notifyListeners();
+    }
   }
 
   void setError(String? message) {
     if (_errorMessage != message) {
       _errorMessage = message;
+      debugPrint('${runtimeType.toString()}: setError($message)');
       notifyListeners();
     }
   }
@@ -47,25 +52,30 @@ abstract class BaseViewModel extends ChangeNotifier {
   void clearError() {
     if (_errorMessage != null) {
       _errorMessage = null;
+      debugPrint('${runtimeType.toString()}: clearError()');
       notifyListeners();
     }
   }
 
   void updateLastUpdated() {
     _lastUpdated = DateTime.now();
+    debugPrint('${runtimeType.toString()}: updateLastUpdated($_lastUpdated)');
   }
 
   void setInitialized(bool initialized) {
     if (_isInitialized != initialized) {
       _isInitialized = initialized;
+      debugPrint('${runtimeType.toString()}: setInitialized($initialized)');
       notifyListeners();
     }
   }
 
   bool beginRefresh() {
     if (_isRefreshing) return false;
+
     _isRefreshing = true;
     beginLoading();
+    debugPrint('${runtimeType.toString()}: beginRefresh()');
     return true;
   }
 
@@ -75,6 +85,9 @@ abstract class BaseViewModel extends ChangeNotifier {
       updateLastUpdated();
     }
     endLoading();
+    debugPrint(
+      '${runtimeType.toString()}: endRefresh(successful: $successful)',
+    );
   }
 
   void handleError(dynamic error, {String prefix = 'An error occurred'}) {
@@ -104,6 +117,7 @@ abstract class BaseViewModel extends ChangeNotifier {
   }) async {
     if (handleLoading) beginLoading();
     clearError();
+    notifyListeners(); // Thông báo trạng thái bắt đầu
 
     try {
       final result = await action();
@@ -114,6 +128,7 @@ abstract class BaseViewModel extends ChangeNotifier {
       return null;
     } finally {
       if (handleLoading) endLoading();
+      notifyListeners(); // Luôn thông báo khi kết thúc
     }
   }
 }

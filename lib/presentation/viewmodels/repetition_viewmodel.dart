@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
@@ -7,6 +8,7 @@ class RepetitionViewModel extends BaseViewModel {
   final RepetitionRepository repetitionRepository;
   List<Repetition> _repetitions = [];
   Repetition? _selectedRepetition;
+  bool _isLoading = false;
 
   RepetitionViewModel({required this.repetitionRepository});
 
@@ -14,26 +16,52 @@ class RepetitionViewModel extends BaseViewModel {
   Repetition? get selectedRepetition => _selectedRepetition;
 
   Future<void> loadRepetitionsByProgressId(String progressId) async {
-    await safeCall(
-      action: () async {
-        _repetitions = await repetitionRepository.getRepetitionsByProgressId(
-          progressId,
-        );
-        return _repetitions;
-      },
-      errorPrefix: 'Failed to load repetitions by progress',
-    );
+    if (_isLoading) return;
+
+    _isLoading = true;
+    beginLoading();
+    notifyListeners(); // Notify loading started
+    clearError();
+
+    try {
+      debugPrint('Loading repetitions for progressId: $progressId');
+      _repetitions = await repetitionRepository.getRepetitionsByProgressId(
+        progressId,
+      );
+      debugPrint('Loaded ${_repetitions.length} repetitions');
+    } catch (e) {
+      handleError(e, prefix: 'Failed to load repetitions by progress');
+      debugPrint('Error loading repetitions: $e');
+      _repetitions = []; // Clear data on error
+    } finally {
+      _isLoading = false;
+      endLoading();
+      notifyListeners(); // Always notify at end
+    }
   }
 
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
-    final result = await safeCall<List<Repetition>>(
-      action:
-          () => repetitionRepository.createDefaultSchedule(moduleProgressId),
-      errorPrefix: 'Failed to create repetition schedule',
-    );
-    return result ?? [];
+    beginLoading();
+    notifyListeners();
+    clearError();
+
+    try {
+      debugPrint('Creating default schedule for progressId: $moduleProgressId');
+      final schedule = await repetitionRepository.createDefaultSchedule(
+        moduleProgressId,
+      );
+      debugPrint('Created schedule with ${schedule.length} repetitions');
+      return schedule;
+    } catch (e) {
+      handleError(e, prefix: 'Failed to create repetition schedule');
+      debugPrint('Error creating schedule: $e');
+      return [];
+    } finally {
+      endLoading();
+      notifyListeners();
+    }
   }
 
   Future<Repetition?> updateRepetition(
@@ -43,52 +71,86 @@ class RepetitionViewModel extends BaseViewModel {
     bool rescheduleFollowing = false,
     double? percentComplete,
   }) async {
-    return safeCall<Repetition>(
-      action: () async {
-        final repetition = await repetitionRepository.updateRepetition(
-          id,
-          status: status,
-          reviewDate: reviewDate,
-          rescheduleFollowing: rescheduleFollowing,
-          percentComplete: percentComplete,
-        );
+    beginLoading();
+    notifyListeners();
+    clearError();
 
-        if (_selectedRepetition?.id == id) {
-          _selectedRepetition = repetition;
-        }
+    try {
+      debugPrint('Updating repetition: $id');
+      debugPrint(
+        'Status: $status, ReviewDate: $reviewDate, RescheduleFollowing: $rescheduleFollowing',
+      );
 
-        final index = _repetitions.indexWhere((r) => r.id == id);
-        if (index >= 0) {
-          _repetitions[index] = repetition;
-        }
+      final repetition = await repetitionRepository.updateRepetition(
+        id,
+        status: status,
+        reviewDate: reviewDate,
+        rescheduleFollowing: rescheduleFollowing,
+        percentComplete: percentComplete,
+      );
 
-        if (rescheduleFollowing) {
-          await loadRepetitionsByProgressId(repetition.moduleProgressId);
-        }
+      if (_selectedRepetition?.id == id) {
+        _selectedRepetition = repetition;
+      }
 
-        return repetition;
-      },
-      errorPrefix: 'Failed to update repetition',
-    );
+      // Update the list if this repetition is in it
+      final index = _repetitions.indexWhere((r) => r.id == id);
+      if (index >= 0) {
+        _repetitions[index] = repetition;
+      }
+
+      // If we need to reschedule following repetitions, reload everything
+      if (rescheduleFollowing) {
+        await loadRepetitionsByProgressId(repetition.moduleProgressId);
+      }
+
+      debugPrint('Repetition updated successfully');
+      return repetition;
+    } catch (e) {
+      handleError(e, prefix: 'Failed to update repetition');
+      debugPrint('Error updating repetition: $e');
+      return null;
+    } finally {
+      endLoading();
+      notifyListeners();
+    }
   }
 
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
     try {
-      final repetitions = await repetitionRepository.getRepetitionsByProgressId(
-        progressId,
-      );
+      debugPrint('Checking completion status for progressId: $progressId');
 
-      if (repetitions.isEmpty) return false;
+      // If we already have loaded repetitions for this progress, use them
+      List<Repetition> repetitionsToCheck;
 
-      final totalCount = repetitions.length;
+      // Otherwise, load them from repository
+      if (_repetitions.isEmpty ||
+          _repetitions.first.moduleProgressId != progressId) {
+        repetitionsToCheck = await repetitionRepository
+            .getRepetitionsByProgressId(progressId);
+      } else {
+        repetitionsToCheck = _repetitions;
+      }
+
+      if (repetitionsToCheck.isEmpty) {
+        debugPrint('No repetitions found for this progress');
+        return false;
+      }
+
+      final totalCount = repetitionsToCheck.length;
       final completedCount =
-          repetitions
+          repetitionsToCheck
               .where((r) => r.status == RepetitionStatus.completed)
               .length;
 
-      return completedCount >= totalCount;
+      final isCompleted = completedCount >= totalCount;
+      debugPrint(
+        'Completion check: $completedCount/$totalCount completed. All completed: $isCompleted',
+      );
+      return isCompleted;
     } catch (e) {
       handleError(e, prefix: 'Failed to check repetition completion status');
+      debugPrint('Error checking completion status: $e');
       return false;
     }
   }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
-import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -314,8 +314,7 @@ class _DueProgressScreenState extends State<DueProgressScreen>
             FilledButton.icon(
               icon: const Icon(Icons.login),
               label: const Text('Sign in'),
-              onPressed: () {
-              },
+              onPressed: () {},
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -640,13 +639,9 @@ class _DueProgressScreenState extends State<DueProgressScreen>
       ),
       child: InkWell(
         onTap:
-            () => Navigator.push(
+            () => GoRouter.of(
               context,
-              MaterialPageRoute(
-                builder:
-                    (context) => ProgressDetailScreen(progressId: progress.id),
-              ),
-            ).then((_) => _loadData()),
+            ).push('/progress/${progress.id}').then((_) => _loadData()),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
