@@ -39,7 +39,7 @@ Future<void> _triggerBackgroundCheck(int callbackId) async {
 
     debugPrint('Alarm callback triggered: $callbackId at ${DateTime.now()}');
   } catch (e) {
-    print(
+    debugPrint(
       'Error in _triggerBackgroundCheck: $e',
     ); // Use print since debugPrint might not work in background
   }

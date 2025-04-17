@@ -22,9 +22,10 @@ class RepetitionSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sortedRepetitions = List<Repetition>.from(repetitions)..sort(
-      (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
-    );
+    final sortedRepetitions = List<Repetition>.from(repetitions)
+      ..sort(
+        (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+      );
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -35,16 +36,13 @@ class RepetitionSectionWidget extends StatelessWidget {
           key: ValueKey(repetition.id),
           repetition: repetition,
           isHistory: isHistory,
-          onMarkCompleted:
-              isHistory ? null : () => onMarkCompleted?.call(repetition.id),
-          onReschedule:
-              isHistory
-                  ? null
-                  : (currentDate) => _showReschedulePicker(
-                    context,
-                    repetition.id,
-                    currentDate,
-                  ),
+          onMarkCompleted: isHistory
+              ? null
+              : () => onMarkCompleted?.call(repetition.id),
+          onReschedule: isHistory
+              ? null
+              : (currentDate) =>
+                    _showReschedulePicker(context, repetition.id, currentDate),
         );
       },
     );
@@ -60,7 +58,7 @@ class RepetitionSectionWidget extends StatelessWidget {
       initialDate: currentDate,
       title: 'Reschedule Repetition',
     );
-    if (result != null) {
+    if (result != null && context.mounted) {
       final selectedDate = result['date'] as DateTime;
       final rescheduleFollowing = result['rescheduleFollowing'] as bool;
       await onReschedule?.call(
