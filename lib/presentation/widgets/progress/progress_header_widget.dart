@@ -105,7 +105,6 @@ class ProgressHeaderWidget extends StatelessWidget {
         const SizedBox(height: AppDimens.spaceS),
         Stack(
           children: [
-            // Background track
             Container(
               height: AppDimens.lineProgressHeightL,
               decoration: BoxDecoration(
@@ -113,7 +112,6 @@ class ProgressHeaderWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDimens.radiusS),
               ),
             ),
-            // Progress indicator
             FractionallySizedBox(
               widthFactor: progress.percentComplete / 100,
               child: Container(
@@ -166,7 +164,6 @@ class ProgressHeaderWidget extends StatelessWidget {
         const SizedBox(height: AppDimens.spaceS),
         Stack(
           children: [
-            // Background track
             Container(
               height: AppDimens.lineProgressHeightL,
               decoration: BoxDecoration(
@@ -174,7 +171,6 @@ class ProgressHeaderWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDimens.radiusS),
               ),
             ),
-            // Progress indicator
             FractionallySizedBox(
               widthFactor: progressValue,
               child: Container(

@@ -18,7 +18,6 @@ class ProgressDetailScreen extends StatefulWidget {
   final String progressId;
 
   ProgressDetailScreen({super.key, required this.progressId}) {
-    // Thêm log để kiểm tra giá trị khi khởi tạo
     debugPrint('ProgressDetailScreen created with progressId: $progressId');
   }
 
@@ -44,9 +43,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     super.didChangeDependencies();
     if (_isFirstLoad) {
       _isFirstLoad = false;
-      // Khởi tạo _dataLoadingFuture để FutureBuilder có thể sử dụng
       _dataLoadingFuture = Future(() async {
-        // Sử dụng một microtask để đảm bảo chờ build hoàn thành
         await Future.microtask(() async {
           await _loadInitialData();
         });
@@ -76,7 +73,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   }
 
   Future<void> _fetchProgressAndRepetitions() async {
-    // Validate progressId before proceeding
     if (widget.progressId.isEmpty) {
       throw Exception('Invalid progress ID: Empty ID provided');
     }
@@ -92,20 +88,16 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       listen: false,
     );
 
-    // Clear any previous data
     progressViewModel.clearSelectedProgress();
     repetitionViewModel.clearRepetitions();
 
-    // Load progress details first
     await progressViewModel.loadProgressDetails(widget.progressId);
     if (!mounted) return;
 
-    // Log the result for debugging
     debugPrint(
       'Progress details loaded: ${progressViewModel.selectedProgress?.id}',
     );
 
-    // Then load repetitions
     await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
     if (!mounted) return;
 
@@ -152,7 +144,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       _handleSingleCompletion(repetitionViewModel, progressViewModel, score);
     }
 
-    // Always reload data after any update
     await _reloadData();
   }
 
@@ -286,7 +277,6 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
           'Repetition rescheduled to ${DateFormat('dd MMM').format(newDate)}',
         );
 
-        // Always reload data after any update
         await _reloadData();
       }
     }

@@ -65,7 +65,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     _animationController.forward();
   }
 
-  // Helper method to compare review dates for sorting (newest first)
   int _compareReviewDates(Repetition a, Repetition b) {
     if (a.reviewDate == null && b.reviewDate == null) {
       return a.repetitionOrder.index.compareTo(b.repetitionOrder.index);
@@ -99,7 +98,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
           return _buildEmptyState(context, viewModel);
         }
 
-        // Categorize and sort repetitions
         final repetitions = List<Repetition>.from(viewModel.repetitions);
         final notStarted =
             repetitions
@@ -120,7 +118,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         final notStartedByCycle = RepetitionUtils.groupByCycle(notStarted);
         final completedByCycle = RepetitionUtils.groupByCycle(completed);
 
-        // Animation effect when repetitions change
         if (viewModel.repetitions.isNotEmpty) {
           _restartAnimation();
         }
@@ -239,7 +236,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     if (cycleGroups.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
 
-    // Sort cycle keys by cycle number (highest first) for history
     final sortedKeys = cycleGroups.keys.toList();
     if (isHistory) {
       sortedKeys.sort((a, b) {
@@ -303,7 +299,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
 
     final cycleColor = CycleFormatter.getColor(cycleName, context);
 
-    // Sort repetitions within a group (already sorted for history in build)
     if (!isHistory) {
       repetitions.sort(
         (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
@@ -325,7 +320,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cycle header with badges
             Row(
               children: [
                 Icon(Icons.cable, size: AppDimens.iconS, color: cycleColor),
@@ -361,7 +355,6 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
 
             const Divider(height: AppDimens.spaceL),
 
-            // Repetition cards
             ...repetitions.map(
               (repetition) => RepetitionCard(
                 repetition: repetition,

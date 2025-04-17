@@ -60,7 +60,6 @@ class _RepetitionCardState extends State<RepetitionCard>
     }
   }
 
-  // Define lighter, sophisticated colors for repetition orders 1 to 5
   Color _getRepetitionColor(int orderIndex) {
     const List<Color> repetitionColors = [
       Color(0xFF4CAF50), // Green 500
@@ -69,7 +68,6 @@ class _RepetitionCardState extends State<RepetitionCard>
       Color(0xFFAB47BC), // Purple 400
       Color(0xFFEF5350), // Red 400
     ];
-    // Use modulo to cycle through colors if index exceeds 5
     return repetitionColors[(orderIndex - 1) % repetitionColors.length];
   }
 
@@ -78,25 +76,22 @@ class _RepetitionCardState extends State<RepetitionCard>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Determine card style based on status
     final isCompleted = widget.repetition.status == RepetitionStatus.completed;
     final isPending = widget.repetition.status == RepetitionStatus.notStarted;
 
-    // Check if repetition is overdue
     final isOverdue =
         isPending &&
-            widget.repetition.reviewDate != null &&
-            widget.repetition.reviewDate!.isBefore(DateTime.now());
+        widget.repetition.reviewDate != null &&
+        widget.repetition.reviewDate!.isBefore(DateTime.now());
 
-    // Get appropriate colors
     Color cardColor = colorScheme.surface; // Keep neutral background
     if (isOverdue) {
-      cardColor = colorScheme.errorContainer.withOpacity(0.2);
+      cardColor = colorScheme.errorContainer.withValues(alpha: 0.2);
     }
 
     Color borderColor = colorScheme.outlineVariant;
     if (isOverdue) {
-      borderColor = colorScheme.error.withOpacity(0.4);
+      borderColor = colorScheme.error.withValues(alpha: 0.4);
     }
     if (isCompleted) {
       borderColor = colorScheme.outlineVariant; // Neutral border for completed
@@ -134,12 +129,11 @@ class _RepetitionCardState extends State<RepetitionCard>
       statusIcon = Icons.warning_amber;
     }
 
-    // Get repetition-specific color
-    final repetitionColor = _getRepetitionColor(widget.repetition.repetitionOrder.index);
+    final repetitionColor = _getRepetitionColor(
+      widget.repetition.repetitionOrder.index,
+    );
 
-    // Format review date if available
-    final reviewDateText =
-    widget.repetition.reviewDate != null
+    final reviewDateText = widget.repetition.reviewDate != null
         ? DateFormat('MMM dd, yyyy').format(widget.repetition.reviewDate!)
         : 'Not scheduled';
 
@@ -158,18 +152,19 @@ class _RepetitionCardState extends State<RepetitionCard>
               color: cardColor,
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
               border: Border.all(
-                color: _isHovering ? borderColor.withOpacity(0.8) : borderColor,
+                color: _isHovering
+                    ? borderColor.withValues(alpha: 0.8)
+                    : borderColor,
                 width: _isHovering ? 1.5 : 1,
               ),
-              boxShadow:
-              _isHovering
+              boxShadow: _isHovering
                   ? [
-                BoxShadow(
-                  color: colorScheme.shadow.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
+                      BoxShadow(
+                        color: colorScheme.shadow.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
                   : null,
             ),
             child: Material(
@@ -178,9 +173,9 @@ class _RepetitionCardState extends State<RepetitionCard>
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
               child: InkWell(
                 onTap:
-                isPending &&
-                    !widget.isHistory &&
-                    widget.onMarkCompleted != null
+                    isPending &&
+                        !widget.isHistory &&
+                        widget.onMarkCompleted != null
                     ? widget.onMarkCompleted
                     : null,
                 child: Padding(
@@ -194,7 +189,7 @@ class _RepetitionCardState extends State<RepetitionCard>
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: repetitionColor.withOpacity(0.1),
+                              color: repetitionColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Center(
@@ -232,9 +227,9 @@ class _RepetitionCardState extends State<RepetitionCard>
                                       statusText,
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
-                                        color: textColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                            color: textColor,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -279,10 +274,9 @@ class _RepetitionCardState extends State<RepetitionCard>
     return IconButton(
       icon: Icon(
         Icons.check_circle_outline,
-        color:
-        _isHovering
+        color: _isHovering
             ? colorScheme.success
-            : colorScheme.primary.withOpacity(0.7),
+            : colorScheme.primary.withValues(alpha: 0.7),
       ),
       onPressed: widget.onMarkCompleted,
       tooltip: 'Mark as completed',
@@ -292,25 +286,22 @@ class _RepetitionCardState extends State<RepetitionCard>
 
   Widget _buildRescheduleButton(BuildContext context, ColorScheme colorScheme) {
     return TextButton.icon(
-      onPressed:
-      widget.repetition.reviewDate != null
+      onPressed: widget.repetition.reviewDate != null
           ? () => widget.onReschedule?.call(widget.repetition.reviewDate!)
           : () => widget.onReschedule?.call(DateTime.now()),
       icon: Icon(
         Icons.event,
         size: AppDimens.iconS,
-        color:
-        _isHovering
+        color: _isHovering
             ? colorScheme.primary
-            : colorScheme.primary.withOpacity(0.7),
+            : colorScheme.primary.withValues(alpha: 0.7),
       ),
       label: Text(
         'Reschedule',
         style: TextStyle(
-          color:
-          _isHovering
+          color: _isHovering
               ? colorScheme.primary
-              : colorScheme.primary.withOpacity(0.7),
+              : colorScheme.primary.withValues(alpha: 0.7),
         ),
       ),
       style: TextButton.styleFrom(
@@ -324,17 +315,16 @@ class _RepetitionCardState extends State<RepetitionCard>
   }
 
   Widget _buildDateInfo(
-      ThemeData theme,
-      String reviewDateText,
-      bool isOverdue,
-      ) {
+    ThemeData theme,
+    String reviewDateText,
+    bool isOverdue,
+  ) {
     return Row(
       children: [
         Icon(
           Icons.calendar_today,
           size: AppDimens.iconS,
-          color:
-          isOverdue
+          color: isOverdue
               ? theme.colorScheme.error
               : theme.colorScheme.onSurfaceVariant,
         ),
@@ -353,8 +343,7 @@ class _RepetitionCardState extends State<RepetitionCard>
             reviewDateText,
             style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color:
-              isOverdue
+              color: isOverdue
                   ? theme.colorScheme.error
                   : theme.colorScheme.onSurface,
             ),

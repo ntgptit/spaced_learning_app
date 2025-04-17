@@ -64,7 +64,6 @@ class _DueProgressScreenState extends State<DueProgressScreen>
   Future<void> _loadData() async {
     if (!mounted) return;
 
-    // Lưu tham chiếu đến các ViewModel trước khi sử dụng await
     final authViewModel = context.read<AuthViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
 
@@ -77,7 +76,6 @@ class _DueProgressScreenState extends State<DueProgressScreen>
       studyDate: _selectedDate,
     );
 
-    // Kiểm tra xem widget còn mounted không
     if (!mounted || progressViewModel.progressRecords.isEmpty) return;
 
     await _loadModuleTitles(progressViewModel.progressRecords);
@@ -267,11 +265,6 @@ class _DueProgressScreenState extends State<DueProgressScreen>
           ),
         ],
         body: _buildBody(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _selectDate,
-        tooltip: 'Select date',
-        child: const Icon(Icons.calendar_month),
       ),
     );
   }
@@ -639,12 +632,10 @@ class _DueProgressScreenState extends State<DueProgressScreen>
       ),
       child: InkWell(
         onTap: () {
-          // Sử dụng debug logs để kiểm tra progressId
           final String progressId = progress.id;
           debugPrint('Navigating to progress with ID: $progressId');
           debugPrint('Progress object data: ${progress.toString()}');
 
-          // Thay vì sử dụng Navigator.push, sử dụng GoRouter với đường dẫn đã được đăng ký
           GoRouter.of(
             context,
           ).push('/progress/$progressId').then((_) => _loadData());

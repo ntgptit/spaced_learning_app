@@ -28,7 +28,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Khởi tạo Future và đảm bảo nó được thực thi sau khi build hoàn tất
     _dataFuture = Future.delayed(Duration.zero, _loadData);
   }
 
@@ -110,7 +109,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       if (newProgress != null && mounted) {
         _navigateToProgress(newProgress.id);
       } else if (mounted) {
-        // Hiển thị thông báo nếu không thể tạo progress
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to create progress')),
         );
@@ -184,7 +182,6 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       body: FutureBuilder(
         future: _dataFuture,
         builder: (context, snapshot) {
-          // Khi lần đầu đang load hoặc khi refresh, hiển thị loading indicator
           if (_isInitialLoad && snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: AppLoadingIndicator());
           }

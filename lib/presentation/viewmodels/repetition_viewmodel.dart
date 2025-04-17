@@ -16,7 +16,6 @@ class RepetitionViewModel extends BaseViewModel {
 
   Repetition? get selectedRepetition => _selectedRepetition;
 
-  // Thêm phương thức để xóa dữ liệu repetitions hiện tại
   void clearRepetitions() {
     _repetitions = [];
     _selectedRepetition = null;
@@ -24,13 +23,11 @@ class RepetitionViewModel extends BaseViewModel {
   }
 
   String? _sanitizeId(String id) {
-    // Hàm này kiểm tra và làm sạch ID
     if (id.isEmpty) {
       debugPrint('WARNING: Empty ID detected in RepetitionViewModel');
       return null;
     }
 
-    // Loại bỏ khoảng trắng dư thừa
     final sanitizedId = id.trim();
 
     if (sanitizedId != id) {
@@ -40,7 +37,6 @@ class RepetitionViewModel extends BaseViewModel {
     return sanitizedId;
   }
 
-  // Trong RepetitionViewModel
   Future<void> loadRepetitionsByProgressId(
     String progressId, {
     bool notifyAtStart = false,
@@ -70,7 +66,6 @@ class RepetitionViewModel extends BaseViewModel {
       );
       debugPrint('Loaded ${_repetitions.length} repetitions');
 
-      // Log some details about the first few repetitions
       if (_repetitions.isNotEmpty) {
         for (int i = 0; i < min(_repetitions.length, 3); i++) {
           final rep = _repetitions[i];
@@ -155,13 +150,11 @@ class RepetitionViewModel extends BaseViewModel {
         _selectedRepetition = repetition;
       }
 
-      // Update the list if this repetition is in it
       final index = _repetitions.indexWhere((r) => r.id == sanitizedId);
       if (index >= 0) {
         _repetitions[index] = repetition;
       }
 
-      // If we need to reschedule following repetitions, reload everything
       if (rescheduleFollowing) {
         await loadRepetitionsByProgressId(repetition.moduleProgressId);
       }
@@ -189,15 +182,12 @@ class RepetitionViewModel extends BaseViewModel {
     try {
       debugPrint('Checking completion status for progressId: $sanitizedId');
 
-      // If we already have loaded repetitions for this progress, use them
       List<Repetition> repetitionsToCheck;
 
-      // Check if our current repetitions belong to the requested progress ID
       final bool currentDataValid =
           _repetitions.isNotEmpty &&
           _repetitions.first.moduleProgressId == sanitizedId;
 
-      // Otherwise, load them from repository
       if (!currentDataValid) {
         debugPrint(
           'No cached repetitions for progressId: $sanitizedId, loading from repository',
@@ -245,7 +235,6 @@ class RepetitionViewModel extends BaseViewModel {
     }
   }
 
-  // Helper function for min value
   int min(int a, int b) {
     return a < b ? a : b;
   }

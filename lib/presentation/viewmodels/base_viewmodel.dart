@@ -116,15 +116,11 @@ abstract class BaseViewModel extends ChangeNotifier {
     bool updateTimestamp = true,
   }) async {
     if (handleLoading) {
-      // Tránh notifyListeners() ngay lập tức
       _isLoading = true;
-      // Sử dụng Future.microtask để đảm bảo notifyListeners()
-      // được gọi sau khi build hoàn tất
       Future.microtask(() => notifyListeners());
     }
 
     clearError();
-    // Chỉ gọi notifyListeners nếu không đang trong quá trình build
     Future.microtask(() => notifyListeners());
 
     try {
@@ -137,7 +133,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     } finally {
       if (handleLoading) {
         _isLoading = false;
-        // Gọi notifyListeners sau khi tác vụ hoàn tất
         Future.microtask(() => notifyListeners());
       }
     }

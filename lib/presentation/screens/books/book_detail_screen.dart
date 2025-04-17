@@ -54,13 +54,11 @@ class _BookDetailScreenState extends State<BookDetailScreen>
   Future<void> _loadData() async {
     if (!mounted) return;
 
-    // Lưu tham chiếu đến các ViewModel để tránh sử dụng context sau await
     final bookViewModel = context.read<BookViewModel>();
     final moduleViewModel = context.read<ModuleViewModel>();
 
     await bookViewModel.loadBookDetails(widget.bookId);
 
-    // Kiểm tra xem widget còn mounted không trước khi tiếp tục
     if (!mounted) return;
 
     await moduleViewModel.loadModulesByBookId(widget.bookId);

@@ -104,9 +104,7 @@ class FilterStatsRow extends StatelessWidget {
               tooltip: showFilter ? 'Hide filters' : 'Show filters',
               padding: const EdgeInsets.all(AppDimens.paddingXS),
               constraints: const BoxConstraints(),
-              // Bỏ constraints mặc định
               visualDensity: VisualDensity.compact,
-              // Sử dụng density nhỏ gọn hơn
               onPressed: onToggleFilter,
             ),
           ),

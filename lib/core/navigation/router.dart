@@ -48,7 +48,6 @@ class AppRouter {
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
-      // Thêm route trực tiếp cho Progress Detail screen
       GoRoute(
         path: '/progress/:id',
         name: 'progressDetail',

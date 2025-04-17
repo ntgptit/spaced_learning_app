@@ -63,7 +63,6 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
               extentOffset: selection.extentOffset.clamp(0, textValue.length),
             );
           } catch (e) {
-            // Handle possible error
           }
         }
       });
