@@ -62,6 +62,9 @@ class _DueProgressScreenState extends State<DueProgressScreen>
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+
+    // Lưu tham chiếu đến các ViewModel trước khi sử dụng await
     final authViewModel = context.read<AuthViewModel>();
     final progressViewModel = context.read<ProgressViewModel>();
 
@@ -74,7 +77,8 @@ class _DueProgressScreenState extends State<DueProgressScreen>
       studyDate: _selectedDate,
     );
 
-    if (progressViewModel.progressRecords.isEmpty) return;
+    // Kiểm tra xem widget còn mounted không
+    if (!mounted || progressViewModel.progressRecords.isEmpty) return;
 
     await _loadModuleTitles(progressViewModel.progressRecords);
   }
@@ -83,12 +87,11 @@ class _DueProgressScreenState extends State<DueProgressScreen>
     setState(() => _isLoadingModules = true);
 
     final moduleViewModel = context.read<ModuleViewModel>();
-    final moduleIds =
-        progressList
-            .map((progress) => progress.moduleId)
-            .where((id) => !_moduleTitles.containsKey(id))
-            .toSet()
-            .toList();
+    final moduleIds = progressList
+        .map((progress) => progress.moduleId)
+        .where((id) => !_moduleTitles.containsKey(id))
+        .toSet()
+        .toList();
 
     for (final moduleId in moduleIds) {
       try {
@@ -112,18 +115,17 @@ class _DueProgressScreenState extends State<DueProgressScreen>
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-      builder:
-          (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: Theme.of(context).colorScheme,
-              dialogTheme: DialogThemeData(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimens.radiusL),
-                ),
-              ),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme,
+          dialogTheme: DialogThemeData(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusL),
             ),
-            child: child!,
           ),
+        ),
+        child: child!,
+      ),
     );
 
     if (picked == null || picked == _selectedDate) return;
@@ -182,89 +184,88 @@ class _DueProgressScreenState extends State<DueProgressScreen>
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollController,
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [
-              SliverAppBar(
-                title: Text(
-                  _selectedDate == null
-                      ? 'Due Today'
-                      : 'Due by ${_dateFormat.format(_selectedDate!)}',
-                ),
-                pinned: true,
-                floating: true,
-                elevation: _isScrolled ? 2.0 : 0.0,
-                forceElevated: _isScrolled || innerBoxIsScrolled,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: _loadData,
-                    tooltip: 'Refresh data',
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            title: Text(
+              _selectedDate == null
+                  ? 'Due Today'
+                  : 'Due by ${_dateFormat.format(_selectedDate!)}',
+            ),
+            pinned: true,
+            floating: true,
+            elevation: _isScrolled ? 2.0 : 0.0,
+            forceElevated: _isScrolled || innerBoxIsScrolled,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _loadData,
+                tooltip: 'Refresh data',
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(80),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                color: theme.scaffoldBackgroundColor,
+                child: Card(
+                  elevation: 0,
+                  color: theme.colorScheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                      width: 1,
+                    ),
                   ),
-                ],
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(70),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    color: theme.scaffoldBackgroundColor,
-                    child: Card(
-                      elevation: 0,
-                      color: theme.colorScheme.surfaceContainerLow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: theme.colorScheme.outlineVariant.withValues(
-                            alpha: 0.5,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 20,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _selectedDate == null
+                                ? 'Due Today'
+                                : 'Due by ${_dateFormat.format(_selectedDate!)}',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
-                          width: 1,
                         ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                        if (_selectedDate != null)
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: _clearDateFilter,
+                            tooltip: 'Clear date filter',
+                            iconSize: 20,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_month),
+                          onPressed: _selectDate,
+                          tooltip: 'Select date',
+                          iconSize: 20,
+                          visualDensity: VisualDensity.compact,
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 20,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _selectedDate == null
-                                    ? 'Due Today'
-                                    : 'Due by ${_dateFormat.format(_selectedDate!)}',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                            if (_selectedDate != null)
-                              IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: _clearDateFilter,
-                                tooltip: 'Clear date filter',
-                                iconSize: 20,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            IconButton(
-                              icon: const Icon(Icons.calendar_month),
-                              onPressed: _selectDate,
-                              tooltip: 'Select date',
-                              iconSize: 20,
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
+          ),
+        ],
         body: _buildBody(),
       ),
       floatingActionButton: FloatingActionButton(
@@ -354,10 +355,9 @@ class _DueProgressScreenState extends State<DueProgressScreen>
 
     final totalCount = progressViewModel.progressRecords.length;
     final dueCount = progressViewModel.progressRecords.where(_isDue).length;
-    final completedPercent =
-        totalCount == 0
-            ? 0
-            : ((totalCount - dueCount) / totalCount * 100).toInt();
+    final completedPercent = totalCount == 0
+        ? 0
+        : ((totalCount - dueCount) / totalCount * 100).toInt();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -713,10 +713,9 @@ class _DueProgressScreenState extends State<DueProgressScreen>
                             Icon(
                               isItemDue ? Icons.event_available : Icons.event,
                               size: 16,
-                              color:
-                                  isItemDue
-                                      ? colorScheme.error
-                                      : colorScheme.onSurfaceVariant,
+                              color: isItemDue
+                                  ? colorScheme.error
+                                  : colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -724,10 +723,9 @@ class _DueProgressScreenState extends State<DueProgressScreen>
                                   ? _dateFormat.format(progress.nextStudyDate!)
                                   : 'Not scheduled',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color:
-                                    isItemDue
-                                        ? colorScheme.error
-                                        : colorScheme.onSurfaceVariant,
+                                color: isItemDue
+                                    ? colorScheme.error
+                                    : colorScheme.onSurfaceVariant,
                                 fontWeight: isItemDue ? FontWeight.bold : null,
                               ),
                             ),
