@@ -22,10 +22,14 @@ class ModuleDetailScreen extends StatefulWidget {
 }
 
 class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
+  late Future<void> _dataFuture;
+  bool _isInitialLoad = true;
+
   @override
   void initState() {
     super.initState();
-    _loadData();
+    // Khởi tạo Future và đảm bảo nó được thực thi sau khi build hoàn tất
+    _dataFuture = Future.delayed(Duration.zero, _loadData);
   }
 
   Future<void> _loadData() async {
@@ -34,24 +38,46 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     final progressViewModel = context.read<ProgressViewModel>();
     final moduleId = widget.moduleId;
 
-    await moduleViewModel.loadModuleDetails(moduleId);
-    if (!mounted) return;
+    try {
+      await moduleViewModel.loadModuleDetails(moduleId);
+      if (!mounted) return;
 
-    final module = moduleViewModel.selectedModule;
-    if (module == null) return;
+      final module = moduleViewModel.selectedModule;
+      if (module == null) return;
 
-    if (module.progress.isNotEmpty) {
-      final progressId = module.progress[0].id;
-      await progressViewModel.loadProgressDetails(progressId);
-      debugPrint('Loaded progress directly from module: $progressId');
-    } else if (authViewModel.isAuthenticated) {
-      await progressViewModel.loadModuleProgress(moduleId);
+      if (module.progress.isNotEmpty) {
+        final progressId = module.progress[0].id;
+        await progressViewModel.loadProgressDetails(progressId);
+        debugPrint('Loaded progress directly from module: $progressId');
+      } else if (authViewModel.isAuthenticated) {
+        await progressViewModel.loadModuleProgress(moduleId);
+      }
+
+      debugPrint(
+        'After loading - Progress exists: ${progressViewModel.selectedProgress != null}',
+      );
+      debugPrint('Module progress count: ${module.progress.length}');
+
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false;
+        });
+      }
+    } catch (error) {
+      debugPrint('Error loading data: $error');
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false;
+        });
+      }
     }
+  }
 
-    debugPrint(
-      'After loading - Progress exists: ${progressViewModel.selectedProgress != null}',
-    );
-    debugPrint('Module progress count: ${module.progress.length}');
+  Future<void> _refreshData() async {
+    setState(() {
+      _dataFuture = Future.delayed(Duration.zero, _loadData);
+    });
+    return _dataFuture;
   }
 
   Future<void> _startLearning() async {
@@ -74,14 +100,28 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       return;
     }
 
-    final newProgress = await _createNewProgress(
-      progressViewModel,
-      authViewModel,
-      moduleId,
-    );
+    try {
+      final newProgress = await _createNewProgress(
+        progressViewModel,
+        authViewModel,
+        moduleId,
+      );
 
-    if (newProgress != null && mounted) {
-      _navigateToProgress(newProgress.id);
+      if (newProgress != null && mounted) {
+        _navigateToProgress(newProgress.id);
+      } else if (mounted) {
+        // Hiển thị thông báo nếu không thể tạo progress
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create progress')),
+        );
+      }
+    } catch (error) {
+      debugPrint('Error creating progress: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${error.toString()}')),
+        );
+      }
     }
   }
 
@@ -98,10 +138,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 
   Future<ProgressDetail?> _createNewProgress(
-    ProgressViewModel progressViewModel,
-    AuthViewModel authViewModel,
-    String moduleId,
-  ) async {
+      ProgressViewModel progressViewModel,
+      AuthViewModel authViewModel,
+      String moduleId,
+      ) async {
     return progressViewModel.createProgress(
       moduleId: moduleId,
       userId: authViewModel.currentUser!.id,
@@ -124,30 +164,58 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
     final bool hasProgress =
         progressViewModel.selectedProgress != null ||
-        (module?.progress != null && module!.progress.isNotEmpty);
+            (module?.progress != null && module!.progress.isNotEmpty);
 
     debugPrint('Has progress (combined check): $hasProgress');
     debugPrint('selectedProgress: ${progressViewModel.selectedProgress?.id}');
     debugPrint('module.progress count: ${module?.progress.length ?? 0}');
 
     return Scaffold(
-      appBar: AppBar(title: Text(module?.title ?? 'Module Details')),
-      body: _BodyBuilder(
-        module: module,
-        isLoading: moduleViewModel.isLoading,
-        errorMessage: moduleViewModel.errorMessage,
-        userProgress: progressViewModel.selectedProgress,
-        onRefresh: _loadData,
-        onProgressTap: _navigateToProgress,
+      appBar: AppBar(
+        title: Text(module?.title ?? 'Module Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshData,
+            tooltip: 'Refresh data',
+          ),
+        ],
+      ),
+      body: FutureBuilder(
+        future: _dataFuture,
+        builder: (context, snapshot) {
+          // Khi lần đầu đang load hoặc khi refresh, hiển thị loading indicator
+          if (_isInitialLoad && snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: AppLoadingIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: ErrorDisplay(
+                message: 'Error loading data: ${snapshot.error}',
+                onRetry: _refreshData,
+              ),
+            );
+          }
+
+          return _BodyBuilder(
+            module: module,
+            isLoading: moduleViewModel.isLoading,
+            errorMessage: moduleViewModel.errorMessage,
+            userProgress: progressViewModel.selectedProgress,
+            onRefresh: _refreshData,
+            onProgressTap: _navigateToProgress,
+          );
+        },
       ),
       floatingActionButton:
-          module != null && !hasProgress
-              ? FloatingActionButton.extended(
-                onPressed: _startLearning,
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Start Learning'),
-              )
-              : null,
+      module != null && !hasProgress
+          ? FloatingActionButton.extended(
+        onPressed: _startLearning,
+        icon: const Icon(Icons.play_arrow),
+        label: const Text('Start Learning'),
+      )
+          : null,
     );
   }
 }
@@ -418,8 +486,8 @@ class _ContentSection extends StatelessWidget {
                 ],
                 const Text(
                   'This is where the module content would be displayed. '
-                  'In a complete application, this would include text, '
-                  'images, videos, and other learning materials.',
+                      'In a complete application, this would include text, '
+                      'images, videos, and other learning materials.',
                 ),
                 const SizedBox(height: AppDimens.spaceL),
                 _buildStudyTips(context),
@@ -458,9 +526,9 @@ class _ContentSection extends StatelessWidget {
           const SizedBox(height: AppDimens.spaceM),
           const Text(
             '• Review this module regularly using the spaced repetition schedule\n'
-            '• Take notes while studying\n'
-            '• Try to recall the material before checking your answers\n'
-            '• Connect new information to things you already know',
+                '• Take notes while studying\n'
+                '• Try to recall the material before checking your answers\n'
+                '• Connect new information to things you already know',
           ),
         ],
       ),
