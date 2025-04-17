@@ -36,7 +36,22 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     if (widget.progressId.isEmpty) {
       debugPrint('WARNING: Empty progressId passed to ProgressDetailScreen!');
     }
-    _dataLoadingFuture = _loadInitialData();
+    _dataLoadingFuture = Future.value();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isFirstLoad) {
+      _isFirstLoad = false;
+      // Khởi tạo _dataLoadingFuture để FutureBuilder có thể sử dụng
+      _dataLoadingFuture = Future(() async {
+        // Sử dụng một microtask để đảm bảo chờ build hoàn thành
+        await Future.microtask(() async {
+          await _loadInitialData();
+        });
+      });
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -45,14 +60,8 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
         'Starting initial data load for progressId: ${widget.progressId}',
       );
       await _fetchProgressAndRepetitions();
-      if (mounted) {
-        setState(() {
-          _isFirstLoad = false;
-        });
-      }
     } catch (e) {
       debugPrint('Error loading initial data: $e');
-      // Error will be handled by FutureBuilder
       rethrow;
     }
   }
@@ -184,31 +193,30 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     if (!mounted) return;
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Learning Cycle Completed!'),
-            content: const Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('You have completed all repetitions in this cycle.'),
-                SizedBox(height: 16),
-                Text(
-                  'The system has automatically scheduled a new review cycle with adjusted intervals based on your learning performance.',
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Keep up with regular reviews to maximize your learning efficiency.',
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        title: const Text('Learning Cycle Completed!'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('You have completed all repetitions in this cycle.'),
+            SizedBox(height: 16),
+            Text(
+              'The system has automatically scheduled a new review cycle with adjusted intervals based on your learning performance.',
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Got it'),
-              ),
-            ],
+            SizedBox(height: 16),
+            Text(
+              'Keep up with regular reviews to maximize your learning efficiency.',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
           ),
+        ],
+      ),
     );
   }
 
@@ -218,21 +226,20 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Enter Test Score'),
-            content: ScoreInputDialogContent(scoreNotifier: scoreNotifier),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Confirm'),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Enter Test Score'),
+        content: ScoreInputDialogContent(scoreNotifier: scoreNotifier),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
     );
 
     if (confirmed == true) {

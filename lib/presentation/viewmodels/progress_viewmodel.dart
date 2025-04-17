@@ -51,7 +51,8 @@ class ProgressViewModel extends BaseViewModel {
     return sanitizedId;
   }
 
-  Future<void> loadProgressDetails(String id) async {
+  // Trong ProgressViewModel
+  Future<void> loadProgressDetails(String id, {bool notifyAtStart = false}) async {
     final sanitizedId = _sanitizeId(id);
     if (sanitizedId == null) {
       setError('Invalid progress ID: Empty ID provided');
@@ -60,16 +61,14 @@ class ProgressViewModel extends BaseViewModel {
     }
 
     if (_isLoadingDetails) {
-      debugPrint(
-        'Already loading progress details, skipping duplicate request',
-      );
+      debugPrint('Already loading progress details, skipping duplicate request');
       return;
     }
 
     _isLoadingDetails = true;
-    beginLoading();
-    notifyListeners(); // Notify that loading has started
-    clearError();
+    if (notifyAtStart) {
+      beginLoading();
+    }
 
     try {
       debugPrint('Loading progress details for id: $sanitizedId');
@@ -79,25 +78,15 @@ class ProgressViewModel extends BaseViewModel {
         debugPrint('WARNING: Progress details loaded but result is null');
         setError('Failed to load progress: No data returned');
       } else {
-        debugPrint(
-          'Progress details loaded successfully for id: ${_selectedProgress!.id}',
-        );
-
-        // Verify ID consistency
-        if (_selectedProgress!.id != sanitizedId) {
-          debugPrint(
-            'WARNING: ID mismatch between requested $sanitizedId and loaded ${_selectedProgress!.id}',
-          );
-        }
+        debugPrint('Progress details loaded successfully for id: ${_selectedProgress!.id}');
+        clearError();
       }
     } catch (e) {
       handleError(e, prefix: 'Failed to load progress details');
-      debugPrint('Error loading progress details: $e');
       _selectedProgress = null; // Clear data on error
     } finally {
       _isLoadingDetails = false;
       endLoading();
-      notifyListeners(); // Always notify at the end
     }
   }
 

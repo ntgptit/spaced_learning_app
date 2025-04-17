@@ -13,6 +13,7 @@ class RepetitionViewModel extends BaseViewModel {
   RepetitionViewModel({required this.repetitionRepository});
 
   List<Repetition> get repetitions => _repetitions;
+
   Repetition? get selectedRepetition => _selectedRepetition;
 
   // Thêm phương thức để xóa dữ liệu repetitions hiện tại
@@ -39,7 +40,11 @@ class RepetitionViewModel extends BaseViewModel {
     return sanitizedId;
   }
 
-  Future<void> loadRepetitionsByProgressId(String progressId) async {
+  // Trong RepetitionViewModel
+  Future<void> loadRepetitionsByProgressId(
+    String progressId, {
+    bool notifyAtStart = false,
+  }) async {
     final sanitizedId = _sanitizeId(progressId);
     if (sanitizedId == null) {
       setError('Invalid progress ID: Empty ID provided');
@@ -53,8 +58,9 @@ class RepetitionViewModel extends BaseViewModel {
     }
 
     _isLoading = true;
-    beginLoading();
-    notifyListeners(); // Notify loading started
+    if (notifyAtStart) {
+      beginLoading();
+    }
     clearError();
 
     try {
@@ -75,12 +81,10 @@ class RepetitionViewModel extends BaseViewModel {
       }
     } catch (e) {
       handleError(e, prefix: 'Failed to load repetitions by progress');
-      debugPrint('Error loading repetitions: $e');
       _repetitions = []; // Clear data on error
     } finally {
       _isLoading = false;
       endLoading();
-      notifyListeners(); // Always notify at end
     }
   }
 
@@ -210,10 +214,9 @@ class RepetitionViewModel extends BaseViewModel {
       }
 
       final totalCount = repetitionsToCheck.length;
-      final completedCount =
-          repetitionsToCheck
-              .where((r) => r.status == RepetitionStatus.completed)
-              .length;
+      final completedCount = repetitionsToCheck
+          .where((r) => r.status == RepetitionStatus.completed)
+          .length;
 
       final isCompleted = completedCount >= totalCount;
       debugPrint(
