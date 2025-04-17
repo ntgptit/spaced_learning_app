@@ -54,6 +54,9 @@ class AppRouter {
         name: 'progressDetail',
         builder: (context, state) {
           final progressId = state.pathParameters['id'];
+          debugPrint(
+            'Router received progressId: $progressId',
+          ); // Thêm log để debug
           return ProgressDetailScreen(progressId: progressId ?? '');
         },
       ),

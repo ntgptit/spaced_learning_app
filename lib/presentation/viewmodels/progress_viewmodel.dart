@@ -28,8 +28,43 @@ class ProgressViewModel extends BaseViewModel {
   List<ProgressSummary> get progressRecords => _progressRecords;
   ProgressDetail? get selectedProgress => _selectedProgress;
 
+  // Thêm phương thức để xóa dữ liệu progress hiện tại
+  void clearSelectedProgress() {
+    _selectedProgress = null;
+    notifyListeners();
+  }
+
+  String? _sanitizeId(String id) {
+    // Hàm này kiểm tra và làm sạch ID
+    if (id.isEmpty) {
+      debugPrint('WARNING: Empty ID detected in ProgressViewModel');
+      return null;
+    }
+
+    // Loại bỏ khoảng trắng dư thừa
+    final sanitizedId = id.trim();
+
+    if (sanitizedId != id) {
+      debugPrint('ID sanitized from "$id" to "$sanitizedId"');
+    }
+
+    return sanitizedId;
+  }
+
   Future<void> loadProgressDetails(String id) async {
-    if (_isLoadingDetails) return; // Prevent duplicate calls
+    final sanitizedId = _sanitizeId(id);
+    if (sanitizedId == null) {
+      setError('Invalid progress ID: Empty ID provided');
+      notifyListeners();
+      return;
+    }
+
+    if (_isLoadingDetails) {
+      debugPrint(
+        'Already loading progress details, skipping duplicate request',
+      );
+      return;
+    }
 
     _isLoadingDetails = true;
     beginLoading();
@@ -37,12 +72,28 @@ class ProgressViewModel extends BaseViewModel {
     clearError();
 
     try {
-      debugPrint('Loading progress details for id: $id');
-      _selectedProgress = await progressRepository.getProgressById(id);
-      debugPrint('Progress details loaded successfully');
+      debugPrint('Loading progress details for id: $sanitizedId');
+      _selectedProgress = await progressRepository.getProgressById(sanitizedId);
+
+      if (_selectedProgress == null) {
+        debugPrint('WARNING: Progress details loaded but result is null');
+        setError('Failed to load progress: No data returned');
+      } else {
+        debugPrint(
+          'Progress details loaded successfully for id: ${_selectedProgress!.id}',
+        );
+
+        // Verify ID consistency
+        if (_selectedProgress!.id != sanitizedId) {
+          debugPrint(
+            'WARNING: ID mismatch between requested $sanitizedId and loaded ${_selectedProgress!.id}',
+          );
+        }
+      }
     } catch (e) {
       handleError(e, prefix: 'Failed to load progress details');
       debugPrint('Error loading progress details: $e');
+      _selectedProgress = null; // Clear data on error
     } finally {
       _isLoadingDetails = false;
       endLoading();
@@ -51,14 +102,21 @@ class ProgressViewModel extends BaseViewModel {
   }
 
   Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
+    final sanitizedId = _sanitizeId(moduleId);
+    if (sanitizedId == null) {
+      setError('Invalid module ID: Empty ID provided');
+      notifyListeners();
+      return null;
+    }
+
     beginLoading();
     notifyListeners();
     clearError();
 
     try {
-      debugPrint('Loading module progress for moduleId: $moduleId');
+      debugPrint('Loading module progress for moduleId: $sanitizedId');
       final progressList = await progressRepository.getProgressByModuleId(
-        moduleId,
+        sanitizedId,
         page: 0,
         size: 1, // Only get 1 progress
       );
@@ -70,14 +128,22 @@ class ProgressViewModel extends BaseViewModel {
         return null;
       }
 
+      final progressId = progressList[0].id;
+      debugPrint(
+        'Found progress with ID: $progressId for module: $sanitizedId',
+      );
+
       final progressDetail = await progressRepository.getProgressById(
-        progressList[0].id,
+        progressId,
       );
       _selectedProgress = progressDetail;
+
+      debugPrint('Loaded progress details: ${_selectedProgress?.id}');
       return progressDetail;
     } catch (e) {
       handleError(e, prefix: 'Failed to load module progress');
       debugPrint('Error loading module progress: $e');
+      _selectedProgress = null; // Clear data on error
       return null;
     } finally {
       endLoading();
@@ -91,7 +157,17 @@ class ProgressViewModel extends BaseViewModel {
     int page = 0,
     int size = 20,
   }) async {
-    if (_isLoadingDueProgress) return; // Prevent duplicate calls
+    final sanitizedId = _sanitizeId(userId);
+    if (sanitizedId == null) {
+      setError('Invalid user ID: Empty ID provided');
+      notifyListeners();
+      return;
+    }
+
+    if (_isLoadingDueProgress) {
+      debugPrint('Already loading due progress, skipping duplicate request');
+      return;
+    }
 
     _isLoadingDueProgress = true;
     beginLoading();
@@ -99,22 +175,38 @@ class ProgressViewModel extends BaseViewModel {
     clearError();
 
     debugPrint(
-      '[ProgressViewModel] Starting loadDueProgress for userId: $userId, date: $studyDate',
+      '[ProgressViewModel] Starting loadDueProgress for userId: $sanitizedId, date: $studyDate',
     );
 
     try {
       final List<ProgressSummary> result = await progressRepository
-          .getDueProgress(userId, studyDate: studyDate, page: page, size: size);
+          .getDueProgress(
+            sanitizedId,
+            studyDate: studyDate,
+            page: page,
+            size: size,
+          );
 
       debugPrint(
         '[ProgressViewModel] Received ${result.length} records from repository for due progress.',
       );
 
+      // Log the first few progress IDs for debugging
+      if (result.isNotEmpty) {
+        final idList = result.take(3).map((p) => p.id).join(', ');
+        debugPrint(
+          'First few progress IDs: $idList${result.length > 3 ? '...' : ''}',
+        );
+      }
+
       _progressRecords = result;
 
       // Fire event to notify about task status using event_bus library
       eventBus.fire(
-        ProgressChangedEvent(userId: userId, hasDueTasks: result.isNotEmpty),
+        ProgressChangedEvent(
+          userId: sanitizedId,
+          hasDueTasks: result.isNotEmpty,
+        ),
       );
 
       updateLastUpdated();
@@ -137,14 +229,21 @@ class ProgressViewModel extends BaseViewModel {
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
+    final sanitizedModuleId = _sanitizeId(moduleId);
+    if (sanitizedModuleId == null) {
+      setError('Invalid module ID: Empty ID provided');
+      notifyListeners();
+      return null;
+    }
+
     beginLoading();
     notifyListeners();
     clearError();
 
     try {
-      debugPrint('Creating progress for moduleId: $moduleId');
+      debugPrint('Creating progress for moduleId: $sanitizedModuleId');
       final progress = await progressRepository.createProgress(
-        moduleId: moduleId,
+        moduleId: sanitizedModuleId,
         userId: userId, // Pass optional userId
         firstLearningDate: firstLearningDate,
         cyclesStudied: cyclesStudied,
@@ -176,7 +275,17 @@ class ProgressViewModel extends BaseViewModel {
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
-    if (_isUpdating) return null; // Prevent duplicate calls
+    final sanitizedId = _sanitizeId(id);
+    if (sanitizedId == null) {
+      setError('Invalid progress ID: Empty ID provided');
+      notifyListeners();
+      return null;
+    }
+
+    if (_isUpdating) {
+      debugPrint('Already updating progress, skipping duplicate request');
+      return null;
+    }
 
     _isUpdating = true;
     beginLoading();
@@ -184,16 +293,16 @@ class ProgressViewModel extends BaseViewModel {
     clearError();
 
     try {
-      debugPrint('Updating progress with id: $id');
+      debugPrint('Updating progress with id: $sanitizedId');
       final progress = await progressRepository.updateProgress(
-        id,
+        sanitizedId,
         firstLearningDate: firstLearningDate,
         cyclesStudied: cyclesStudied,
         nextStudyDate: nextStudyDate,
         percentComplete: percentComplete,
       );
 
-      if (_selectedProgress?.id == id) {
+      if (_selectedProgress?.id == sanitizedId) {
         _selectedProgress = progress;
       }
 
@@ -202,7 +311,10 @@ class ProgressViewModel extends BaseViewModel {
       final userId = userData?['id'];
       if (userId != null) {
         eventBus.fire(
-          TaskCompletedEvent(userId: userId.toString(), progressId: id),
+          TaskCompletedEvent(
+            userId: userId.toString(),
+            progressId: sanitizedId,
+          ),
         );
       }
 

@@ -17,7 +17,10 @@ import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_l
 class ProgressDetailScreen extends StatefulWidget {
   final String progressId;
 
-  const ProgressDetailScreen({super.key, required this.progressId});
+  ProgressDetailScreen({super.key, required this.progressId}) {
+    // Thêm log để kiểm tra giá trị khi khởi tạo
+    debugPrint('ProgressDetailScreen created with progressId: $progressId');
+  }
 
   @override
   State<ProgressDetailScreen> createState() => _ProgressDetailScreenState();
@@ -30,11 +33,17 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.progressId.isEmpty) {
+      debugPrint('WARNING: Empty progressId passed to ProgressDetailScreen!');
+    }
     _dataLoadingFuture = _loadInitialData();
   }
 
   Future<void> _loadInitialData() async {
     try {
+      debugPrint(
+        'Starting initial data load for progressId: ${widget.progressId}',
+      );
       await _fetchProgressAndRepetitions();
       if (mounted) {
         setState(() {
@@ -50,6 +59,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
   Future<void> _reloadData() async {
     if (mounted) {
+      debugPrint('Reloading data for progressId: ${widget.progressId}');
       setState(() {
         _dataLoadingFuture = _fetchProgressAndRepetitions();
       });
@@ -57,6 +67,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   }
 
   Future<void> _fetchProgressAndRepetitions() async {
+    // Validate progressId before proceeding
+    if (widget.progressId.isEmpty) {
+      throw Exception('Invalid progress ID: Empty ID provided');
+    }
+
+    debugPrint('Fetching data for progressId: ${widget.progressId}');
+
     final progressViewModel = Provider.of<ProgressViewModel>(
       context,
       listen: false,
@@ -66,12 +83,24 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       listen: false,
     );
 
+    // Clear any previous data
+    progressViewModel.clearSelectedProgress();
+    repetitionViewModel.clearRepetitions();
+
     // Load progress details first
     await progressViewModel.loadProgressDetails(widget.progressId);
     if (!mounted) return;
 
+    // Log the result for debugging
+    debugPrint(
+      'Progress details loaded: ${progressViewModel.selectedProgress?.id}',
+    );
+
     // Then load repetitions
     await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
+    if (!mounted) return;
+
+    debugPrint('Repetitions loaded: ${repetitionViewModel.repetitions.length}');
   }
 
   Future<void> _markRepetitionCompleted(String repetitionId) async {
@@ -329,7 +358,30 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
     final progress = progressViewModel.selectedProgress;
     if (progress == null) {
-      return const Center(child: Text('Progress not found'));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber, size: 48, color: Colors.orange),
+            const SizedBox(height: 16),
+            Text(
+              'Progress with ID ${widget.progressId} not found',
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _reloadData,
+              child: const Text('Try Again'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => GoRouter.of(context).go('/due-progress'),
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
+      );
     }
 
     return ListView(

@@ -638,10 +638,17 @@ class _DueProgressScreenState extends State<DueProgressScreen>
         ),
       ),
       child: InkWell(
-        onTap:
-            () => GoRouter.of(
-              context,
-            ).push('/progress/${progress.id}').then((_) => _loadData()),
+        onTap: () {
+          // Sử dụng debug logs để kiểm tra progressId
+          final String progressId = progress.id;
+          debugPrint('Navigating to progress with ID: $progressId');
+          debugPrint('Progress object data: ${progress.toString()}');
+
+          // Thay vì sử dụng Navigator.push, sử dụng GoRouter với đường dẫn đã được đăng ký
+          GoRouter.of(
+            context,
+          ).push('/progress/$progressId').then((_) => _loadData());
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),

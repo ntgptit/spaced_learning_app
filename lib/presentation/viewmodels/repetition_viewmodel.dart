@@ -15,8 +15,42 @@ class RepetitionViewModel extends BaseViewModel {
   List<Repetition> get repetitions => _repetitions;
   Repetition? get selectedRepetition => _selectedRepetition;
 
+  // Thêm phương thức để xóa dữ liệu repetitions hiện tại
+  void clearRepetitions() {
+    _repetitions = [];
+    _selectedRepetition = null;
+    notifyListeners();
+  }
+
+  String? _sanitizeId(String id) {
+    // Hàm này kiểm tra và làm sạch ID
+    if (id.isEmpty) {
+      debugPrint('WARNING: Empty ID detected in RepetitionViewModel');
+      return null;
+    }
+
+    // Loại bỏ khoảng trắng dư thừa
+    final sanitizedId = id.trim();
+
+    if (sanitizedId != id) {
+      debugPrint('ID sanitized from "$id" to "$sanitizedId"');
+    }
+
+    return sanitizedId;
+  }
+
   Future<void> loadRepetitionsByProgressId(String progressId) async {
-    if (_isLoading) return;
+    final sanitizedId = _sanitizeId(progressId);
+    if (sanitizedId == null) {
+      setError('Invalid progress ID: Empty ID provided');
+      notifyListeners();
+      return;
+    }
+
+    if (_isLoading) {
+      debugPrint('Already loading repetitions, skipping duplicate request');
+      return;
+    }
 
     _isLoading = true;
     beginLoading();
@@ -24,11 +58,21 @@ class RepetitionViewModel extends BaseViewModel {
     clearError();
 
     try {
-      debugPrint('Loading repetitions for progressId: $progressId');
+      debugPrint('Loading repetitions for progressId: $sanitizedId');
       _repetitions = await repetitionRepository.getRepetitionsByProgressId(
-        progressId,
+        sanitizedId,
       );
       debugPrint('Loaded ${_repetitions.length} repetitions');
+
+      // Log some details about the first few repetitions
+      if (_repetitions.isNotEmpty) {
+        for (int i = 0; i < min(_repetitions.length, 3); i++) {
+          final rep = _repetitions[i];
+          debugPrint(
+            'Repetition $i: ID=${rep.id}, Order=${rep.repetitionOrder}, Status=${rep.status}',
+          );
+        }
+      }
     } catch (e) {
       handleError(e, prefix: 'Failed to load repetitions by progress');
       debugPrint('Error loading repetitions: $e');
@@ -43,14 +87,21 @@ class RepetitionViewModel extends BaseViewModel {
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
+    final sanitizedId = _sanitizeId(moduleProgressId);
+    if (sanitizedId == null) {
+      setError('Invalid progress ID: Empty ID provided');
+      notifyListeners();
+      return [];
+    }
+
     beginLoading();
     notifyListeners();
     clearError();
 
     try {
-      debugPrint('Creating default schedule for progressId: $moduleProgressId');
+      debugPrint('Creating default schedule for progressId: $sanitizedId');
       final schedule = await repetitionRepository.createDefaultSchedule(
-        moduleProgressId,
+        sanitizedId,
       );
       debugPrint('Created schedule with ${schedule.length} repetitions');
       return schedule;
@@ -71,30 +122,37 @@ class RepetitionViewModel extends BaseViewModel {
     bool rescheduleFollowing = false,
     double? percentComplete,
   }) async {
+    final sanitizedId = _sanitizeId(id);
+    if (sanitizedId == null) {
+      setError('Invalid repetition ID: Empty ID provided');
+      notifyListeners();
+      return null;
+    }
+
     beginLoading();
     notifyListeners();
     clearError();
 
     try {
-      debugPrint('Updating repetition: $id');
+      debugPrint('Updating repetition: $sanitizedId');
       debugPrint(
         'Status: $status, ReviewDate: $reviewDate, RescheduleFollowing: $rescheduleFollowing',
       );
 
       final repetition = await repetitionRepository.updateRepetition(
-        id,
+        sanitizedId,
         status: status,
         reviewDate: reviewDate,
         rescheduleFollowing: rescheduleFollowing,
         percentComplete: percentComplete,
       );
 
-      if (_selectedRepetition?.id == id) {
+      if (_selectedRepetition?.id == sanitizedId) {
         _selectedRepetition = repetition;
       }
 
       // Update the list if this repetition is in it
-      final index = _repetitions.indexWhere((r) => r.id == id);
+      final index = _repetitions.indexWhere((r) => r.id == sanitizedId);
       if (index >= 0) {
         _repetitions[index] = repetition;
       }
@@ -117,17 +175,31 @@ class RepetitionViewModel extends BaseViewModel {
   }
 
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
+    final sanitizedId = _sanitizeId(progressId);
+    if (sanitizedId == null) {
+      setError('Invalid progress ID: Empty ID provided');
+      notifyListeners();
+      return false;
+    }
+
     try {
-      debugPrint('Checking completion status for progressId: $progressId');
+      debugPrint('Checking completion status for progressId: $sanitizedId');
 
       // If we already have loaded repetitions for this progress, use them
       List<Repetition> repetitionsToCheck;
 
+      // Check if our current repetitions belong to the requested progress ID
+      final bool currentDataValid =
+          _repetitions.isNotEmpty &&
+          _repetitions.first.moduleProgressId == sanitizedId;
+
       // Otherwise, load them from repository
-      if (_repetitions.isEmpty ||
-          _repetitions.first.moduleProgressId != progressId) {
+      if (!currentDataValid) {
+        debugPrint(
+          'No cached repetitions for progressId: $sanitizedId, loading from repository',
+        );
         repetitionsToCheck = await repetitionRepository
-            .getRepetitionsByProgressId(progressId);
+            .getRepetitionsByProgressId(sanitizedId);
       } else {
         repetitionsToCheck = _repetitions;
       }
@@ -158,15 +230,20 @@ class RepetitionViewModel extends BaseViewModel {
   String getCycleInfo(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
-        return 'Bạn đang trong chu kỳ đầu tiên. Hoàn thành 5 lần ôn tập để chuyển sang chu kỳ tiếp theo.';
+        return 'You are in the first learning cycle. Complete 5 review sessions to move to the next cycle.';
       case CycleStudied.firstReview:
-        return 'Bạn đang trong chu kỳ ôn tập đầu tiên. Hoàn thành cả 5 lần ôn tập để tiếp tục.';
+        return 'You are in the first review cycle. Complete all 5 review sessions to proceed.';
       case CycleStudied.secondReview:
-        return 'Bạn đang trong chu kỳ ôn tập thứ hai. Bạn đã làm rất tốt!';
+        return 'You are in the second review cycle. You’re doing great!';
       case CycleStudied.thirdReview:
-        return 'Bạn đang trong chu kỳ ôn tập thứ ba. Bạn gần như đã thuộc bài học này!';
+        return 'You are in the third review cycle. You almost have this mastered!';
       case CycleStudied.moreThanThreeReviews:
-        return 'Bạn đã hoàn thành hơn 3 chu kỳ học. Kiến thức đã được củng cố rất tốt!';
+        return 'You’ve completed more than 3 review cycles. The knowledge is well reinforced!';
     }
+  }
+
+  // Helper function for min value
+  int min(int a, int b) {
+    return a < b ? a : b;
   }
 }
