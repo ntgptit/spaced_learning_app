@@ -26,7 +26,7 @@ class FilterStatsRow extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS,
+        horizontal: AppDimens.paddingXS,
         vertical: AppDimens.paddingM,
       ),
       child: Row(
@@ -61,19 +61,17 @@ class FilterStatsRow extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 40, // Thu nhỏ chiều rộng của khu vực nút
+            width: 32, // Thu nhỏ chiều rộng của khu vực nút
             child: IconButton(
               icon: Stack(
                 children: [
                   Icon(
                     showFilter ? Icons.filter_list_off : Icons.filter_list,
-                    color:
-                        activeFilterCount > 0
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                    size:
-                        AppDimens
-                            .iconM, // Giảm kích thước icon từ iconL xuống iconM
+                    color: activeFilterCount > 0
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                    size: AppDimens
+                        .iconL, // Giảm kích thước icon từ iconL xuống iconM
                   ),
                   if (activeFilterCount > 0)
                     Positioned(
@@ -105,9 +103,10 @@ class FilterStatsRow extends StatelessWidget {
               ),
               tooltip: showFilter ? 'Hide filters' : 'Show filters',
               padding: const EdgeInsets.all(AppDimens.paddingXS),
-              constraints: const BoxConstraints(), // Bỏ constraints mặc định
-              visualDensity:
-                  VisualDensity.compact, // Sử dụng density nhỏ gọn hơn
+              constraints: const BoxConstraints(),
+              // Bỏ constraints mặc định
+              visualDensity: VisualDensity.compact,
+              // Sử dụng density nhỏ gọn hơn
               onPressed: onToggleFilter,
             ),
           ),
