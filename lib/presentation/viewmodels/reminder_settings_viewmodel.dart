@@ -21,13 +21,19 @@ class ReminderSettingsViewModel extends BaseViewModel {
   Map<String, dynamic> _deviceInfo = {};
 
   bool get remindersEnabled => _remindersEnabled;
+
   bool get noonReminderEnabled => _noonReminderEnabled;
+
   bool get eveningFirstReminderEnabled => _eveningFirstReminderEnabled;
+
   bool get eveningSecondReminderEnabled => _eveningSecondReminderEnabled;
+
   bool get endOfDayReminderEnabled => _endOfDayReminderEnabled;
 
   bool get hasExactAlarmPermission => _hasExactAlarmPermission;
+
   bool get isIgnoringBatteryOptimizations => _isIgnoringBatteryOptimizations;
+
   Map<String, dynamic> get deviceInfo => _deviceInfo;
 
   ReminderSettingsViewModel({
@@ -45,12 +51,12 @@ class ReminderSettingsViewModel extends BaseViewModel {
     try {
       _remindersEnabled = await _reminderService.getRemindersEnabled();
       _noonReminderEnabled = await _reminderService.getNoonReminderEnabled();
-      _eveningFirstReminderEnabled =
-          await _reminderService.getEveningFirstReminderEnabled();
-      _eveningSecondReminderEnabled =
-          await _reminderService.getEveningSecondReminderEnabled();
-      _endOfDayReminderEnabled =
-          await _reminderService.getEndOfDayReminderEnabled();
+      _eveningFirstReminderEnabled = await _reminderService
+          .getEveningFirstReminderEnabled();
+      _eveningSecondReminderEnabled = await _reminderService
+          .getEveningSecondReminderEnabled();
+      _endOfDayReminderEnabled = await _reminderService
+          .getEndOfDayReminderEnabled();
 
       await _loadDevicePermissions();
 
@@ -64,10 +70,10 @@ class ReminderSettingsViewModel extends BaseViewModel {
 
   Future<void> _loadDevicePermissions() async {
     try {
-      _hasExactAlarmPermission =
-          await _deviceSettingsService.hasExactAlarmPermission();
-      _isIgnoringBatteryOptimizations =
-          await _deviceSettingsService.isIgnoringBatteryOptimizations();
+      _hasExactAlarmPermission = await _deviceSettingsService
+          .hasExactAlarmPermission();
+      _isIgnoringBatteryOptimizations = await _deviceSettingsService
+          .isIgnoringBatteryOptimizations();
       _deviceInfo = await _deviceSettingsService.getDeviceInfo();
     } catch (e) {
       debugPrint('Error loading device permissions: $e');
@@ -189,8 +195,8 @@ class ReminderSettingsViewModel extends BaseViewModel {
     try {
       final result = await _deviceSettingsService.requestExactAlarmPermission();
       if (result) {
-        _hasExactAlarmPermission =
-            await _deviceSettingsService.hasExactAlarmPermission();
+        _hasExactAlarmPermission = await _deviceSettingsService
+            .hasExactAlarmPermission();
         notifyListeners();
       }
       return result;
@@ -207,8 +213,8 @@ class ReminderSettingsViewModel extends BaseViewModel {
     try {
       final result = await _deviceSettingsService.requestBatteryOptimization();
       if (result) {
-        _isIgnoringBatteryOptimizations =
-            await _deviceSettingsService.isIgnoringBatteryOptimizations();
+        _isIgnoringBatteryOptimizations = await _deviceSettingsService
+            .isIgnoringBatteryOptimizations();
         notifyListeners();
       }
       return result;
@@ -242,10 +248,5 @@ class ReminderSettingsViewModel extends BaseViewModel {
     } finally {
       endLoading();
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

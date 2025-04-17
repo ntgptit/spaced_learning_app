@@ -14,6 +14,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/loading_indicato
 
 class BookDetailScreen extends StatefulWidget {
   final String bookId;
+
   const BookDetailScreen({super.key, required this.bookId});
 
   @override
@@ -51,8 +52,18 @@ class _BookDetailScreenState extends State<BookDetailScreen>
   }
 
   Future<void> _loadData() async {
-    await context.read<BookViewModel>().loadBookDetails(widget.bookId);
-    await context.read<ModuleViewModel>().loadModulesByBookId(widget.bookId);
+    if (!mounted) return;
+
+    // Lưu tham chiếu đến các ViewModel để tránh sử dụng context sau await
+    final bookViewModel = context.read<BookViewModel>();
+    final moduleViewModel = context.read<ModuleViewModel>();
+
+    await bookViewModel.loadBookDetails(widget.bookId);
+
+    // Kiểm tra xem widget còn mounted không trước khi tiếp tục
+    if (!mounted) return;
+
+    await moduleViewModel.loadModulesByBookId(widget.bookId);
   }
 
   @override
@@ -93,16 +104,15 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollController,
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [
-              _buildFlexibleAppBar(
-                theme,
-                colorScheme,
-                book,
-                authViewModel,
-                innerBoxIsScrolled,
-              ),
-            ],
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          _buildFlexibleAppBar(
+            theme,
+            colorScheme,
+            book,
+            authViewModel,
+            innerBoxIsScrolled,
+          ),
+        ],
         body: Column(
           children: [
             TabBar(
@@ -126,9 +136,8 @@ class _BookDetailScreenState extends State<BookDetailScreen>
                   BookModulesTab(
                     bookId: widget.bookId,
                     viewModel: moduleViewModel,
-                    onRetry:
-                        () =>
-                            moduleViewModel.loadModulesByBookId(widget.bookId),
+                    onRetry: () =>
+                        moduleViewModel.loadModulesByBookId(widget.bookId),
                   ),
                 ],
               ),
@@ -154,10 +163,9 @@ class _BookDetailScreenState extends State<BookDetailScreen>
       floating: false,
       pinned: true,
       forceElevated: _isScrolled || innerBoxIsScrolled,
-      backgroundColor:
-          _isScrolled
-              ? theme.appBarTheme.backgroundColor
-              : colorScheme.surfaceContainerHigh,
+      backgroundColor: _isScrolled
+          ? theme.appBarTheme.backgroundColor
+          : colorScheme.surfaceContainerHigh,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => GoRouter.of(context).pop(),
@@ -166,17 +174,16 @@ class _BookDetailScreenState extends State<BookDetailScreen>
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.all(0),
         expandedTitleScale: 1.0,
-        title:
-            _isScrolled
-                ? Padding(
-                  padding: const EdgeInsets.only(left: 56.0, right: 56.0),
-                  child: Text(
-                    book.name,
-                    style: theme.textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                )
-                : const SizedBox.shrink(),
+        title: _isScrolled
+            ? Padding(
+                padding: const EdgeInsets.only(left: 56.0, right: 56.0),
+                child: Text(
+                  book.name,
+                  style: theme.textTheme.titleMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+            : const SizedBox.shrink(),
         background: Padding(
           padding: const EdgeInsets.fromLTRB(
             AppDimens.paddingL,
