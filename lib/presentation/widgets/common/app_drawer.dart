@@ -1,3 +1,4 @@
+// lib/presentation/widgets/common/app_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -16,189 +17,175 @@ class AppDrawer extends StatelessWidget {
     final themeViewModel = context.watch<ThemeViewModel>();
 
     return Drawer(
-      child: Column(
-        children: [
-          UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: colorScheme.primaryContainer),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: colorScheme.onPrimaryContainer.withValues(
-                alpha: 0.1,
-              ),
-              child: Text(
-                _getInitials(
-                  authViewModel.currentUser?.displayName ??
-                      authViewModel.currentUser?.email ??
-                      'User',
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              margin: EdgeInsets.zero,
+              decoration: BoxDecoration(color: colorScheme.primaryContainer),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: colorScheme.onPrimaryContainer.withValues(
+                  alpha: 0.1,
                 ),
+                child: Text(
+                  _getInitials(
+                    authViewModel.currentUser?.displayName ??
+                        authViewModel.currentUser?.email ??
+                        'User',
+                  ),
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              accountName: Text(
+                authViewModel.currentUser?.displayName ?? 'User',
+                style: TextStyle(color: colorScheme.onPrimaryContainer),
+              ),
+              accountEmail: Text(
+                authViewModel.currentUser?.email ?? '',
                 style: TextStyle(
-                  color: colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
                 ),
               ),
             ),
-            accountName: Text(
-              authViewModel.currentUser?.displayName ?? 'User',
-              style: TextStyle(color: colorScheme.onPrimaryContainer),
-            ),
-            accountEmail: Text(
-              authViewModel.currentUser?.email ?? '',
-              style: TextStyle(
-                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Home',
               Icons.home,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/'),
             ),
-            title: Text('Home', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/');
-            },
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Books',
               Icons.book,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/books'),
             ),
-            title: Text('Books', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/books');
-            },
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Due Progress',
               Icons.today,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/due-progress'),
             ),
-            title: Text('Due Progress', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/due-progress');
-            },
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Learning Stats',
               Icons.analytics_outlined,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/learning'),
             ),
-            title: Text('Learning Stats', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/learning');
-            },
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Profile',
               Icons.person,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/profile'),
             ),
-            title: Text('Profile', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/profile');
-            },
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Reminder Settings',
               Icons.settings,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/settings/reminders'),
             ),
-            title: Text('Reminder Settings', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/settings/reminders');
-            },
-          ),
-          ListTile(
-            leading: Icon(
+            _buildMenuItem(
+              context,
+              'Task Report',
               Icons.assignment_late,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/task-report'),
             ),
-            title: Text('Task Report', style: theme.textTheme.bodyLarge),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/task-report');
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.info_outline,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
-            ),
-            title: Text(
+            _buildMenuItem(
+              context,
               'Spaced Repetition Info',
-              style: theme.textTheme.bodyLarge,
+              Icons.info_outline,
+              theme,
+              colorScheme,
+              () => _navigateAndPop(context, '/help/spaced-repetition'),
             ),
-            onTap: () {
-              Navigator.pop(context);
-              GoRouter.of(context).go('/help/spaced-repetition');
-            },
-          ),
-          Divider(
-            height: AppDimens.dividerThickness,
-            color: colorScheme.outlineVariant,
-          ),
-          ListTile(
-            leading: Icon(
-              themeViewModel.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-              size: AppDimens.iconL,
-              color: colorScheme.primary,
+            Divider(
+              height: AppDimens.dividerThickness,
+              color: colorScheme.outlineVariant,
             ),
-            title: Text(
+            _buildMenuItem(
+              context,
               themeViewModel.isDarkMode ? 'Light Mode' : 'Dark Mode',
-              style: theme.textTheme.bodyLarge,
+              themeViewModel.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              theme,
+              colorScheme,
+              () {
+                themeViewModel.toggleTheme();
+                Navigator.pop(context);
+              },
             ),
-            onTap: () {
-              themeViewModel.toggleTheme();
-              Navigator.pop(context);
-            },
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.paddingL,
-              vertical: AppDimens.paddingS,
-            ),
-            child: ListTile(
-              leading: Icon(
-                Icons.logout,
-                size: AppDimens.iconL,
-                color: colorScheme.error,
-              ),
-              title: Text('Logout', style: theme.textTheme.bodyLarge),
-              onTap: () async {
+            const SizedBox(height: AppDimens.spaceL),
+            _buildMenuItem(
+              context,
+              'Logout',
+              Icons.logout,
+              theme,
+              colorScheme,
+              () async {
                 Navigator.pop(context);
                 await authViewModel.logout();
                 if (context.mounted) {
                   GoRouter.of(context).go('/login');
                 }
               },
+              isLogout: true,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Text(
-              'Version 1.0.0',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+            Padding(
+              padding: const EdgeInsets.all(AppDimens.paddingL),
+              child: Text(
+                'Version 1.0.0',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context,
+    String title,
+    IconData icon,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    VoidCallback onTap, {
+    bool isLogout = false,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        size: AppDimens.iconL,
+        color: isLogout ? colorScheme.error : colorScheme.primary,
+      ),
+      title: Text(title, style: theme.textTheme.bodyLarge),
+      onTap: onTap,
+      dense: true,
+    );
+  }
+
+  void _navigateAndPop(BuildContext context, String route) {
+    Navigator.pop(context);
+    GoRouter.of(context).go(route);
   }
 
   String _getInitials(String text) {
