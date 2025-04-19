@@ -17,3 +17,21 @@ class ReminderSettingsChangedEvent {
 
   ReminderSettingsChangedEvent({required this.enabled});
 }
+
+class DailyTaskCheckEvent {
+  final DateTime checkTime;
+  final bool hasDueTasks;
+  final int taskCount;
+  final String userId;
+  final bool isSuccess;
+  final String? errorMessage;
+
+  DailyTaskCheckEvent({
+    required this.checkTime,
+    required this.hasDueTasks,
+    required this.taskCount,
+    required this.userId,
+    required this.isSuccess,
+    this.errorMessage,
+  });
+}

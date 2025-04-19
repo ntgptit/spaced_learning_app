@@ -87,4 +87,34 @@ class StorageService {
     final prefs = await _prefs;
     await prefs.setBool(key, value);
   }
+
+  Future<int?> getInt(String key) async {
+    final prefs = await _prefs;
+    return prefs.getInt(key);
+  }
+
+  Future<void> setInt(String key, int value) async {
+    final prefs = await _prefs;
+    await prefs.setInt(key, value);
+  }
+
+  Future<double?> getDouble(String key) async {
+    final prefs = await _prefs;
+    return prefs.getDouble(key);
+  }
+
+  Future<void> setDouble(String key, double value) async {
+    final prefs = await _prefs;
+    await prefs.setDouble(key, value);
+  }
+
+  Future<List<String>?> getStringList(String key) async {
+    final prefs = await _prefs;
+    return prefs.getStringList(key);
+  }
+
+  Future<void> setStringList(String key, List<String> value) async {
+    final prefs = await _prefs;
+    await prefs.setStringList(key, value);
+  }
 }

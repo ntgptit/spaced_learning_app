@@ -11,6 +11,7 @@ import 'package:spaced_learning_app/presentation/screens/modules/module_detail_s
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/report/daily_task_report_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
@@ -147,15 +148,18 @@ class AppRouter {
 
           GoRoute(
             path: '/help',
-            builder:
-                (context, state) =>
-                    const Scaffold(body: Center(child: Text('Help & Support'))),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Help & Support'))),
             routes: [
               GoRoute(
                 path: 'spaced-repetition',
                 builder: (context, state) => const SpacedRepetitionInfoScreen(),
               ),
             ],
+          ),
+          GoRoute(
+            path: '/task-report',
+            builder: (context, state) => const DailyTaskReportScreen(),
           ),
         ],
       ),

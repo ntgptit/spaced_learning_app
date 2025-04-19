@@ -121,6 +121,18 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(
+              Icons.assignment_late,
+              size: AppDimens.iconL,
+              color: colorScheme.primary,
+            ),
+            title: Text('Task Report', style: theme.textTheme.bodyLarge),
+            onTap: () {
+              Navigator.pop(context);
+              GoRouter.of(context).go('/task-report');
+            },
+          ),
+          ListTile(
+            leading: Icon(
               Icons.info_outline,
               size: AppDimens.iconL,
               color: colorScheme.primary,

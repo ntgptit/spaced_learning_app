@@ -2,9 +2,11 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:spaced_learning_app/core/services/platform/device_settings_service.dart';
 
 class DeviceSpecificService {
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+  final DeviceSettingsService _deviceSettingsService;
 
   bool _isSamsungDevice = false;
   bool _isS23Ultra = false;
@@ -12,6 +14,9 @@ class DeviceSpecificService {
   String? _manufacturer;
   int _sdkVersion = 0;
   bool _isInitialized = false;
+
+  DeviceSpecificService({DeviceSettingsService? deviceSettingsService})
+    : _deviceSettingsService = deviceSettingsService ?? DeviceSettingsService();
 
   Future<bool> initialize() async {
     if (_isInitialized) return true;
@@ -237,10 +242,41 @@ class DeviceSpecificService {
   }
 
   bool get isAndroid => _isAndroid;
+
   bool get isSamsungDevice => _isSamsungDevice;
+
   bool get isS23Ultra => _isS23Ultra;
+
   String? get deviceModel => _deviceModel;
+
   int get sdkVersion => _sdkVersion;
+
   String? get manufacturer => _manufacturer;
+
   bool get isInitialized => _isInitialized;
+
+  // Thêm các phương thức mới để kết nối với DeviceSettingsService
+  Future<bool> hasExactAlarmPermission() async {
+    return _deviceSettingsService.hasExactAlarmPermission();
+  }
+
+  Future<bool> isIgnoringBatteryOptimizations() async {
+    return _deviceSettingsService.isIgnoringBatteryOptimizations();
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    return _deviceSettingsService.requestExactAlarmPermission();
+  }
+
+  Future<bool> requestBatteryOptimization() async {
+    return _deviceSettingsService.requestBatteryOptimization();
+  }
+
+  Future<bool> disableSleepingApps() async {
+    return _deviceSettingsService.disableSleepingApps();
+  }
+
+  Future<Map<String, dynamic>> getDeviceInfo() async {
+    return _deviceSettingsService.getDeviceInfo();
+  }
 }

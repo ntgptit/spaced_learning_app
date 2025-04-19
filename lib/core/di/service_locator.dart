@@ -1,7 +1,9 @@
 // lib/core/di/service_locator.dart
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
+import 'package:spaced_learning_app/core/services/daily_task_checker_service.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/services/learning_data_service_impl.dart';
 import 'package:spaced_learning_app/core/services/platform/device_settings_service.dart';
@@ -29,6 +31,7 @@ import 'package:spaced_learning_app/domain/repositories/repetition_repository.da
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/daily_task_report_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
@@ -188,6 +191,26 @@ Future<void> setupServiceLocator() async {
       reminderService: serviceLocator<ReminderService>(),
       deviceSettingsService: serviceLocator<DeviceSettingsService>(),
       eventBus: serviceLocator<EventBus>(),
+    ),
+  );
+
+  // Đăng ký DailyTaskChecker
+  serviceLocator.registerLazySingleton<DailyTaskChecker>(
+    () => DailyTaskChecker(
+      progressRepository: serviceLocator<ProgressRepository>(),
+      storageService: serviceLocator<StorageService>(),
+      eventBus: serviceLocator<EventBus>(),
+      reminderService: serviceLocator<ReminderService>(),
+      notificationsPlugin: FlutterLocalNotificationsPlugin(),
+    ),
+  );
+
+  // Đăng ký DailyTaskReportViewModel
+  serviceLocator.registerFactory<DailyTaskReportViewModel>(
+    () => DailyTaskReportViewModel(
+      storageService: serviceLocator<StorageService>(),
+      eventBus: serviceLocator<EventBus>(),
+      taskChecker: serviceLocator<DailyTaskChecker>(),
     ),
   );
 }

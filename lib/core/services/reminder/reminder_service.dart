@@ -85,14 +85,14 @@ class ReminderService {
     try {
       await _loadPreferences();
 
-      final bool notificationsInitialized =
-          await _notificationService.initialize();
+      final bool notificationsInitialized = await _notificationService
+          .initialize();
       if (!notificationsInitialized) {
         debugPrint('Warning: Failed to initialize notification service');
       }
 
-      final bool deviceServicesInitialized =
-          await _deviceSpecificService.initialize();
+      final bool deviceServicesInitialized = await _deviceSpecificService
+          .initialize();
       if (!deviceServicesInitialized) {
         debugPrint('Warning: Failed to initialize device-specific services');
       }
@@ -149,8 +149,12 @@ class ReminderService {
     _isScheduling = true;
 
     try {
+      debugPrint('========== DEBUGGING REMINDERS ==========');
+      debugPrint('Initialized: $_isInitialized');
+
       if (!_isInitialized) {
         final bool initialized = await initialize();
+        debugPrint('Initialization result: $initialized');
         if (!initialized) {
           debugPrint('Failed to initialize ReminderService');
           _isScheduling = false;
@@ -159,20 +163,32 @@ class ReminderService {
       }
 
       await _notificationService.cancelAllNotifications();
+      debugPrint('All previous notifications cancelled');
 
       final remindersEnabled =
           await _storageService.getBool('reminders_enabled') ?? true;
+      debugPrint('Reminders enabled: $remindersEnabled');
+
       if (!remindersEnabled) {
         debugPrint('Reminders are disabled, not scheduling any reminders');
         _isScheduling = false;
         return true;
       }
 
+      // Check permission status
+      final deviceService = _deviceSpecificService;
+      final hasAlarm = await deviceService.hasExactAlarmPermission();
+      final ignoresBattery = await deviceService
+          .isIgnoringBatteryOptimizations();
+      debugPrint(
+        'Permission check - Exact alarm: $hasAlarm, Battery optimization: $ignoresBattery',
+      );
+
       final noonReminderEnabled =
           await _storageService.getBool('noon_reminder_enabled') ?? true;
       if (noonReminderEnabled) {
-        final bool noonResult =
-            await _notificationService.scheduleNoonReminder();
+        final bool noonResult = await _notificationService
+            .scheduleNoonReminder();
         debugPrint('Noon reminder scheduled: $noonResult');
       }
 
@@ -189,8 +205,8 @@ class ReminderService {
           await _storageService.getBool('evening_first_reminder_enabled') ??
           true;
       if (eveningFirstReminderEnabled) {
-        final bool eveningFirstResult =
-            await _notificationService.scheduleEveningFirstReminder();
+        final bool eveningFirstResult = await _notificationService
+            .scheduleEveningFirstReminder();
         debugPrint('Evening first reminder scheduled: $eveningFirstResult');
       }
 
@@ -198,8 +214,8 @@ class ReminderService {
           await _storageService.getBool('evening_second_reminder_enabled') ??
           true;
       if (eveningSecondReminderEnabled) {
-        final bool eveningSecondResult =
-            await _notificationService.scheduleEveningSecondReminder();
+        final bool eveningSecondResult = await _notificationService
+            .scheduleEveningSecondReminder();
         debugPrint('Evening second reminder scheduled: $eveningSecondResult');
       }
 
