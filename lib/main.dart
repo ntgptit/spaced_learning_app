@@ -17,6 +17,8 @@ import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 
+import 'core/theme/app_color_scheme.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -87,28 +89,124 @@ class AppWithRouter extends StatelessWidget {
 
     return MaterialApp.router(
       title: 'Spaced Learning App',
+      // Theme sáng với màu Gemini
       theme: FlexThemeData.light(
-        scheme: FlexScheme.shark,
-        // Chọn một scheme có sẵn
-        useMaterial3: true,
-        // Sử dụng Material 3
-        subThemesData: const FlexSubThemesData(
-          defaultRadius: 8.0, // Bo góc mặc định
-          buttonMinSize: Size(80, 40), // Kích thước tối thiểu của nút
+        colors: const FlexSchemeColor(
+          primary: GeminiColors.primaryBlue,
+          primaryContainer: GeminiColors.paleBlue,
+          secondary: GeminiColors.textSecondary,
+          secondaryContainer: GeminiColors.surfaceGrey,
+          tertiary: GeminiColors.lightBlue,
+          tertiaryContainer: Color(0xFFD2E3FC),
+          appBarColor: GeminiColors.backgroundWhite,
+          error: GeminiColors.errorRed,
         ),
-        surfaceMode: FlexSurfaceMode.highScaffoldLowSurfaces,
-        blendLevel: 10, // Mức độ pha trộn màu
-      ),
-      darkTheme: FlexThemeData.dark(
-        scheme: FlexScheme.shark,
-        // Đảm bảo sáng và tối đồng bộ
+        appBarOpacity: 1.0,
+        tabBarStyle: FlexTabBarStyle.forAppBar,
         useMaterial3: true,
+        // Thiết lập chế độ bề mặt
+        surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+        blendLevel: 7,
+        // Tùy chỉnh sub-themes
+        subThemesData: const FlexSubThemesData(
+          // Bán kính bo góc
+          defaultRadius: 8.0,
+          buttonMinSize: Size(80, 40),
+          inputDecoratorRadius: 8.0,
+          cardRadius: 12.0,
+          dialogRadius: 16.0,
+          bottomSheetRadius: 16.0,
+          // Các tùy chỉnh khác
+          elevatedButtonSchemeColor: SchemeColor.primary,
+          elevatedButtonSecondarySchemeColor: SchemeColor.onPrimary,
+          outlinedButtonOutlineSchemeColor: SchemeColor.primary,
+          inputDecoratorSchemeColor: SchemeColor.tertiary,
+          inputDecoratorIsFilled: true,
+          fabSchemeColor: SchemeColor.primary,
+          chipSchemeColor: SchemeColor.primary,
+          chipRadius: 8.0,
+          textButtonTextStyle: MaterialStatePropertyAll(
+            TextStyle(fontWeight: FontWeight.w500),
+          ),
+          // Border styles
+          thinBorderWidth: 1.0,
+          thickBorderWidth: 2.0,
+          // Typography contrast
+          useTextTheme: true,
+          // Menu styles
+          popupMenuRadius: 8.0,
+          popupMenuElevation: 3.0,
+          // Padding
+          buttonPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          // Cards
+          cardElevation: 1.0,
+        ),
+        // Sử dụng key colors để tạo scheme từ một số màu
+        keyColors: const FlexKeyColors(
+          useSecondary: true,
+          useTertiary: true,
+          useError: true,
+        ),
+        // Density cho các widget
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        // Tích hợp với Cupertino widgets
+        platform: TargetPlatform.android,
+      ),
+      // Theme tối với màu Gemini
+      darkTheme: FlexThemeData.dark(
+        colors: const FlexSchemeColor(
+          primary: GeminiColors.brightBlue,
+          primaryContainer: GeminiColors.darkAccentBlue,
+          secondary: GeminiColors.darkTextSecondary,
+          secondaryContainer: GeminiColors.darkSurfaceVariant,
+          tertiary: Color(0xFFA8CCFD),
+          tertiaryContainer: Color(0xFF004A77),
+          appBarColor: GeminiColors.darkSurface,
+          error: Color(0xFFF2B8B5),
+        ),
+        appBarOpacity: 1.0,
+        tabBarStyle: FlexTabBarStyle.forAppBar,
+        useMaterial3: true,
+        // Thiết lập chế độ bề mặt
+        surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+        blendLevel: 10,
+        // Tùy chỉnh sub-themes (giữ nhất quán với theme sáng)
         subThemesData: const FlexSubThemesData(
           defaultRadius: 8.0,
           buttonMinSize: Size(80, 40),
+          inputDecoratorRadius: 8.0,
+          cardRadius: 12.0,
+          dialogRadius: 16.0,
+          bottomSheetRadius: 16.0,
+          elevatedButtonSchemeColor: SchemeColor.primary,
+          elevatedButtonSecondarySchemeColor: SchemeColor.onPrimary,
+          outlinedButtonOutlineSchemeColor: SchemeColor.primary,
+          inputDecoratorSchemeColor: SchemeColor.tertiary,
+          inputDecoratorIsFilled: true,
+          fabSchemeColor: SchemeColor.primary,
+          chipSchemeColor: SchemeColor.primary,
+          chipRadius: 8.0,
+          textButtonTextStyle: MaterialStatePropertyAll(
+            TextStyle(fontWeight: FontWeight.w500),
+          ),
+          thinBorderWidth: 1.0,
+          thickBorderWidth: 2.0,
+          useTextTheme: true,
+          popupMenuRadius: 8.0,
+          popupMenuElevation: 3.0,
+          buttonPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          cardElevation: 1.0,
         ),
-        surfaceMode: FlexSurfaceMode.highScaffoldLowSurfaces,
-        blendLevel: 15, // Mức độ pha trộn cho chế độ tối
+        // Sử dụng key colors để tạo scheme từ một số màu
+        keyColors: const FlexKeyColors(
+          useSecondary: true,
+          useTertiary: true,
+          useError: true,
+        ),
+        // Density cho các widget
+        visualDensity: FlexColorScheme.comfortablePlatformDensity,
+        // Tích hợp với Cupertino widgets
+        platform: TargetPlatform.android,
       ),
       themeMode: themeViewModel.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       routerConfig: appRouter.router,
