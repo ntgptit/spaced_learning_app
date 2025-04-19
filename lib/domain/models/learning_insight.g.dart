@@ -1,6 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'learning_insight.dart';
 
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 _LearningInsightDTO _$LearningInsightDTOFromJson(Map<String, dynamic> json) =>
     _LearningInsightDTO(

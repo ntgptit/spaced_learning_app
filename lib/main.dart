@@ -8,6 +8,7 @@ import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/daily_task_report_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
@@ -58,6 +59,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => serviceLocator<LearningProgressViewModel>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => serviceLocator<DailyTaskReportViewModel>(),
         ),
         Provider<LearningDataService>(
           create: (_) => serviceLocator<LearningDataService>(),

@@ -1,16 +1,29 @@
+// dart format width=80
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'module.dart';
 
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
 
+/// @nodoc
 mixin _$ModuleSummary {
 
  String get id; String get bookId; int get moduleNo; String get title; int? get wordCount; DateTime? get createdAt; DateTime? get updatedAt;
+/// Create a copy of ModuleSummary
+/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $ModuleSummaryCopyWith<ModuleSummary> get copyWith => _$ModuleSummaryCopyWithImpl<ModuleSummary>(this as ModuleSummary, _$identity);
 
+  /// Serializes this ModuleSummary to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -31,6 +44,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class $ModuleSummaryCopyWith<$Res>  {
   factory $ModuleSummaryCopyWith(ModuleSummary value, $Res Function(ModuleSummary) _then) = _$ModuleSummaryCopyWithImpl;
 @useResult
@@ -42,6 +56,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class _$ModuleSummaryCopyWithImpl<$Res>
     implements $ModuleSummaryCopyWith<$Res> {
   _$ModuleSummaryCopyWithImpl(this._self, this._then);
@@ -49,6 +64,8 @@ class _$ModuleSummaryCopyWithImpl<$Res>
   final ModuleSummary _self;
   final $Res Function(ModuleSummary) _then;
 
+/// Create a copy of ModuleSummary
+/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? bookId = null,Object? moduleNo = null,Object? title = null,Object? wordCount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -65,6 +82,7 @@ as DateTime?,
 }
 
 
+/// @nodoc
 @JsonSerializable()
 
 class _ModuleSummary implements ModuleSummary {
@@ -79,6 +97,8 @@ class _ModuleSummary implements ModuleSummary {
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
+/// Create a copy of ModuleSummary
+/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$ModuleSummaryCopyWith<_ModuleSummary> get copyWith => __$ModuleSummaryCopyWithImpl<_ModuleSummary>(this, _$identity);
@@ -105,6 +125,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class _$ModuleSummaryCopyWith<$Res> implements $ModuleSummaryCopyWith<$Res> {
   factory _$ModuleSummaryCopyWith(_ModuleSummary value, $Res Function(_ModuleSummary) _then) = __$ModuleSummaryCopyWithImpl;
 @override @useResult
@@ -116,6 +137,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class __$ModuleSummaryCopyWithImpl<$Res>
     implements _$ModuleSummaryCopyWith<$Res> {
   __$ModuleSummaryCopyWithImpl(this._self, this._then);
@@ -123,6 +145,8 @@ class __$ModuleSummaryCopyWithImpl<$Res>
   final _ModuleSummary _self;
   final $Res Function(_ModuleSummary) _then;
 
+/// Create a copy of ModuleSummary
+/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? bookId = null,Object? moduleNo = null,Object? title = null,Object? wordCount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_ModuleSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -140,13 +164,17 @@ as DateTime?,
 }
 
 
+/// @nodoc
 mixin _$ModuleDetail {
 
  String get id; String get bookId; String? get bookName; int get moduleNo; String get title; int? get wordCount; DateTime? get createdAt; DateTime? get updatedAt; List<ProgressSummary> get progress;
+/// Create a copy of ModuleDetail
+/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $ModuleDetailCopyWith<ModuleDetail> get copyWith => _$ModuleDetailCopyWithImpl<ModuleDetail>(this as ModuleDetail, _$identity);
 
+  /// Serializes this ModuleDetail to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -167,6 +195,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class $ModuleDetailCopyWith<$Res>  {
   factory $ModuleDetailCopyWith(ModuleDetail value, $Res Function(ModuleDetail) _then) = _$ModuleDetailCopyWithImpl;
 @useResult
@@ -178,6 +207,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class _$ModuleDetailCopyWithImpl<$Res>
     implements $ModuleDetailCopyWith<$Res> {
   _$ModuleDetailCopyWithImpl(this._self, this._then);
@@ -185,6 +215,8 @@ class _$ModuleDetailCopyWithImpl<$Res>
   final ModuleDetail _self;
   final $Res Function(ModuleDetail) _then;
 
+/// Create a copy of ModuleDetail
+/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? bookId = null,Object? bookName = freezed,Object? moduleNo = null,Object? title = null,Object? wordCount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? progress = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -203,6 +235,7 @@ as List<ProgressSummary>,
 }
 
 
+/// @nodoc
 @JsonSerializable()
 
 class _ModuleDetail implements ModuleDetail {
@@ -220,10 +253,13 @@ class _ModuleDetail implements ModuleDetail {
  final  List<ProgressSummary> _progress;
 @override@JsonKey() List<ProgressSummary> get progress {
   if (_progress is EqualUnmodifiableListView) return _progress;
+  // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_progress);
 }
 
 
+/// Create a copy of ModuleDetail
+/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$ModuleDetailCopyWith<_ModuleDetail> get copyWith => __$ModuleDetailCopyWithImpl<_ModuleDetail>(this, _$identity);
@@ -250,6 +286,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class _$ModuleDetailCopyWith<$Res> implements $ModuleDetailCopyWith<$Res> {
   factory _$ModuleDetailCopyWith(_ModuleDetail value, $Res Function(_ModuleDetail) _then) = __$ModuleDetailCopyWithImpl;
 @override @useResult
@@ -261,6 +298,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class __$ModuleDetailCopyWithImpl<$Res>
     implements _$ModuleDetailCopyWith<$Res> {
   __$ModuleDetailCopyWithImpl(this._self, this._then);
@@ -268,6 +306,8 @@ class __$ModuleDetailCopyWithImpl<$Res>
   final _ModuleDetail _self;
   final $Res Function(_ModuleDetail) _then;
 
+/// Create a copy of ModuleDetail
+/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? bookId = null,Object? bookName = freezed,Object? moduleNo = null,Object? title = null,Object? wordCount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? progress = null,}) {
   return _then(_ModuleDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -286,3 +326,4 @@ as List<ProgressSummary>,
 
 }
 
+// dart format on

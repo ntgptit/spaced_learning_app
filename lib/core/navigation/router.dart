@@ -5,7 +5,6 @@ import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart'
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
@@ -15,6 +14,8 @@ import 'package:spaced_learning_app/presentation/screens/report/daily_task_repor
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
+
+import '../../presentation/screens/home/home_screen.dart';
 
 class AppRouter {
   final AuthViewModel authViewModel;
@@ -54,9 +55,7 @@ class AppRouter {
         name: 'progressDetail',
         builder: (context, state) {
           final progressId = state.pathParameters['id'];
-          debugPrint(
-            'Router received progressId: $progressId',
-          ); // Thêm log để debug
+          debugPrint('Router received progressId: $progressId');
           return ProgressDetailScreen(progressId: progressId ?? '');
         },
       ),
@@ -157,6 +156,7 @@ class AppRouter {
               ),
             ],
           ),
+
           GoRoute(
             path: '/task-report',
             builder: (context, state) => const DailyTaskReportScreen(),

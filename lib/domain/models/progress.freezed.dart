@@ -1,16 +1,29 @@
+// dart format width=80
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'progress.dart';
 
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
 
+/// @nodoc
 mixin _$ProgressSummary {
 
  String get id; String get moduleId; DateTime? get firstLearningDate; CycleStudied get cyclesStudied; DateTime? get nextStudyDate; double get percentComplete; DateTime? get createdAt; DateTime? get updatedAt; int get repetitionCount;
+/// Create a copy of ProgressSummary
+/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $ProgressSummaryCopyWith<ProgressSummary> get copyWith => _$ProgressSummaryCopyWithImpl<ProgressSummary>(this as ProgressSummary, _$identity);
 
+  /// Serializes this ProgressSummary to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -31,6 +44,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class $ProgressSummaryCopyWith<$Res>  {
   factory $ProgressSummaryCopyWith(ProgressSummary value, $Res Function(ProgressSummary) _then) = _$ProgressSummaryCopyWithImpl;
 @useResult
@@ -42,6 +56,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class _$ProgressSummaryCopyWithImpl<$Res>
     implements $ProgressSummaryCopyWith<$Res> {
   _$ProgressSummaryCopyWithImpl(this._self, this._then);
@@ -49,6 +64,8 @@ class _$ProgressSummaryCopyWithImpl<$Res>
   final ProgressSummary _self;
   final $Res Function(ProgressSummary) _then;
 
+/// Create a copy of ProgressSummary
+/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? moduleId = null,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitionCount = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -67,6 +84,7 @@ as int,
 }
 
 
+/// @nodoc
 @JsonSerializable()
 
 class _ProgressSummary implements ProgressSummary {
@@ -83,6 +101,8 @@ class _ProgressSummary implements ProgressSummary {
 @override final  DateTime? updatedAt;
 @override@JsonKey() final  int repetitionCount;
 
+/// Create a copy of ProgressSummary
+/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$ProgressSummaryCopyWith<_ProgressSummary> get copyWith => __$ProgressSummaryCopyWithImpl<_ProgressSummary>(this, _$identity);
@@ -109,6 +129,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class _$ProgressSummaryCopyWith<$Res> implements $ProgressSummaryCopyWith<$Res> {
   factory _$ProgressSummaryCopyWith(_ProgressSummary value, $Res Function(_ProgressSummary) _then) = __$ProgressSummaryCopyWithImpl;
 @override @useResult
@@ -120,6 +141,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class __$ProgressSummaryCopyWithImpl<$Res>
     implements _$ProgressSummaryCopyWith<$Res> {
   __$ProgressSummaryCopyWithImpl(this._self, this._then);
@@ -127,6 +149,8 @@ class __$ProgressSummaryCopyWithImpl<$Res>
   final _ProgressSummary _self;
   final $Res Function(_ProgressSummary) _then;
 
+/// Create a copy of ProgressSummary
+/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? moduleId = null,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitionCount = null,}) {
   return _then(_ProgressSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -146,13 +170,17 @@ as int,
 }
 
 
+/// @nodoc
 mixin _$ProgressDetail {
 
  String get id; String get moduleId; String? get moduleTitle; String? get userName; DateTime? get firstLearningDate; CycleStudied get cyclesStudied; DateTime? get nextStudyDate; double get percentComplete; DateTime? get createdAt; DateTime? get updatedAt; List<Repetition> get repetitions;
+/// Create a copy of ProgressDetail
+/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $ProgressDetailCopyWith<ProgressDetail> get copyWith => _$ProgressDetailCopyWithImpl<ProgressDetail>(this as ProgressDetail, _$identity);
 
+  /// Serializes this ProgressDetail to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -173,6 +201,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class $ProgressDetailCopyWith<$Res>  {
   factory $ProgressDetailCopyWith(ProgressDetail value, $Res Function(ProgressDetail) _then) = _$ProgressDetailCopyWithImpl;
 @useResult
@@ -184,6 +213,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class _$ProgressDetailCopyWithImpl<$Res>
     implements $ProgressDetailCopyWith<$Res> {
   _$ProgressDetailCopyWithImpl(this._self, this._then);
@@ -191,6 +221,8 @@ class _$ProgressDetailCopyWithImpl<$Res>
   final ProgressDetail _self;
   final $Res Function(ProgressDetail) _then;
 
+/// Create a copy of ProgressDetail
+/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? moduleId = null,Object? moduleTitle = freezed,Object? userName = freezed,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitions = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -211,6 +243,7 @@ as List<Repetition>,
 }
 
 
+/// @nodoc
 @JsonSerializable()
 
 class _ProgressDetail implements ProgressDetail {
@@ -230,10 +263,13 @@ class _ProgressDetail implements ProgressDetail {
  final  List<Repetition> _repetitions;
 @override@JsonKey() List<Repetition> get repetitions {
   if (_repetitions is EqualUnmodifiableListView) return _repetitions;
+  // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_repetitions);
 }
 
 
+/// Create a copy of ProgressDetail
+/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$ProgressDetailCopyWith<_ProgressDetail> get copyWith => __$ProgressDetailCopyWithImpl<_ProgressDetail>(this, _$identity);
@@ -260,6 +296,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class _$ProgressDetailCopyWith<$Res> implements $ProgressDetailCopyWith<$Res> {
   factory _$ProgressDetailCopyWith(_ProgressDetail value, $Res Function(_ProgressDetail) _then) = __$ProgressDetailCopyWithImpl;
 @override @useResult
@@ -271,6 +308,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class __$ProgressDetailCopyWithImpl<$Res>
     implements _$ProgressDetailCopyWith<$Res> {
   __$ProgressDetailCopyWithImpl(this._self, this._then);
@@ -278,6 +316,8 @@ class __$ProgressDetailCopyWithImpl<$Res>
   final _ProgressDetail _self;
   final $Res Function(_ProgressDetail) _then;
 
+/// Create a copy of ProgressDetail
+/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? moduleId = null,Object? moduleTitle = freezed,Object? userName = freezed,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitions = null,}) {
   return _then(_ProgressDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -298,3 +338,4 @@ as List<Repetition>,
 
 }
 
+// dart format on

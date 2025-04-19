@@ -1,16 +1,29 @@
+// dart format width=80
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'user.dart';
 
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
 
+/// @nodoc
 mixin _$User {
 
  String get id; String get email; String get username; String? get displayName;@JsonKey(name: 'firstName') String? get firstName;@JsonKey(name: 'lastName') String? get lastName;@JsonKey(name: 'createdAt') DateTime? get createdAt; List<String>? get roles;
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$identity);
 
+  /// Serializes this User to a JSON map.
   Map<String, dynamic> toJson();
 
 
@@ -31,6 +44,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
@@ -42,6 +56,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class _$UserCopyWithImpl<$Res>
     implements $UserCopyWith<$Res> {
   _$UserCopyWithImpl(this._self, this._then);
@@ -49,6 +64,8 @@ class _$UserCopyWithImpl<$Res>
   final User _self;
   final $Res Function(User) _then;
 
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? username = null,Object? displayName = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? createdAt = freezed,Object? roles = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -66,6 +83,7 @@ as List<String>?,
 }
 
 
+/// @nodoc
 @JsonSerializable()
 
 class _User implements User {
@@ -84,10 +102,13 @@ class _User implements User {
   final value = _roles;
   if (value == null) return null;
   if (_roles is EqualUnmodifiableListView) return _roles;
+  // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(value);
 }
 
 
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 _$UserCopyWith<_User> get copyWith => __$UserCopyWithImpl<_User>(this, _$identity);
@@ -114,6 +135,7 @@ String toString() {
 
 }
 
+/// @nodoc
 abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
@@ -125,6 +147,7 @@ $Res call({
 
 
 }
+/// @nodoc
 class __$UserCopyWithImpl<$Res>
     implements _$UserCopyWith<$Res> {
   __$UserCopyWithImpl(this._self, this._then);
@@ -132,6 +155,8 @@ class __$UserCopyWithImpl<$Res>
   final _User _self;
   final $Res Function(_User) _then;
 
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? username = null,Object? displayName = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? createdAt = freezed,Object? roles = freezed,}) {
   return _then(_User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -149,3 +174,4 @@ as List<String>?,
 
 }
 
+// dart format on

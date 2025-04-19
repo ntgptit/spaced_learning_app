@@ -1,6 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'learning_stats.dart';
 
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 _LearningStatsDTO _$LearningStatsDTOFromJson(
   Map<String, dynamic> json,
