@@ -1,60 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
 
-part 'dashboard_section.freezed.dart';
-
-@freezed
-abstract class ModuleStats with _$ModuleStats {
-  const factory ModuleStats({
-    required int totalModules,
-    required Map<String, int> cycleStats,
-  }) = _ModuleStats;
-}
-
-@freezed
-abstract class DueStats with _$DueStats {
-  const factory DueStats({
-    required int dueToday,
-    required int dueThisWeek,
-    required int dueThisMonth,
-    required int wordsDueToday,
-    required int wordsDueThisWeek,
-    required int wordsDueThisMonth,
-  }) = _DueStats;
-}
-
-@freezed
-abstract class CompletionStats with _$CompletionStats {
-  const factory CompletionStats({
-    required int completedToday,
-    required int completedThisWeek,
-    required int completedThisMonth,
-    required int wordsCompletedToday,
-    required int wordsCompletedThisWeek,
-    required int wordsCompletedThisMonth,
-  }) = _CompletionStats;
-}
-
-@freezed
-abstract class StreakStats with _$StreakStats {
-  const factory StreakStats({
-    required int streakDays,
-    required int streakWeeks,
-  }) = _StreakStats;
-}
-
-@freezed
-abstract class VocabularyStats with _$VocabularyStats {
-  const factory VocabularyStats({
-    required int totalWords,
-    required int learnedWords,
-    required int pendingWords,
-    required double vocabularyCompletionRate,
-    required double weeklyNewWordsRate,
-  }) = _VocabularyStats;
-}
+import '../../../domain/models/completion_stats.dart';
+import '../../../domain/models/due_stats.dart';
+import '../../../domain/models/module_stats.dart';
+import '../../../domain/models/streak_stats.dart';
+import '../../../domain/models/vocabulary_stats.dart';
 
 class DashboardSection extends StatelessWidget {
   final ModuleStats moduleStats;
@@ -89,9 +41,8 @@ class DashboardSection extends StatelessWidget {
       wordsCompletedToday: completionStats.wordsCompletedToday,
       streakDays: streakStats.streakDays,
       streakWeeks: streakStats.streakWeeks,
-      longestStreakDays:
-          streakStats
-              .streakDays, // Assuming current streak is longest for simplicity
+      longestStreakDays: streakStats.streakDays,
+      // Assuming current streak is longest for simplicity
       totalWords: vocabularyStats.totalWords,
       learnedWords: vocabularyStats.learnedWords,
       pendingWords: vocabularyStats.pendingWords,

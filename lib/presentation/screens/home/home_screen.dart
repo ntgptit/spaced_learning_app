@@ -18,6 +18,12 @@ import 'package:spaced_learning_app/presentation/widgets/home/quick_actions_sect
 import 'package:spaced_learning_app/presentation/widgets/home/welcome_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_insights_card.dart';
 
+import '../../../domain/models/completion_stats.dart';
+import '../../../domain/models/due_stats.dart';
+import '../../../domain/models/module_stats.dart';
+import '../../../domain/models/streak_stats.dart';
+import '../../../domain/models/vocabulary_stats.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -236,10 +242,9 @@ class _HomeScreenState extends State<HomeScreen> with ViewModelRefresher {
     onBrowseBooksPressed: () => GoRouter.of(context).go('/books'),
     onTodaysLearningPressed: () => GoRouter.of(context).go('/due-progress'),
     onProgressReportPressed: () => GoRouter.of(context).go('/learning'),
-    onVocabularyStatsPressed:
-        () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vocabulary stats coming soon')),
-        ),
+    onVocabularyStatsPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Vocabulary stats coming soon')),
+    ),
   );
 
   Widget _buildDueTasksSection() {
