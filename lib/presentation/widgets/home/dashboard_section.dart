@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/learning_stats_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/home/learning_stats_card.dart';
 
 import '../../../domain/models/completion_stats.dart';
 import '../../../domain/models/due_stats.dart';
