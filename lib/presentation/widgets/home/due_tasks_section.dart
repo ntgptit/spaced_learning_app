@@ -27,7 +27,7 @@ class DueTasksSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.04),
+            color: theme.shadowColor.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -40,7 +40,7 @@ class DueTasksSection extends StatelessWidget {
             padding: const EdgeInsets.all(AppDimens.paddingL),
             decoration: BoxDecoration(
               color: tasks.isEmpty
-                  ? colorScheme.surfaceVariant
+                  ? colorScheme.surfaceContainerHighest
                   : colorScheme.secondaryContainer,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
@@ -76,7 +76,9 @@ class DueTasksSection extends StatelessWidget {
                       vertical: AppDimens.paddingXS,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.onSecondaryContainer.withOpacity(0.1),
+                      color: colorScheme.onSecondaryContainer.withValues(
+                        alpha: 0.1,
+                      ),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -114,7 +116,7 @@ class DueTasksSection extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: colorScheme.tertiaryContainer.withOpacity(0.2),
+              color: colorScheme.tertiaryContainer.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -239,7 +241,7 @@ class DueTasksSection extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: cycleColor.withOpacity(0.1),
+                color: cycleColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -280,7 +282,7 @@ class DueTasksSection extends StatelessWidget {
                           vertical: AppDimens.paddingXXS,
                         ),
                         decoration: BoxDecoration(
-                          color: cycleColor.withOpacity(0.1),
+                          color: cycleColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -299,7 +301,8 @@ class DueTasksSection extends StatelessWidget {
                             value: progress.isNaN || progress.isInfinite
                                 ? 0
                                 : progress,
-                            backgroundColor: colorScheme.surfaceVariant,
+                            backgroundColor:
+                                colorScheme.surfaceContainerHighest,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               cycleColor,
                             ),

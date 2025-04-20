@@ -8,12 +8,12 @@ class QuickActionsSection extends StatelessWidget {
   final VoidCallback onVocabularyStatsPressed;
 
   const QuickActionsSection({
-    Key? key,
+    super.key,
     required this.onBrowseBooksPressed,
     required this.onTodaysLearningPressed,
     required this.onProgressReportPressed,
     required this.onVocabularyStatsPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +101,13 @@ class QuickActionsSection extends StatelessWidget {
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 400 + (index * 100)),
+      // Staggered animation
       builder: (context, value, child) {
         return Opacity(
           opacity: value,
           child: Transform.translate(
-            offset: Offset(0, 10 * (1 - value)),
+            offset: Offset(0, 20 * (1 - value)),
             child: child,
           ),
         );
@@ -116,7 +117,7 @@ class QuickActionsSection extends StatelessWidget {
         color: colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: cardColor.withOpacity(0.3), width: 1),
+          side: BorderSide(color: cardColor.withValues(alpha: 0.3), width: 1),
         ),
         child: InkWell(
           onTap: onTap,
@@ -130,7 +131,7 @@ class QuickActionsSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppDimens.paddingM),
                   decoration: BoxDecoration(
-                    color: cardColor.withOpacity(0.1),
+                    color: cardColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: cardColor, size: 28),
