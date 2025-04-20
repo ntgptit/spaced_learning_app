@@ -51,19 +51,24 @@ class LogCardWidget extends StatelessWidget {
             const SizedBox(height: AppDimens.spaceM),
             const Divider(height: 1),
             const SizedBox(height: AppDimens.spaceM),
-            _buildLogList(logEntries, theme, colorScheme, dateFormat),
+            _buildLogList(
+              logs: logEntries,
+              theme: theme,
+              colorScheme: colorScheme,
+              dateFormat: dateFormat,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLogList(
-    List<LogEntry> logs,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    DateFormat dateFormat,
-  ) {
+  Widget _buildLogList({
+    required List<LogEntry> logs,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    required DateFormat dateFormat,
+  }) {
     if (logs.isEmpty) {
       return Center(
         child: Padding(
