@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 
-import 'book_cover.dart'; // Import widget mới
+import 'book_cover.dart';
 
 class BookListCard extends StatelessWidget {
   final BookSummary book;
@@ -41,6 +42,7 @@ class BookListCard extends StatelessWidget {
                       book.name,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -69,10 +71,14 @@ class BookListCard extends StatelessWidget {
 
                     Row(
                       children: [
-                        _buildStatusBadge(book.status, theme),
+                        _buildStatusBadge(book.status, theme, colorScheme),
                         if (book.difficultyLevel != null) ...[
                           const SizedBox(width: AppDimens.spaceXS),
-                          _buildDifficultyBadge(book.difficultyLevel!, theme),
+                          _buildDifficultyBadge(
+                            book.difficultyLevel!,
+                            theme,
+                            colorScheme,
+                          ),
                         ],
                       ],
                     ),
@@ -112,27 +118,35 @@ class BookListCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(BookStatus status, ThemeData theme) {
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildStatusBadge(
+    BookStatus status,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     Color backgroundColor;
     Color textColor;
     String label;
 
     switch (status) {
       case BookStatus.published:
-        backgroundColor = Colors.green.withValues(alpha: 0.2);
-        textColor = Colors.green.shade800;
+        backgroundColor = colorScheme.success.withValues(
+          alpha: AppDimens.opacityLight,
+        );
+        textColor = colorScheme.success;
         label = 'Published';
         break;
       case BookStatus.draft:
-        backgroundColor = colorScheme.secondary.withValues(alpha: 0.2);
+        backgroundColor = colorScheme.secondary.withValues(
+          alpha: AppDimens.opacityLight,
+        );
         textColor = colorScheme.secondary;
         label = 'Draft';
         break;
       case BookStatus.archived:
-        backgroundColor = Colors.grey.withValues(alpha: 0.2);
-        textColor = Colors.grey.shade700;
+        backgroundColor = colorScheme.onSurfaceVariant.withValues(
+          alpha: AppDimens.opacityLight,
+        );
+        textColor = colorScheme.onSurfaceVariant;
         label = 'Archived';
         break;
     }
@@ -156,31 +170,41 @@ class BookListCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDifficultyBadge(DifficultyLevel level, ThemeData theme) {
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildDifficultyBadge(
+    DifficultyLevel level,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     Color backgroundColor;
     Color textColor;
     String label;
 
     switch (level) {
       case DifficultyLevel.beginner:
-        backgroundColor = Colors.green.withValues(alpha: 0.2);
-        textColor = Colors.green.shade800;
+        backgroundColor = colorScheme.success.withValues(
+          alpha: AppDimens.opacityLight,
+        );
+        textColor = colorScheme.success;
         label = 'Beginner';
         break;
       case DifficultyLevel.intermediate:
-        backgroundColor = colorScheme.tertiary.withValues(alpha: 0.2);
+        backgroundColor = colorScheme.tertiary.withValues(
+          alpha: AppDimens.opacityLight,
+        );
         textColor = colorScheme.tertiary;
         label = 'Intermediate';
         break;
       case DifficultyLevel.advanced:
-        backgroundColor = colorScheme.secondary.withValues(alpha: 0.2);
+        backgroundColor = colorScheme.secondary.withValues(
+          alpha: AppDimens.opacityLight,
+        );
         textColor = colorScheme.secondary;
         label = 'Advanced';
         break;
       case DifficultyLevel.expert:
-        backgroundColor = colorScheme.error.withValues(alpha: 0.2);
+        backgroundColor = colorScheme.error.withValues(
+          alpha: AppDimens.opacityLight,
+        );
         textColor = colorScheme.error;
         label = 'Expert';
         break;

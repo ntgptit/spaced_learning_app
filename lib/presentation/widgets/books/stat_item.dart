@@ -18,13 +18,15 @@ class StatItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           padding: const EdgeInsets.all(AppDimens.paddingS),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withValues(alpha: AppDimens.opacityLight),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: AppDimens.iconM),
@@ -40,7 +42,7 @@ class StatItemWidget extends StatelessWidget {
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],

@@ -24,7 +24,10 @@ class ModuleCardWidget extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacitySemi,
+          ),
+          width: 1.0,
         ),
       ),
       margin: const EdgeInsets.only(bottom: AppDimens.paddingM),
@@ -36,10 +39,12 @@ class ModuleCardWidget extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: AppDimens.iconL + AppDimens.spaceXS,
+                height: AppDimens.iconL + AppDimens.spaceXS,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  color: colorScheme.primary.withValues(
+                    alpha: AppDimens.opacityLight,
+                  ),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -61,6 +66,7 @@ class ModuleCardWidget extends StatelessWidget {
                       module.title,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

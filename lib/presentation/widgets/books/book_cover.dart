@@ -10,30 +10,38 @@ class BookCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = theme.colorScheme;
     final bookIdHash = book.id.hashCode;
     final hue = (bookIdHash % 360).abs().toDouble();
     const saturation = 0.6;
     const lightness = 0.75;
-    final coverColor =
-        HSLColor.fromAHSL(1.0, hue, saturation, lightness).toColor();
+    final coverColor = HSLColor.fromAHSL(
+      1.0,
+      hue,
+      saturation,
+      lightness,
+    ).toColor();
+
     return Container(
-      width: AppDimens.thumbnailSizeS, // 80.0
-      height:
-          AppDimens.thumbnailSizeM *
-          0.85, // 102.0 (adjusted to maintain aspect ratio)
+      width: AppDimens.thumbnailSizeS,
+      // 80.0
+      height: AppDimens.thumbnailSizeM * 0.85,
+      // 102.0 (adjusted to maintain aspect ratio)
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-
-          colors: [coverColor, coverColor.withValues(alpha: 0.8)],
+          colors: [
+            coverColor,
+            coverColor.withValues(alpha: AppDimens.opacityVeryHigh),
+          ],
         ),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: colorScheme.shadow.withValues(alpha: AppDimens.opacitySemi),
+            blurRadius: AppDimens.shadowRadiusM,
+            offset: const Offset(0, AppDimens.shadowOffsetS),
           ),
         ],
       ),
@@ -43,7 +51,9 @@ class BookCover extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             child: CustomPaint(
               painter: _BookPatternPainter(
-                patternColor: Colors.white.withValues(alpha: 0.2),
+                patternColor: colorScheme.onPrimary.withValues(
+                  alpha: AppDimens.opacitySemi,
+                ),
                 lineCount: 3,
               ),
               size: const Size(
@@ -60,7 +70,9 @@ class BookCover extends StatelessWidget {
                 Icon(
                   Icons.menu_book,
                   size: AppDimens.iconL,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: colorScheme.onPrimary.withValues(
+                    alpha: AppDimens.opacityFull,
+                  ),
                 ),
                 const SizedBox(height: AppDimens.spaceXS),
                 Padding(
@@ -70,7 +82,7 @@ class BookCover extends StatelessWidget {
                   child: Text(
                     book.name,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 2,
@@ -90,7 +102,9 @@ class BookCover extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: colorScheme.shadow.withValues(
+                    alpha: AppDimens.opacityMediumHigh,
+                  ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(AppDimens.radiusM),
                     bottomRight: Radius.circular(AppDimens.radiusM),
@@ -99,7 +113,7 @@ class BookCover extends StatelessWidget {
                 child: Text(
                   book.category ?? '',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     fontSize: 8,
                   ),
                   maxLines: 1,
@@ -122,11 +136,10 @@ class _BookPatternPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = patternColor
-          ..strokeWidth = 0.8
-          ..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..color = patternColor
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
 
     final spacingY = size.height / (lineCount + 1);
     for (int i = 1; i <= lineCount; i++) {

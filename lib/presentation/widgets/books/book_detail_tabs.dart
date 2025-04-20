@@ -29,6 +29,7 @@ class BookOverviewTab extends StatelessWidget {
           if (book.description?.isNotEmpty == true) ...[
             _buildSectionTitle(
               theme,
+              colorScheme,
               'Description',
               Icons.description_outlined,
             ),
@@ -40,16 +41,24 @@ class BookOverviewTab extends StatelessWidget {
                 color: colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(AppDimens.radiusL),
                 border: Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  color: colorScheme.outlineVariant.withValues(
+                    alpha: AppDimens.opacityMediumHigh,
+                  ),
                 ),
               ),
-              child: Text(book.description!, style: theme.textTheme.bodyLarge),
+              child: Text(
+                book.description!,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
             ),
             const SizedBox(height: AppDimens.spaceXL),
           ],
 
           _buildSectionTitle(
             theme,
+            colorScheme,
             'Modules Overview',
             Icons.view_module_outlined,
           ),
@@ -57,7 +66,12 @@ class BookOverviewTab extends StatelessWidget {
           _buildModuleStats(theme, colorScheme, book),
           const SizedBox(height: AppDimens.spaceL),
 
-          _buildSectionTitle(theme, 'Book Details', Icons.info_outline),
+          _buildSectionTitle(
+            theme,
+            colorScheme,
+            'Book Details',
+            Icons.info_outline,
+          ),
           const SizedBox(height: AppDimens.spaceS),
           _buildMetadataCard(theme, colorScheme, book),
 
@@ -67,15 +81,21 @@ class BookOverviewTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme, String title, IconData icon) {
+  Widget _buildSectionTitle(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String title,
+    IconData icon,
+  ) {
     return Row(
       children: [
-        Icon(icon, size: AppDimens.iconM, color: theme.colorScheme.primary),
+        Icon(icon, size: AppDimens.iconM, color: colorScheme.primary),
         const SizedBox(width: AppDimens.spaceS),
         Text(
           title,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
           ),
         ),
       ],
@@ -96,7 +116,9 @@ class BookOverviewTab extends StatelessWidget {
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityMediumHigh,
+          ),
         ),
       ),
       child: Row(
@@ -113,10 +135,9 @@ class BookOverviewTab extends StatelessWidget {
           const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: StatItemWidget(
-              value:
-                  totalModules > 0
-                      ? '${_calculateCompletionPercentage(book)}%'
-                      : '0%',
+              value: totalModules > 0
+                  ? '${_calculateCompletionPercentage(book)}%'
+                  : '0%',
               label: 'Completion',
               icon: Icons.bar_chart_rounded,
               color: colorScheme.primary,
@@ -148,7 +169,9 @@ class BookOverviewTab extends StatelessWidget {
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityMediumHigh,
+          ),
         ),
       ),
       child: Column(
@@ -156,19 +179,17 @@ class BookOverviewTab extends StatelessWidget {
         children: [
           MetadataItemWidget(
             label: 'Created',
-            value:
-                book.createdAt != null
-                    ? _formatDate(book.createdAt!)
-                    : 'Unknown',
+            value: book.createdAt != null
+                ? _formatDate(book.createdAt!)
+                : 'Unknown',
             icon: Icons.calendar_today_outlined,
           ),
           const Divider(height: AppDimens.spaceXL),
           MetadataItemWidget(
             label: 'Last Updated',
-            value:
-                book.updatedAt != null
-                    ? _formatDate(book.updatedAt!)
-                    : 'Not updated',
+            value: book.updatedAt != null
+                ? _formatDate(book.updatedAt!)
+                : 'Not updated',
             icon: Icons.update,
           ),
         ],
@@ -182,14 +203,13 @@ class BookOverviewTab extends StatelessWidget {
 
   String _calculateCompletionPercentage(BookDetail book) {
     if (book.modules.isEmpty) return '0';
-    final int completedModules =
-        book.modules
-            .where(
-              (m) =>
-                  (m.progress.isNotEmpty &&
-                      m.progress.first.percentComplete == 100.0),
-            )
-            .length;
+    final int completedModules = book.modules
+        .where(
+          (m) =>
+              (m.progress.isNotEmpty &&
+              m.progress.first.percentComplete == 100.0),
+        )
+        .length;
     if (book.modules.isEmpty) return '0';
     return ((completedModules / book.modules.length) * 100).toStringAsFixed(0);
   }
@@ -260,10 +280,8 @@ class BookModulesTab extends StatelessWidget {
           ),
         );
       },
-      separatorBuilder:
-          (context, index) => const SizedBox(
-            height: AppDimens.spaceXXS, // Giữ khoảng cách nhỏ giữa các card
-          ),
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: AppDimens.spaceXXS),
     );
   }
 
@@ -277,7 +295,9 @@ class BookModulesTab extends StatelessWidget {
             Icon(
               Icons.view_module_outlined,
               size: AppDimens.iconXXL,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              color: colorScheme.onSurfaceVariant.withValues(
+                alpha: AppDimens.opacityMedium,
+              ),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
@@ -291,7 +311,9 @@ class BookModulesTab extends StatelessWidget {
             Text(
               'Check back later or add a new module if you have permission.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                color: colorScheme.onSurfaceVariant.withValues(
+                  alpha: AppDimens.opacityHigh,
+                ),
               ),
               textAlign: TextAlign.center,
             ),
@@ -300,6 +322,13 @@ class BookModulesTab extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingL,
+                  vertical: AppDimens.paddingM,
+                ),
+              ),
             ),
           ],
         ),
