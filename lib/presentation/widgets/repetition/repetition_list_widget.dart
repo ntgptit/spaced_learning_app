@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
@@ -140,8 +139,8 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   context,
                   'Completed Tasks',
                   Icons.check_circle_outline,
-                  colorScheme.successContainer,
-                  colorScheme.onSuccessContainer,
+                  colorScheme.primaryContainer, // Đảm bảo màu đồng nhất
+                  colorScheme.onPrimaryContainer, // Đảm bảo màu đồng nhất
                   completedByCycle,
                   true,
                   colorScheme,
@@ -256,6 +255,13 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
       });
     }
 
+    // Sử dụng màu sắc tinh tế và thống nhất cho cả hai loại section
+    final titleIconColor = isHistory
+        ? colorScheme.primary.withValues(
+            alpha: 0.9,
+          ) // Dùng primary thay vì success
+        : textColor;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimens.spaceXL),
       child: Column(
@@ -275,14 +281,20 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(icon, color: textColor, size: AppDimens.iconM),
+                  child: Icon(
+                    icon,
+                    color: titleIconColor,
+                    size: AppDimens.iconM,
+                  ),
                 ),
                 const SizedBox(width: AppDimens.spaceM),
                 Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isHistory ? colorScheme.success : textColor,
+                    color: isHistory
+                        ? colorScheme.primary.withValues(alpha: 0.9)
+                        : textColor,
                   ),
                 ),
               ],
@@ -312,8 +324,17 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         ? widget.currentCycleStudied
         : _mapNumberToCycleStudied(cycleNumber);
 
-    // Sử dụng màu từ CycleFormatter để đảm bảo nhất quán với thanh progress
-    final cycleColor = CycleFormatter.getColor(cycleName, context);
+    // Lấy màu cơ bản từ CycleFormatter để đảm bảo nhất quán
+    final baseCycleColor = CycleFormatter.getColor(cycleName, context);
+
+    // Tùy chỉnh màu dựa trên trạng thái history và current - thống nhất giữa các loại
+    final cycleColor = isHistory
+        ? baseCycleColor.withValues(
+            alpha: 0.7,
+          ) // tăng opacity để tương đồng với active
+        : isCurrentCycle
+        ? baseCycleColor
+        : baseCycleColor.withValues(alpha: 0.8);
 
     if (!isHistory) {
       repetitions.sort(
@@ -321,89 +342,179 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
       );
     }
 
-    // Màu sắc phù hợp với trạng thái
-    final borderColor = isHistory ? colorScheme.success : cycleColor;
+    // Thống nhất màu viền và nền cho cả hai loại
+    final borderColor = isHistory
+        ? cycleColor.withValues(
+            alpha: 0.3,
+          ) // Dùng màu cycle nhất quán cho cả history
+        : isCurrentCycle
+        ? cycleColor
+        : cycleColor.withValues(alpha: 0.3);
+
     final backgroundColor = isHistory
-        ? colorScheme.success.withValues(alpha: 0.05)
-        : cycleColor.withValues(alpha: 0.05);
+        ? colorScheme.surfaceContainerLowest.withValues(
+            alpha: 0.8,
+          ) // Làm nhẹ hơn một chút
+        : isCurrentCycle
+        ? cycleColor.withValues(alpha: 0.07)
+        : colorScheme.surfaceContainerLowest;
+
+    // Hiệu ứng shadow tinh tế và thống nhất cho cả hai loại
+    final boxShadow = isCurrentCycle || isHistory
+        ? [
+            BoxShadow(
+              color: cycleColor.withValues(alpha: isHistory ? 0.1 : 0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ]
+        : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
-      elevation: 1.0,
-      // Add slight elevation for better visibility
+      elevation: isCurrentCycle ? 1.0 : 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(
-          color: borderColor,
-          width: 1.5, // Thicker border for better visibility
-        ),
+        side: BorderSide(color: borderColor, width: isCurrentCycle ? 1.5 : 1.0),
       ),
       color: backgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.cable,
-                  size: AppDimens.iconS,
-                  color: isHistory ? colorScheme.success : cycleColor,
-                ),
-                const SizedBox(width: AppDimens.spaceXS),
-                Text(
-                  CycleFormatter.format(cycleName),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isHistory ? colorScheme.success : cycleColor,
-                  ),
-                ),
-                const SizedBox(width: AppDimens.spaceS),
-                if (isCurrentCycle)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimens.paddingXS,
-                      vertical: AppDimens.paddingXXS,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.tertiaryContainer,
-                      borderRadius: BorderRadius.circular(AppDimens.radiusXS),
-                      border: Border.all(
-                        color: colorScheme.tertiary,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Text(
-                      'Current',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onTertiaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
-            const Divider(height: AppDimens.spaceL),
-
-            ...repetitions.map(
-              (repetition) => RepetitionCard(
-                repetition: repetition,
-                isHistory: isHistory,
-                onMarkCompleted: isHistory
-                    ? null
-                    : () => widget.onMarkCompleted(repetition.id),
-                onReschedule: isHistory
-                    ? null
-                    : (currentDate) => widget.onReschedule(
-                        repetition.id,
-                        currentDate,
-                        false,
-                      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          boxShadow: boxShadow,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.paddingM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCycleHeader(
+                theme,
+                isHistory,
+                isCurrentCycle,
+                cycleColor,
+                cycleName,
+                colorScheme,
               ),
-            ),
+              const Divider(height: AppDimens.spaceL),
+              ...repetitions.map(
+                (repetition) => RepetitionCard(
+                  repetition: repetition,
+                  isHistory: isHistory,
+                  onMarkCompleted: isHistory
+                      ? null
+                      : () => widget.onMarkCompleted(repetition.id),
+                  onReschedule: isHistory
+                      ? null
+                      : (currentDate) => widget.onReschedule(
+                          repetition.id,
+                          currentDate,
+                          false,
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Tách riêng phần header để tăng tính mô-đun - đồng bộ kiểu hiển thị
+  Widget _buildCycleHeader(
+    ThemeData theme,
+    bool isHistory,
+    bool isCurrentCycle,
+    Color cycleColor,
+    CycleStudied cycleName,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      children: [
+        Icon(
+          _getCycleIcon(cycleName),
+          size: AppDimens.iconS,
+          color: cycleColor, // Sử dụng cùng màu cho cả history và non-history
+        ),
+        const SizedBox(width: AppDimens.spaceXS),
+        Text(
+          CycleFormatter.format(cycleName),
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: isCurrentCycle ? FontWeight.bold : FontWeight.w500,
+            color: cycleColor, // Sử dụng cùng màu cho cả history và non-history
+          ),
+        ),
+        const SizedBox(width: AppDimens.spaceS),
+        if (isCurrentCycle) _buildCurrentCycleBadge(theme, colorScheme),
+        if (isHistory)
+          _buildCompletedBadge(theme, colorScheme), // Thêm badge cho completed
+      ],
+    );
+  }
+
+  Widget _buildCurrentCycleBadge(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingXXS,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.tertiaryContainer, colorScheme.primaryContainer],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        'Current',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: colorScheme.onTertiaryContainer,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  // Badge mới cho trạng thái đã hoàn thành, dùng thiết kế tương tự Current badge
+  Widget _buildCompletedBadge(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingXXS,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer,
+            colorScheme.primary.withValues(alpha: 0.2),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        'Completed',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.3,
         ),
       ),
     );
@@ -427,6 +538,22 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         return CycleStudied.thirdReview;
       default:
         return CycleStudied.moreThanThreeReviews;
+    }
+  }
+
+  // Chọn icon thích hợp cho từng cycle
+  IconData _getCycleIcon(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return Icons.looks_one;
+      case CycleStudied.firstReview:
+        return Icons.replay_5;
+      case CycleStudied.secondReview:
+        return Icons.replay_10;
+      case CycleStudied.thirdReview:
+        return Icons.replay_30;
+      case CycleStudied.moreThanThreeReviews:
+        return Icons.replay_circle_filled;
     }
   }
 }

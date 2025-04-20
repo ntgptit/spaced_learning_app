@@ -1,175 +1,172 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/progress.dart';
+import 'package:spaced_learning_app/domain/models/repetition.dart';
+import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
+import 'package:spaced_learning_app/presentation/utils/repetition_utils.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
+import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
 
-class ScoreInputDialogContent extends StatefulWidget {
-  final ValueNotifier<double> scoreNotifier;
+class RepetitionListWidget extends StatefulWidget {
+  final String progressId;
+  final CycleStudied currentCycleStudied;
+  final Future<void> Function(String) onMarkCompleted;
+  final Future<void> Function(String, DateTime, bool) onReschedule;
+  final Future<void> Function() onReload;
 
-  const ScoreInputDialogContent({super.key, required this.scoreNotifier});
+  const RepetitionListWidget({
+    super.key,
+    required this.progressId,
+    required this.currentCycleStudied,
+    required this.onMarkCompleted,
+    required this.onReschedule,
+    required this.onReload,
+  });
 
   @override
-  State<ScoreInputDialogContent> createState() =>
-      _ScoreInputDialogContentState();
+  State<RepetitionListWidget> createState() => _RepetitionListWidgetState();
 }
 
-class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
+class _RepetitionListWidgetState extends State<RepetitionListWidget>
     with SingleTickerProviderStateMixin {
-  late double _currentScore;
-  late TextEditingController _controller;
   late AnimationController _animationController;
-  late Animation<double> _animation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _currentScore = widget.scoreNotifier.value.clamp(0.0, 100.0);
-    _controller = TextEditingController(text: _currentScore.toInt().toString());
-    _controller.addListener(_onTextChanged);
-
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: AppDimens.durationM),
     );
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
     );
+
     _animationController.forward();
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onTextChanged);
-    _controller.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
-  void _updateScore(double newScore) {
-    final clamped = newScore.clamp(0.0, 100.0);
-    if (_currentScore != clamped) {
-      setState(() {
-        _currentScore = clamped;
-        widget.scoreNotifier.value = _currentScore;
-
-        final textValue = clamped.toInt().toString();
-        if (_controller.text != textValue) {
-          final sel = _controller.selection;
-          _controller.text = textValue;
-          if (sel.isValid && textValue.isNotEmpty) {
-            final base = sel.baseOffset.clamp(0, textValue.length);
-            final ext = sel.extentOffset.clamp(0, textValue.length);
-            _controller.selection = TextSelection(
-              baseOffset: base,
-              extentOffset: ext,
-            );
-          } else {
-            _controller.selection = TextSelection.collapsed(
-              offset: textValue.length,
-            );
-          }
-        }
-      });
-    }
+  void _restartAnimation() {
+    _animationController.reset();
+    _animationController.forward();
   }
 
-  void _onTextChanged() {
-    final value = double.tryParse(_controller.text);
-    if (value != null && value != _currentScore) {
-      _updateScore(value);
+  int _compareReviewDates(Repetition a, Repetition b) {
+    if (a.reviewDate == null && b.reviewDate == null) {
+      return a.repetitionOrder.index.compareTo(b.repetitionOrder.index);
     }
-  }
-
-  Color _getScoreColor(ColorScheme cs, double score) {
-    if (score >= 90) return cs.primary;
-    if (score >= 75) return cs.secondary;
-    if (score >= 60) return cs.tertiary;
-    if (score >= 40) return cs.error;
-    return cs.errorContainer;
+    if (a.reviewDate == null) return 1;
+    if (b.reviewDate == null) return -1;
+    return b.reviewDate!.compareTo(a.reviewDate!);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final scoreColor = _getScoreColor(cs, _currentScore);
-    final scoreTextStyle = theme.textTheme.displaySmall?.copyWith(
-      fontWeight: FontWeight.bold,
-      color: scoreColor,
-    );
+    final colorScheme = theme.colorScheme;
 
-    return FadeTransition(
-      opacity: _animation,
-      child: SingleChildScrollView(
+    return Consumer<RepetitionViewModel>(
+      builder: (context, viewModel, _) {
+        if (viewModel.isLoading) {
+          return _buildLoadingState(theme, colorScheme);
+        }
+
+        if (viewModel.errorMessage != null) {
+          return ErrorDisplay(
+            message: viewModel.errorMessage!,
+            onRetry: () =>
+                viewModel.loadRepetitionsByProgressId(widget.progressId),
+            compact: true,
+          );
+        }
+
+        if (viewModel.repetitions.isEmpty) {
+          return _buildEmptyState(context, viewModel, colorScheme);
+        }
+
+        final repetitions = List<Repetition>.from(viewModel.repetitions);
+        final notStarted =
+            repetitions
+                .where((r) => r.status == RepetitionStatus.notStarted)
+                .toList()
+              ..sort(
+                (a, b) =>
+                    a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+              );
+        final completed =
+            repetitions
+                .where((r) => r.status == RepetitionStatus.completed)
+                .toList()
+              ..sort(_compareReviewDates);
+
+        final notStartedByCycle = RepetitionUtils.groupByCycle(notStarted);
+        final completedByCycle = RepetitionUtils.groupByCycle(completed);
+
+        if (viewModel.repetitions.isNotEmpty) {
+          _restartAnimation();
+        }
+
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (notStarted.isNotEmpty)
+                _buildStatusSection(
+                  context,
+                  'Pending Tasks',
+                  Icons.pending_actions,
+                  colorScheme.primaryContainer,
+                  colorScheme.onPrimaryContainer,
+                  notStartedByCycle,
+                  false,
+                  colorScheme,
+                ),
+
+              if (completed.isNotEmpty)
+                _buildStatusSection(
+                  context,
+                  'Completed Tasks',
+                  Icons.check_circle_outline,
+                  colorScheme.primaryContainer,
+                  // Đảm bảo màu đồng nhất
+                  colorScheme.onPrimaryContainer,
+                  // Đảm bảo màu đồng nhất
+                  completedByCycle,
+                  true,
+                  colorScheme,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingState(ThemeData theme, ColorScheme colorScheme) {
+    return SizedBox(
+      height: AppDimens.thumbnailSizeL,
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildHeader(theme, cs),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildScoreDisplay(scoreTextStyle, cs),
-            const SizedBox(height: AppDimens.spaceS),
-            _buildSlider(cs),
-            _buildExactScore(theme, cs, scoreColor),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildQuickOptions(cs, theme.textTheme),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme, ColorScheme cs) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimens.paddingM),
-      decoration: BoxDecoration(
-        color: cs.primaryContainer,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.info_outline,
-            color: cs.onPrimaryContainer,
-            size: AppDimens.iconM,
-          ),
-          const SizedBox(width: AppDimens.spaceM),
-          Expanded(
-            child: Text(
-              'Enter the score from your test on Quizlet or another tool:',
+            CircularProgressIndicator(color: colorScheme.primary),
+            const SizedBox(height: AppDimens.spaceM),
+            Text(
+              'Loading repetitions...',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: cs.onPrimaryContainer,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScoreDisplay(TextStyle? scoreTextStyle, ColorScheme cs) {
-    return Container(
-      height: AppDimens.iconXXL * 2,
-      decoration: BoxDecoration(
-        color: cs.tertiaryContainer,
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        border: Border.all(color: cs.tertiary, width: 1.5),
-      ),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '${_currentScore.toInt()}',
-              style: scoreTextStyle?.copyWith(
-                color: cs.onTertiaryContainer,
-                fontSize: 48,
-              ),
-            ),
-            Text(
-              '%',
-              style: scoreTextStyle?.copyWith(
-                color: cs.onTertiaryContainer,
-                fontSize: 36,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -178,157 +175,387 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
     );
   }
 
-  Widget _buildSlider(ColorScheme cs) {
-    return SliderTheme(
-      data: SliderThemeData(
-        activeTrackColor: cs.primary,
-        inactiveTrackColor: cs.surfaceContainerHighest,
-        thumbColor: cs.primary,
-        trackHeight: 8,
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
-        overlayColor: cs.primary.withValues(alpha: 0.12),
-      ),
-      child: Slider(
-        value: _currentScore,
-        min: 0,
-        max: 100,
-        divisions: 100,
-        label: '${_currentScore.toInt()}%',
-        onChanged: _updateScore,
+  Widget _buildEmptyState(
+    BuildContext context,
+    RepetitionViewModel viewModel,
+    ColorScheme colorScheme,
+  ) {
+    final theme = Theme.of(context);
+
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return FadeTransition(opacity: _fadeAnimation, child: child);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(AppDimens.paddingXL),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.event_note,
+              size: AppDimens.iconXXL,
+              color: colorScheme.primary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+            Text(
+              'No review schedule found for this module',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDimens.spaceM),
+            Text(
+              'Create a review schedule to start the spaced repetition learning process',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDimens.spaceXL),
+            AppButton(
+              text: 'Create Review Schedule',
+              type: AppButtonType.primary,
+              prefixIcon: Icons.add_circle_outline,
+              onPressed: () async {
+                await viewModel.createDefaultSchedule(widget.progressId);
+                await widget.onReload();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildExactScore(ThemeData theme, ColorScheme cs, Color scoreColor) {
+  Widget _buildStatusSection(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color containerColor,
+    Color textColor,
+    Map<String, List<Repetition>> cycleGroups,
+    bool isHistory,
+    ColorScheme colorScheme,
+  ) {
+    if (cycleGroups.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+
+    final sortedKeys = cycleGroups.keys.toList();
+    if (isHistory) {
+      sortedKeys.sort((a, b) {
+        final cycleNumA = int.tryParse(a.replaceAll('Cycle ', '')) ?? 0;
+        final cycleNumB = int.tryParse(b.replaceAll('Cycle ', '')) ?? 0;
+        return cycleNumB.compareTo(cycleNumA); // Descending order
+      });
+    }
+
+    // Sử dụng màu sắc tinh tế và thống nhất cho cả hai loại section
+    final titleIconColor = isHistory
+        ? colorScheme.primary.withValues(
+            alpha: 0.9,
+          ) // Dùng primary thay vì success
+        : textColor;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS,
-        vertical: AppDimens.paddingM,
-      ),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: AppDimens.spaceXL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Exact score: ',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: AppDimens.spaceS),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.paddingS,
-              ),
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                border: Border.all(color: scoreColor, width: 2),
-              ),
-              child: TextField(
-                controller: _controller,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: false,
-                ),
-                textAlign: TextAlign.center,
-                maxLength: 3,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  suffixText: '%',
-                  counterText: '',
-                  border: InputBorder.none,
-                  suffixStyle: TextStyle(
-                    color: scoreColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+          Container(
+            margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppDimens.paddingS),
+                  decoration: BoxDecoration(
+                    color: containerColor,
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    border: Border.all(
+                      color: textColor.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: titleIconColor,
+                    size: AppDimens.iconM,
                   ),
                 ),
-                style: TextStyle(
-                  color: scoreColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                const SizedBox(width: AppDimens.spaceM),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isHistory
+                        ? colorScheme.primary.withValues(alpha: 0.9)
+                        : textColor,
+                  ),
                 ),
-              ),
+              ],
             ),
+          ),
+          ...sortedKeys.map(
+            (key) =>
+                _buildCycleGroup(context, key, cycleGroups[key]!, isHistory),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuickOptions(ColorScheme cs, TextTheme textTheme) {
-    final options = [0, 25, 50, 75, 100];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: options.map((s) {
-        final selected = _currentScore.round() == s;
-        return _ScoreButton(
-          score: s,
-          isSelected: selected,
-          onTap: () => _updateScore(s.toDouble()),
-          colorScheme: cs,
-          textTheme: textTheme,
-        );
-      }).toList(),
-    );
-  }
-}
+  Widget _buildCycleGroup(
+    BuildContext context,
+    String cycleKey,
+    List<Repetition> repetitions,
+    bool isHistory,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-class _ScoreButton extends StatelessWidget {
-  final int score;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
+    final isCurrentCycle = _isCurrentCycle(repetitions);
+    final cycleNumber = int.tryParse(cycleKey.replaceAll('Cycle ', '')) ?? 1;
+    final cycleName = isCurrentCycle
+        ? widget.currentCycleStudied
+        : _mapNumberToCycleStudied(cycleNumber);
 
-  const _ScoreButton({
-    required this.score,
-    required this.isSelected,
-    required this.onTap,
-    required this.colorScheme,
-    required this.textTheme,
-  });
+    // Lấy màu cơ bản từ CycleFormatter để đảm bảo nhất quán
+    final baseCycleColor = CycleFormatter.getColor(cycleName, context);
 
-  Color _getColor(int score) {
-    if (score >= 90) return colorScheme.primary;
-    if (score >= 75) return colorScheme.secondary;
-    if (score >= 60) return colorScheme.tertiary;
-    if (score >= 40) return colorScheme.error;
-    return colorScheme.errorContainer;
-  }
+    // Tùy chỉnh màu dựa trên trạng thái history và current - thống nhất giữa các loại
+    final cycleColor = isHistory
+        ? baseCycleColor.withValues(
+            alpha: 0.7,
+          ) // tăng opacity để tương đồng với active
+        : isCurrentCycle
+        ? baseCycleColor
+        : baseCycleColor.withValues(alpha: 0.8);
 
-  @override
-  Widget build(BuildContext context) {
-    final c = _getColor(score);
-    final bg = isSelected
-        ? colorScheme.primaryContainer
-        : colorScheme.surfaceContainerHighest;
-    final fg = isSelected ? colorScheme.onPrimaryContainer : c;
+    if (!isHistory) {
+      repetitions.sort(
+        (a, b) => a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
+      );
+    }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      child: Container(
-        width: AppDimens.iconXL + AppDimens.spaceS,
-        height: AppDimens.iconXL + AppDimens.spaceS,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          border: isSelected ? null : Border.all(color: c, width: 2),
-        ),
-        child: Center(
-          child: Text(
-            '$score%',
-            style: textTheme.labelLarge?.copyWith(
-              color: fg,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-              fontSize: 16,
+    // Thống nhất màu viền và nền cho cả hai loại
+    final borderColor = isHistory
+        ? cycleColor.withValues(
+            alpha: 0.3,
+          ) // Dùng màu cycle nhất quán cho cả history
+        : isCurrentCycle
+        ? cycleColor
+        : cycleColor.withValues(alpha: 0.3);
+
+    final backgroundColor = isHistory
+        ? colorScheme.surfaceContainerLowest.withValues(
+            alpha: 0.8,
+          ) // Làm nhẹ hơn một chút
+        : isCurrentCycle
+        ? cycleColor.withValues(alpha: 0.07)
+        : colorScheme.surfaceContainerLowest;
+
+    // Hiệu ứng shadow tinh tế và thống nhất cho cả hai loại
+    final boxShadow = isCurrentCycle || isHistory
+        ? [
+            BoxShadow(
+              color: cycleColor.withValues(alpha: isHistory ? 0.1 : 0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
+          ]
+        : null;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
+      elevation: isCurrentCycle ? 1.0 : 0.5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        side: BorderSide(color: borderColor, width: isCurrentCycle ? 1.5 : 1.0),
+      ),
+      color: backgroundColor,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          boxShadow: boxShadow,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.paddingM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCycleHeader(
+                theme,
+                isHistory,
+                isCurrentCycle,
+                cycleColor,
+                cycleName,
+                colorScheme,
+              ),
+              const Divider(height: AppDimens.spaceL),
+              ...repetitions.map(
+                (repetition) => RepetitionCard(
+                  repetition: repetition,
+                  isHistory: isHistory,
+                  onMarkCompleted: isHistory
+                      ? null
+                      : () => widget.onMarkCompleted(repetition.id),
+                  onReschedule: isHistory
+                      ? null
+                      : (currentDate) => widget.onReschedule(
+                          repetition.id,
+                          currentDate,
+                          false,
+                        ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  // Tách riêng phần header để tăng tính mô-đun - đồng bộ kiểu hiển thị
+  Widget _buildCycleHeader(
+    ThemeData theme,
+    bool isHistory,
+    bool isCurrentCycle,
+    Color cycleColor,
+    CycleStudied cycleName,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      children: [
+        Icon(
+          _getCycleIcon(cycleName),
+          size: AppDimens.iconS,
+          color: cycleColor, // Sử dụng cùng màu cho cả history và non-history
+        ),
+        const SizedBox(width: AppDimens.spaceXS),
+        Text(
+          CycleFormatter.format(cycleName),
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: isCurrentCycle ? FontWeight.bold : FontWeight.w500,
+            color: cycleColor, // Sử dụng cùng màu cho cả history và non-history
+          ),
+        ),
+        const SizedBox(width: AppDimens.spaceS),
+        if (isCurrentCycle) _buildCurrentCycleBadge(theme, colorScheme),
+        if (isHistory)
+          _buildCompletedBadge(theme, colorScheme), // Thêm badge cho completed
+      ],
+    );
+  }
+
+  Widget _buildCurrentCycleBadge(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingXXS,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.tertiaryContainer, colorScheme.primaryContainer],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        'Current',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: colorScheme.onTertiaryContainer,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  // Badge mới cho trạng thái đã hoàn thành, dùng thiết kế tương tự Current badge
+  Widget _buildCompletedBadge(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingXXS,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer,
+            colorScheme.primary.withValues(alpha: 0.2),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        'Completed',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  bool _isCurrentCycle(List<Repetition> repetitions) {
+    if (repetitions.isEmpty) return false;
+    return repetitions.any((r) => r.status == RepetitionStatus.notStarted) &&
+        widget.currentCycleStudied != CycleStudied.firstTime;
+  }
+
+  CycleStudied _mapNumberToCycleStudied(int number) {
+    switch (number) {
+      case 1:
+        return CycleStudied.firstTime;
+      case 2:
+        return CycleStudied.firstReview;
+      case 3:
+        return CycleStudied.secondReview;
+      case 4:
+        return CycleStudied.thirdReview;
+      default:
+        return CycleStudied.moreThanThreeReviews;
+    }
+  }
+
+  // Chọn icon thích hợp cho từng cycle
+  IconData _getCycleIcon(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return Icons.looks_one;
+      case CycleStudied.firstReview:
+        return Icons.replay_5;
+      case CycleStudied.secondReview:
+        return Icons.replay_10;
+      case CycleStudied.thirdReview:
+        return Icons.replay_30;
+      case CycleStudied.moreThanThreeReviews:
+        return Icons.replay_circle_filled;
+    }
   }
 }

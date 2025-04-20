@@ -60,16 +60,26 @@ class _RepetitionCardState extends State<RepetitionCard>
     }
   }
 
-  Color _getRepetitionColor(int orderIndex) {
-    // Sử dụng màu sắc đậm và rõ ràng hơn
-    const List<Color> repetitionColors = [
-      Color(0xFF2E7D32), // Green 800 - đậm hơn
-      Color(0xFF1565C0), // Blue 800 - đậm hơn
-      Color(0xFFE65100), // Orange 900 - đậm hơn
-      Color(0xFF8E24AA), // Purple 600 - đậm hơn
-      Color(0xFFD32F2F), // Red 700 - đậm hơn
+  Color _getRepetitionColor(int orderIndex, ColorScheme colorScheme) {
+    // Palette màu tinh tế hơn với độ bão hòa và độ sáng khác nhau
+    final List<Color> repetitionColors = [
+      Color(0xFF4CAF50).withValues(alpha: 0.9), // Green nhạt hơn
+      Color(0xFF2196F3).withValues(alpha: 0.9), // Blue nhạt hơn
+      Color(0xFFF57C00).withValues(alpha: 0.85), // Orange nhẹ hơn
+      Color(0xFF9C27B0).withValues(alpha: 0.85), // Purple nhẹ hơn
+      Color(0xFFE53935).withValues(alpha: 0.8), // Red nhẹ hơn
     ];
-    return repetitionColors[(orderIndex - 1) % repetitionColors.length];
+
+    final baseColor =
+        repetitionColors[(orderIndex - 1) % repetitionColors.length];
+
+    // Dùng độ sáng/bão hòa khác nhau dựa trên trạng thái
+    if (widget.isHistory) {
+      // Màu nhẹ hơn cho history items
+      return baseColor.withValues(alpha: 0.7);
+    }
+
+    return baseColor;
   }
 
   @override
@@ -85,34 +95,40 @@ class _RepetitionCardState extends State<RepetitionCard>
         widget.repetition.reviewDate != null &&
         widget.repetition.reviewDate!.isBefore(DateTime.now());
 
-    // Màu sắc rõ ràng hơn
+    // Màu nền tinh tế hơn - chỉ thay đổi nhẹ
     Color cardColor = colorScheme.surface;
     if (isOverdue) {
-      cardColor = colorScheme.errorContainer.withValues(alpha: 0.2);
+      cardColor = colorScheme.errorContainer.withValues(alpha: 0.15);
+    } else if (isCompleted) {
+      // Màu nền nhẹ nhàng hơn cho trạng thái completed
+      cardColor = colorScheme.surfaceContainerLow;
     }
 
+    // Chỉ sử dụng màu đậm cho border, không quá nổi bật
     Color borderColor = colorScheme.outlineVariant;
     if (isOverdue) {
-      borderColor = colorScheme.error;
-    }
-    if (isCompleted) {
-      borderColor = colorScheme.success; // Sử dụng màu success cho completed
+      borderColor = colorScheme.error.withValues(alpha: 0.7);
+    } else if (isCompleted) {
+      // Sử dụng màu success nhưng ở mức độ nhẹ nhàng hơn
+      borderColor = colorScheme.success.withValues(alpha: 0.5);
     }
 
+    // Màu text tinh tế hơn
     Color textColor = colorScheme.onSurface;
     if (isOverdue) {
       textColor = colorScheme.error;
-    }
-    if (isCompleted) {
-      textColor = colorScheme.success; // Sử dụng màu success cho completed
+    } else if (isCompleted) {
+      // Dùng màu onSurface thông thường với trọng lượng font tăng lên
+      textColor = colorScheme.onSurface;
     }
 
+    // Chỉ dùng màu đặc biệt cho biểu tượng để tạo điểm nhấn
     Color iconColor = colorScheme.primary;
     if (isOverdue) {
       iconColor = colorScheme.error;
-    }
-    if (isCompleted) {
-      iconColor = colorScheme.success; // Sử dụng màu success cho completed
+    } else if (isCompleted) {
+      iconColor =
+          colorScheme.success; // Giữ màu success cho icon để làm điểm nhấn
     }
 
     String statusText = 'Pending';
@@ -133,6 +149,7 @@ class _RepetitionCardState extends State<RepetitionCard>
 
     final repetitionColor = _getRepetitionColor(
       widget.repetition.repetitionOrder.index,
+      colorScheme,
     );
 
     final reviewDateText = widget.repetition.reviewDate != null
