@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen>
     // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: AppDimens.durationM),
     );
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
@@ -141,8 +141,11 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final themeViewModel = context.watch<ThemeViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: HomeAppBar(
         isDarkMode: themeViewModel.isDarkMode,
         onThemeToggle: themeViewModel.toggleTheme,
@@ -167,46 +170,61 @@ class _HomeScreenState extends State<HomeScreen>
             );
           }
 
-          return _buildBody(authViewModel.currentUser);
+          return _buildBody(authViewModel.currentUser, theme, colorScheme);
         },
       ),
     );
   }
 
-  Widget _buildBody(User? user) {
+  Widget _buildBody(User? user, ThemeData theme, ColorScheme colorScheme) {
     if (user == null) {
-      return const Center(child: Text('Please login to continue'));
+      return Center(
+        child: Text(
+          'Please login to continue',
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+      );
     }
 
     return RefreshIndicator(
       onRefresh: _refreshData,
+      color: colorScheme.primary,
+      backgroundColor: colorScheme.surface,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: WelcomeSection(user: user)),
-              const SizedBox(height: AppDimens.spaceXL),
-              _buildDashboardSection(),
-              const SizedBox(height: AppDimens.spaceXL),
-              _buildInsightsSection(),
-              const SizedBox(height: AppDimens.spaceXL),
-              _buildDueTasksSection(),
-              const SizedBox(height: AppDimens.spaceXL),
-              _buildQuickActionsSection(),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-            ],
-          ),
+          child: _buildHomeContent(user),
         ),
       ),
     );
   }
 
+  Widget _buildHomeContent(User user) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(child: WelcomeSection(user: user)),
+        const SizedBox(height: AppDimens.spaceXL),
+        _buildDashboardSection(),
+        const SizedBox(height: AppDimens.spaceXL),
+        _buildInsightsSection(),
+        const SizedBox(height: AppDimens.spaceXL),
+        _buildDueTasksSection(),
+        const SizedBox(height: AppDimens.spaceXL),
+        _buildQuickActionsSection(),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+      ],
+    );
+  }
+
   Widget _buildDashboardSection() {
     final statsViewModel = context.watch<LearningStatsViewModel>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (statsViewModel.errorMessage != null) {
       return ErrorDisplay(
@@ -220,7 +238,12 @@ class _HomeScreenState extends State<HomeScreen>
       return Center(
         child: Column(
           children: [
-            const Text('No statistics available'),
+            Text(
+              'No statistics available',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
             const SizedBox(height: AppDimens.spaceM),
             AppButton(
               text: 'Load Statistics',
@@ -272,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildInsightsSection() {
     final statsViewModel = context.watch<LearningStatsViewModel>();
+    final theme = Theme.of(context);
 
     if (statsViewModel.insights.isEmpty) return const SizedBox.shrink();
 
@@ -279,11 +303,14 @@ class _HomeScreenState extends State<HomeScreen>
       insights: statsViewModel.insights,
       title: 'Learning Insights',
       onViewMorePressed: () {},
+      theme: theme,
     );
   }
 
   Widget _buildDueTasksSection() {
     final progressViewModel = context.watch<ProgressViewModel>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (progressViewModel.errorMessage != null) {
       return ErrorDisplay(
@@ -300,6 +327,10 @@ class _HomeScreenState extends State<HomeScreen>
     final dueCount = progressViewModel.progressRecords.length;
 
     return Card(
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -309,27 +340,34 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 Icon(
                   Icons.assignment_late,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: colorScheme.primary,
+                  size: AppDimens.iconM,
                 ),
                 const SizedBox(width: AppDimens.spaceS),
                 Text(
                   'Due Tasks',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ],
             ),
-            const Divider(height: 32),
+            const Divider(height: AppDimens.spaceXXL),
             dueCount > 0
                 ? Text(
                     'You have $dueCount task${dueCount > 1 ? 's' : ''} due today',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
                   )
                 : Center(
                     child: Padding(
                       padding: const EdgeInsets.all(AppDimens.paddingL),
                       child: Text(
                         'No tasks due today!',
-                        style: Theme.of(context).textTheme.bodyLarge,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
@@ -350,8 +388,19 @@ class _HomeScreenState extends State<HomeScreen>
     onBrowseBooksPressed: () => GoRouter.of(context).go('/books'),
     onTodaysLearningPressed: () => GoRouter.of(context).go('/due-progress'),
     onProgressReportPressed: () => GoRouter.of(context).go('/learning'),
-    onVocabularyStatsPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Vocabulary stats coming soon')),
-    ),
+    onVocabularyStatsPressed: () => _showVocabularyStatsMessage(),
   );
+
+  void _showVocabularyStatsMessage() {
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Vocabulary stats coming soon',
+          style: TextStyle(color: theme.colorScheme.onPrimary),
+        ),
+        backgroundColor: theme.colorScheme.primary,
+      ),
+    );
+  }
 }

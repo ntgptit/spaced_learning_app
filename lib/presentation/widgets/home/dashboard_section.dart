@@ -28,6 +28,8 @@ class DashboardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final statsDTO = LearningStatsDTO(
       totalModules: moduleStats.totalModules,
       cycleStats: moduleStats.cycleStats,
@@ -53,6 +55,7 @@ class DashboardSection extends StatelessWidget {
     return LearningStatsCard(
       stats: statsDTO,
       onViewDetailPressed: onViewProgress,
+      theme: theme,
     );
   }
 }

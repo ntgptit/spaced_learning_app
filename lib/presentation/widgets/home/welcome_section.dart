@@ -25,13 +25,11 @@ class WelcomeSection extends StatelessWidget {
   }
 
   Widget _buildGreeting(ThemeData theme, ColorScheme colorScheme) {
-    final greetingColor = colorScheme.onSurface.withValues(
-      alpha: AppDimens.opacityHigh,
-    );
-
     return Text(
       'Welcome back,',
-      style: theme.textTheme.bodyLarge?.copyWith(color: greetingColor),
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: colorScheme.onSurface.withValues(alpha: AppDimens.opacityHigh),
+      ),
       textAlign: TextAlign.center,
     );
   }

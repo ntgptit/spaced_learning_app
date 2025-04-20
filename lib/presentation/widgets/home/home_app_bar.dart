@@ -16,53 +16,70 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return AppBar(
       leading: IconButton(
         icon: Icon(
           Icons.menu,
           size: AppDimens.iconL,
-          color: theme.iconTheme.color,
+          color: colorScheme.onSurface,
         ),
         onPressed: onMenuPressed,
         tooltip: 'Menu',
       ),
-      title: Text('Spaced Learning', style: theme.textTheme.titleLarge),
+      title: Text(
+        'Spaced Learning',
+        style: theme.textTheme.titleLarge?.copyWith(
+          color: colorScheme.onSurface,
+        ),
+      ),
+      backgroundColor: colorScheme.surface,
       actions: [
-        _buildThemeToggleButton(theme),
-        _buildNotificationsButton(context, theme),
+        _buildThemeToggleButton(theme, colorScheme),
+        _buildNotificationsButton(context, theme, colorScheme),
       ],
     );
   }
 
-  Widget _buildThemeToggleButton(ThemeData theme) {
+  Widget _buildThemeToggleButton(ThemeData theme, ColorScheme colorScheme) {
     return IconButton(
       icon: Icon(
         isDarkMode ? Icons.light_mode : Icons.dark_mode,
         size: AppDimens.iconL,
-        color: theme.iconTheme.color,
+        color: colorScheme.onSurface,
       ),
       onPressed: onThemeToggle,
       tooltip: 'Toggle theme',
     );
   }
 
-  Widget _buildNotificationsButton(BuildContext context, ThemeData theme) {
+  Widget _buildNotificationsButton(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return IconButton(
       icon: Icon(
         Icons.notifications_outlined,
         size: AppDimens.iconL,
-        color: theme.iconTheme.color,
+        color: colorScheme.onSurface,
       ),
-      onPressed: () => _showNotificationsSnackBar(context),
+      onPressed: () => _showNotificationsSnackBar(context, theme),
       tooltip: 'Notifications',
     );
   }
 
-  void _showNotificationsSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Notifications coming soon')));
+  void _showNotificationsSnackBar(BuildContext context, ThemeData theme) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Notifications coming soon',
+          style: TextStyle(color: theme.colorScheme.onPrimary),
+        ),
+        backgroundColor: theme.colorScheme.primary,
+      ),
+    );
   }
 
   @override

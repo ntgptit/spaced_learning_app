@@ -18,6 +18,7 @@ class QuickActionsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,6 +32,7 @@ class QuickActionsSection extends StatelessWidget {
             'Quick Actions',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
             ),
           ),
         ),
@@ -89,7 +91,7 @@ class QuickActionsSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Define minimalist colors based on the current theme
+    // Define colors based on the theme's color scheme
     final List<Color> cardColors = [
       colorScheme.primary,
       colorScheme.secondary,
@@ -102,7 +104,6 @@ class QuickActionsSection extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
       duration: Duration(milliseconds: 400 + (index * 100)),
-      // Staggered animation
       builder: (context, value, child) {
         return Opacity(
           opacity: value,
@@ -116,29 +117,29 @@ class QuickActionsSection extends StatelessWidget {
         elevation: 0,
         color: colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: cardColor.withValues(alpha: 0.3), width: 1),
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          side: BorderSide(
+            color: cardColor.withValues(alpha: AppDimens.opacitySemi),
+            width: 1,
+          ),
         ),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingL),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon in a subtle container
                 Container(
                   padding: const EdgeInsets.all(AppDimens.paddingM),
                   decoration: BoxDecoration(
-                    color: cardColor.withValues(alpha: 0.1),
+                    color: cardColor.withValues(alpha: AppDimens.opacityLight),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: cardColor, size: 28),
+                  child: Icon(icon, color: cardColor, size: AppDimens.iconL),
                 ),
                 const SizedBox(height: AppDimens.spaceM),
-
-                // Action title
                 Text(
                   title,
                   style: theme.textTheme.titleSmall?.copyWith(

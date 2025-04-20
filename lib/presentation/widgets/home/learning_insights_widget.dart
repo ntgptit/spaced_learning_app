@@ -25,6 +25,10 @@ class LearningInsightsWidget extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -32,7 +36,7 @@ class LearningInsightsWidget extends StatelessWidget {
           children: [
             _buildHeader(colorScheme, textTheme),
             const SizedBox(height: AppDimens.spaceM),
-            const Divider(),
+            const Divider(height: AppDimens.dividerThickness),
             const SizedBox(height: AppDimens.spaceS),
             _buildInsightsList(context, colorScheme, textTheme),
           ],
@@ -52,7 +56,10 @@ class LearningInsightsWidget extends StatelessWidget {
         const SizedBox(width: AppDimens.spaceS),
         Text(
           'Learning Insights',
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+          style: textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -119,7 +126,7 @@ class LearningInsightsWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: AppDimens.iconM),
+          Icon(icon, size: AppDimens.iconM, color: color),
           const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: Text(

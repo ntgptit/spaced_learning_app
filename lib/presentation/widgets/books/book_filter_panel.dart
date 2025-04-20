@@ -3,14 +3,15 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/filter_chip.dart';
 
+/// Panel to filter books by category, status, and difficulty.
 class BookFilterPanel extends StatelessWidget {
   final List<String> categories;
   final String? selectedCategory;
   final BookStatus? selectedStatus;
   final DifficultyLevel? selectedDifficulty;
-  final Function(String?)? onCategorySelected;
-  final Function(BookStatus?)? onStatusSelected;
-  final Function(DifficultyLevel?)? onDifficultySelected;
+  final ValueChanged<String?>? onCategorySelected;
+  final ValueChanged<BookStatus?>? onStatusSelected;
+  final ValueChanged<DifficultyLevel?>? onDifficultySelected;
   final VoidCallback? onFiltersApplied;
   final VoidCallback? onFilterCleared;
 
@@ -30,7 +31,7 @@ class BookFilterPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
@@ -40,14 +41,14 @@ class BookFilterPanel extends StatelessWidget {
         AppDimens.paddingL,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLowest,
+        color: cs.surfaceContainerLowest,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(AppDimens.radiusL),
           bottomRight: Radius.circular(AppDimens.radiusL),
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+            color: cs.shadow.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -56,6 +57,7 @@ class BookFilterPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Active filters + Clear All
           if (selectedCategory != null ||
               selectedStatus != null ||
               selectedDifficulty != null)
@@ -68,38 +70,35 @@ class BookFilterPanel extends StatelessWidget {
                   if (selectedCategory != null)
                     FilterChipWidget(
                       label: selectedCategory!,
-                      color: colorScheme.tertiary,
-                      onDeleted: () {
-                        if (onCategorySelected != null) {
-                          onCategorySelected!(null);
-                        }
-                      },
+                      color: cs.primary,
+                      textColor: cs.onPrimary,
+                      onDeleted: () => onCategorySelected?.call(null),
                     ),
                   if (selectedStatus != null)
                     FilterChipWidget(
                       label: _formatStatus(selectedStatus!),
-                      color: colorScheme.primary,
-                      onDeleted: () {
-                        if (onStatusSelected != null) {
-                          onStatusSelected!(null);
-                        }
-                      },
+                      color: cs.primary,
+                      textColor: cs.onPrimary,
+                      onDeleted: () => onStatusSelected?.call(null),
                     ),
                   if (selectedDifficulty != null)
                     FilterChipWidget(
                       label: _formatDifficulty(selectedDifficulty!),
-                      color: colorScheme.secondary,
-                      onDeleted: () {
-                        if (onDifficultySelected != null) {
-                          onDifficultySelected!(null);
-                        }
-                      },
+                      color: cs.primary,
+                      textColor: cs.onPrimary,
+                      onDeleted: () => onDifficultySelected?.call(null),
                     ),
                   OutlinedButton.icon(
                     onPressed: onFilterCleared,
-                    icon: const Icon(Icons.clear_all, size: AppDimens.iconS),
+                    icon: Icon(
+                      Icons.clear_all,
+                      color: cs.primary,
+                      size: AppDimens.iconS,
+                    ),
                     label: const Text('Clear All'),
                     style: OutlinedButton.styleFrom(
+                      foregroundColor: cs.primary,
+                      side: BorderSide(color: cs.primary),
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppDimens.paddingM,
                         vertical: AppDimens.paddingXS,
@@ -111,103 +110,98 @@ class BookFilterPanel extends StatelessWidget {
               ),
             ),
 
-          _buildFilterSection(
+          // Category section
+          _buildSection(
             theme,
             'Category',
             Icons.category_outlined,
-            colorScheme.primary,
             Wrap(
               spacing: AppDimens.spaceXS,
               runSpacing: AppDimens.spaceXS,
               children: [
-                for (final category in categories)
+                for (final c in categories)
                   ChoiceChip(
-                    label: Text(category),
-                    selected: selectedCategory == category,
-                    onSelected: (selected) {
-                      if (onCategorySelected != null) {
-                        onCategorySelected!(selected ? category : null);
-                      }
-                    },
-                    selectedColor: colorScheme.tertiaryContainer,
+                    label: Text(c),
+                    selected: selectedCategory == c,
+                    onSelected: (sel) =>
+                        onCategorySelected?.call(sel ? c : null),
+                    selectedColor: cs.primaryContainer,
+                    backgroundColor: cs.surfaceContainerHighest,
                     labelStyle: TextStyle(
-                      color:
-                          selectedCategory == category
-                              ? colorScheme.onTertiaryContainer
-                              : colorScheme.onSurfaceVariant,
+                      color: selectedCategory == c
+                          ? cs.onPrimaryContainer
+                          : cs.onSurfaceVariant,
                     ),
                   ),
               ],
             ),
           ),
 
-          _buildFilterSection(
+          // Status section
+          _buildSection(
             theme,
             'Status',
             Icons.published_with_changes_outlined,
-            colorScheme.primary,
             Wrap(
               spacing: AppDimens.spaceXS,
               runSpacing: AppDimens.spaceXS,
               children: [
-                for (final status in BookStatus.values)
+                for (final s in BookStatus.values)
                   ChoiceChip(
-                    label: Text(_formatStatus(status)),
-                    selected: selectedStatus == status,
-                    onSelected: (selected) {
-                      if (onStatusSelected != null) {
-                        onStatusSelected!(selected ? status : null);
-                      }
-                    },
-                    selectedColor: colorScheme.primaryContainer,
+                    label: Text(_formatStatus(s)),
+                    selected: selectedStatus == s,
+                    onSelected: (sel) => onStatusSelected?.call(sel ? s : null),
+                    selectedColor: cs.primaryContainer,
+                    backgroundColor: cs.surfaceContainerHighest,
                     labelStyle: TextStyle(
-                      color:
-                          selectedStatus == status
-                              ? colorScheme.onPrimaryContainer
-                              : colorScheme.onSurfaceVariant,
+                      color: selectedStatus == s
+                          ? cs.onPrimaryContainer
+                          : cs.onSurfaceVariant,
                     ),
                   ),
               ],
             ),
           ),
 
-          _buildFilterSection(
+          // Difficulty section
+          _buildSection(
             theme,
             'Difficulty',
             Icons.signal_cellular_alt_outlined,
-            colorScheme.primary,
             Wrap(
               spacing: AppDimens.spaceXS,
               runSpacing: AppDimens.spaceXS,
               children: [
-                for (final difficulty in DifficultyLevel.values)
+                for (final d in DifficultyLevel.values)
                   ChoiceChip(
-                    label: Text(_formatDifficulty(difficulty)),
-                    selected: selectedDifficulty == difficulty,
-                    onSelected: (selected) {
-                      if (onDifficultySelected != null) {
-                        onDifficultySelected!(selected ? difficulty : null);
-                      }
-                    },
-                    selectedColor: colorScheme.secondaryContainer,
+                    label: Text(_formatDifficulty(d)),
+                    selected: selectedDifficulty == d,
+                    onSelected: (sel) =>
+                        onDifficultySelected?.call(sel ? d : null),
+                    selectedColor: cs.primaryContainer,
+                    backgroundColor: cs.surfaceContainerHighest,
                     labelStyle: TextStyle(
-                      color:
-                          selectedDifficulty == difficulty
-                              ? colorScheme.onSecondaryContainer
-                              : colorScheme.onSurfaceVariant,
+                      color: selectedDifficulty == d
+                          ? cs.onPrimaryContainer
+                          : cs.onSurfaceVariant,
                     ),
                   ),
               ],
             ),
           ),
 
+          // Apply Filters button
           Center(
             child: Padding(
               padding: const EdgeInsets.only(top: AppDimens.paddingM),
               child: ElevatedButton.icon(
                 onPressed: onFiltersApplied,
-                icon: const Icon(Icons.check),
+                icon: Icon(Icons.check, color: cs.secondary),
                 label: const Text('Apply Filters'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
+                ),
               ),
             ),
           ),
@@ -216,13 +210,13 @@ class BookFilterPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterSection(
+  Widget _buildSection(
     ThemeData theme,
     String title,
     IconData icon,
-    Color iconColor,
     Widget content,
   ) {
+    final cs = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimens.paddingM),
       child: Column(
@@ -230,12 +224,12 @@ class BookFilterPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: iconColor, size: AppDimens.iconS),
+              Icon(icon, color: cs.primary, size: AppDimens.iconS),
               const SizedBox(width: AppDimens.spaceXS),
               Text(
                 title,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  color: iconColor,
+                  color: cs.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),

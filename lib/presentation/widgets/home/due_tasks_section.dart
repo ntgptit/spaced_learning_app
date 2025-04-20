@@ -24,12 +24,12 @@ class DueTasksSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: colorScheme.shadow.withValues(alpha: AppDimens.opacityLight),
+            blurRadius: AppDimens.shadowRadiusM,
+            offset: const Offset(0, AppDimens.shadowOffsetS),
           ),
         ],
       ),
@@ -43,8 +43,8 @@ class DueTasksSection extends StatelessWidget {
                   ? colorScheme.surfaceContainerHighest
                   : colorScheme.secondaryContainer,
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+                topLeft: Radius.circular(AppDimens.radiusL),
+                topRight: Radius.circular(AppDimens.radiusL),
               ),
             ),
             child: Row(
@@ -56,7 +56,7 @@ class DueTasksSection extends StatelessWidget {
                   color: tasks.isEmpty
                       ? colorScheme.onSurfaceVariant
                       : colorScheme.onSecondaryContainer,
-                  size: 22,
+                  size: AppDimens.iconM,
                 ),
                 const SizedBox(width: AppDimens.spaceM),
                 Text(
@@ -77,9 +77,9 @@ class DueTasksSection extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: colorScheme.onSecondaryContainer.withValues(
-                        alpha: 0.1,
+                        alpha: AppDimens.opacityLight,
                       ),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusXL),
                     ),
                     child: Text(
                       '${tasks.length}',
@@ -121,7 +121,7 @@ class DueTasksSection extends StatelessWidget {
             ),
             child: Icon(
               Icons.check_circle_outline,
-              size: 40,
+              size: AppDimens.iconXL,
               color: colorScheme.tertiary,
             ),
           ),
@@ -155,7 +155,7 @@ class DueTasksSection extends StatelessWidget {
                 vertical: AppDimens.paddingM,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(AppDimens.radiusXL),
               ),
             ),
           ),
@@ -174,7 +174,7 @@ class DueTasksSection extends StatelessWidget {
         for (int i = 0; i < min(tasks.length, 3); i++)
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 400),
+            duration: const Duration(milliseconds: AppDimens.durationM),
             builder: (context, value, child) {
               return Opacity(
                 opacity: value,
@@ -202,12 +202,15 @@ class DueTasksSection extends StatelessWidget {
                   vertical: AppDimens.paddingM,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 ),
               ),
               child: Text(
                 tasks.length <= 3 ? 'Start Learning' : 'View All Tasks',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
@@ -238,10 +241,10 @@ class DueTasksSection extends StatelessWidget {
           children: [
             // Task badge with cycle indicator
             Container(
-              width: 40,
-              height: 40,
+              width: AppDimens.avatarSizeM,
+              height: AppDimens.avatarSizeM,
               decoration: BoxDecoration(
-                color: cycleColor.withValues(alpha: 0.1),
+                color: cycleColor.withValues(alpha: AppDimens.opacityLight),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -282,8 +285,12 @@ class DueTasksSection extends StatelessWidget {
                           vertical: AppDimens.paddingXXS,
                         ),
                         decoration: BoxDecoration(
-                          color: cycleColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          color: cycleColor.withValues(
+                            alpha: AppDimens.opacityLight,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppDimens.radiusXS,
+                          ),
                         ),
                         child: Text(
                           cycleText,
@@ -296,7 +303,9 @@ class DueTasksSection extends StatelessWidget {
                       const SizedBox(width: AppDimens.spaceS),
                       Expanded(
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(
+                            AppDimens.radiusXXS,
+                          ),
                           child: LinearProgressIndicator(
                             value: progress.isNaN || progress.isInfinite
                                 ? 0
@@ -306,7 +315,7 @@ class DueTasksSection extends StatelessWidget {
                             valueColor: AlwaysStoppedAnimation<Color>(
                               cycleColor,
                             ),
-                            minHeight: 4,
+                            minHeight: AppDimens.lineProgressHeight,
                           ),
                         ),
                       ),
@@ -327,7 +336,7 @@ class DueTasksSection extends StatelessWidget {
             Icon(
               Icons.chevron_right,
               color: colorScheme.onSurfaceVariant,
-              size: 20,
+              size: AppDimens.iconM,
             ),
           ],
         ),
