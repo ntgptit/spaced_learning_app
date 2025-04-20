@@ -27,7 +27,7 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: AppDimens.durationM),
     );
 
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -55,14 +55,42 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
         final scoreInt = clampedScore.toInt();
         final textValue = scoreInt.toString();
         if (_controller.text != textValue) {
-          final selection = _controller.selection;
+          // Lưu vị trí selection hiện tại
+          final currentSelection = _controller.selection;
+
+          // Cập nhật text
           _controller.text = textValue;
-          try {
-            _controller.selection = selection.copyWith(
-              baseOffset: selection.baseOffset.clamp(0, textValue.length),
-              extentOffset: selection.extentOffset.clamp(0, textValue.length),
+
+          // Xử lý selection một cách an toàn
+          if (currentSelection.isValid && textValue.isNotEmpty) {
+            try {
+              final newBaseOffset = currentSelection.baseOffset.clamp(
+                0,
+                textValue.length,
+              );
+              final newExtentOffset = currentSelection.extentOffset.clamp(
+                0,
+                textValue.length,
+              );
+
+              _controller.selection = TextSelection(
+                baseOffset: newBaseOffset,
+                extentOffset: newExtentOffset,
+              );
+            } catch (e) {
+              // Log lỗi để debug thay vì bỏ qua
+              debugPrint('Error updating text selection: $e');
+
+              // Đặt lại selection về cuối text
+              _controller.selection = TextSelection.collapsed(
+                offset: textValue.length,
+              );
+            }
+          } else {
+            // Nếu selection không hợp lệ, đặt lại selection về cuối text
+            _controller.selection = TextSelection.collapsed(
+              offset: textValue.length,
             );
-          } catch (e) {
           }
         }
       });
@@ -118,13 +146,20 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: colorScheme.primary),
+          Icon(
+            Icons.info_outline,
+            color: colorScheme.primary,
+            size: AppDimens.iconM,
+          ),
           const SizedBox(width: AppDimens.spaceM),
           Expanded(
             child: Text(
               'Enter the score from your test on Quizlet or another tool:',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                color: colorScheme.onSurface,
+                // Tăng độ tương phản từ onSurfaceVariant
+                fontWeight:
+                    FontWeight.w500, // Tăng độ tương phản với fontWeight
               ),
             ),
           ),
@@ -135,20 +170,49 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
 
   Widget _buildScoreDisplay(TextStyle? scoreTextStyle, Color scoreColor) {
     return Container(
-      height: 80,
+      height: AppDimens.iconXXL * 2,
       decoration: BoxDecoration(
-        color: scoreColor.withValues(alpha: 0.1),
+        // Tăng độ tương phản của nền bằng cách giảm độ trong suốt
+        color: scoreColor.withValues(alpha: AppDimens.opacitySemi),
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        // Thêm border để tăng tương phản
+        border: Border.all(
+          color: scoreColor.withValues(alpha: AppDimens.opacityHigh),
+          width: 1.5,
+        ),
       ),
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('${_currentScore.toInt()}', style: scoreTextStyle),
+            Text(
+              '${_currentScore.toInt()}',
+              style: scoreTextStyle?.copyWith(
+                // Đảm bảo text luôn sáng đối với nền sẫm của score
+                color: _getBetterContrastTextColor(scoreColor),
+                fontSize: 48, // Size lớn hơn để tăng khả năng đọc
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 2,
+                    offset: const Offset(1, 1),
+                  ),
+                ],
+              ),
+            ),
             Text(
               '%',
               style: scoreTextStyle?.copyWith(
-                fontSize: (scoreTextStyle.fontSize ?? 32) * 0.7,
+                // Đảm bảo text luôn sáng đối với nền sẫm của score
+                color: _getBetterContrastTextColor(scoreColor),
+                fontSize: 36,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 2,
+                    offset: const Offset(1, 1),
+                  ),
+                ],
               ),
             ),
           ],
@@ -157,16 +221,30 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
     );
   }
 
+  // Hàm này giúp chọn màu text có độ tương phản tốt với màu nền
+  Color _getBetterContrastTextColor(Color backgroundColor) {
+    // Tính độ sáng của màu
+    final brightness = backgroundColor.computeLuminance();
+    // Nếu màu nền tối, trả về màu text sáng
+    return brightness > 0.5 ? Colors.black : Colors.white;
+  }
+
   Widget _buildSlider(ColorScheme colorScheme) {
+    final sliderColor = _getScoreColor(colorScheme, _currentScore);
+
     return SliderTheme(
       data: SliderThemeData(
-        activeTrackColor: _getScoreColor(colorScheme, _currentScore),
-        thumbColor: _getScoreColor(colorScheme, _currentScore),
-        overlayColor: _getScoreColor(
-          colorScheme,
-          _currentScore,
-        ).withValues(alpha: 0.2),
-        trackHeight: 6,
+        activeTrackColor: sliderColor,
+        thumbColor: sliderColor,
+        // Tăng kích thước của thumb để dễ nhìn và tương tác hơn
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+        // Tăng kích thước của overlay để thấy rõ khi tương tác
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
+        overlayColor: sliderColor.withValues(alpha: AppDimens.opacityMedium),
+        // Tăng độ dày của track để dễ nhìn hơn
+        trackHeight: 8,
+        // Tạo độ tương phản cho inactive track
+        inactiveTrackColor: colorScheme.surfaceContainerHighest,
       ),
       child: Slider(
         value: _currentScore,
@@ -180,6 +258,12 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
   }
 
   Widget _buildExactScore(ThemeData theme, ColorScheme colorScheme) {
+    final scoreColor = _getScoreColor(colorScheme, _currentScore);
+    // Tính background dựa trên độ sáng của scoreColor
+    final backgroundColor = scoreColor.computeLuminance() > 0.5
+        ? scoreColor.withValues(alpha: 0.2) // chữ màu sáng → nền nhạt hơn
+        : scoreColor.withValues(alpha: 0.1); // chữ màu tối  → nền nhạt hơn
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingS,
@@ -191,20 +275,27 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
           Text(
             'Exact score: ',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+              ),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHigh,
+                color: backgroundColor, // dùng màu nền đã tính
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.5),
-                ),
+                border: Border.all(color: scoreColor, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
               child: IntrinsicWidth(
                 child: TextField(
@@ -215,6 +306,9 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
                   textAlign: TextAlign.center,
                   maxLength: 3,
                   decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.transparent,
+                    // để không đè lên container
                     suffixText: '%',
                     counterText: '',
                     contentPadding: const EdgeInsets.symmetric(
@@ -222,13 +316,15 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
                     ),
                     border: InputBorder.none,
                     suffixStyle: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
+                      color: scoreColor,
                       fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
                   style: TextStyle(
-                    color: _getScoreColor(colorScheme, _currentScore),
+                    color: scoreColor,
                     fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
               ),
@@ -244,25 +340,25 @@ class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children:
-          scoreOptions.map((score) {
-            final isSelected = _currentScore.round() == score;
-            return _ScoreButton(
-              score: score,
-              isSelected: isSelected,
-              onTap: () => _updateScore(score.toDouble()),
-              colorScheme: colorScheme,
-              textTheme: textTheme,
-            );
-          }).toList(),
+      children: scoreOptions.map((score) {
+        final isSelected = _currentScore.round() == score;
+        return _ScoreButton(
+          score: score,
+          isSelected: isSelected,
+          onTap: () => _updateScore(score.toDouble()),
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+        );
+      }).toList(),
     );
   }
 
   Color _getScoreColor(ColorScheme colorScheme, double score) {
-    if (score >= 90) return Colors.green;
+    // Tăng độ tương phản bằng cách sử dụng các màu mạnh hơn
+    if (score >= 90) return Colors.green.shade700; // Đậm hơn
     if (score >= 75) return colorScheme.primary;
     if (score >= 60) return colorScheme.secondary;
-    if (score >= 40) return Colors.orange;
+    if (score >= 40) return Colors.orange.shade700; // Đậm hơn
     return colorScheme.error;
   }
 }
@@ -285,10 +381,18 @@ class _ScoreButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _getScoreColor(score);
+    // Tăng độ đậm của background khi được chọn
     final bgColor = isSelected ? color : colorScheme.surfaceContainerHighest;
-    final fgColor = isSelected ? colorScheme.surface : color;
-    final border =
-        isSelected ? null : Border.all(color: color.withValues(alpha: 0.5));
+    // Đảm bảo text luôn có màu tương phản tốt với background
+    final fgColor = isSelected ? _getContrastTextColor(color) : color;
+
+    // Border đậm hơn để tăng độ tương phản
+    final border = isSelected
+        ? null
+        : Border.all(
+            color: color,
+            width: 2.0, // Tăng độ dày để dễ nhìn hơn
+          );
 
     return Material(
       color: Colors.transparent,
@@ -296,22 +400,23 @@ class _ScoreButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         child: Container(
-          width: 44,
-          height: 44,
+          width: AppDimens.iconXL + AppDimens.spaceS,
+          height: AppDimens.iconXL + AppDimens.spaceS,
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             border: border,
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : null,
+            // Tăng độ rõ nét của shadow khi được chọn
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: AppDimens.opacityHigh),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
           ),
           child: Center(
             child: Text(
@@ -319,7 +424,8 @@ class _ScoreButton extends StatelessWidget {
               textAlign: TextAlign.center,
               style: textTheme.labelLarge?.copyWith(
                 color: fgColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 16, // Tăng font size để dễ đọc hơn
               ),
             ),
           ),
@@ -329,10 +435,19 @@ class _ScoreButton extends StatelessWidget {
   }
 
   Color _getScoreColor(int score) {
-    if (score >= 90) return Colors.green;
+    // Tăng độ tương phản bằng cách sử dụng các màu mạnh hơn
+    if (score >= 90) return Colors.green.shade700;
     if (score >= 75) return colorScheme.primary;
     if (score >= 60) return colorScheme.secondary;
-    if (score >= 40) return Colors.orange;
+    if (score >= 40) return Colors.orange.shade700;
     return colorScheme.error;
+  }
+
+  // Hàm này giúp chọn màu text có độ tương phản tốt với màu nền
+  Color _getContrastTextColor(Color backgroundColor) {
+    // Tính độ sáng của màu
+    final brightness = backgroundColor.computeLuminance();
+    // Nếu màu nền tối, trả về màu text sáng và ngược lại
+    return brightness > 0.5 ? Colors.black : Colors.white;
   }
 }

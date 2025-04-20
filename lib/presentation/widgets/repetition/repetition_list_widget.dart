@@ -43,7 +43,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: AppDimens.durationM),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -88,8 +88,8 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         if (viewModel.errorMessage != null) {
           return ErrorDisplay(
             message: viewModel.errorMessage!,
-            onRetry:
-                () => viewModel.loadRepetitionsByProgressId(widget.progressId),
+            onRetry: () =>
+                viewModel.loadRepetitionsByProgressId(widget.progressId),
             compact: true,
           );
         }
@@ -143,8 +143,10 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   context,
                   'Completed Tasks',
                   Icons.check_circle_outline,
-                  colorScheme.success, // Use success color
-                  colorScheme.onSuccess, // Use onSuccess color
+                  colorScheme.success,
+                  // Use success color
+                  colorScheme.onSuccess,
+                  // Use onSuccess color
                   completedByCycle,
                   true,
                 ),
@@ -157,7 +159,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
 
   Widget _buildLoadingState(ThemeData theme) {
     return SizedBox(
-      height: 200,
+      height: AppDimens.thumbnailSizeL,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -192,7 +194,9 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
             Icon(
               Icons.event_note,
               size: AppDimens.iconXXL,
-              color: theme.colorScheme.primary.withValues(alpha: 0.5),
+              color: theme.colorScheme.primary.withValues(
+                alpha: AppDimens.opacityMediumHigh,
+              ),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
@@ -292,10 +296,9 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
 
     final isCurrentCycle = _isCurrentCycle(repetitions);
     final cycleNumber = int.tryParse(cycleKey.replaceAll('Cycle ', '')) ?? 1;
-    final cycleName =
-        isCurrentCycle
-            ? widget.currentCycleStudied
-            : _mapNumberToCycleStudied(cycleNumber);
+    final cycleName = isCurrentCycle
+        ? widget.currentCycleStudied
+        : _mapNumberToCycleStudied(cycleNumber);
 
     final cycleColor = CycleFormatter.getColor(cycleName, context);
 
@@ -311,7 +314,9 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityMediumHigh,
+          ),
           width: 1,
         ),
       ),
@@ -359,18 +364,16 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
               (repetition) => RepetitionCard(
                 repetition: repetition,
                 isHistory: isHistory,
-                onMarkCompleted:
-                    isHistory
-                        ? null
-                        : () => widget.onMarkCompleted(repetition.id),
-                onReschedule:
-                    isHistory
-                        ? null
-                        : (currentDate) => widget.onReschedule(
-                          repetition.id,
-                          currentDate,
-                          false,
-                        ),
+                onMarkCompleted: isHistory
+                    ? null
+                    : () => widget.onMarkCompleted(repetition.id),
+                onReschedule: isHistory
+                    ? null
+                    : (currentDate) => widget.onReschedule(
+                        repetition.id,
+                        currentDate,
+                        false,
+                      ),
               ),
             ),
           ],

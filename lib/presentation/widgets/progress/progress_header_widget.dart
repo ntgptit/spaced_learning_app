@@ -22,25 +22,24 @@ class ProgressHeaderWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('MMM dd, yyyy');
 
-    final startDateText =
-        progress.firstLearningDate != null
-            ? dateFormat.format(progress.firstLearningDate!)
-            : 'Not started';
+    final startDateText = progress.firstLearningDate != null
+        ? dateFormat.format(progress.firstLearningDate!)
+        : 'Not started';
 
-    final nextDateText =
-        progress.nextStudyDate != null
-            ? dateFormat.format(progress.nextStudyDate!)
-            : 'Not scheduled';
+    final nextDateText = progress.nextStudyDate != null
+        ? dateFormat.format(progress.nextStudyDate!)
+        : 'Not scheduled';
 
-    final completedCount =
-        progress.repetitions
-            .where((r) => r.status == RepetitionStatus.completed)
-            .length;
+    final completedCount = progress.repetitions
+        .where((r) => r.status == RepetitionStatus.completed)
+        .length;
     final totalCount = progress.repetitions.length;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -51,8 +50,8 @@ class ProgressHeaderWidget extends StatelessWidget {
             _buildOverallProgress(theme),
             const SizedBox(height: AppDimens.spaceL),
             Selector<RepetitionViewModel, String>(
-              selector:
-                  (context, vm) => vm.getCycleInfo(progress.cyclesStudied),
+              selector: (context, vm) =>
+                  vm.getCycleInfo(progress.cyclesStudied),
               builder: (context, cycleInfo, child) {
                 return _buildCycleProgress(
                   theme,
@@ -94,6 +93,7 @@ class ProgressHeaderWidget extends StatelessWidget {
   }
 
   Widget _buildOverallProgress(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -108,7 +108,7 @@ class ProgressHeaderWidget extends StatelessWidget {
             Container(
               height: AppDimens.lineProgressHeightL,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppDimens.radiusS),
               ),
             ),
@@ -117,13 +117,15 @@ class ProgressHeaderWidget extends StatelessWidget {
               child: Container(
                 height: AppDimens.lineProgressHeightL,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.success,
+                  color: colorScheme.success,
                   borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.colorScheme.success.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      color: colorScheme.success.withValues(
+                        alpha: AppDimens.opacitySemi,
+                      ),
+                      blurRadius: AppDimens.shadowRadiusS,
+                      offset: const Offset(0, AppDimens.shadowOffsetS),
                     ),
                   ],
                 ),
@@ -143,6 +145,7 @@ class ProgressHeaderWidget extends StatelessWidget {
   ) {
     final progressValue = total > 0 ? completed / total : 0.0;
     final cycleColor = _getCycleColor(progress.cyclesStudied);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +170,7 @@ class ProgressHeaderWidget extends StatelessWidget {
             Container(
               height: AppDimens.lineProgressHeightL,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppDimens.radiusS),
               ),
             ),
@@ -180,9 +183,11 @@ class ProgressHeaderWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   boxShadow: [
                     BoxShadow(
-                      color: cycleColor.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      color: cycleColor.withValues(
+                        alpha: AppDimens.opacitySemi,
+                      ),
+                      blurRadius: AppDimens.shadowRadiusS,
+                      offset: const Offset(0, AppDimens.shadowOffsetS),
                     ),
                   ],
                 ),
@@ -204,7 +209,7 @@ class ProgressHeaderWidget extends StatelessWidget {
               ),
               TextSpan(
                 text: '/$total repetitions completed in this cycle',
-                style: TextStyle(color: theme.colorScheme.onSurface),
+                style: TextStyle(color: colorScheme.onSurface),
               ),
             ],
           ),
@@ -216,18 +221,20 @@ class ProgressHeaderWidget extends StatelessWidget {
   }
 
   Widget _buildCycleInfoCard(ThemeData theme, String infoText) {
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+        border: Border.all(color: colorScheme.outlineVariant, width: 1),
       ),
       child: Row(
         children: [
           Icon(
             Icons.lightbulb,
-            color: theme.colorScheme.primary,
+            color: colorScheme.primary,
             size: AppDimens.iconM,
           ),
           const SizedBox(width: AppDimens.spaceS),
@@ -249,10 +256,12 @@ class ProgressHeaderWidget extends StatelessWidget {
     String startDateText,
     String nextDateText,
   ) {
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Row(
@@ -266,9 +275,9 @@ class ProgressHeaderWidget extends StatelessWidget {
             ),
           ),
           Container(
-            height: 40,
-            width: 1,
-            color: theme.colorScheme.outlineVariant,
+            height: AppDimens.iconXL,
+            width: AppDimens.dividerThickness,
+            color: colorScheme.outlineVariant,
           ),
           Expanded(
             child: _buildInfoItem(
@@ -289,10 +298,12 @@ class ProgressHeaderWidget extends StatelessWidget {
     String value,
     IconData icon,
   ) {
+    final colorScheme = theme.colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: AppDimens.iconS, color: theme.colorScheme.primary),
+        Icon(icon, size: AppDimens.iconS, color: colorScheme.primary),
         const SizedBox(width: AppDimens.spaceS),
         Expanded(
           child: Column(
@@ -301,7 +312,7 @@ class ProgressHeaderWidget extends StatelessWidget {
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
@@ -320,6 +331,8 @@ class ProgressHeaderWidget extends StatelessWidget {
   }
 
   Widget _buildSectionHeader(ThemeData theme, String title, String trailing) {
+    final colorScheme = theme.colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -330,15 +343,15 @@ class ProgressHeaderWidget extends StatelessWidget {
             vertical: AppDimens.paddingXXS,
           ),
           decoration: BoxDecoration(
-            color: theme.colorScheme.success.withValues(
-              alpha: 0.8,
-            ), // Match progress bar
+            color: colorScheme.success.withValues(
+              alpha: AppDimens.opacityVeryHigh,
+            ),
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
           ),
           child: Text(
             trailing,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSuccess, // Contrast with background
+              color: colorScheme.onSuccess,
               fontWeight: FontWeight.bold,
             ),
           ),

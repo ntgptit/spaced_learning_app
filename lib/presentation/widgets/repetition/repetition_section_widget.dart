@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/reschedule_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
@@ -29,6 +30,7 @@ class RepetitionSectionWidget extends StatelessWidget {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
       itemCount: sortedRepetitions.length,
       itemBuilder: (context, index) {
         final repetition = sortedRepetitions[index];

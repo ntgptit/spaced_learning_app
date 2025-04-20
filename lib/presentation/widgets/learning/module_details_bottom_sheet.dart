@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart'; // Aangenomen dat dit bestaat
-import 'package:spaced_learning_app/domain/models/learning_module.dart'; // Zorg voor correct pad
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
-import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart'; // Zorg voor correct pad
+import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
 class ModuleDetailsBottomSheet extends StatelessWidget {
   final LearningModule module;
@@ -17,65 +17,45 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(
-      context,
-    ); // Krijgt thema (van FlexColorScheme of anderszins)
-    final colorScheme = theme.colorScheme; // Haal ColorScheme op
-    final textTheme = theme.textTheme; // Haal TextTheme op
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
       key: const Key('module_details_bottom_sheet'),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow, // Gebruik M3 rol
+        color: colorScheme.surfaceContainerLow,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusL), // Bovenste hoeken afronden
+          top: Radius.circular(AppDimens.radiusL),
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Krimpen naar inhoud
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildDragHandle(colorScheme), // Geef alleen colorScheme door
+          _buildDragHandle(colorScheme),
           Flexible(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
                 left: AppDimens.paddingL,
                 right: AppDimens.paddingL,
-                bottom:
-                    AppDimens.paddingXL +
-                    mediaQuery.padding.bottom, // Veilige padding onderaan
+                bottom: AppDimens.paddingXL + mediaQuery.padding.bottom,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildModuleTitle(
-                    colorScheme,
-                    textTheme,
-                  ), // Geef componenten door
-                  _buildBookInfo(
-                    colorScheme,
-                    textTheme,
-                  ), // Geef componenten door
+                  _buildModuleTitle(colorScheme, textTheme),
+                  _buildBookInfo(colorScheme, textTheme),
                   const Divider(height: AppDimens.paddingXXL),
-                  _buildModuleDetailsSection(
-                    context,
-                    colorScheme,
-                    textTheme, // Verwijder isDark
-                  ),
+                  _buildModuleDetailsSection(context, colorScheme, textTheme),
                   const Divider(height: AppDimens.paddingXXL),
-                  _buildDatesSection(
-                    colorScheme,
-                    textTheme,
-                  ), // Geef componenten door
+                  _buildDatesSection(colorScheme, textTheme),
                   if (module.studyHistory.isNotEmpty) ...[
                     const SizedBox(height: AppDimens.spaceXL),
-                    _buildStudyHistorySection(
-                      colorScheme,
-                      textTheme,
-                    ), // Geef componenten door
+                    _buildStudyHistorySection(colorScheme, textTheme),
                   ],
                   const SizedBox(height: AppDimens.spaceXL),
-                  _buildActionButtons(context), // Context is voldoende
+                  _buildActionButtons(context),
                 ],
               ),
             ),
@@ -97,8 +77,8 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
         height: AppDimens.dividerThickness * 2,
         decoration: BoxDecoration(
           color: colorScheme.onSurfaceVariant.withValues(
-            alpha: 0.4,
-          ), // Standaard M3 stijl
+            alpha: AppDimens.opacitySemi,
+          ),
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
       ),
@@ -108,9 +88,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   Widget _buildModuleTitle(ColorScheme colorScheme, TextTheme textTheme) {
     Widget titleWidget = Text(
       module.moduleTitle.isEmpty ? 'Unnamed Module' : module.moduleTitle,
-      style: textTheme.headlineSmall?.copyWith(
-        color: colorScheme.onSurface, // Zorg voor leesbaarheid op surface
-      ),
+      style: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
       key: const Key('module_title'),
     );
 
@@ -163,7 +141,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     ColorScheme colorScheme,
     TextTheme textTheme,
     String title, {
-    IconData icon = Icons.info_outline, // Standaard icoon
+    IconData icon = Icons.info_outline,
     Key? key,
   }) {
     return Padding(
@@ -186,7 +164,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildModuleDetailsSection(
-    BuildContext context, // Behoud context voor MediaQuery
+    BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
@@ -200,11 +178,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           key: const Key('details_section_title'),
         ),
         Wrap(
-          spacing: AppDimens.spaceL, // Horizontale afstand
-          runSpacing: AppDimens.spaceL, // Verticale afstand
+          spacing: AppDimens.spaceL,
+          runSpacing: AppDimens.spaceL,
           children: [
             _buildDetailItem(
-              context, // Doorgeven voor breedteberekening
+              context,
               colorScheme,
               textTheme,
               'Word Count',
@@ -212,10 +190,9 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
               Icons.text_fields,
               key: const Key('word_count_item'),
             ),
-            if (module.progressLatestPercentComplete !=
-                null) // Check null before accessing
+            if (module.progressLatestPercentComplete != null)
               _buildDetailItem(
-                context, // Doorgeven
+                context,
                 colorScheme,
                 textTheme,
                 'Progress',
@@ -238,10 +215,9 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 ),
                 key: const Key('cycle_item'),
               ),
-
             if (module.progressDueTaskCount > 0)
               _buildDetailItem(
-                context, // Doorgeven
+                context,
                 colorScheme,
                 textTheme,
                 'Tasks',
@@ -256,34 +232,31 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildDetailItem(
-    BuildContext context, // Voor MediaQuery
+    BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
     String label,
     String value,
     IconData icon, {
     double? progressValue,
-    Color? color, // Optionele override kleur (bijv. van CycleFormatter)
+    Color? color,
     Key? key,
   }) {
-    final effectiveColor =
-        color ?? colorScheme.primary; // Gebruik override of primary
-    final bgColor =
-        colorScheme.surfaceContainerLowest; // Zeer subtiele achtergrond
-    final borderColor = colorScheme.outlineVariant; // Zeer subtiele rand
+    final effectiveColor = color ?? colorScheme.primary;
+    final bgColor = colorScheme.surfaceContainerLowest;
+    final borderColor = colorScheme.outlineVariant;
 
     final screenWidth = MediaQuery.of(context).size.width;
     final availableWidth =
         screenWidth - (AppDimens.paddingL * 2) - AppDimens.spaceL;
-    final itemWidth = availableWidth / 2; // Ca. 2 items per rij
+    final itemWidth = availableWidth / 2;
 
-    Color progressIndicatorColor = colorScheme.error; // Standaard (laagste)
+    Color progressIndicatorColor = colorScheme.error;
     if (progressValue != null) {
       if (progressValue >= 0.9) {
-        progressIndicatorColor = colorScheme.tertiary; // Succes/Tertiary
+        progressIndicatorColor = colorScheme.tertiary;
       } else if (progressValue >= 0.7) {
-        progressIndicatorColor =
-            colorScheme.secondary; // Waarschuwing/Secondary
+        progressIndicatorColor = colorScheme.secondary;
       }
     }
 
@@ -309,7 +282,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 child: Text(
                   label,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant, // Subtiele label kleur
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -321,7 +294,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             value,
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface, // Duidelijke waarde kleur
+              color: colorScheme.onSurface,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -329,8 +302,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           if (progressValue != null)
             LinearProgressIndicator(
               value: progressValue,
-              backgroundColor:
-                  colorScheme.surfaceContainerHighest, // Track achtergrond
+              backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(progressIndicatorColor),
               borderRadius: BorderRadius.circular(AppDimens.radiusXXS),
               minHeight: AppDimens.lineProgressHeight,
@@ -350,7 +322,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           colorScheme,
           textTheme,
           'Important Dates',
-          icon: Icons.calendar_month_outlined, // Ander icoon
+          icon: Icons.calendar_month_outlined,
           key: const Key('dates_section_title'),
         ),
         const SizedBox(height: AppDimens.spaceS),
@@ -393,8 +365,9 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     bool isDue = false,
     Key? key,
   }) {
-    final Color effectiveColor =
-        isDue ? colorScheme.error : colorScheme.primary;
+    final Color effectiveColor = isDue
+        ? colorScheme.error
+        : colorScheme.primary;
     final Color labelColor = colorScheme.onSurfaceVariant;
     final Color dateColor = isDue ? colorScheme.error : colorScheme.onSurface;
 
@@ -413,9 +386,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
                 style: textTheme.bodyMedium?.copyWith(color: labelColor),
               ),
               Text(
-                DateFormat(
-                  'EEEE, MMMM d, yyyy',
-                ).format(date), // Volledig formaat
+                DateFormat('EEEE, MMMM d, yyyy').format(date),
                 style: textTheme.titleMedium?.copyWith(
                   color: dateColor,
                   fontWeight: isDue ? FontWeight.bold : null,
@@ -428,7 +399,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: AppDimens.spaceS),
             child: Chip(
-              label: const Text('Due'), // Simpel label
+              label: const Text('Due'),
               labelStyle: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onErrorContainer,
               ),
@@ -447,15 +418,13 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
     TextTheme textTheme,
   ) {
     final studyHistory =
-        (module.studyHistory)
-            .map(
-              (s) => DateTime.tryParse(s),
-            ) // Safely parse strings to DateTime
-            .whereType<DateTime>() // Filter out nulls if parsing failed
+        module.studyHistory
+            .map((s) => DateTime.tryParse(s))
+            .whereType<DateTime>()
             .toList()
           ..sort((a, b) => b.compareTo(a));
 
-    final displayHistory = studyHistory.take(7).toList(); // Show max 7
+    final displayHistory = studyHistory.take(7).toList();
     final remainingCount = studyHistory.length - displayHistory.length;
 
     return Column(
@@ -465,15 +434,11 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
           colorScheme,
           textTheme,
           'Study History',
-          icon: Icons.history_edu_outlined, // Different icon
+          icon: Icons.history_edu_outlined,
           key: const Key('history_section_title'),
         ),
         const SizedBox(height: AppDimens.spaceS),
-        _buildHistoryItems(
-          colorScheme,
-          textTheme,
-          displayHistory,
-        ), // Pass limited list
+        _buildHistoryItems(colorScheme, textTheme, displayHistory),
         if (remainingCount > 0) ...[
           const SizedBox(height: AppDimens.spaceS),
           Padding(
@@ -495,7 +460,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   Widget _buildHistoryItems(
     ColorScheme colorScheme,
     TextTheme textTheme,
-    List<DateTime> displayHistory, // Receives already limited list
+    List<DateTime> displayHistory,
   ) {
     final today = DateUtils.dateOnly(DateTime.now());
 
@@ -503,52 +468,48 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
       key: const Key('history_items'),
       spacing: AppDimens.spaceS,
       runSpacing: AppDimens.spaceS,
-      children:
-          displayHistory.map((date) {
-            final itemDate = DateUtils.dateOnly(date);
-            final isToday = itemDate.isAtSameMomentAs(today);
+      children: displayHistory.map((date) {
+        final itemDate = DateUtils.dateOnly(date);
+        final isToday = itemDate.isAtSameMomentAs(today);
 
-            final Color bgColor;
-            final Color fgColor;
-            final Border border;
+        final Color bgColor;
+        final Color fgColor;
+        final Border border;
 
-            if (isToday) {
-              bgColor = colorScheme.primaryContainer;
-              fgColor = colorScheme.onPrimaryContainer;
-              border = Border.all(color: colorScheme.primary);
-            } else {
-              bgColor = colorScheme.surfaceContainerHighest; // More contrast
-              fgColor = colorScheme.onSurfaceVariant;
-              border = Border.all(
-                color: colorScheme.outlineVariant,
-              ); // Subtle border
-            }
+        if (isToday) {
+          bgColor = colorScheme.primaryContainer;
+          fgColor = colorScheme.onPrimaryContainer;
+          border = Border.all(color: colorScheme.primary);
+        } else {
+          bgColor = colorScheme.surfaceContainerHighest;
+          fgColor = colorScheme.onSurfaceVariant;
+          border = Border.all(color: colorScheme.outlineVariant);
+        }
 
-            final itemTextStyle = textTheme.labelMedium;
+        final itemTextStyle = textTheme.labelMedium;
 
-            return Tooltip(
-              message: DateFormat('MMMM d,CustomGlareDef').format(date),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingM,
-                  vertical:
-                      AppDimens.paddingXS, // Slightly more vertical padding
-                ),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                  border: border,
-                ),
-                child: Text(
-                  DateFormat('MMM d').format(date), // Short format
-                  style: itemTextStyle?.copyWith(
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                    color: fgColor,
-                  ),
-                ),
+        return Tooltip(
+          message: DateFormat('MMMM d, yyyy').format(date),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingM,
+              vertical: AppDimens.paddingXS,
+            ),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              border: border,
+            ),
+            child: Text(
+              DateFormat('MMM d').format(date),
+              style: itemTextStyle?.copyWith(
+                fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                color: fgColor,
               ),
-            );
-          }).toList(),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -570,13 +531,12 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
             icon: const Icon(Icons.play_arrow),
             label: const Text('Start Studying'),
             onPressed: () {
-              Navigator.pop(context); // Close bottom sheet
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) =>
-                          ModuleDetailScreen(moduleId: module.moduleId),
+                  builder: (context) =>
+                      ModuleDetailScreen(moduleId: module.moduleId),
                 ),
               );
             },

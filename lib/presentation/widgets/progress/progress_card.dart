@@ -23,7 +23,7 @@ class ProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme; // Lấy cả textTheme nếu dùng nhiều
+    final textTheme = theme.textTheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(
@@ -33,9 +33,7 @@ class ProgressCard extends StatelessWidget {
       color: colorScheme.surface,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(
-          AppDimens.radiusL,
-        ), // Đồng bộ bo góc với Card (nếu Card có)
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.paddingL),
           child: Column(
@@ -57,10 +55,10 @@ class ProgressCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildProgressIndicator(colorScheme), // Truyền colorScheme
+        _buildProgressIndicator(colorScheme),
         const SizedBox(width: AppDimens.spaceL),
         _buildProgressDetails(colorScheme, textTheme),
-        if (isDue) _buildDueIndicator(colorScheme), // Truyền colorScheme
+        if (isDue) _buildDueIndicator(colorScheme),
       ],
     );
   }
@@ -73,17 +71,25 @@ class ProgressCard extends StatelessWidget {
         value: progress.percentComplete / 100,
         backgroundColor: colorScheme.surfaceContainerHighest,
         strokeWidth: AppDimens.lineProgressHeight,
-        valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+        valueColor: AlwaysStoppedAnimation<Color>(
+          _getProgressColor(progress.percentComplete, colorScheme),
+        ),
       ),
     );
   }
 
+  Color _getProgressColor(double percent, ColorScheme colorScheme) {
+    if (percent >= 90) return colorScheme.tertiary;
+    if (percent >= 60) return colorScheme.primary;
+    if (percent >= 30) return colorScheme.secondary;
+    return colorScheme.error;
+  }
+
   Widget _buildProgressDetails(ColorScheme colorScheme, TextTheme textTheme) {
-    final dateFormat = DateFormat('MMM dd, yyyy'); // Định dạng ngày tháng
-    final nextStudyText =
-        progress.nextStudyDate != null
-            ? dateFormat.format(progress.nextStudyDate!)
-            : 'Not scheduled';
+    final dateFormat = DateFormat('MMM dd, yyyy');
+    final nextStudyText = progress.nextStudyDate != null
+        ? dateFormat.format(progress.nextStudyDate!)
+        : 'Not scheduled';
 
     return Expanded(
       child: Column(
@@ -93,7 +99,7 @@ class ProgressCard extends StatelessWidget {
             moduleTitle,
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface, // Đặt màu rõ ràng
+              color: colorScheme.onSurface,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -103,8 +109,7 @@ class ProgressCard extends StatelessWidget {
             Text(
               subtitle!,
               style: textTheme.bodyMedium?.copyWith(
-                color:
-                    colorScheme.onSurfaceVariant, // Đặt màu rõ ràng cho phụ đề
+                color: colorScheme.onSurfaceVariant,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -132,9 +137,7 @@ class ProgressCard extends StatelessWidget {
 
   Widget _buildDueIndicator(ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: AppDimens.spaceS,
-      ), // Thêm padding nếu cần
+      padding: const EdgeInsets.only(left: AppDimens.spaceS),
       child: Icon(Icons.notifications_active, color: colorScheme.error),
     );
   }
@@ -161,17 +164,3 @@ class ProgressCard extends StatelessWidget {
     );
   }
 }
-
-/*
-class ProgressSummary {
-  final double percentComplete;
-  final DateTime? nextStudyDate;
-  final int repetitionCount;
-
-  ProgressSummary({
-    required this.percentComplete,
-    this.nextStudyDate,
-    required this.repetitionCount,
-  });
-}
-*/

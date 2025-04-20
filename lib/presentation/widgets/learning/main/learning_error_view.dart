@@ -14,12 +14,15 @@ class LearningErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Center(
       child: Container(
         padding: const EdgeInsets.all(AppDimens.paddingXXL),
         decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer.withValues(alpha: 0.8),
+          color: colorScheme.errorContainer.withValues(
+            alpha: AppDimens.opacityVeryHigh,
+          ),
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
           boxShadow: [
             BoxShadow(
@@ -35,20 +38,20 @@ class LearningErrorView extends StatelessWidget {
             Icon(
               Icons.error_outline,
               size: AppDimens.iconXXL,
-              color: theme.colorScheme.onErrorContainer,
+              color: colorScheme.onErrorContainer,
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
               'Oops! Something went wrong',
               style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
+                color: colorScheme.onErrorContainer,
               ),
             ),
             const SizedBox(height: AppDimens.spaceS),
             Text(
               errorMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
+                color: colorScheme.onErrorContainer,
               ),
               textAlign: TextAlign.center,
             ),
@@ -62,6 +65,8 @@ class LearningErrorView extends StatelessWidget {
                   horizontal: AppDimens.paddingXL,
                   vertical: AppDimens.paddingM,
                 ),
+                backgroundColor: colorScheme.onErrorContainer,
+                foregroundColor: colorScheme.errorContainer,
               ),
             ),
           ],

@@ -32,7 +32,7 @@ class _RepetitionCardState extends State<RepetitionCard>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: AppDimens.durationS),
       vsync: this,
     );
 
@@ -86,12 +86,14 @@ class _RepetitionCardState extends State<RepetitionCard>
 
     Color cardColor = colorScheme.surface; // Keep neutral background
     if (isOverdue) {
-      cardColor = colorScheme.errorContainer.withValues(alpha: 0.2);
+      cardColor = colorScheme.errorContainer.withValues(
+        alpha: AppDimens.opacityLight,
+      );
     }
 
     Color borderColor = colorScheme.outlineVariant;
     if (isOverdue) {
-      borderColor = colorScheme.error.withValues(alpha: 0.4);
+      borderColor = colorScheme.error.withValues(alpha: AppDimens.opacitySemi);
     }
     if (isCompleted) {
       borderColor = colorScheme.outlineVariant; // Neutral border for completed
@@ -153,16 +155,18 @@ class _RepetitionCardState extends State<RepetitionCard>
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
               border: Border.all(
                 color: _isHovering
-                    ? borderColor.withValues(alpha: 0.8)
+                    ? borderColor.withValues(alpha: AppDimens.opacityVeryHigh)
                     : borderColor,
                 width: _isHovering ? 1.5 : 1,
               ),
               boxShadow: _isHovering
                   ? [
                       BoxShadow(
-                        color: colorScheme.shadow.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: colorScheme.shadow.withValues(
+                          alpha: AppDimens.opacityLight,
+                        ),
+                        blurRadius: AppDimens.shadowRadiusM,
+                        offset: const Offset(0, AppDimens.shadowOffsetS),
                       ),
                     ]
                   : null,
@@ -186,10 +190,12 @@ class _RepetitionCardState extends State<RepetitionCard>
                       Row(
                         children: [
                           Container(
-                            width: 32,
-                            height: 32,
+                            width: AppDimens.iconL,
+                            height: AppDimens.iconL,
                             decoration: BoxDecoration(
-                              color: repetitionColor.withValues(alpha: 0.1),
+                              color: repetitionColor.withValues(
+                                alpha: AppDimens.opacityLight,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Center(
@@ -214,7 +220,7 @@ class _RepetitionCardState extends State<RepetitionCard>
                                     color: colorScheme.onSurface,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppDimens.spaceXS),
                                 Row(
                                   children: [
                                     Icon(
@@ -222,7 +228,7 @@ class _RepetitionCardState extends State<RepetitionCard>
                                       size: AppDimens.iconS,
                                       color: iconColor,
                                     ),
-                                    const SizedBox(width: 4),
+                                    const SizedBox(width: AppDimens.spaceXS),
                                     Text(
                                       statusText,
                                       style: theme.textTheme.bodySmall
@@ -276,7 +282,7 @@ class _RepetitionCardState extends State<RepetitionCard>
         Icons.check_circle_outline,
         color: _isHovering
             ? colorScheme.success
-            : colorScheme.primary.withValues(alpha: 0.7),
+            : colorScheme.primary.withValues(alpha: AppDimens.opacityHigh),
       ),
       onPressed: widget.onMarkCompleted,
       tooltip: 'Mark as completed',
@@ -294,14 +300,14 @@ class _RepetitionCardState extends State<RepetitionCard>
         size: AppDimens.iconS,
         color: _isHovering
             ? colorScheme.primary
-            : colorScheme.primary.withValues(alpha: 0.7),
+            : colorScheme.primary.withValues(alpha: AppDimens.opacityHigh),
       ),
       label: Text(
         'Reschedule',
         style: TextStyle(
           color: _isHovering
               ? colorScheme.primary
-              : colorScheme.primary.withValues(alpha: 0.7),
+              : colorScheme.primary.withValues(alpha: AppDimens.opacityHigh),
         ),
       ),
       style: TextButton.styleFrom(

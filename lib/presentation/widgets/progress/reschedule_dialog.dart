@@ -13,58 +13,48 @@ class RescheduleDialog {
 
     return showDialog<Map<String, dynamic>>(
       context: context,
-      builder:
-          (dialogContext) => StatefulBuilder(
-            builder:
-                (context, setState) => Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.radiusL),
-                  ),
-                  elevation: 5,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppDimens.paddingL),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildHeader(context, title),
-                        const SizedBox(height: AppDimens.spaceM),
-                        _buildDatePicker(
-                          context,
-                          selectedDate,
-                          (date) => setState(() => selectedDate = date),
-                        ),
-                        const SizedBox(height: AppDimens.spaceM),
-                        _buildRescheduleSwitchOption(
-                          context,
-                          rescheduleFollowing,
-                          (value) =>
-                              setState(() => rescheduleFollowing = value),
-                        ),
-                        const SizedBox(height: AppDimens.spaceL),
-                        _buildActionButtons(
-                          context,
-                          selectedDate,
-                          rescheduleFollowing,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
           ),
+          elevation: AppDimens.elevationM,
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(context, title),
+                const SizedBox(height: AppDimens.spaceM),
+                _buildDatePicker(
+                  context,
+                  selectedDate,
+                  (date) => setState(() => selectedDate = date),
+                ),
+                const SizedBox(height: AppDimens.spaceM),
+                _buildRescheduleSwitchOption(
+                  context,
+                  rescheduleFollowing,
+                  (value) => setState(() => rescheduleFollowing = value),
+                ),
+                const SizedBox(height: AppDimens.spaceL),
+                _buildActionButtons(context, selectedDate, rescheduleFollowing),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   static Widget _buildHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Row(
       children: [
-        Icon(
-          Icons.event,
-          color: theme.colorScheme.primary,
-          size: AppDimens.iconM,
-        ),
+        Icon(Icons.event, color: colorScheme.primary, size: AppDimens.iconM),
         const SizedBox(width: AppDimens.spaceM),
         Text(title, style: theme.textTheme.titleLarge),
       ],
@@ -77,10 +67,11 @@ class RescheduleDialog {
     Function(DateTime) onDateChanged,
   ) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       height: 350,
@@ -94,10 +85,10 @@ class RescheduleDialog {
           Expanded(
             child: Theme(
               data: theme.copyWith(
-                colorScheme: theme.colorScheme.copyWith(
-                  primary: theme.colorScheme.primary,
-                  onPrimary: theme.colorScheme.onPrimary,
-                  surface: theme.colorScheme.surface,
+                colorScheme: colorScheme.copyWith(
+                  primary: colorScheme.primary,
+                  onPrimary: colorScheme.onPrimary,
+                  surface: colorScheme.surface,
                 ),
               ),
               child: CalendarDatePicker(
@@ -119,13 +110,16 @@ class RescheduleDialog {
     Function(bool) onChanged,
   ) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityMediumHigh,
+          ),
         ),
       ),
       child: SwitchListTile(
@@ -136,12 +130,12 @@ class RescheduleDialog {
         subtitle: Text(
           'Adjust all future repetitions based on this new date',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
         value: rescheduleFollowing,
         onChanged: onChanged,
-        activeColor: theme.colorScheme.primary,
+        activeColor: colorScheme.primary,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
           vertical: AppDimens.paddingXS,
@@ -161,7 +155,7 @@ class RescheduleDialog {
         AppButton(
           text: 'Cancel',
           type: AppButtonType.text,
-          size: AppButtonSize.small, // Changed to small
+          size: AppButtonSize.small,
           onPressed: () => Navigator.pop(context),
         ),
         const SizedBox(width: AppDimens.spaceM),
@@ -169,12 +163,11 @@ class RescheduleDialog {
           text: 'Reschedule',
           type: AppButtonType.primary,
           prefixIcon: Icons.calendar_today,
-          size: AppButtonSize.small, // Changed to small
-          onPressed:
-              () => Navigator.pop(context, {
-                'date': selectedDate,
-                'rescheduleFollowing': rescheduleFollowing,
-              }),
+          size: AppButtonSize.small,
+          onPressed: () => Navigator.pop(context, {
+            'date': selectedDate,
+            'rescheduleFollowing': rescheduleFollowing,
+          }),
         ),
       ],
     );

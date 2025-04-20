@@ -23,10 +23,9 @@ class LearningAppBar extends StatelessWidget {
       floating: true,
       elevation: isScrolled ? AppDimens.elevationS : 0,
       shadowColor: Colors.black.withValues(alpha: AppDimens.opacityLight),
-      backgroundColor:
-          isScrolled
-              ? colorScheme.surface
-              : colorScheme.surface.withValues(alpha: 0.95),
+      backgroundColor: isScrolled
+          ? colorScheme.surface
+          : colorScheme.surface.withValues(alpha: AppDimens.opacityVeryHigh),
       foregroundColor: colorScheme.onSurface,
       actions: [
         IconButton(
