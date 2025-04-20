@@ -9,6 +9,7 @@ class LearningHelpDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
 
     final bool isSmallScreen = size.width < AppDimens.breakpointS;
@@ -19,6 +20,8 @@ class LearningHelpDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
+      elevation: AppDimens.elevationM,
+      backgroundColor: colorScheme.surface,
       child: Container(
         constraints: BoxConstraints(
           maxWidth: maxDialogWidth,
@@ -27,16 +30,24 @@ class LearningHelpDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Dialog header
             Padding(
               padding: const EdgeInsets.all(AppDimens.paddingL),
               child: Row(
                 children: [
-                  Icon(Icons.help_outline, color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.help_outline,
+                    color: colorScheme.primary,
+                    size: AppDimens.iconL,
+                  ),
                   const SizedBox(width: AppDimens.spaceS),
                   Expanded(
                     child: Text(
                       'Learning Progress Help',
-                      style: theme.textTheme.titleLarge,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -44,11 +55,14 @@ class LearningHelpDialog extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     tooltip: 'Close',
                     padding: EdgeInsets.zero,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
             ),
             const Divider(height: AppDimens.dividerThickness),
+
+            // Dialog content
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -59,38 +73,71 @@ class LearningHelpDialog extends StatelessWidget {
                       'This screen shows your learning progress across all modules.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: AppDimens.spaceL),
-                    _buildHelpSection(context, 'Features', [
-                      '• Use the Book filter to view modules from a specific book',
-                      '• Use the Date filter to see modules due on a specific date',
-                      '• Click on any module to see detailed information',
-                      '• The Progress column shows your completion percentage',
-                      '• Due dates highlighted in red are approaching soon',
-                      '• Export your data using the Export button in the footer',
-                    ]),
+
+                    _buildHelpSection(
+                      context,
+                      'Features',
+                      [
+                        '• Use the Book filter to view modules from a specific book',
+                        '• Use the Date filter to see modules due on a specific date',
+                        '• Click on any module to see detailed information',
+                        '• The Progress column shows your completion percentage',
+                        '• Due dates highlighted in red are approaching soon',
+                        '• Export your data using the Export button in the footer',
+                      ],
+                      icon: Icons.list_alt,
+                      iconColor: colorScheme.primary,
+                    ),
+
                     const SizedBox(height: AppDimens.spaceL),
-                    _buildHelpSection(context, 'Learning Cycles', [
-                      for (final cycle in CycleStudied.values)
-                        '• ${CycleFormatter.format(cycle)}: ${CycleFormatter.getDescription(cycle)}',
-                    ]),
+
+                    _buildHelpSection(
+                      context,
+                      'Learning Cycles',
+                      [
+                        for (final cycle in CycleStudied.values)
+                          '• ${CycleFormatter.format(cycle)}: ${CycleFormatter.getDescription(cycle)}',
+                      ],
+                      icon: Icons.repeat,
+                      iconColor: colorScheme.secondary,
+                    ),
+
                     const SizedBox(height: AppDimens.spaceL),
-                    _buildHelpSection(context, 'Tips', [
-                      '• Review your learning material according to the spaced repetition schedule',
-                      '• Focus on modules that are due soon',
-                      '• Complete all repetitions in a cycle before moving to the next one',
-                      '• Use the export feature to keep track of your progress over time',
-                    ]),
+
+                    _buildHelpSection(
+                      context,
+                      'Tips',
+                      [
+                        '• Review your learning material according to the spaced repetition schedule',
+                        '• Focus on modules that are due soon',
+                        '• Complete all repetitions in a cycle before moving to the next one',
+                        '• Use the export feature to keep track of your progress over time',
+                      ],
+                      icon: Icons.lightbulb_outline,
+                      iconColor: colorScheme.tertiary,
+                    ),
                   ],
                 ),
               ),
             ),
+
+            // Dialog footer
             const Divider(height: AppDimens.dividerThickness),
             Padding(
               padding: const EdgeInsets.all(AppDimens.paddingM),
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingL,
+                    vertical: AppDimens.paddingM,
+                  ),
+                ),
                 child: const Text('Close'),
               ),
             ),
@@ -103,21 +150,34 @@ class LearningHelpDialog extends StatelessWidget {
   Widget _buildHelpSection(
     BuildContext context,
     String title,
-    List<String> items,
-  ) {
+    List<String> items, {
+    IconData? icon,
+    Color? iconColor,
+  }) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
     final isCompact = size.width < AppDimens.breakpointXS;
+
+    final effectiveIconColor = iconColor ?? colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
+        Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: AppDimens.iconM, color: effectiveIconColor),
+              const SizedBox(width: AppDimens.spaceS),
+            ],
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: effectiveIconColor,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: AppDimens.spaceXS),
         ...items.map(
@@ -128,10 +188,15 @@ class LearningHelpDialog extends StatelessWidget {
             ),
             child: Text(
               item,
-              style:
-                  isCompact
-                      ? theme.textTheme.bodySmall
-                      : theme.textTheme.bodyMedium,
+              style: isCompact
+                  ? theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(
+                        alpha: AppDimens.opacityHigh,
+                      ),
+                    )
+                  : theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
             ),
           ),
         ),

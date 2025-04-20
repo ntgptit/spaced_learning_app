@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
@@ -30,7 +31,7 @@ class ModuleCard extends StatelessWidget {
         module.progressNextStudyDate!.difference(DateTime.now()).inDays <= 2;
     final hasCycleInfo = module.progressCyclesStudied != null;
 
-    const double minCardHeight = 120; // Chiều cao cơ bản tối thiểu
+    const double minCardHeight = 120;
 
     Color statusColor = colorScheme.primary;
     if (isOverdue) {
@@ -38,7 +39,7 @@ class ModuleCard extends StatelessWidget {
     } else if (isDueToday) {
       statusColor = colorScheme.tertiary;
     } else if (isDueSoon) {
-      statusColor = Colors.orange;
+      statusColor = colorScheme.warning;
     }
 
     Color? cycleColor;
@@ -74,8 +75,7 @@ class ModuleCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex:
-                        6, // Giảm từ 7 xuống 6 để dành không gian cho các cột khác
+                    flex: 6,
                     child: Container(
                       padding: const EdgeInsets.only(right: AppDimens.paddingS),
                       child: _buildModuleInfo(
@@ -87,7 +87,7 @@ class ModuleCard extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    flex: 5, // Tăng từ 4 lên 5 để có thêm không gian
+                    flex: 5,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppDimens.paddingXS,
@@ -123,15 +123,12 @@ class ModuleCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth:
-                double
-                    .infinity, // Đảm bảo không vượt quá giới hạn của container cha
-          ),
+          constraints: const BoxConstraints(maxWidth: double.infinity),
           child: Text(
             module.moduleTitle.isEmpty ? 'Unnamed Module' : module.moduleTitle,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -220,8 +217,9 @@ class ModuleCard extends StatelessWidget {
                   dateFormatter.format(module.progressNextStudyDate!),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: statusColor,
-                    fontWeight:
-                        isOverdue || isDueToday ? FontWeight.bold : null,
+                    fontWeight: isOverdue || isDueToday
+                        ? FontWeight.bold
+                        : null,
                   ),
                 ),
               ),
@@ -256,10 +254,9 @@ class ModuleCard extends StatelessWidget {
         width: AppDimens.moduleIndicatorSize + AppDimens.paddingS,
         height: AppDimens.moduleIndicatorSize + AppDimens.paddingS,
         decoration: BoxDecoration(
-          color:
-              module.progressDueTaskCount > 0
-                  ? colorScheme.primaryContainer
-                  : colorScheme.surfaceContainerHigh,
+          color: module.progressDueTaskCount > 0
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainerHigh,
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -267,10 +264,9 @@ class ModuleCard extends StatelessWidget {
             module.progressDueTaskCount.toString(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color:
-                  module.progressDueTaskCount > 0
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurfaceVariant,
+              color: module.progressDueTaskCount > 0
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -283,11 +279,10 @@ class ModuleCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => ModuleDetailsBottomSheet(
-            module: module,
-            heroTagPrefix: 'learning_list',
-          ),
+      builder: (context) => ModuleDetailsBottomSheet(
+        module: module,
+        heroTagPrefix: 'learning_list',
+      ),
     );
   }
 
@@ -315,7 +310,7 @@ class ModuleCard extends StatelessWidget {
       case CycleStudied.secondReview:
         return colorScheme.tertiary;
       case CycleStudied.thirdReview:
-        return Colors.orange;
+        return colorScheme.warning;
       case CycleStudied.moreThanThreeReviews:
         return Colors.deepPurple;
     }

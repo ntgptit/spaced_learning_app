@@ -61,7 +61,7 @@ class FilterStatsRow extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 32, // Thu nhỏ chiều rộng của khu vực nút
+            width: 32,
             child: IconButton(
               icon: Stack(
                 children: [
@@ -70,8 +70,7 @@ class FilterStatsRow extends StatelessWidget {
                     color: activeFilterCount > 0
                         ? colorScheme.primary
                         : colorScheme.onSurfaceVariant,
-                    size: AppDimens
-                        .iconL, // Giảm kích thước icon từ iconL xuống iconM
+                    size: AppDimens.iconL,
                   ),
                   if (activeFilterCount > 0)
                     Positioned(
@@ -84,9 +83,7 @@ class FilterStatsRow extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         constraints: const BoxConstraints(
-                          minWidth:
-                              AppDimens.badgeIconPadding * 2 +
-                              6, // Nhỏ hơn một chút
+                          minWidth: AppDimens.badgeIconPadding * 2 + 6,
                           minHeight: AppDimens.badgeIconPadding * 2 + 6,
                         ),
                         child: Text(
@@ -121,14 +118,14 @@ class FilterStatsRow extends StatelessWidget {
     required ThemeData theme,
     bool highlight = false,
   }) {
-    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
     final brightness = highlight ? 1.0 : 0.8;
 
     return Expanded(
       child: Card(
         elevation: 0,
         margin: const EdgeInsets.symmetric(horizontal: AppDimens.paddingXS),
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: AppDimens.opacityLight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
@@ -151,8 +148,10 @@ class FilterStatsRow extends StatelessWidget {
                   const SizedBox(width: AppDimens.spaceXS),
                   Text(
                     label,
-                    style: textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(
+                        alpha: AppDimens.opacityHigh,
+                      ),
                     ),
                   ),
                 ],
@@ -160,7 +159,7 @@ class FilterStatsRow extends StatelessWidget {
               const SizedBox(height: AppDimens.spaceXS),
               Text(
                 count.toString(),
-                style: textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: color.withValues(alpha: brightness),
                 ),

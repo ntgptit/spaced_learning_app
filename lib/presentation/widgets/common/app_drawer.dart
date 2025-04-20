@@ -1,4 +1,3 @@
-// lib/presentation/widgets/common/app_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +25,7 @@ class AppDrawer extends StatelessWidget {
               decoration: BoxDecoration(color: colorScheme.primaryContainer),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: colorScheme.onPrimaryContainer.withValues(
-                  alpha: 0.1,
+                  alpha: AppDimens.opacityLight,
                 ),
                 child: Text(
                   _getInitials(
@@ -47,7 +46,9 @@ class AppDrawer extends StatelessWidget {
               accountEmail: Text(
                 authViewModel.currentUser?.email ?? '',
                 style: TextStyle(
-                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                  color: colorScheme.onPrimaryContainer.withValues(
+                    alpha: AppDimens.opacityHigh,
+                  ),
                 ),
               ),
             ),
@@ -191,14 +192,11 @@ class AppDrawer extends StatelessWidget {
   String _getInitials(String text) {
     if (text.isEmpty) return '';
 
-    if (text.contains('@')) {
-      return text[0].toUpperCase();
-    }
+    if (text.contains('@')) return text[0].toUpperCase();
 
     final words = text.trim().split(' ');
-    if (words.length == 1) {
-      return words[0][0].toUpperCase();
-    }
+    if (words.isEmpty) return '';
+    if (words.length == 1) return words[0][0].toUpperCase();
 
     return (words[0][0] + words[1][0]).toUpperCase();
   }

@@ -24,12 +24,15 @@ class LearningInsightsCard extends StatelessWidget {
 
     final sortedInsights = List<LearningInsightDTO>.from(insights)
       ..sort((a, b) => a.priority.compareTo(b.priority));
-    final displayInsights =
-        sortedInsights.length > 4
-            ? sortedInsights.sublist(0, 4)
-            : sortedInsights;
+    final displayInsights = sortedInsights.length > 4
+        ? sortedInsights.sublist(0, 4)
+        : sortedInsights;
 
     return Card(
+      elevation: AppDimens.elevationS,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -63,7 +66,13 @@ class LearningInsightsCard extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: onViewMorePressed,
-                  child: const Text('View More'),
+                  child: Text(
+                    'View More',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -88,6 +97,7 @@ class LearningInsightsCard extends StatelessWidget {
           title ?? 'Learning Insights',
           style: theme.textTheme.titleLarge?.copyWith(
             color: colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -146,14 +156,14 @@ class LearningInsightsCard extends StatelessWidget {
       case 'success':
       case 'green':
       case 'teal':
-        return colorScheme.tertiary; // Map to tertiary for success-like color
+        return colorScheme.tertiary;
       case 'warning':
       case 'orange':
       case 'amber':
-        return colorScheme.secondary; // Map to secondary for warning-like color
+        return colorScheme.secondary;
       case 'info':
       case 'indigo':
-        return colorScheme.primaryContainer; // Map to primaryContainer for info
+        return colorScheme.primaryContainer;
       default:
         return colorScheme.onSurfaceVariant;
     }

@@ -7,14 +7,14 @@ class AppCard extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final Widget? content;
-  final Widget? child; // Thêm child để hỗ trợ nội dung tùy ý
+  final Widget? child;
   final List<Widget>? actions;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
   final double? elevation;
   final double borderRadius;
-  final ShapeBorder? shape; // Thêm shape để tùy chỉnh hình dạng
+  final ShapeBorder? shape;
   final Color? backgroundColor;
   final Color? highlightColor;
   final Color? shadowColor;
@@ -60,31 +60,31 @@ class AppCard extends StatelessWidget {
         );
 
     final Widget cardContent = Container(
-      decoration:
-          useGradient
-              ? BoxDecoration(
-                gradient:
-                    customGradient ??
-                    LinearGradient(
-                      colors: [
-                        colorScheme.surfaceContainerLow,
-                        colorScheme.surfaceContainerHigh,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-              )
-              : null,
+      decoration: useGradient
+          ? BoxDecoration(
+              gradient:
+                  customGradient ??
+                  LinearGradient(
+                    colors: [
+                      colorScheme.surfaceContainerLow,
+                      colorScheme.surfaceContainerHigh,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
         highlightColor: highlightColor ?? colorScheme.primaryContainer,
-        splashColor: colorScheme.primary.withValues(alpha: 0.2),
-        borderRadius:
-            shape == null ? BorderRadius.circular(borderRadius) : null,
-        customBorder: shape, // Sử dụng shape cho hiệu ứng nhấn
-        child:
-            child ??
-            _buildDefaultContent(theme, colorScheme), // Sử dụng child nếu có
+        splashColor: colorScheme.primary.withValues(
+          alpha: AppDimens.opacitySemi,
+        ),
+        borderRadius: shape == null
+            ? BorderRadius.circular(borderRadius)
+            : null,
+        customBorder: shape,
+        child: child ?? _buildDefaultContent(theme, colorScheme),
       ),
     );
 
@@ -92,11 +92,14 @@ class AppCard extends StatelessWidget {
       return Container(
         margin: margin,
         decoration: BoxDecoration(
-          borderRadius:
-              shape == null ? BorderRadius.circular(borderRadius) : null,
+          borderRadius: shape == null
+              ? BorderRadius.circular(borderRadius)
+              : null,
           boxShadow: [
             BoxShadow(
-              color: effectiveShadowColor.withValues(alpha: 0.2),
+              color: effectiveShadowColor.withValues(
+                alpha: AppDimens.opacitySemi,
+              ),
               blurRadius: AppDimens.shadowRadiusL,
               spreadRadius: AppDimens.shadowOffsetS,
               offset: const Offset(0, 3),
@@ -181,24 +184,21 @@ class AppCard extends StatelessWidget {
           Padding(
             padding:
                 title != null ||
-                        subtitle != null ||
-                        leading != null ||
-                        trailing != null
-                    ? EdgeInsets.only(
-                      left:
-                          padding is EdgeInsets
-                              ? (padding as EdgeInsets).left
-                              : AppDimens.paddingL,
-                      right:
-                          padding is EdgeInsets
-                              ? (padding as EdgeInsets).right
-                              : AppDimens.paddingL,
-                      bottom:
-                          padding is EdgeInsets
-                              ? (padding as EdgeInsets).bottom
-                              : AppDimens.paddingL,
-                    )
-                    : padding,
+                    subtitle != null ||
+                    leading != null ||
+                    trailing != null
+                ? EdgeInsets.only(
+                    left: padding is EdgeInsets
+                        ? (padding as EdgeInsets).left
+                        : AppDimens.paddingL,
+                    right: padding is EdgeInsets
+                        ? (padding as EdgeInsets).right
+                        : AppDimens.paddingL,
+                    bottom: padding is EdgeInsets
+                        ? (padding as EdgeInsets).bottom
+                        : AppDimens.paddingL,
+                  )
+                : padding,
             child: content,
           ),
         if (actions != null && actions!.isNotEmpty)
@@ -210,16 +210,15 @@ class AppCard extends StatelessWidget {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children:
-                  actions!.map((action) {
-                    final int index = actions!.indexOf(action);
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        left: index > 0 ? AppDimens.paddingS : 0,
-                      ),
-                      child: action,
-                    );
-                  }).toList(),
+              children: actions!.map((action) {
+                final int index = actions!.indexOf(action);
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index > 0 ? AppDimens.paddingS : 0,
+                  ),
+                  child: action,
+                );
+              }).toList(),
             ),
           ),
       ],

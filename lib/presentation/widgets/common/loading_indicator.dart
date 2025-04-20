@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
+enum LoadingIndicatorType {
+  circle,
+  fadingCircle,
+  pulse,
+  doubleBounce,
+  wave,
+  threeBounce,
+}
+
 class AppLoadingIndicator extends StatelessWidget {
   final double size;
   final Color? color;
@@ -19,6 +28,7 @@ class AppLoadingIndicator extends StatelessWidget {
     final theme = Theme.of(context);
     final indicatorColor = color ?? theme.colorScheme.primary;
 
+    // Choose the type of loading indicator
     switch (type) {
       case LoadingIndicatorType.circle:
         return SpinKitCircle(color: indicatorColor, size: size);
@@ -53,11 +63,12 @@ class FullScreenLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       color:
           backgroundColor ??
-          theme.colorScheme.surface.withValues(alpha: AppDimens.opacityHigh),
+          colorScheme.surface.withValues(alpha: AppDimens.opacityHigh),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -114,13 +125,4 @@ class LoadingOverlay extends StatelessWidget {
       ],
     );
   }
-}
-
-enum LoadingIndicatorType {
-  circle,
-  fadingCircle,
-  pulse,
-  doubleBounce,
-  wave,
-  threeBounce,
 }

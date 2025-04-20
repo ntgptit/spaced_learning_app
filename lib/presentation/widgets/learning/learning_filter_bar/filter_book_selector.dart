@@ -32,16 +32,15 @@ class FilterBookSelector extends StatelessWidget {
         ),
         const SizedBox(height: AppDimens.spaceXS),
         SizedBox(
-          height: 48, // Đặt chiều cao cố định giống với nút Select Date
+          height: 48,
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color:
-                    hasBookFilter
-                        ? colorScheme.primary
-                        : colorScheme.outline.withValues(
-                          alpha: AppDimens.opacitySemi,
-                        ),
+                color: hasBookFilter
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(
+                        alpha: AppDimens.opacitySemi,
+                      ),
                 width: hasBookFilter ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -60,27 +59,26 @@ class FilterBookSelector extends StatelessWidget {
                   vertical: AppDimens.paddingS,
                 ),
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                items:
-                    books
-                        .map(
-                          (book) => DropdownMenuItem(
-                            value: book,
-                            child: Text(
-                              book,
-                              style: TextStyle(
-                                color:
-                                    book == selectedBook && book != 'All'
-                                        ? colorScheme.primary
-                                        : null,
-                                fontWeight:
-                                    book == selectedBook && book != 'All'
-                                        ? FontWeight.bold
-                                        : null,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                dropdownColor: colorScheme.surface,
+                items: books.map((book) {
+                  final isSelected = book == selectedBook;
+                  final isAll = book == 'All';
+
+                  return DropdownMenuItem(
+                    value: book,
+                    child: Text(
+                      book,
+                      style: TextStyle(
+                        color: isSelected && !isAll
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
+                        fontWeight: isSelected && !isAll
+                            ? FontWeight.bold
+                            : null,
+                      ),
+                    ),
+                  );
+                }).toList(),
                 onChanged: onBookChanged,
               ),
             ),

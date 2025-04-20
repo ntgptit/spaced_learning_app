@@ -17,8 +17,7 @@ class AppEmptyState extends StatelessWidget {
     this.message,
     this.buttonText,
     this.onButtonPressed,
-    this.iconSize =
-        AppDimens.iconXXL, // Sử dụng AppDimens thay vì giá trị cố định
+    this.iconSize = AppDimens.iconXXL,
   });
 
   @override

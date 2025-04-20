@@ -105,10 +105,9 @@ class _AppTextFieldState extends State<AppTextField> {
           padding: const EdgeInsets.all(AppDimens.paddingS),
           child: Icon(
             widget.suffixIcon,
-            color:
-                widget.errorText != null
-                    ? colorScheme.error
-                    : colorScheme.primary,
+            color: widget.errorText != null
+                ? colorScheme.error
+                : colorScheme.primary,
             size: AppDimens.iconM,
           ),
         ),
@@ -158,10 +157,11 @@ class _AppTextFieldState extends State<AppTextField> {
         autovalidateMode: widget.autovalidateMode,
         validator: widget.validator,
         style: theme.textTheme.bodyLarge!.copyWith(
-          color:
-              widget.enabled
-                  ? colorScheme.onSurface
-                  : colorScheme.onSurface.withValues(alpha: 0.38),
+          color: widget.enabled
+              ? colorScheme.onSurface
+              : colorScheme.onSurface.withValues(
+                  alpha: AppDimens.opacityDisabled,
+                ),
         ),
         decoration: InputDecoration(
           labelText: widget.label,
@@ -176,17 +176,15 @@ class _AppTextFieldState extends State<AppTextField> {
                 horizontal: AppDimens.paddingL,
                 vertical: AppDimens.paddingL,
               ),
-          prefixIcon:
-              widget.prefixIcon != null
-                  ? Icon(
-                    widget.prefixIcon,
-                    color:
-                        widget.errorText != null
-                            ? colorScheme.error
-                            : colorScheme.primary,
-                    size: AppDimens.iconM,
-                  )
-                  : widget.prefix,
+          prefixIcon: widget.prefixIcon != null
+              ? Icon(
+                  widget.prefixIcon,
+                  color: widget.errorText != null
+                      ? colorScheme.error
+                      : colorScheme.primary,
+                  size: AppDimens.iconM,
+                )
+              : widget.prefix,
           suffixIcon: suffixIconWidget ?? widget.suffix,
           counterText: widget.showCounter ? null : '',
           labelStyle: TextStyle(
@@ -224,7 +222,9 @@ class _AppTextFieldState extends State<AppTextField> {
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: colorScheme.onSurface.withValues(alpha: 0.38),
+              color: colorScheme.onSurface.withValues(
+                alpha: AppDimens.opacityDisabled,
+              ),
             ),
           ),
         ),

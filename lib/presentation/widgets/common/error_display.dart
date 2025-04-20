@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming AppButton uses theme
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
 class ErrorDisplay extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
   final IconData? icon;
   final bool compact;
-  final ThemeData? theme; // Optional theme override
+  final ThemeData? theme;
 
   const ErrorDisplay({
     super.key,
@@ -15,7 +15,7 @@ class ErrorDisplay extends StatelessWidget {
     this.onRetry,
     this.icon,
     this.compact = false,
-    this.theme, // Added optional theme parameter
+    this.theme,
   });
 
   @override
@@ -27,8 +27,10 @@ class ErrorDisplay extends StatelessWidget {
   }
 
   Widget _buildCompactView(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Card(
-      color: theme.colorScheme.errorContainer,
+      color: colorScheme.errorContainer,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
         vertical: AppDimens.paddingS,
@@ -43,7 +45,7 @@ class ErrorDisplay extends StatelessWidget {
               child: Text(
                 message,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onErrorContainer,
+                  color: colorScheme.onErrorContainer,
                 ),
               ),
             ),
@@ -52,9 +54,7 @@ class ErrorDisplay extends StatelessWidget {
                 padding: const EdgeInsets.only(left: AppDimens.paddingM),
                 child: AppButton(
                   text: 'Retry',
-                  type:
-                      AppButtonType
-                          .text, // Text buttons use theme's textButtonTheme
+                  type: AppButtonType.text,
                   onPressed: onRetry,
                 ),
               ),
@@ -65,6 +65,8 @@ class ErrorDisplay extends StatelessWidget {
   }
 
   Widget _buildFullView(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingXL),
@@ -77,9 +79,9 @@ class ErrorDisplay extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(
-                  alpha: 0.85,
-                ), // Example color
+                color: colorScheme.onSurface.withValues(
+                  alpha: AppDimens.opacityVeryHigh,
+                ),
               ),
             ),
             if (onRetry != null)
@@ -87,9 +89,7 @@ class ErrorDisplay extends StatelessWidget {
                 padding: const EdgeInsets.only(top: AppDimens.paddingXL),
                 child: AppButton(
                   text: 'Try Again',
-                  type:
-                      AppButtonType
-                          .outline, // Outline buttons use theme's outlinedButtonTheme
+                  type: AppButtonType.outline,
                   prefixIcon: Icons.refresh,
                   onPressed: onRetry,
                 ),
@@ -101,14 +101,15 @@ class ErrorDisplay extends StatelessWidget {
   }
 
   Widget _buildErrorIcon(ThemeData theme, {required double size}) {
+    final colorScheme = theme.colorScheme;
+
     return Icon(
       icon ?? Icons.error_outline,
-      color: theme.colorScheme.error,
+      color: colorScheme.error,
       size: size,
     );
   }
 }
-
 
 abstract class _SnackbarHelper {
   static void _showSnackBar({
@@ -116,10 +117,10 @@ abstract class _SnackbarHelper {
     required String message,
     required IconData icon,
     required Color Function(ThemeData) backgroundColorBuilder,
-    required Color Function(ThemeData) contentColorBuilder, // For icon and text
+    required Color Function(ThemeData) contentColorBuilder,
     Duration? duration,
     SnackBarAction? action,
-    Color? actionColor, // Optional override for action color
+    Color? actionColor,
   }) {
     final theme = Theme.of(context);
     final snackBarTheme = theme.snackBarTheme;
@@ -134,38 +135,25 @@ abstract class _SnackbarHelper {
       SnackBar(
         content: Row(
           children: [
-            Icon(
-              icon,
-              color: effectiveContentColor, // Use derived content color
-              size: AppDimens.iconM,
-            ),
+            Icon(icon, color: effectiveContentColor, size: AppDimens.iconM),
             const SizedBox(width: AppDimens.spaceM),
-            Expanded(
-              child: Text(
-                message,
-                style: effectiveTextStyle, // Use theme's or derived text style
-              ),
-            ),
+            Expanded(child: Text(message, style: effectiveTextStyle)),
           ],
         ),
-        backgroundColor:
-            effectiveBackgroundColor, // Use derived background color
-        duration: duration ?? const Duration(seconds: 4), // Default duration
-        behavior:
-            snackBarTheme.behavior ??
-            SnackBarBehavior.floating, // Use theme behavior
-        shape: snackBarTheme.shape, // Use theme shape
-        action:
-            action != null
-                ? SnackBarAction(
-                  label: action.label,
-                  onPressed: action.onPressed,
-                  textColor:
-                      actionColor ??
-                      snackBarTheme.actionTextColor ??
-                      theme.colorScheme.primary,
-                )
-                : null,
+        backgroundColor: effectiveBackgroundColor,
+        duration: duration ?? const Duration(seconds: 4),
+        behavior: snackBarTheme.behavior ?? SnackBarBehavior.floating,
+        shape: snackBarTheme.shape,
+        action: action != null
+            ? SnackBarAction(
+                label: action.label,
+                onPressed: action.onPressed,
+                textColor:
+                    actionColor ??
+                    snackBarTheme.actionTextColor ??
+                    theme.colorScheme.primary,
+              )
+            : null,
       ),
     );
   }
@@ -192,13 +180,13 @@ class SuccessSnackbar {
   static Color _getSuccessBackgroundColor(ThemeData theme) {
     return theme.brightness == Brightness.light
         ? const Color(0xFFE8F5E9)
-        : const Color(0xFF2E7D32); // Example direct map
+        : const Color(0xFF2E7D32);
   }
 
   static Color _getSuccessContentColor(ThemeData theme) {
     return theme.brightness == Brightness.light
         ? const Color(0xFF1B5E20)
-        : const Color(0xFFC8E6C9); // Example direct map
+        : const Color(0xFFC8E6C9);
   }
 
   static void show(BuildContext context, String message, {Duration? duration}) {

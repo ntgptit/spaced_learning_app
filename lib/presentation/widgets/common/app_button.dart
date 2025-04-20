@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 enum AppButtonType {
@@ -70,6 +71,7 @@ class AppButton extends StatelessWidget {
     double borderRadius;
     TextStyle textStyle;
 
+    // Configure size parameters
     switch (size) {
       case AppButtonSize.tiny:
         padding = const EdgeInsets.symmetric(
@@ -138,6 +140,7 @@ class AppButton extends StatelessWidget {
         break;
     }
 
+    // Configure style based on button type
     Color defaultBackgroundColor;
     Color defaultTextColor;
     Color defaultBorderColor;
@@ -170,7 +173,9 @@ class AppButton extends StatelessWidget {
         defaultElevation = 0;
         break;
       case AppButtonType.ghost:
-        defaultBackgroundColor = colorScheme.primary.withValues(alpha: 0.1);
+        defaultBackgroundColor = colorScheme.primary.withValues(
+          alpha: AppDimens.opacityLight,
+        );
         defaultTextColor = colorScheme.primary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
@@ -182,14 +187,14 @@ class AppButton extends StatelessWidget {
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.success:
-        defaultBackgroundColor = Colors.green;
-        defaultTextColor = Colors.white;
+        defaultBackgroundColor = colorScheme.success;
+        defaultTextColor = colorScheme.onSuccess;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
       case AppButtonType.warning:
-        defaultBackgroundColor = Colors.amber;
-        defaultTextColor = Colors.black87;
+        defaultBackgroundColor = colorScheme.warning;
+        defaultTextColor = colorScheme.onWarning;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
@@ -215,6 +220,7 @@ class AppButton extends StatelessWidget {
     final effectiveBorderRadius =
         customBorderRadius ?? BorderRadius.circular(borderRadius);
 
+    // Build gradient button if type is gradient
     if (type == AppButtonType.gradient) {
       return SizedBox(
         width: width ?? (isFullWidth ? double.infinity : null),
@@ -223,17 +229,18 @@ class AppButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: defaultGradient,
             borderRadius: effectiveBorderRadius,
-            boxShadow:
-                effectiveElevation > 0
-                    ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        spreadRadius: 0,
-                        blurRadius: effectiveElevation * 2,
-                        offset: Offset(0, effectiveElevation / 2),
+            boxShadow: effectiveElevation > 0
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: AppDimens.opacitySemi,
                       ),
-                    ]
-                    : null,
+                      spreadRadius: 0,
+                      blurRadius: effectiveElevation * 2,
+                      offset: Offset(0, effectiveElevation / 2),
+                    ),
+                  ]
+                : null,
           ),
           child: ElevatedButton(
             onPressed: isLoading ? null : onPressed,
@@ -258,8 +265,8 @@ class AppButton extends StatelessWidget {
       );
     }
 
+    // Build regular button based on type
     Widget button;
-
     switch (type) {
       case AppButtonType.primary:
       case AppButtonType.secondary:
@@ -280,13 +287,14 @@ class AppButton extends StatelessWidget {
             minimumSize: Size(0, height),
             elevation: effectiveElevation,
             disabledBackgroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.12,
+              alpha: AppDimens.opacityMedium,
             ),
             disabledForegroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.38,
+              alpha: AppDimens.opacityDisabled,
             ),
-            shadowColor:
-                type == AppButtonType.ghost ? Colors.transparent : null,
+            shadowColor: type == AppButtonType.ghost
+                ? Colors.transparent
+                : null,
           ),
           child: _buildContent(
             effectiveTextColor,
@@ -304,12 +312,15 @@ class AppButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: effectiveTextColor,
             shape: RoundedRectangleBorder(borderRadius: effectiveBorderRadius),
-            side: BorderSide(color: effectiveBorderColor, width: 1.5),
+            side: BorderSide(
+              color: effectiveBorderColor,
+              width: AppDimens.outlineButtonBorderWidth,
+            ),
             padding: padding,
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
             disabledForegroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.38,
+              alpha: AppDimens.opacityDisabled,
             ),
           ),
           child: _buildContent(
@@ -332,7 +343,7 @@ class AppButton extends StatelessWidget {
             minimumSize: Size(0, height),
             backgroundColor: effectiveBackgroundColor,
             disabledForegroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.38,
+              alpha: AppDimens.opacityDisabled,
             ),
           ),
           child: _buildContent(
@@ -366,6 +377,7 @@ class AppButton extends StatelessWidget {
         break;
     }
 
+    // Handle width constraints
     if (width != null) {
       return SizedBox(width: width, child: button);
     }
@@ -382,42 +394,43 @@ class AppButton extends StatelessWidget {
     double iconSize,
     TextStyle baseTextStyle,
   ) {
+    // Show loading indicator when in loading state
     if (isLoading) {
       return SizedBox(
-        width:
-            size == AppButtonSize.tiny || size == AppButtonSize.small
-                ? AppDimens.iconS
-                : AppDimens.iconM,
-        height:
-            size == AppButtonSize.tiny || size == AppButtonSize.small
-                ? AppDimens.iconS
-                : AppDimens.iconM,
+        width: size == AppButtonSize.tiny || size == AppButtonSize.small
+            ? AppDimens.iconS
+            : AppDimens.iconM,
+        height: size == AppButtonSize.tiny || size == AppButtonSize.small
+            ? AppDimens.iconS
+            : AppDimens.iconM,
         child: CircularProgressIndicator(
-          strokeWidth:
-              size == AppButtonSize.tiny || size == AppButtonSize.small
-                  ? AppDimens.lineProgressHeight / 2
-                  : AppDimens.lineProgressHeight * 0.625,
+          strokeWidth: size == AppButtonSize.tiny || size == AppButtonSize.small
+              ? AppDimens.lineProgressHeight / 2
+              : AppDimens.lineProgressHeight * 0.625,
           valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
         ),
       );
     }
 
+    // Build button content with icons and text
     final List<Widget> children = [];
 
     if (prefixWidget != null) {
       children.add(prefixWidget!);
       children.add(
         SizedBox(
-          width:
-              size == AppButtonSize.tiny ? AppDimens.spaceXS : AppDimens.spaceS,
+          width: size == AppButtonSize.tiny
+              ? AppDimens.spaceXS
+              : AppDimens.spaceS,
         ),
       );
     } else if (prefixIcon != null) {
       children.add(Icon(prefixIcon, size: iconSize, color: iconColor));
       children.add(
         SizedBox(
-          width:
-              size == AppButtonSize.tiny ? AppDimens.spaceXS : AppDimens.spaceS,
+          width: size == AppButtonSize.tiny
+              ? AppDimens.spaceXS
+              : AppDimens.spaceS,
         ),
       );
     }
@@ -427,16 +440,18 @@ class AppButton extends StatelessWidget {
     if (suffixWidget != null) {
       children.add(
         SizedBox(
-          width:
-              size == AppButtonSize.tiny ? AppDimens.spaceXS : AppDimens.spaceS,
+          width: size == AppButtonSize.tiny
+              ? AppDimens.spaceXS
+              : AppDimens.spaceS,
         ),
       );
       children.add(suffixWidget!);
     } else if (suffixIcon != null) {
       children.add(
         SizedBox(
-          width:
-              size == AppButtonSize.tiny ? AppDimens.spaceXS : AppDimens.spaceS,
+          width: size == AppButtonSize.tiny
+              ? AppDimens.spaceXS
+              : AppDimens.spaceS,
         ),
       );
       children.add(Icon(suffixIcon, size: iconSize, color: iconColor));

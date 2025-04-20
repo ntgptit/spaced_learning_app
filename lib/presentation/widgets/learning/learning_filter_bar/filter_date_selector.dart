@@ -32,72 +32,76 @@ class FilterDateSelector extends StatelessWidget {
         ),
         const SizedBox(height: AppDimens.spaceXS),
         SizedBox(
-          height: 48, // Đảm bảo chiều cao cố định
-          child:
-              selectedDate == null
-                  ? OutlinedButton.icon(
-                    icon: const Icon(
-                      Icons.calendar_today,
-                      size: AppDimens.iconS,
-                    ),
-                    label: const Text('Select Date'),
-                    onPressed: onDateSelected,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(
-                        48,
-                      ), // Đảm bảo chiều cao đủ
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimens.paddingL,
-                        vertical: AppDimens.paddingM,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                      ),
-                    ),
-                  )
-                  : Container(
+          height: 48,
+          child: selectedDate == null
+              ? OutlinedButton.icon(
+                  icon: Icon(
+                    Icons.calendar_today,
+                    size: AppDimens.iconS,
+                    color: colorScheme.primary,
+                  ),
+                  label: Text(
+                    'Select Date',
+                    style: TextStyle(color: colorScheme.primary),
+                  ),
+                  onPressed: onDateSelected,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppDimens.paddingL,
-                      vertical: AppDimens.paddingM - 1, // Điều chỉnh cho border
+                      vertical: AppDimens.paddingM,
                     ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.primary, width: 2),
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppDimens.radiusM),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: AppDimens.iconS,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: AppDimens.spaceS),
-                        Expanded(
-                          child: Text(
-                            DateFormat('MMM dd, yyyy').format(selectedDate!),
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: onDateCleared,
-                          borderRadius: BorderRadius.circular(
-                            AppDimens.radiusS,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppDimens.paddingXS),
-                            child: Icon(
-                              Icons.close,
-                              size: AppDimens.iconS,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
+                    side: BorderSide(
+                      color: colorScheme.outline.withValues(
+                        alpha: AppDimens.opacitySemi,
+                      ),
                     ),
                   ),
+                )
+              : Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingL,
+                    vertical: AppDimens.paddingM - 1,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colorScheme.primary, width: 2),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: AppDimens.iconS,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: AppDimens.spaceS),
+                      Expanded(
+                        child: Text(
+                          DateFormat('MMM dd, yyyy').format(selectedDate!),
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: onDateCleared,
+                        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppDimens.paddingXS),
+                          child: Icon(
+                            Icons.close,
+                            size: AppDimens.iconS,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ],
     );
