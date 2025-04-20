@@ -10,7 +10,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -19,8 +18,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController _displayNameController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _displayNameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
 
   @override
@@ -36,78 +35,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final userViewModel = context.read<UserViewModel?>();
-    if (userViewModel == null) return;
-    await userViewModel.loadCurrentUser();
-    if (mounted && userViewModel.currentUser != null) {
-      _displayNameController.text =
-          userViewModel.currentUser!.displayName ?? '';
+    final vm = context.read<UserViewModel?>();
+    if (vm == null) return;
+    await vm.loadCurrentUser();
+    if (mounted && vm.currentUser != null) {
+      _displayNameController.text = vm.currentUser!.displayName ?? '';
     }
   }
 
   Future<void> _updateProfile() async {
-    if (_formKey.currentState?.validate() != true) return;
-    final userViewModel = context.read<UserViewModel?>();
-    if (userViewModel == null) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final vm = context.read<UserViewModel?>();
+    if (vm == null) return;
 
-    try {
-      final success = await userViewModel.updateProfile(
-        displayName: _displayNameController.text,
-      );
-      if (!mounted) return;
-      if (success) {
-        await _loadUserData();
-        setState(() => _isEditing = false);
-        _showSnackBar('Profile updated successfully', Colors.green);
-      } else {
-        _showSnackBar('Failed to update profile', Colors.red);
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar('Error updating profile: $e', Colors.red);
-      }
+    final success = await vm.updateProfile(
+      displayName: _displayNameController.text.trim(),
+    );
+    if (!mounted) return;
+    if (success) {
+      await _loadUserData();
+      setState(() => _isEditing = false);
+      _showSnackBar('Profile updated successfully', Colors.green);
+    } else {
+      _showSnackBar('Failed to update profile', Colors.red);
     }
   }
 
   Future<void> _logout() async {
-    final authViewModel = context.read<AuthViewModel?>();
-    if (authViewModel == null) return;
-
-    try {
-      await authViewModel.logout();
-      if (mounted && !authViewModel.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar('Error logging out: $e', Colors.red);
-      }
+    final vm = context.read<AuthViewModel?>();
+    if (vm == null) return;
+    await vm.logout();
+    if (!mounted) return;
+    if (!vm.isAuthenticated) {
+      Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 
   void _toggleEditing() {
     setState(() {
       _isEditing = !_isEditing;
-      if (!_isEditing) {
-        _resetForm();
-      }
+      if (!_isEditing) _resetForm();
     });
   }
 
   void _resetForm() {
-    final userViewModel = context.read<UserViewModel?>();
-    if (userViewModel?.currentUser != null) {
-      _displayNameController.text =
-          userViewModel!.currentUser!.displayName ?? '';
+    final vm = context.read<UserViewModel?>();
+    if (vm?.currentUser != null) {
+      _displayNameController.text = vm!.currentUser!.displayName ?? '';
     }
   }
 
-  void _showSnackBar(String message, Color backgroundColor) {
+  void _showSnackBar(String msg, Color color) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor,
+        content: Text(msg),
+        backgroundColor: color,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -115,30 +98,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      body: RefreshIndicator(onRefresh: _loadUserData, child: _buildContent()),
+      backgroundColor: theme.colorScheme.surface,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadUserData,
+          child: _buildContent(theme),
+        ),
+      ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(ThemeData theme) {
     return Selector<AuthViewModel, User?>(
-      selector: (_, authViewModel) => authViewModel.currentUser,
+      selector: (_, vm) => vm.currentUser,
       builder: (_, user, __) {
         if (user == null) {
           return const Center(
             child: Text('Please log in to view your profile'),
           );
         }
+
         return Selector<UserViewModel, (bool, String?, User?)>(
-          selector:
-              (_, userViewModel) => (
-                userViewModel.isLoading,
-                userViewModel.errorMessage,
-                userViewModel.currentUser,
-              ),
+          selector: (_, vm) => (vm.isLoading, vm.errorMessage, vm.currentUser),
           builder: (_, data, __) {
             final isLoading = data.$1;
-            final errorMessage = data.$2;
+            final errorMsg = data.$2;
             final currentUser = data.$3 ?? user;
 
             if (isLoading) {
@@ -146,23 +132,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return ListView(
-              padding: const EdgeInsets.only(
-                left: AppDimens.paddingL,
-                right: AppDimens.paddingL,
-                top: AppDimens.paddingL,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingL,
+                vertical: AppDimens.spaceL,
               ),
               children: [
+                // Avatar + Title
+                Center(
+                  child: CircleAvatar(
+                    radius: AppDimens.avatarSizeL,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    child: Text(
+                      _getInitials(currentUser),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: AppDimens.spaceL),
-                _buildAvatar(currentUser),
+                Center(
+                  child: Text(
+                    _isEditing ? 'Edit Profile' : 'Profile',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
                 const SizedBox(height: AppDimens.spaceL),
-                if (errorMessage != null) _buildErrorDisplay(errorMessage),
+
+                if (errorMsg != null)
+                  ErrorDisplay(
+                    message: errorMsg,
+                    compact: true,
+                    onRetry: () {
+                      context.read<UserViewModel>()..clearError();
+                      _runSafe(_loadUserData);
+                    },
+                  ),
+
                 _isEditing
-                    ? _buildEditProfileForm()
-                    : _buildProfileInfo(currentUser),
+                    ? _buildEditForm(theme)
+                    : _buildInfoCard(theme, currentUser),
+
                 const SizedBox(height: AppDimens.spaceXXL),
-                _buildSettingsSection(),
+
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDimens.paddingL),
+                    child: Selector<ThemeViewModel, bool>(
+                      selector: (_, vm) => vm.isDarkMode,
+                      builder: (_, isDark, __) => Row(
+                        children: [
+                          Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+                          const SizedBox(width: AppDimens.spaceL),
+                          Text('Dark Mode', style: theme.textTheme.bodyLarge),
+                          const Spacer(),
+                          Switch(
+                            value: isDark,
+                            onChanged: context
+                                .read<ThemeViewModel>()
+                                .setDarkMode,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: AppDimens.spaceXL),
-                _buildLogoutButton(),
+
+                AppButton(
+                  text: 'Logout',
+                  type: AppButtonType.outline,
+                  prefixIcon: Icons.logout,
+                  isFullWidth: true,
+                  onPressed: _logout,
+                ),
               ],
             );
           },
@@ -171,112 +219,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAvatar(User user) {
-    final theme = Theme.of(context);
-    return Center(
-      child: CircleAvatar(
-        radius: AppDimens.avatarSizeL,
-        backgroundColor: theme.colorScheme.primary,
-        child: Text(
-          _getInitials(user.displayName ?? user.email),
-          style: theme.textTheme.headlineMedium?.copyWith(
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorDisplay(String errorMessage) {
-    return ErrorDisplay(
-      message: errorMessage,
-      compact: true,
-      onRetry: () {
-        final userViewModel = context.read<UserViewModel?>();
-        userViewModel?.clearError();
-        _runSafe(_loadUserData);
-      },
-    );
-  }
-
-  Widget _buildProfileInfo(User currentUser) {
-    final theme = Theme.of(context);
+  Widget _buildInfoCard(ThemeData theme, User user) {
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildProfileHeader(theme),
-            const Divider(),
-            const SizedBox(height: AppDimens.spaceM),
-            _buildInfoRow(
+            _infoRow(
               theme,
-              'Display Name',
-              currentUser.displayName ?? 'Not set',
               Icons.person,
+              'Display Name',
+              user.displayName ?? 'Not set',
             ),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildInfoRow(theme, 'Email', currentUser.email, Icons.email),
-            if (currentUser.roles != null && currentUser.roles!.isNotEmpty) ...[
-              const SizedBox(height: AppDimens.spaceL),
-              _buildInfoRow(
-                theme,
-                'Roles',
-                currentUser.roles!.join(', '),
-                Icons.badge,
-              ),
+            const Divider(),
+            _infoRow(theme, Icons.email, 'Email', user.email),
+            if (user.roles?.isNotEmpty ?? false) ...[
+              const Divider(),
+              _infoRow(theme, Icons.badge, 'Roles', user.roles!.join(', ')),
             ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: _toggleEditing,
+                tooltip: 'Edit',
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('Profile Information', style: theme.textTheme.titleLarge),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: _toggleEditing,
-          tooltip: 'Edit Profile',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditProfileForm() {
-    Theme.of(context);
+  Widget _buildEditForm(ThemeData theme) {
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildEditHeader(),
-              const Divider(),
-              const SizedBox(height: AppDimens.spaceL),
               AppTextField(
                 label: 'Display Name',
-                hint: 'Enter your display name',
+                hint: 'Enter display name',
                 controller: _displayNameController,
                 prefixIcon: Icons.person,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Display name cannot be empty';
-                  }
-                  if (value.length > 50) {
-                    return 'Display name must be less than 50 characters';
-                  }
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Cannot be empty';
+                  if (v.length > 50) return 'Maximum 50 characters';
                   return null;
                 },
               ),
-              const SizedBox(height: AppDimens.spaceXL),
-              _buildEditActions(),
+              const SizedBox(height: AppDimens.spaceL),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  AppButton(
+                    text: 'Cancel',
+                    type: AppButtonType.text,
+                    onPressed: _toggleEditing,
+                  ),
+                  const SizedBox(width: AppDimens.spaceM),
+                  AppButton(
+                    text: 'Save',
+                    type: AppButtonType.primary,
+                    onPressed: _updateProfile,
+                    isLoading: context.select<UserViewModel, bool>(
+                      (vm) => vm.isLoading,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -284,127 +301,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildEditHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('Edit Profile', style: Theme.of(context).textTheme.titleLarge),
-        IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: _toggleEditing,
-          tooltip: 'Cancel',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditActions() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        AppButton(
-          text: 'Cancel',
-          type: AppButtonType.text,
-          onPressed: _toggleEditing,
-        ),
-        const SizedBox(width: AppDimens.spaceM),
-        AppButton(
-          text: 'Save Changes',
-          type: AppButtonType.primary,
-          onPressed: _updateProfile,
-          isLoading: context.select<UserViewModel?, bool>(
-            (vm) => vm?.isLoading ?? false,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSettingsSection() {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Settings', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceL),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Selector<ThemeViewModel, bool>(
-              selector: (_, themeViewModel) => themeViewModel.isDarkMode,
-              builder:
-                  (_, isDarkMode, __) => Row(
-                    children: [
-                      Icon(
-                        isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: AppDimens.spaceL),
-                      Expanded(
-                        child: Text(
-                          'Dark Mode',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ),
-                      Switch(
-                        value: isDarkMode,
-                        onChanged: context.read<ThemeViewModel>().setDarkMode,
-                      ),
-                    ],
-                  ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return AppButton(
-      text: 'Logout',
-      type: AppButtonType.outline,
-      prefixIcon: Icons.logout,
-      onPressed: _logout,
-      isFullWidth: true,
-    );
-  }
-
-  Widget _buildInfoRow(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: AppDimens.iconM, color: theme.colorScheme.primary),
-        const SizedBox(width: AppDimens.spaceL),
-        Expanded(
-          child: Column(
+  Widget _infoRow(ThemeData theme, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.spaceS),
+      child: Row(
+        children: [
+          Icon(icon, color: theme.colorScheme.primary),
+          const SizedBox(width: AppDimens.spaceM),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label, style: theme.textTheme.bodySmall),
               Text(value, style: theme.textTheme.bodyLarge),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  String _getInitials(String text) {
-    if (text.isEmpty) return '';
-    final trimmed = text.trim();
-    if (trimmed.contains('@')) return trimmed[0].toUpperCase();
-    final words = trimmed.split(' ');
-    if (words.isEmpty) return '';
-    if (words.length == 1) return words[0][0].toUpperCase();
-    return (words[0][0] + words.last[0]).toUpperCase();
+  String _getInitials(User u) {
+    final name = u.displayName ?? u.email.split('@').first;
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts.first[0] + parts.last[0]).toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : '';
   }
 
-  void _runSafe(VoidCallback block) {
+  void _runSafe(VoidCallback cb) {
     if (!mounted) return;
-    Future.microtask(block);
+    Future.microtask(cb);
   }
 }
