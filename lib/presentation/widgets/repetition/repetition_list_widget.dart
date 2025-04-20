@@ -11,8 +11,6 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
 
-typedef M3ColorPair = ({Color container, Color onContainer});
-
 class RepetitionListWidget extends StatefulWidget {
   final String progressId;
   final CycleStudied currentCycleStudied;
@@ -82,7 +80,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     return Consumer<RepetitionViewModel>(
       builder: (context, viewModel, _) {
         if (viewModel.isLoading) {
-          return _buildLoadingState(theme);
+          return _buildLoadingState(theme, colorScheme);
         }
 
         if (viewModel.errorMessage != null) {
@@ -95,7 +93,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         }
 
         if (viewModel.repetitions.isEmpty) {
-          return _buildEmptyState(context, viewModel);
+          return _buildEmptyState(context, viewModel, colorScheme);
         }
 
         final repetitions = List<Repetition>.from(viewModel.repetitions);
@@ -111,9 +109,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
             repetitions
                 .where((r) => r.status == RepetitionStatus.completed)
                 .toList()
-              ..sort(
-                _compareReviewDates,
-              ); // Sort completed by review date (newest first)
+              ..sort(_compareReviewDates);
 
         final notStartedByCycle = RepetitionUtils.groupByCycle(notStarted);
         final completedByCycle = RepetitionUtils.groupByCycle(completed);
@@ -136,6 +132,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   colorScheme.onPrimaryContainer,
                   notStartedByCycle,
                   false,
+                  colorScheme,
                 ),
 
               if (completed.isNotEmpty)
@@ -143,12 +140,11 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   context,
                   'Completed Tasks',
                   Icons.check_circle_outline,
-                  colorScheme.success,
-                  // Use success color
-                  colorScheme.onSuccess,
-                  // Use onSuccess color
+                  colorScheme.successContainer,
+                  colorScheme.onSuccessContainer,
                   completedByCycle,
                   true,
+                  colorScheme,
                 ),
             ],
           ),
@@ -157,23 +153,32 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     );
   }
 
-  Widget _buildLoadingState(ThemeData theme) {
+  Widget _buildLoadingState(ThemeData theme, ColorScheme colorScheme) {
     return SizedBox(
       height: AppDimens.thumbnailSizeL,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: theme.colorScheme.primary),
+            CircularProgressIndicator(color: colorScheme.primary),
             const SizedBox(height: AppDimens.spaceM),
-            Text('Loading repetitions...', style: theme.textTheme.bodyMedium),
+            Text(
+              'Loading repetitions...',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, RepetitionViewModel viewModel) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    RepetitionViewModel viewModel,
+    ColorScheme colorScheme,
+  ) {
     final theme = Theme.of(context);
 
     return AnimatedBuilder(
@@ -184,9 +189,9 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
       child: Container(
         padding: const EdgeInsets.all(AppDimens.paddingXL),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerLow,
+          color: colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
-          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+          border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -194,21 +199,22 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
             Icon(
               Icons.event_note,
               size: AppDimens.iconXXL,
-              color: theme.colorScheme.primary.withValues(
-                alpha: AppDimens.opacityMediumHigh,
-              ),
+              color: colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
               'No review schedule found for this module',
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimens.spaceM),
             Text(
               'Create a review schedule to start the spaced repetition learning process',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -236,6 +242,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     Color textColor,
     Map<String, List<Repetition>> cycleGroups,
     bool isHistory,
+    ColorScheme colorScheme,
   ) {
     if (cycleGroups.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
@@ -259,10 +266,14 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(AppDimens.paddingXS),
+                  padding: const EdgeInsets.all(AppDimens.paddingS),
                   decoration: BoxDecoration(
                     color: containerColor,
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    border: Border.all(
+                      color: textColor.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
                   ),
                   child: Icon(icon, color: textColor, size: AppDimens.iconM),
                 ),
@@ -271,6 +282,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: isHistory ? colorScheme.success : textColor,
                   ),
                 ),
               ],
@@ -300,6 +312,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         ? widget.currentCycleStudied
         : _mapNumberToCycleStudied(cycleNumber);
 
+    // Sử dụng màu từ CycleFormatter để đảm bảo nhất quán với thanh progress
     final cycleColor = CycleFormatter.getColor(cycleName, context);
 
     if (!isHistory) {
@@ -308,18 +321,24 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
       );
     }
 
+    // Màu sắc phù hợp với trạng thái
+    final borderColor = isHistory ? colorScheme.success : cycleColor;
+    final backgroundColor = isHistory
+        ? colorScheme.success.withValues(alpha: 0.05)
+        : cycleColor.withValues(alpha: 0.05);
+
     return Card(
       margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
-      elevation: 0,
+      elevation: 1.0,
+      // Add slight elevation for better visibility
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(
-            alpha: AppDimens.opacityMediumHigh,
-          ),
-          width: 1,
+          color: borderColor,
+          width: 1.5, // Thicker border for better visibility
         ),
       ),
+      color: backgroundColor,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
         child: Column(
@@ -327,13 +346,17 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
           children: [
             Row(
               children: [
-                Icon(Icons.cable, size: AppDimens.iconS, color: cycleColor),
+                Icon(
+                  Icons.cable,
+                  size: AppDimens.iconS,
+                  color: isHistory ? colorScheme.success : cycleColor,
+                ),
                 const SizedBox(width: AppDimens.spaceXS),
                 Text(
                   CycleFormatter.format(cycleName),
-                  style: theme.textTheme.labelMedium?.copyWith(
+                  style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: cycleColor,
+                    color: isHistory ? colorScheme.success : cycleColor,
                   ),
                 ),
                 const SizedBox(width: AppDimens.spaceS),
@@ -341,16 +364,20 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppDimens.paddingXS,
-                      vertical: 2,
+                      vertical: AppDimens.paddingXXS,
                     ),
                     decoration: BoxDecoration(
-                      color: colorScheme.success, // Use success color
+                      color: colorScheme.tertiaryContainer,
                       borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+                      border: Border.all(
+                        color: colorScheme.tertiary,
+                        width: 1.0,
+                      ),
                     ),
                     child: Text(
                       'Current',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSuccess, // Use onSuccess color
+                        color: colorScheme.onTertiaryContainer,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

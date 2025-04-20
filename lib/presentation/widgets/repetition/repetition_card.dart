@@ -61,12 +61,13 @@ class _RepetitionCardState extends State<RepetitionCard>
   }
 
   Color _getRepetitionColor(int orderIndex) {
+    // Sử dụng màu sắc đậm và rõ ràng hơn
     const List<Color> repetitionColors = [
-      Color(0xFF4CAF50), // Green 500
-      Color(0xFF2196F3), // Blue 500
-      Color(0xFFF4511E), // Deep Orange 600
-      Color(0xFFAB47BC), // Purple 400
-      Color(0xFFEF5350), // Red 400
+      Color(0xFF2E7D32), // Green 800 - đậm hơn
+      Color(0xFF1565C0), // Blue 800 - đậm hơn
+      Color(0xFFE65100), // Orange 900 - đậm hơn
+      Color(0xFF8E24AA), // Purple 600 - đậm hơn
+      Color(0xFFD32F2F), // Red 700 - đậm hơn
     ];
     return repetitionColors[(orderIndex - 1) % repetitionColors.length];
   }
@@ -84,19 +85,18 @@ class _RepetitionCardState extends State<RepetitionCard>
         widget.repetition.reviewDate != null &&
         widget.repetition.reviewDate!.isBefore(DateTime.now());
 
-    Color cardColor = colorScheme.surface; // Keep neutral background
+    // Màu sắc rõ ràng hơn
+    Color cardColor = colorScheme.surface;
     if (isOverdue) {
-      cardColor = colorScheme.errorContainer.withValues(
-        alpha: AppDimens.opacityLight,
-      );
+      cardColor = colorScheme.errorContainer.withValues(alpha: 0.2);
     }
 
     Color borderColor = colorScheme.outlineVariant;
     if (isOverdue) {
-      borderColor = colorScheme.error.withValues(alpha: AppDimens.opacitySemi);
+      borderColor = colorScheme.error;
     }
     if (isCompleted) {
-      borderColor = colorScheme.outlineVariant; // Neutral border for completed
+      borderColor = colorScheme.success; // Sử dụng màu success cho completed
     }
 
     Color textColor = colorScheme.onSurface;
@@ -104,7 +104,7 @@ class _RepetitionCardState extends State<RepetitionCard>
       textColor = colorScheme.error;
     }
     if (isCompleted) {
-      textColor = colorScheme.success; // Success color for status text
+      textColor = colorScheme.success; // Sử dụng màu success cho completed
     }
 
     Color iconColor = colorScheme.primary;
@@ -112,7 +112,7 @@ class _RepetitionCardState extends State<RepetitionCard>
       iconColor = colorScheme.error;
     }
     if (isCompleted) {
-      iconColor = colorScheme.success; // Success color for status icon
+      iconColor = colorScheme.success; // Sử dụng màu success cho completed
     }
 
     String statusText = 'Pending';
@@ -155,18 +155,16 @@ class _RepetitionCardState extends State<RepetitionCard>
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
               border: Border.all(
                 color: _isHovering
-                    ? borderColor.withValues(alpha: AppDimens.opacityVeryHigh)
-                    : borderColor,
-                width: _isHovering ? 1.5 : 1,
+                    ? borderColor
+                    : borderColor.withValues(alpha: 0.8),
+                width: _isHovering ? 2.0 : 1.5,
               ),
               boxShadow: _isHovering
                   ? [
                       BoxShadow(
-                        color: colorScheme.shadow.withValues(
-                          alpha: AppDimens.opacityLight,
-                        ),
-                        blurRadius: AppDimens.shadowRadiusM,
-                        offset: const Offset(0, AppDimens.shadowOffsetS),
+                        color: colorScheme.shadow.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ]
                   : null,
@@ -193,10 +191,12 @@ class _RepetitionCardState extends State<RepetitionCard>
                             width: AppDimens.iconL,
                             height: AppDimens.iconL,
                             decoration: BoxDecoration(
-                              color: repetitionColor.withValues(
-                                alpha: AppDimens.opacityLight,
-                              ),
+                              color: repetitionColor.withValues(alpha: 0.15),
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: repetitionColor,
+                                width: 1.5,
+                              ),
                             ),
                             child: Center(
                               child: Text(
@@ -231,10 +231,10 @@ class _RepetitionCardState extends State<RepetitionCard>
                                     const SizedBox(width: AppDimens.spaceXS),
                                     Text(
                                       statusText,
-                                      style: theme.textTheme.bodySmall
+                                      style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             color: textColor,
-                                            fontWeight: FontWeight.w500,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                     ),
                                   ],
@@ -255,6 +255,7 @@ class _RepetitionCardState extends State<RepetitionCard>
                           Expanded(
                             child: _buildDateInfo(
                               theme,
+                              colorScheme,
                               reviewDateText,
                               isOverdue,
                             ),
@@ -280,9 +281,8 @@ class _RepetitionCardState extends State<RepetitionCard>
     return IconButton(
       icon: Icon(
         Icons.check_circle_outline,
-        color: _isHovering
-            ? colorScheme.success
-            : colorScheme.primary.withValues(alpha: AppDimens.opacityHigh),
+        color: _isHovering ? colorScheme.success : colorScheme.primary,
+        size: AppDimens.iconL,
       ),
       onPressed: widget.onMarkCompleted,
       tooltip: 'Mark as completed',
@@ -298,16 +298,13 @@ class _RepetitionCardState extends State<RepetitionCard>
       icon: Icon(
         Icons.event,
         size: AppDimens.iconS,
-        color: _isHovering
-            ? colorScheme.primary
-            : colorScheme.primary.withValues(alpha: AppDimens.opacityHigh),
+        color: colorScheme.primary,
       ),
       label: Text(
         'Reschedule',
         style: TextStyle(
-          color: _isHovering
-              ? colorScheme.primary
-              : colorScheme.primary.withValues(alpha: AppDimens.opacityHigh),
+          color: colorScheme.primary,
+          fontWeight: FontWeight.w600,
         ),
       ),
       style: TextButton.styleFrom(
@@ -322,6 +319,7 @@ class _RepetitionCardState extends State<RepetitionCard>
 
   Widget _buildDateInfo(
     ThemeData theme,
+    ColorScheme colorScheme,
     String reviewDateText,
     bool isOverdue,
   ) {
@@ -330,16 +328,15 @@ class _RepetitionCardState extends State<RepetitionCard>
         Icon(
           Icons.calendar_today,
           size: AppDimens.iconS,
-          color: isOverdue
-              ? theme.colorScheme.error
-              : theme.colorScheme.onSurfaceVariant,
+          color: isOverdue ? colorScheme.error : colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: AppDimens.spaceXS),
         Flexible(
           child: Text(
             'Review date: ',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -347,11 +344,9 @@ class _RepetitionCardState extends State<RepetitionCard>
         Flexible(
           child: Text(
             reviewDateText,
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isOverdue
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.onSurface,
+              color: isOverdue ? colorScheme.error : colorScheme.onSurface,
             ),
             overflow: TextOverflow.ellipsis,
           ),
