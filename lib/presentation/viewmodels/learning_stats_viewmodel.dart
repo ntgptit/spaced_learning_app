@@ -10,11 +10,13 @@ class LearningStatsViewModel extends BaseViewModel {
   List<LearningInsightDTO> _insights = [];
 
   LearningStatsDTO? get stats => _stats;
+
   List<LearningInsightDTO> get insights => _insights;
 
   LearningStatsViewModel({required LearningStatsRepository repository})
     : _repository = repository;
 
+  /// Load dashboard statistics
   Future<void> loadDashboardStats({bool refreshCache = false}) async {
     if (!beginRefresh()) return;
 
@@ -33,6 +35,7 @@ class LearningStatsViewModel extends BaseViewModel {
     endRefresh();
   }
 
+  /// Load learning insights
   Future<void> loadLearningInsights() async {
     if (!beginRefresh()) return;
 
@@ -48,6 +51,7 @@ class LearningStatsViewModel extends BaseViewModel {
     endRefresh();
   }
 
+  /// Load all statistics at once
   Future<void> loadAllStats({bool refreshCache = false}) async {
     if (!beginRefresh()) return;
 
@@ -69,8 +73,4 @@ class LearningStatsViewModel extends BaseViewModel {
     );
     endRefresh();
   }
-
-
-
-
 }

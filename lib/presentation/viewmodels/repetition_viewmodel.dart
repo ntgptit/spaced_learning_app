@@ -16,12 +16,14 @@ class RepetitionViewModel extends BaseViewModel {
 
   Repetition? get selectedRepetition => _selectedRepetition;
 
+  /// Clears stored repetitions and selected repetition state
   void clearRepetitions() {
     _repetitions = [];
     _selectedRepetition = null;
     notifyListeners();
   }
 
+  /// Validates and sanitizes ID inputs
   String? _sanitizeId(String id) {
     if (id.isEmpty) {
       debugPrint('WARNING: Empty ID detected in RepetitionViewModel');
@@ -29,14 +31,13 @@ class RepetitionViewModel extends BaseViewModel {
     }
 
     final sanitizedId = id.trim();
-
     if (sanitizedId != id) {
       debugPrint('ID sanitized from "$id" to "$sanitizedId"');
     }
-
     return sanitizedId;
   }
 
+  /// Loads repetitions by progress ID
   Future<void> loadRepetitionsByProgressId(
     String progressId, {
     bool notifyAtStart = false,
@@ -83,6 +84,7 @@ class RepetitionViewModel extends BaseViewModel {
     }
   }
 
+  /// Creates default repetition schedule
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
@@ -93,27 +95,24 @@ class RepetitionViewModel extends BaseViewModel {
       return [];
     }
 
-    beginLoading();
-    notifyListeners();
-    clearError();
-
-    try {
-      debugPrint('Creating default schedule for progressId: $sanitizedId');
-      final schedule = await repetitionRepository.createDefaultSchedule(
-        sanitizedId,
-      );
-      debugPrint('Created schedule with ${schedule.length} repetitions');
-      return schedule;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to create repetition schedule');
-      debugPrint('Error creating schedule: $e');
-      return [];
-    } finally {
-      endLoading();
-      notifyListeners();
-    }
+    return await safeCall<List<Repetition>>(
+          action: () async {
+            debugPrint(
+              'Creating default schedule for progressId: $sanitizedId',
+            );
+            final schedule = await repetitionRepository.createDefaultSchedule(
+              sanitizedId,
+            );
+            debugPrint('Created schedule with ${schedule.length} repetitions');
+            return schedule;
+          },
+          errorPrefix: 'Failed to create repetition schedule',
+          handleLoading: true,
+        ) ??
+        [];
   }
 
+  /// Updates repetition status, date and completion
   Future<Repetition?> updateRepetition(
     String id, {
     RepetitionStatus? status,
@@ -128,49 +127,42 @@ class RepetitionViewModel extends BaseViewModel {
       return null;
     }
 
-    beginLoading();
-    notifyListeners();
-    clearError();
+    return safeCall<Repetition?>(
+      action: () async {
+        debugPrint('Updating repetition: $sanitizedId');
+        debugPrint(
+          'Status: $status, ReviewDate: $reviewDate, RescheduleFollowing: $rescheduleFollowing',
+        );
 
-    try {
-      debugPrint('Updating repetition: $sanitizedId');
-      debugPrint(
-        'Status: $status, ReviewDate: $reviewDate, RescheduleFollowing: $rescheduleFollowing',
-      );
+        final repetition = await repetitionRepository.updateRepetition(
+          sanitizedId,
+          status: status,
+          reviewDate: reviewDate,
+          rescheduleFollowing: rescheduleFollowing,
+          percentComplete: percentComplete,
+        );
 
-      final repetition = await repetitionRepository.updateRepetition(
-        sanitizedId,
-        status: status,
-        reviewDate: reviewDate,
-        rescheduleFollowing: rescheduleFollowing,
-        percentComplete: percentComplete,
-      );
+        if (_selectedRepetition?.id == sanitizedId) {
+          _selectedRepetition = repetition;
+        }
 
-      if (_selectedRepetition?.id == sanitizedId) {
-        _selectedRepetition = repetition;
-      }
+        final index = _repetitions.indexWhere((r) => r.id == sanitizedId);
+        if (index >= 0) {
+          _repetitions[index] = repetition;
+        }
 
-      final index = _repetitions.indexWhere((r) => r.id == sanitizedId);
-      if (index >= 0) {
-        _repetitions[index] = repetition;
-      }
+        if (rescheduleFollowing) {
+          await loadRepetitionsByProgressId(repetition.moduleProgressId);
+        }
 
-      if (rescheduleFollowing) {
-        await loadRepetitionsByProgressId(repetition.moduleProgressId);
-      }
-
-      debugPrint('Repetition updated successfully');
-      return repetition;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to update repetition');
-      debugPrint('Error updating repetition: $e');
-      return null;
-    } finally {
-      endLoading();
-      notifyListeners();
-    }
+        debugPrint('Repetition updated successfully');
+        return repetition;
+      },
+      errorPrefix: 'Failed to update repetition',
+    );
   }
 
+  /// Checks if all repetitions for a progress are completed
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
     final sanitizedId = _sanitizeId(progressId);
     if (sanitizedId == null) {
@@ -183,7 +175,6 @@ class RepetitionViewModel extends BaseViewModel {
       debugPrint('Checking completion status for progressId: $sanitizedId');
 
       List<Repetition> repetitionsToCheck;
-
       final bool currentDataValid =
           _repetitions.isNotEmpty &&
           _repetitions.first.moduleProgressId == sanitizedId;
@@ -220,6 +211,7 @@ class RepetitionViewModel extends BaseViewModel {
     }
   }
 
+  /// Get cycle information text based on cycle studied
   String getCycleInfo(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
@@ -227,11 +219,11 @@ class RepetitionViewModel extends BaseViewModel {
       case CycleStudied.firstReview:
         return 'You are in the first review cycle. Complete all 5 review sessions to proceed.';
       case CycleStudied.secondReview:
-        return 'You are in the second review cycle. You’re doing great!';
+        return 'You are in the second review cycle. You\'re doing great!';
       case CycleStudied.thirdReview:
         return 'You are in the third review cycle. You almost have this mastered!';
       case CycleStudied.moreThanThreeReviews:
-        return 'You’ve completed more than 3 review cycles. The knowledge is well reinforced!';
+        return 'You\'ve completed more than 3 review cycles. The knowledge is well reinforced!';
     }
   }
 

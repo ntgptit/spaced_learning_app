@@ -12,9 +12,12 @@ class BookViewModel extends BaseViewModel {
   BookViewModel({required this.bookRepository});
 
   List<BookSummary> get books => _books;
+
   BookDetail? get selectedBook => _selectedBook;
+
   List<String> get categories => _categories;
 
+  /// Load all books with pagination
   Future<void> loadBooks({int page = 0, int size = 20}) async {
     await safeCall(
       action: () async {
@@ -25,6 +28,7 @@ class BookViewModel extends BaseViewModel {
     );
   }
 
+  /// Load book details by ID
   Future<void> loadBookDetails(String id) async {
     await safeCall(
       action: () async {
@@ -35,6 +39,7 @@ class BookViewModel extends BaseViewModel {
     );
   }
 
+  /// Search books by query term
   Future<List<BookSummary>> searchBooks(
     String query, {
     int page = 0,
@@ -47,6 +52,7 @@ class BookViewModel extends BaseViewModel {
     return result ?? [];
   }
 
+  /// Load all book categories
   Future<void> loadCategories() async {
     await safeCall(
       action: () async {
@@ -57,6 +63,7 @@ class BookViewModel extends BaseViewModel {
     );
   }
 
+  /// Filter books by criteria
   Future<void> filterBooks({
     BookStatus? status,
     DifficultyLevel? difficultyLevel,
@@ -79,10 +86,7 @@ class BookViewModel extends BaseViewModel {
     );
   }
 
-
-
-
-
+  /// Delete book
   Future<bool> deleteBook(String id) async {
     final result = await safeCall<bool>(
       action: () async {

@@ -21,10 +21,13 @@ class ProgressViewModel extends BaseViewModel {
   ProgressViewModel({required this.progressRepository, required this.eventBus});
 
   bool get isLoadingDueProgress => _isLoadingDueProgress;
+
   bool get isLoadingDetails => _isLoadingDetails;
+
   bool get isUpdating => _isUpdating;
 
   List<ProgressSummary> get progressRecords => _progressRecords;
+
   ProgressDetail? get selectedProgress => _selectedProgress;
 
   void clearSelectedProgress() {
@@ -32,6 +35,7 @@ class ProgressViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  /// Validates and sanitizes ID inputs
   String? _sanitizeId(String id) {
     if (id.isEmpty) {
       debugPrint('WARNING: Empty ID detected in ProgressViewModel');
@@ -39,15 +43,17 @@ class ProgressViewModel extends BaseViewModel {
     }
 
     final sanitizedId = id.trim();
-
     if (sanitizedId != id) {
       debugPrint('ID sanitized from "$id" to "$sanitizedId"');
     }
-
     return sanitizedId;
   }
 
-  Future<void> loadProgressDetails(String id, {bool notifyAtStart = false}) async {
+  /// Loads progress details by ID
+  Future<void> loadProgressDetails(
+    String id, {
+    bool notifyAtStart = false,
+  }) async {
     final sanitizedId = _sanitizeId(id);
     if (sanitizedId == null) {
       setError('Invalid progress ID: Empty ID provided');
@@ -56,7 +62,9 @@ class ProgressViewModel extends BaseViewModel {
     }
 
     if (_isLoadingDetails) {
-      debugPrint('Already loading progress details, skipping duplicate request');
+      debugPrint(
+        'Already loading progress details, skipping duplicate request',
+      );
       return;
     }
 
@@ -73,18 +81,21 @@ class ProgressViewModel extends BaseViewModel {
         debugPrint('WARNING: Progress details loaded but result is null');
         setError('Failed to load progress: No data returned');
       } else {
-        debugPrint('Progress details loaded successfully for id: ${_selectedProgress!.id}');
+        debugPrint(
+          'Progress details loaded successfully for id: ${_selectedProgress!.id}',
+        );
         clearError();
       }
     } catch (e) {
       handleError(e, prefix: 'Failed to load progress details');
-      _selectedProgress = null; // Clear data on error
+      _selectedProgress = null;
     } finally {
       _isLoadingDetails = false;
       endLoading();
     }
   }
 
+  /// Loads module progress by module ID
   Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
     final sanitizedId = _sanitizeId(moduleId);
     if (sanitizedId == null) {
@@ -93,48 +104,39 @@ class ProgressViewModel extends BaseViewModel {
       return null;
     }
 
-    beginLoading();
-    notifyListeners();
-    clearError();
+    return safeCall<ProgressDetail?>(
+      action: () async {
+        debugPrint('Loading module progress for moduleId: $sanitizedId');
+        final progressList = await progressRepository.getProgressByModuleId(
+          sanitizedId,
+          page: 0,
+          size: 1,
+        );
 
-    try {
-      debugPrint('Loading module progress for moduleId: $sanitizedId');
-      final progressList = await progressRepository.getProgressByModuleId(
-        sanitizedId,
-        page: 0,
-        size: 1, // Only get 1 progress
-      );
+        debugPrint('Progress list length: ${progressList.length}');
+        if (progressList.isEmpty) {
+          _selectedProgress = null;
+          return null;
+        }
 
-      debugPrint('Progress list length: ${progressList.length}');
+        final progressId = progressList[0].id;
+        debugPrint(
+          'Found progress with ID: $progressId for module: $sanitizedId',
+        );
 
-      if (progressList.isEmpty) {
-        _selectedProgress = null;
-        return null;
-      }
+        final progressDetail = await progressRepository.getProgressById(
+          progressId,
+        );
+        _selectedProgress = progressDetail;
+        debugPrint('Loaded progress details: ${_selectedProgress?.id}');
 
-      final progressId = progressList[0].id;
-      debugPrint(
-        'Found progress with ID: $progressId for module: $sanitizedId',
-      );
-
-      final progressDetail = await progressRepository.getProgressById(
-        progressId,
-      );
-      _selectedProgress = progressDetail;
-
-      debugPrint('Loaded progress details: ${_selectedProgress?.id}');
-      return progressDetail;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to load module progress');
-      debugPrint('Error loading module progress: $e');
-      _selectedProgress = null; // Clear data on error
-      return null;
-    } finally {
-      endLoading();
-      notifyListeners(); // Always notify at the end
-    }
+        return progressDetail;
+      },
+      errorPrefix: 'Failed to load module progress',
+    );
   }
 
+  /// Loads due progress for a user
   Future<void> loadDueProgress(
     String userId, {
     DateTime? studyDate,
@@ -155,7 +157,7 @@ class ProgressViewModel extends BaseViewModel {
 
     _isLoadingDueProgress = true;
     beginLoading();
-    notifyListeners(); // Notify that loading has started
+    notifyListeners();
     clearError();
 
     debugPrint(
@@ -199,13 +201,13 @@ class ProgressViewModel extends BaseViewModel {
     } finally {
       _isLoadingDueProgress = false;
       endLoading();
-      notifyListeners(); // Always notify at the end
     }
   }
 
+  /// Creates new progress
   Future<ProgressDetail?> createProgress({
     required String moduleId,
-    String? userId, // Optional userId
+    String? userId,
     DateTime? firstLearningDate,
     CycleStudied? cyclesStudied,
     DateTime? nextStudyDate,
@@ -218,37 +220,32 @@ class ProgressViewModel extends BaseViewModel {
       return null;
     }
 
-    beginLoading();
-    notifyListeners();
-    clearError();
+    return safeCall<ProgressDetail?>(
+      action: () async {
+        debugPrint('Creating progress for moduleId: $sanitizedModuleId');
+        final progress = await progressRepository.createProgress(
+          moduleId: sanitizedModuleId,
+          userId: userId,
+          firstLearningDate: firstLearningDate,
+          cyclesStudied: cyclesStudied,
+          nextStudyDate: nextStudyDate,
+          percentComplete: percentComplete,
+        );
 
-    try {
-      debugPrint('Creating progress for moduleId: $sanitizedModuleId');
-      final progress = await progressRepository.createProgress(
-        moduleId: sanitizedModuleId,
-        userId: userId, // Pass optional userId
-        firstLearningDate: firstLearningDate,
-        cyclesStudied: cyclesStudied,
-        nextStudyDate: nextStudyDate,
-        percentComplete: percentComplete,
-      );
+        if (userId != null) {
+          eventBus.fire(
+            ProgressChangedEvent(userId: userId, hasDueTasks: true),
+          );
+        }
 
-      if (userId != null) {
-        eventBus.fire(ProgressChangedEvent(userId: userId, hasDueTasks: true));
-      }
-
-      debugPrint('Progress created successfully: ${progress.id}');
-      return progress;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to create progress');
-      debugPrint('Error creating progress: $e');
-      return null;
-    } finally {
-      endLoading();
-      notifyListeners(); // Always notify at the end
-    }
+        debugPrint('Progress created successfully: ${progress.id}');
+        return progress;
+      },
+      errorPrefix: 'Failed to create progress',
+    );
   }
 
+  /// Updates existing progress
   Future<ProgressDetail?> updateProgress(
     String id, {
     DateTime? firstLearningDate,
@@ -307,31 +304,6 @@ class ProgressViewModel extends BaseViewModel {
     } finally {
       _isUpdating = false;
       endLoading();
-      notifyListeners(); // Always notify at the end
-    }
-  }
-
-  @override
-  Future<T?> safeCall<T>({
-    required Future<T> Function() action,
-    String errorPrefix = 'Operation failed',
-    bool handleLoading = true,
-    bool updateTimestamp = true,
-  }) async {
-    if (handleLoading) beginLoading();
-    clearError();
-    notifyListeners(); // Notify at start
-
-    try {
-      final result = await action();
-      if (updateTimestamp) updateLastUpdated();
-      return result;
-    } catch (e) {
-      handleError(e, prefix: errorPrefix);
-      return null;
-    } finally {
-      if (handleLoading) endLoading();
-      notifyListeners(); // Always notify at the end
     }
   }
 }

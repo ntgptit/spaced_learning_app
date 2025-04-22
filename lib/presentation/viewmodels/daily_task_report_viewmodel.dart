@@ -62,7 +62,7 @@ class DailyTaskReportViewModel extends BaseViewModel {
   final EventBus _eventBus;
   final DailyTaskChecker _taskChecker;
 
-  // Trạng thái
+  // State
   bool _isCheckerActive = false;
   bool _isManualCheckInProgress = false;
   DateTime? _lastCheckTime;
@@ -86,11 +86,11 @@ class DailyTaskReportViewModel extends BaseViewModel {
 
   List<LogEntry> get logEntries => _logEntries;
 
-  // Hằng số cho keys
+  // Constants for keys
   static const String _isActiveKey = 'daily_task_checker_active';
   static const String _logEntriesKey = 'daily_task_log_entries';
 
-  // Events
+  // Event subscription
   StreamSubscription? _taskCheckSubscription;
 
   DailyTaskReportViewModel({
@@ -103,20 +103,20 @@ class DailyTaskReportViewModel extends BaseViewModel {
     _listenForEvents();
   }
 
+  /// Listen for task check events
   void _listenForEvents() {
-    // Lắng nghe sự kiện kiểm tra task
     _taskCheckSubscription = _eventBus.on<DailyTaskCheckEvent>().listen((
       event,
     ) {
       _addLogEntry(
         message: event.hasDueTasks
-            ? 'Đã tìm thấy ${event.taskCount} nhiệm vụ đến hạn'
-            : 'Không có nhiệm vụ đến hạn hôm nay',
+            ? 'Found ${event.taskCount} tasks due'
+            : 'No tasks due today',
         detail: event.isSuccess ? null : event.errorMessage,
         isSuccess: event.isSuccess,
       );
 
-      // Cập nhật trạng thái
+      // Update state
       _lastCheckTime = event.checkTime;
       _lastCheckResult = event.isSuccess;
       _lastCheckTaskCount = event.taskCount;
@@ -132,77 +132,72 @@ class DailyTaskReportViewModel extends BaseViewModel {
     super.dispose();
   }
 
-  // Phương thức khởi tạo
+  /// Load report data
   Future<void> loadReportData() async {
     beginLoading();
     clearError();
 
     try {
-      // Lấy trạng thái kích hoạt
+      // Get active state
       _isCheckerActive = await _storageService.getBool(_isActiveKey) ?? false;
 
-      // Lấy báo cáo kiểm tra gần nhất
+      // Get latest check report
       final report = await _taskChecker.getLastCheckReport();
       _lastCheckTime = report['lastCheckTime'] as DateTime?;
       _lastCheckResult = report['lastCheckResult'] as bool;
       _lastCheckTaskCount = report['lastCheckTaskCount'] as int;
       _lastCheckError = report['lastCheckError'] as String?;
 
-      // Lấy nhật ký
+      // Get logs
       await _loadLogs();
 
       setInitialized(true);
     } catch (e) {
-      handleError(e, prefix: 'Lỗi khi tải dữ liệu báo cáo');
+      handleError(e, prefix: 'Error loading report data');
+    } finally {
+      endLoading();
     }
-
-    endLoading();
   }
 
-  // Phương thức thay đổi trạng thái kích hoạt
+  /// Toggle checker active state
   Future<void> toggleChecker(bool value) async {
-    beginLoading();
-    clearError();
+    if (value == _isCheckerActive) return;
 
-    try {
-      if (value == _isCheckerActive) return;
+    return safeCall(
+      action: () async {
+        _isCheckerActive = value;
+        await _storageService.setBool(_isActiveKey, value);
 
-      _isCheckerActive = value;
-      await _storageService.setBool(_isActiveKey, value);
-
-      if (value) {
-        // Kích hoạt kiểm tra
-        final success = await _taskChecker.initialize();
-        if (success) {
-          _addLogEntry(
-            message: 'Đã kích hoạt kiểm tra tự động hàng ngày',
-            isSuccess: true,
-          );
+        if (value) {
+          // Activate checker
+          final success = await _taskChecker.initialize();
+          if (success) {
+            _addLogEntry(
+              message: 'Daily automated check activated',
+              isSuccess: true,
+            );
+          } else {
+            _addLogEntry(
+              message: 'Failed to activate automated check',
+              isSuccess: false,
+            );
+            _isCheckerActive = false;
+            await _storageService.setBool(_isActiveKey, false);
+          }
         } else {
+          // Deactivate checker
+          final success = await _taskChecker.cancelDailyCheck();
           _addLogEntry(
-            message: 'Không thể kích hoạt kiểm tra tự động',
-            isSuccess: false,
+            message: 'Daily automated check deactivated',
+            isSuccess: success,
           );
-          _isCheckerActive = false;
-          await _storageService.setBool(_isActiveKey, false);
         }
-      } else {
-        // Hủy kiểm tra
-        final success = await _taskChecker.cancelDailyCheck();
-        _addLogEntry(
-          message: 'Đã hủy kiểm tra tự động hàng ngày',
-          isSuccess: success,
-        );
-      }
-    } catch (e) {
-      handleError(e, prefix: 'Lỗi khi thay đổi trạng thái kiểm tra');
-      _isCheckerActive = !value; // Khôi phục trạng thái trước đó
-    }
-
-    endLoading();
+      },
+      errorPrefix: 'Error changing checker state',
+    );
   }
 
-  // Phương thức thực hiện kiểm tra thủ công
+  /// Perform manual check
   Future<CheckResult> performManualCheck() async {
     if (_isManualCheckInProgress) {
       return CheckResult(
@@ -210,7 +205,7 @@ class DailyTaskReportViewModel extends BaseViewModel {
         isSuccess: false,
         hasDueTasks: false,
         taskCount: 0,
-        errorMessage: 'Đang thực hiện kiểm tra, vui lòng đợi',
+        errorMessage: 'Check in progress, please wait',
       );
     }
 
@@ -218,22 +213,22 @@ class DailyTaskReportViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
-      _addLogEntry(message: 'Bắt đầu kiểm tra thủ công', isSuccess: true);
+      _addLogEntry(message: 'Starting manual check', isSuccess: true);
 
-      // Thực hiện kiểm tra
+      // Perform check
       final event = await _taskChecker.manualCheck();
 
-      // Cập nhật trạng thái
+      // Update state
       _lastCheckTime = event.checkTime;
       _lastCheckResult = event.isSuccess;
       _lastCheckTaskCount = event.taskCount;
       _lastCheckError = event.isSuccess ? null : event.errorMessage;
 
-      // Thêm bản ghi nhật ký
+      // Add log entry
       _addLogEntry(
         message: event.hasDueTasks
-            ? 'Kiểm tra thủ công: Tìm thấy ${event.taskCount} nhiệm vụ đến hạn'
-            : 'Kiểm tra thủ công: Không có nhiệm vụ đến hạn hôm nay',
+            ? 'Manual check: Found ${event.taskCount} due tasks'
+            : 'Manual check: No tasks due today',
         detail: event.isSuccess ? null : event.errorMessage,
         isSuccess: event.isSuccess,
       );
@@ -246,11 +241,11 @@ class DailyTaskReportViewModel extends BaseViewModel {
         errorMessage: event.errorMessage,
       );
     } catch (e) {
-      handleError(e, prefix: 'Lỗi khi thực hiện kiểm tra thủ công');
+      handleError(e, prefix: 'Error performing manual check');
 
-      // Thêm bản ghi nhật ký lỗi
+      // Add error log entry
       _addLogEntry(
-        message: 'Kiểm tra thủ công thất bại',
+        message: 'Manual check failed',
         detail: e.toString(),
         isSuccess: false,
       );
@@ -268,7 +263,7 @@ class DailyTaskReportViewModel extends BaseViewModel {
     }
   }
 
-  // Phương thức thêm bản ghi nhật ký
+  /// Add log entry
   Future<void> _addLogEntry({
     required String message,
     String? detail,
@@ -282,23 +277,23 @@ class DailyTaskReportViewModel extends BaseViewModel {
         isSuccess: isSuccess,
       );
 
-      _logEntries.insert(0, entry); // Thêm vào đầu danh sách
+      _logEntries.insert(0, entry); // Add to start of list
 
-      // Giới hạn số lượng bản ghi
+      // Limit number of entries
       if (_logEntries.length > 100) {
         _logEntries = _logEntries.sublist(0, 100);
       }
 
-      // Lưu nhật ký
+      // Save logs
       await _saveLogs();
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Lỗi khi thêm bản ghi nhật ký: $e');
+      debugPrint('Error adding log entry: $e');
     }
   }
 
-  // Phương thức tải nhật ký
+  /// Load logs from storage
   Future<void> _loadLogs() async {
     try {
       final logsJson = await _storageService.getString(_logEntriesKey);
@@ -311,34 +306,30 @@ class DailyTaskReportViewModel extends BaseViewModel {
       final List<dynamic> logsData = jsonDecode(logsJson);
       _logEntries = logsData.map((json) => LogEntry.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('Lỗi khi tải nhật ký: $e');
+      debugPrint('Error loading logs: $e');
       _logEntries = [];
     }
   }
 
-  // Phương thức lưu nhật ký
+  /// Save logs to storage
   Future<void> _saveLogs() async {
     try {
       final logsJson = jsonEncode(_logEntries.map((e) => e.toJson()).toList());
       await _storageService.setString(_logEntriesKey, logsJson);
     } catch (e) {
-      debugPrint('Lỗi khi lưu nhật ký: $e');
+      debugPrint('Error saving logs: $e');
     }
   }
 
-  // Phương thức xóa nhật ký
+  /// Clear all logs
   Future<void> clearLogs() async {
-    beginLoading();
-    clearError();
-
-    try {
-      _logEntries = [];
-      await _storageService.setString(_logEntriesKey, '[]');
-      _addLogEntry(message: 'Đã xóa nhật ký kiểm tra', isSuccess: true);
-    } catch (e) {
-      handleError(e, prefix: 'Lỗi khi xóa nhật ký');
-    }
-
-    endLoading();
+    return safeCall(
+      action: () async {
+        _logEntries = [];
+        await _storageService.setString(_logEntriesKey, '[]');
+        _addLogEntry(message: 'Logs cleared', isSuccess: true);
+      },
+      errorPrefix: 'Error clearing logs',
+    );
   }
 }

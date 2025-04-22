@@ -11,6 +11,7 @@ class UserViewModel extends BaseViewModel {
 
   User? get currentUser => _currentUser;
 
+  /// Load current user data
   Future<void> loadCurrentUser() async {
     await safeCall(
       action: () async {
@@ -21,6 +22,7 @@ class UserViewModel extends BaseViewModel {
     );
   }
 
+  /// Update user profile
   Future<bool> updateProfile({String? displayName, String? password}) async {
     if (_currentUser == null) {
       setError('User is not loaded');
@@ -44,5 +46,4 @@ class UserViewModel extends BaseViewModel {
     }
     return false;
   }
-
 }

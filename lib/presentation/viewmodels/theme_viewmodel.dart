@@ -12,6 +12,7 @@ class ThemeViewModel extends BaseViewModel {
 
   bool get isDarkMode => _isDarkMode;
 
+  /// Load theme preference from storage
   Future<void> _loadThemePreference() async {
     beginLoading();
 
@@ -26,6 +27,7 @@ class ThemeViewModel extends BaseViewModel {
     }
   }
 
+  /// Toggle between light and dark theme
   Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
     notifyListeners();
@@ -33,11 +35,12 @@ class ThemeViewModel extends BaseViewModel {
     try {
       await storageService.saveDarkMode(_isDarkMode);
     } catch (e) {
-      _isDarkMode = !_isDarkMode;
+      _isDarkMode = !_isDarkMode; // Revert if saving fails
       handleError(e, prefix: 'Failed to save theme preference');
     }
   }
 
+  /// Set specific dark mode value
   Future<void> setDarkMode(bool isDarkMode) async {
     if (_isDarkMode == isDarkMode) return;
 
@@ -47,7 +50,7 @@ class ThemeViewModel extends BaseViewModel {
     try {
       await storageService.saveDarkMode(_isDarkMode);
     } catch (e) {
-      _isDarkMode = !_isDarkMode;
+      _isDarkMode = !_isDarkMode; // Revert if saving fails
       handleError(e, prefix: 'Failed to save theme preference');
     }
   }

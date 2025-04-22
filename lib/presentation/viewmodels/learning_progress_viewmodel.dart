@@ -13,13 +13,17 @@ class LearningProgressViewModel extends BaseViewModel {
   DateTime? _selectedDate;
 
   List<LearningModule> get modules => _modules;
+
   List<LearningModule> get filteredModules => _filteredModules;
+
   String get selectedBook => _selectedBook;
+
   DateTime? get selectedDate => _selectedDate;
 
   LearningProgressViewModel({required LearningDataService learningDataService})
     : _learningDataService = learningDataService;
 
+  /// Initialize the view model
   Future<void> initialize() async {
     if (isInitialized && lastUpdated != null) {
       if (!shouldRefresh()) {
@@ -33,6 +37,7 @@ class LearningProgressViewModel extends BaseViewModel {
     setInitialized(true);
   }
 
+  /// Load module data from service
   Future<void> loadData() async {
     await safeCall(
       action: () async {
@@ -52,31 +57,33 @@ class LearningProgressViewModel extends BaseViewModel {
     );
   }
 
+  /// Refresh data by resetting cache and reloading
   Future<void> refreshData() async {
     debugPrint(
       'LearningProgressViewModel: Refreshing data, explicitly resetting cache',
     );
 
     _learningDataService.resetCache();
-
     await loadData();
   }
 
+  /// Apply filters to modules and notify listeners
   void applyFilters() {
     if (isRefreshing) return;
 
     final newFilteredModules = _getFilteredModules();
-
     if (_filteredModulesChanged(newFilteredModules)) {
       _filteredModules = newFilteredModules;
       notifyListeners();
     }
   }
 
+  /// Apply filters without notifying listeners
   void _applyFiltersWithoutNotify() {
     _filteredModules = _getFilteredModules();
   }
 
+  /// Get filtered modules based on selected filters
   List<LearningModule> _getFilteredModules() {
     return _modules.where((module) {
       final bookMatch =
@@ -92,6 +99,7 @@ class LearningProgressViewModel extends BaseViewModel {
     }).toList();
   }
 
+  /// Check if filtered modules have changed
   bool _filteredModulesChanged(List<LearningModule> newModules) {
     if (_filteredModules.length != newModules.length) return true;
 
@@ -102,6 +110,7 @@ class LearningProgressViewModel extends BaseViewModel {
     );
   }
 
+  /// Set selected book filter
   void setSelectedBook(String book) {
     if (_selectedBook != book) {
       _selectedBook = book;
@@ -109,11 +118,13 @@ class LearningProgressViewModel extends BaseViewModel {
     }
   }
 
+  /// Set selected date filter
   void setSelectedDate(DateTime? date) {
     _selectedDate = date;
     applyFilters();
   }
 
+  /// Clear date filter
   void clearDateFilter() {
     if (_selectedDate != null) {
       _selectedDate = null;
@@ -121,6 +132,7 @@ class LearningProgressViewModel extends BaseViewModel {
     }
   }
 
+  /// Export learning data
   Future<bool> exportData() async {
     final result = await safeCall<bool>(
       action: () => _learningDataService.exportData(),
@@ -129,13 +141,16 @@ class LearningProgressViewModel extends BaseViewModel {
     return result ?? false;
   }
 
+  /// Get unique book names for filter dropdown
   List<String> getUniqueBooks() {
     if (_modules.isEmpty) return ['All'];
-    final books =
-        _modules.map((module) => module.bookName).toSet().toList()..sort();
+
+    final books = _modules.map((module) => module.bookName).toSet().toList()
+      ..sort();
     return ['All', ...books];
   }
 
+  /// Get count of due modules
   int getDueModulesCount() {
     return _filteredModules
         .where(
@@ -148,14 +163,14 @@ class LearningProgressViewModel extends BaseViewModel {
         .length;
   }
 
+  /// Get count of completed modules
   int getCompletedModulesCount() {
     return _filteredModules
         .where((m) => (m.progressLatestPercentComplete ?? 0) == 100)
         .length;
   }
 
-
-
+  /// Get dashboard statistics
   Future<Map<String, dynamic>> getDashboardStats() async {
     final result = await safeCall<Map<String, dynamic>>(
       action: () {

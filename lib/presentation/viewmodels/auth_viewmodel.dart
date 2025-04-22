@@ -16,27 +16,30 @@ class AuthViewModel extends BaseViewModel {
   }
 
   bool get isAuthenticated => _isAuthenticated;
+
   User? get currentUser => _currentUser;
 
+  /// Check authentication status from stored token
   Future<void> _checkAuthentication() async {
     beginLoading();
 
     try {
       final token = await storageService.getToken();
-      if (token != null && token.isNotEmpty) {
-        final isValid = await authRepository.validateToken(token);
-        _isAuthenticated = isValid;
+      if (token == null || token.isEmpty) {
+        _isAuthenticated = false;
+        return;
+      }
 
-        if (isValid) {
-          final userData = await storageService.getUserData();
-          if (userData != null) {
-            _currentUser = User.fromJson(userData);
-          }
-        } else {
-          await storageService.clearTokens();
+      final isValid = await authRepository.validateToken(token);
+      _isAuthenticated = isValid;
+
+      if (isValid) {
+        final userData = await storageService.getUserData();
+        if (userData != null) {
+          _currentUser = User.fromJson(userData);
         }
       } else {
-        _isAuthenticated = false;
+        await storageService.clearTokens();
       }
     } catch (e) {
       _isAuthenticated = false;
@@ -47,18 +50,23 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
+  /// Perform login with username/email and password
   Future<bool> login(String usernameOrEmail, String password) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        final response = await authRepository.login(usernameOrEmail, password);
-        await _handleAuthResponse(response);
-        return true;
-      },
-      errorPrefix: 'Login failed',
-    );
-    return result ?? false;
+    return await safeCall<bool>(
+          action: () async {
+            final response = await authRepository.login(
+              usernameOrEmail,
+              password,
+            );
+            await _handleAuthResponse(response);
+            return true;
+          },
+          errorPrefix: 'Login failed',
+        ) ??
+        false;
   }
 
+  /// Register new user
   Future<bool> register(
     String username,
     String email,
@@ -66,23 +74,24 @@ class AuthViewModel extends BaseViewModel {
     String firstName,
     String lastName,
   ) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        final response = await authRepository.register(
-          username,
-          email,
-          password,
-          firstName,
-          lastName,
-        );
-        await _handleAuthResponse(response);
-        return true;
-      },
-      errorPrefix: 'Registration failed',
-    );
-    return result ?? false;
+    return await safeCall<bool>(
+          action: () async {
+            final response = await authRepository.register(
+              username,
+              email,
+              password,
+              firstName,
+              lastName,
+            );
+            await _handleAuthResponse(response);
+            return true;
+          },
+          errorPrefix: 'Registration failed',
+        ) ??
+        false;
   }
 
+  /// Logout current user
   Future<void> logout() async {
     beginLoading();
 
@@ -99,6 +108,7 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
+  /// Handle successful authentication response
   Future<void> _handleAuthResponse(AuthResponse response) async {
     await storageService.saveToken(response.token);
     if (response.refreshToken != null) {

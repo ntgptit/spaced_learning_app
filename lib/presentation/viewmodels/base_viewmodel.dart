@@ -25,9 +25,8 @@ abstract class BaseViewModel extends ChangeNotifier {
   }
 
   void beginLoading() {
-    final wasLoading = _isLoading;
-    _isLoading = true;
-    if (!wasLoading) {
+    if (!_isLoading) {
+      _isLoading = true;
       debugPrint('${runtimeType.toString()}: beginLoading()');
       notifyListeners();
     }
@@ -91,10 +90,9 @@ abstract class BaseViewModel extends ChangeNotifier {
   }
 
   void handleError(dynamic error, {String prefix = 'An error occurred'}) {
-    final errorMessage =
-        error is Exception
-            ? '$prefix: ${error.toString()}'
-            : '$prefix: ${error.toString()}';
+    final errorMessage = error is Exception
+        ? '$prefix: ${error.toString()}'
+        : '$prefix: ${error.toString()}';
 
     debugPrint('Error in ${runtimeType.toString()}: $errorMessage');
     setError(errorMessage);
@@ -109,23 +107,37 @@ abstract class BaseViewModel extends ChangeNotifier {
     return now.difference(_lastUpdated!) > threshold;
   }
 
+  /// Runs async operation safely with error handling, loading state management
+  /// and optional timestamp updates
+  ///
+  /// [action] - The async function to execute
+  /// [errorPrefix] - Prefix for error messages
+  /// [handleLoading] - Whether to manage loading state
+  /// [updateTimestamp] - Whether to update the lastUpdated timestamp
   Future<T?> safeCall<T>({
     required Future<T> Function() action,
     String errorPrefix = 'Operation failed',
     bool handleLoading = true,
     bool updateTimestamp = true,
+    bool notifyAtStart = true,
   }) async {
     if (handleLoading) {
       _isLoading = true;
-      Future.microtask(() => notifyListeners());
+      if (notifyAtStart) {
+        notifyListeners();
+      }
     }
 
     clearError();
-    Future.microtask(() => notifyListeners());
+    if (notifyAtStart) {
+      notifyListeners();
+    }
 
     try {
       final result = await action();
-      if (updateTimestamp) updateLastUpdated();
+      if (updateTimestamp) {
+        updateLastUpdated();
+      }
       return result;
     } catch (e) {
       handleError(e, prefix: errorPrefix);
@@ -133,7 +145,7 @@ abstract class BaseViewModel extends ChangeNotifier {
     } finally {
       if (handleLoading) {
         _isLoading = false;
-        Future.microtask(() => notifyListeners());
+        notifyListeners();
       }
     }
   }

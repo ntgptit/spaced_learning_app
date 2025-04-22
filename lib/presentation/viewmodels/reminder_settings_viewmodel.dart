@@ -46,6 +46,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
     _loadSettings();
   }
 
+  /// Load all reminder settings
   Future<void> _loadSettings() async {
     beginLoading();
     try {
@@ -68,6 +69,7 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
+  /// Load device permissions
   Future<void> _loadDevicePermissions() async {
     try {
       _hasExactAlarmPermission = await _deviceSettingsService
@@ -87,158 +89,142 @@ class ReminderSettingsViewModel extends BaseViewModel {
     }
   }
 
+  /// Enable/disable all reminders
   Future<bool> setRemindersEnabled(bool value) async {
     if (_remindersEnabled == value) return true;
 
-    beginLoading();
-    try {
-      final success = await _reminderService.setRemindersEnabled(value);
-      if (success) {
-        _remindersEnabled = value;
-        _eventBus.fire(ReminderSettingsChangedEvent(enabled: value));
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to update reminders setting');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final success = await _reminderService.setRemindersEnabled(value);
+            if (success) {
+              _remindersEnabled = value;
+              _eventBus.fire(ReminderSettingsChangedEvent(enabled: value));
+            }
+            return success;
+          },
+          errorPrefix: 'Failed to update reminders setting',
+        ) ??
+        false;
   }
 
+  /// Enable/disable noon reminder
   Future<bool> setNoonReminderEnabled(bool value) async {
     if (_noonReminderEnabled == value) return true;
 
-    beginLoading();
-    try {
-      final success = await _reminderService.setNoonReminderEnabled(value);
-      if (success) {
-        _noonReminderEnabled = value;
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to update noon reminder setting');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final success = await _reminderService.setNoonReminderEnabled(
+              value,
+            );
+            if (success) {
+              _noonReminderEnabled = value;
+            }
+            return success;
+          },
+          errorPrefix: 'Failed to update noon reminder setting',
+        ) ??
+        false;
   }
 
+  /// Enable/disable evening first reminder
   Future<bool> setEveningFirstReminderEnabled(bool value) async {
     if (_eveningFirstReminderEnabled == value) return true;
 
-    beginLoading();
-    try {
-      final success = await _reminderService.setEveningFirstReminderEnabled(
-        value,
-      );
-      if (success) {
-        _eveningFirstReminderEnabled = value;
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to update evening first reminder setting');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final success = await _reminderService
+                .setEveningFirstReminderEnabled(value);
+            if (success) {
+              _eveningFirstReminderEnabled = value;
+            }
+            return success;
+          },
+          errorPrefix: 'Failed to update evening first reminder setting',
+        ) ??
+        false;
   }
 
+  /// Enable/disable evening second reminder
   Future<bool> setEveningSecondReminderEnabled(bool value) async {
     if (_eveningSecondReminderEnabled == value) return true;
 
-    beginLoading();
-    try {
-      final success = await _reminderService.setEveningSecondReminderEnabled(
-        value,
-      );
-      if (success) {
-        _eveningSecondReminderEnabled = value;
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      handleError(
-        e,
-        prefix: 'Failed to update evening second reminder setting',
-      );
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final success = await _reminderService
+                .setEveningSecondReminderEnabled(value);
+            if (success) {
+              _eveningSecondReminderEnabled = value;
+            }
+            return success;
+          },
+          errorPrefix: 'Failed to update evening second reminder setting',
+        ) ??
+        false;
   }
 
+  /// Enable/disable end of day reminder
   Future<bool> setEndOfDayReminderEnabled(bool value) async {
     if (_endOfDayReminderEnabled == value) return true;
 
-    beginLoading();
-    try {
-      final success = await _reminderService.setEndOfDayReminderEnabled(value);
-      if (success) {
-        _endOfDayReminderEnabled = value;
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to update end of day reminder setting');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final success = await _reminderService.setEndOfDayReminderEnabled(
+              value,
+            );
+            if (success) {
+              _endOfDayReminderEnabled = value;
+            }
+            return success;
+          },
+          errorPrefix: 'Failed to update end of day reminder setting',
+        ) ??
+        false;
   }
 
+  /// Request exact alarm permission
   Future<bool> requestExactAlarmPermission() async {
-    beginLoading();
-    try {
-      final result = await _deviceSettingsService.requestExactAlarmPermission();
-      if (result) {
-        _hasExactAlarmPermission = await _deviceSettingsService
-            .hasExactAlarmPermission();
-        notifyListeners();
-      }
-      return result;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to request exact alarm permission');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final result = await _deviceSettingsService
+                .requestExactAlarmPermission();
+            if (result) {
+              _hasExactAlarmPermission = await _deviceSettingsService
+                  .hasExactAlarmPermission();
+            }
+            return result;
+          },
+          errorPrefix: 'Failed to request exact alarm permission',
+        ) ??
+        false;
   }
 
+  /// Request battery optimization exemption
   Future<bool> requestBatteryOptimization() async {
-    beginLoading();
-    try {
-      final result = await _deviceSettingsService.requestBatteryOptimization();
-      if (result) {
-        _isIgnoringBatteryOptimizations = await _deviceSettingsService
-            .isIgnoringBatteryOptimizations();
-        notifyListeners();
-      }
-      return result;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to request battery optimization');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () async {
+            final result = await _deviceSettingsService
+                .requestBatteryOptimization();
+            if (result) {
+              _isIgnoringBatteryOptimizations = await _deviceSettingsService
+                  .isIgnoringBatteryOptimizations();
+            }
+            return result;
+          },
+          errorPrefix: 'Failed to request battery optimization',
+        ) ??
+        false;
   }
 
+  /// Open device settings to disable sleeping apps
   Future<bool> disableSleepingApps() async {
-    beginLoading();
-    try {
-      final result = await _deviceSettingsService.disableSleepingApps();
-      return result;
-    } catch (e) {
-      handleError(e, prefix: 'Failed to disable sleeping apps');
-      return false;
-    } finally {
-      endLoading();
-    }
+    return await safeCall<bool>(
+          action: () => _deviceSettingsService.disableSleepingApps(),
+          errorPrefix: 'Failed to disable sleeping apps',
+        ) ??
+        false;
   }
 
+  /// Refresh all settings
   Future<void> refreshSettings() async {
     beginLoading();
     try {
