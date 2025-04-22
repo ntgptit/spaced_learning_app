@@ -166,7 +166,15 @@ class _BookDetailScreenState extends State<BookDetailScreen>
           : colorScheme.surfaceContainerHigh,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => GoRouter.of(context).pop(),
+        onPressed: () {
+          // Đảm bảo cũng refresh dữ liệu khi quay lại
+          final router = GoRouter.of(context);
+          if (router.canPop()) {
+            router.pop(true); // Trả về true để indicate cần refresh
+          } else {
+            router.go('/books');
+          }
+        },
         color: _isScrolled ? null : colorScheme.onSurfaceVariant,
       ),
       flexibleSpace: FlexibleSpaceBar(

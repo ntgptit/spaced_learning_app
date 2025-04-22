@@ -275,6 +275,12 @@ class ModuleCard extends StatelessWidget {
   }
 
   void _showModuleDetails(BuildContext context, LearningModule module) {
+    if (module.moduleId.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid module ID')));
+      return;
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

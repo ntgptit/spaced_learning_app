@@ -10,6 +10,8 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
+import '../../../core/navigation/navigation_helper.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -67,7 +69,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await vm.logout();
     if (!mounted) return;
     if (!vm.isAuthenticated) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      // Sử dụng NavigationHelper để đảm bảo clear stack
+      NavigationHelper.clearStackAndGo(context, '/login');
     }
   }
 

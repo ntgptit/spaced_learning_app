@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -9,6 +8,8 @@ import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dar
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+
+import '../../../core/navigation/navigation_helper.dart';
 
 class DueProgressScreen extends StatefulWidget {
   const DueProgressScreen({super.key});
@@ -630,124 +631,151 @@ class _DueProgressScreenState extends State<DueProgressScreen>
           width: 1,
         ),
       ),
-      child: InkWell(
-        onTap: () {
-          final String progressId = progress.id;
-          debugPrint('Navigating to progress with ID: $progressId');
-          debugPrint('Progress object data: ${progress.toString()}');
+      child: _buildTaskItem(
+        progress,
+        colorScheme,
+        theme,
+        moduleTitle,
+        cycleText,
+        isItemDue,
+      ),
+    );
+  }
 
-          GoRouter.of(
+  Widget _buildTaskItem(
+    ProgressSummary progress,
+    ColorScheme colorScheme,
+    ThemeData theme,
+    String moduleTitle,
+    String cycleText,
+    bool isItemDue,
+  ) {
+    return InkWell(
+      onTap: () {
+        final String progressId = progress.id;
+        debugPrint('Navigating to progress with ID: $progressId');
+        debugPrint('Progress object data: ${progress.toString()}');
+
+        if (progressId.isEmpty) {
+          ScaffoldMessenger.of(
             context,
-          ).push('/progress/$progressId').then((_) => _loadData());
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          value: progress.percentComplete / 100,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            _getProgressColor(
-                              progress.percentComplete,
-                              colorScheme,
-                            ),
+          ).showSnackBar(const SnackBar(content: Text('Invalid progress ID')));
+          return;
+        }
+
+        // Sử dụng NavigationHelper.pushWithResult để lấy kết quả và refresh
+        NavigationHelper.pushWithResult(
+          context,
+          '/progress/$progressId',
+        ).then((_) => _loadData()); // Tự động refresh khi quay lại
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress.percentComplete / 100,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          _getProgressColor(
+                            progress.percentComplete,
+                            colorScheme,
                           ),
-                          strokeWidth: 4,
                         ),
-                        Text(
-                          '${progress.percentComplete.toInt()}%',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        strokeWidth: 4,
+                      ),
+                      Text(
+                        '${progress.percentComplete.toInt()}%',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          moduleTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        moduleTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Cycle: $cycleText',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: _getCycleColor(
-                              progress.cyclesStudied,
-                              colorScheme,
-                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Cycle: $cycleText',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: _getCycleColor(
+                            progress.cyclesStudied,
+                            colorScheme,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              isItemDue ? Icons.event_available : Icons.event,
-                              size: 16,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            isItemDue ? Icons.event_available : Icons.event,
+                            size: 16,
+                            color: isItemDue
+                                ? colorScheme.error
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            progress.nextStudyDate != null
+                                ? _dateFormat.format(progress.nextStudyDate!)
+                                : 'Not scheduled',
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: isItemDue
                                   ? colorScheme.error
                                   : colorScheme.onSurfaceVariant,
+                              fontWeight: isItemDue ? FontWeight.bold : null,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              progress.nextStudyDate != null
-                                  ? _dateFormat.format(progress.nextStudyDate!)
-                                  : 'Not scheduled',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: isItemDue
-                                    ? colorScheme.error
-                                    : colorScheme.onSurfaceVariant,
-                                fontWeight: isItemDue ? FontWeight.bold : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  if (isItemDue)
-                    Icon(
-                      Icons.notifications_active,
-                      color: colorScheme.error,
-                      size: 20,
-                    ),
-                ],
-              ),
-              if (progress.repetitionCount > 0) ...[
-                const SizedBox(height: 8),
-                Chip(
-                  label: Text('${progress.repetitionCount} repetitions'),
-                  backgroundColor: colorScheme.surfaceContainerHigh,
-                  side: BorderSide.none,
-                  labelStyle: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
                 ),
+                if (isItemDue)
+                  Icon(
+                    Icons.notifications_active,
+                    color: colorScheme.error,
+                    size: 20,
+                  ),
               ],
+            ),
+            if (progress.repetitionCount > 0) ...[
+              const SizedBox(height: 8),
+              Chip(
+                label: Text('${progress.repetitionCount} repetitions'),
+                backgroundColor: colorScheme.surfaceContainerHigh,
+                side: BorderSide.none,
+                labelStyle: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

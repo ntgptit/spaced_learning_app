@@ -7,6 +7,8 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
+import '../../../core/navigation/navigation_helper.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -44,63 +46,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _validateUsername() {
     setState(() {
-      _usernameError =
-          _usernameController.text.isEmpty
-              ? 'Username is required'
-              : _usernameController.text.length < 3
-              ? 'Username must be at least 3 characters'
-              : !RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(_usernameController.text)
-              ? 'Username can only contain letters, numbers, dots, underscores and hyphens'
-              : null;
+      _usernameError = _usernameController.text.isEmpty
+          ? 'Username is required'
+          : _usernameController.text.length < 3
+          ? 'Username must be at least 3 characters'
+          : !RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(_usernameController.text)
+          ? 'Username can only contain letters, numbers, dots, underscores and hyphens'
+          : null;
     });
   }
 
   void _validateEmail() {
     setState(() {
-      _emailError =
-          _emailController.text.isEmpty
-              ? 'Email is required'
-              : !RegExp(
-                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-              ).hasMatch(_emailController.text)
-              ? 'Enter a valid email address'
-              : null;
+      _emailError = _emailController.text.isEmpty
+          ? 'Email is required'
+          : !RegExp(
+              r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+            ).hasMatch(_emailController.text)
+          ? 'Enter a valid email address'
+          : null;
     });
   }
 
   void _validatePassword() {
     setState(() {
-      _passwordError =
-          _passwordController.text.isEmpty
-              ? 'Password is required'
-              : _passwordController.text.length < 8
-              ? 'Password must be at least 8 characters'
-              : null;
+      _passwordError = _passwordController.text.isEmpty
+          ? 'Password is required'
+          : _passwordController.text.length < 8
+          ? 'Password must be at least 8 characters'
+          : null;
     });
   }
 
   void _validateConfirmPassword() {
     setState(() {
-      _confirmPasswordError =
-          _confirmPasswordController.text.isEmpty
-              ? 'Please confirm your password'
-              : _confirmPasswordController.text != _passwordController.text
-              ? 'Passwords do not match'
-              : null;
+      _confirmPasswordError = _confirmPasswordController.text.isEmpty
+          ? 'Please confirm your password'
+          : _confirmPasswordController.text != _passwordController.text
+          ? 'Passwords do not match'
+          : null;
     });
   }
 
   void _validateFirstName() {
     setState(() {
-      _firstNameError =
-          _firstNameController.text.isEmpty ? 'First name is required' : null;
+      _firstNameError = _firstNameController.text.isEmpty
+          ? 'First name is required'
+          : null;
     });
   }
 
   void _validateLastName() {
     setState(() {
-      _lastNameError =
-          _lastNameController.text.isEmpty ? 'Last name is required' : null;
+      _lastNameError = _lastNameController.text.isEmpty
+          ? 'Last name is required'
+          : null;
     });
   }
 
@@ -128,7 +128,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (success && mounted && authViewModel.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Sử dụng NavigationHelper để clear stack và đi đến home
+        NavigationHelper.clearStackAndGo(context, '/');
       }
     }
   }
@@ -160,15 +161,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildErrorDisplay(AuthViewModel authViewModel, ThemeData theme) {
     return authViewModel.errorMessage != null
         ? Column(
-          children: [
-            ErrorDisplay(
-              message: authViewModel.errorMessage!,
-              compact: true,
-              onRetry: authViewModel.clearError,
-            ),
-            const SizedBox(height: 16),
-          ],
-        )
+            children: [
+              ErrorDisplay(
+                message: authViewModel.errorMessage!,
+                compact: true,
+                onRetry: authViewModel.clearError,
+              ),
+              const SizedBox(height: 16),
+            ],
+          )
         : const SizedBox.shrink();
   }
 

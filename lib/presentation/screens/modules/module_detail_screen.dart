@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
@@ -11,6 +10,8 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
+
+import '../../../core/navigation/navigation_helper.dart';
 
 class ModuleDetailScreen extends StatefulWidget {
   final String moduleId;
@@ -116,9 +117,9 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     } catch (error) {
       debugPrint('Error creating progress: $error');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${error.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${error.toString()}')));
       }
     }
   }
@@ -136,10 +137,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 
   Future<ProgressDetail?> _createNewProgress(
-      ProgressViewModel progressViewModel,
-      AuthViewModel authViewModel,
-      String moduleId,
-      ) async {
+    ProgressViewModel progressViewModel,
+    AuthViewModel authViewModel,
+    String moduleId,
+  ) async {
     return progressViewModel.createProgress(
       moduleId: moduleId,
       userId: authViewModel.currentUser!.id,
@@ -149,9 +150,20 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 
   void _navigateToProgress(String progressId) {
-    if (mounted) {
-      GoRouter.of(context).push('/learning/progress/$progressId');
+    if (!mounted) return;
+
+    // Sử dụng NavigationHelper thay vì GoRouter trực tiếp
+    if (progressId.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid progress ID')));
+      return;
     }
+
+    NavigationHelper.pushWithResult(
+      context,
+      '/progress/$progressId',
+    ).then((_) => _refreshData()); // Refresh khi quay lại
   }
 
   @override
@@ -162,7 +174,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
     final bool hasProgress =
         progressViewModel.selectedProgress != null ||
-            (module?.progress != null && module!.progress.isNotEmpty);
+        (module?.progress != null && module!.progress.isNotEmpty);
 
     debugPrint('Has progress (combined check): $hasProgress');
     debugPrint('selectedProgress: ${progressViewModel.selectedProgress?.id}');
@@ -182,7 +194,8 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
       body: FutureBuilder(
         future: _dataFuture,
         builder: (context, snapshot) {
-          if (_isInitialLoad && snapshot.connectionState == ConnectionState.waiting) {
+          if (_isInitialLoad &&
+              snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: AppLoadingIndicator());
           }
 
@@ -205,13 +218,12 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
           );
         },
       ),
-      floatingActionButton:
-      module != null && !hasProgress
+      floatingActionButton: module != null && !hasProgress
           ? FloatingActionButton.extended(
-        onPressed: _startLearning,
-        icon: const Icon(Icons.play_arrow),
-        label: const Text('Start Learning'),
-      )
+              onPressed: _startLearning,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Start Learning'),
+            )
           : null,
     );
   }
@@ -483,8 +495,8 @@ class _ContentSection extends StatelessWidget {
                 ],
                 const Text(
                   'This is where the module content would be displayed. '
-                      'In a complete application, this would include text, '
-                      'images, videos, and other learning materials.',
+                  'In a complete application, this would include text, '
+                  'images, videos, and other learning materials.',
                 ),
                 const SizedBox(height: AppDimens.spaceL),
                 _buildStudyTips(context),
@@ -523,9 +535,9 @@ class _ContentSection extends StatelessWidget {
           const SizedBox(height: AppDimens.spaceM),
           const Text(
             '• Review this module regularly using the spaced repetition schedule\n'
-                '• Take notes while studying\n'
-                '• Try to recall the material before checking your answers\n'
-                '• Connect new information to things you already know',
+            '• Take notes while studying\n'
+            '• Try to recall the material before checking your answers\n'
+            '• Connect new information to things you already know',
           ),
         ],
       ),

@@ -5,7 +5,6 @@ import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart'
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
-import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
@@ -15,6 +14,8 @@ import 'package:spaced_learning_app/presentation/screens/report/daily_task_repor
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
+
+import '../../presentation/screens/home/home_screen.dart';
 
 class AppRouter {
   final AuthViewModel authViewModel;
@@ -29,161 +30,233 @@ class AppRouter {
     redirect: _handleRedirect,
     observers: [
       routeObserver,
-      GoRouterObserver(onPop: _handlePopRoute),
+      GoRouterObserver(
+        onPop: (route, result) {
+          debugPrint('Popped route: ${route.settings.name}');
+        },
+      ),
     ],
-    routes: _buildRoutes(),
-  );
+    routes: [
+      // Auth routes (outside shell)
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
 
-  String? _handleRedirect(BuildContext context, GoRouterState state) {
-    final isLoggedIn = authViewModel.isAuthenticated;
-    final isGoingToLogin = state.uri.toString() == '/login';
-
-    if (!isLoggedIn && !isGoingToLogin) {
-      return '/login';
-    }
-
-    if (isLoggedIn && isGoingToLogin) {
-      return '/';
-    }
-
-    return null;
-  }
-
-  void _handlePopRoute(Route<dynamic> route, dynamic result) {
-    debugPrint('Popped route: ${route.settings.name}');
-  }
-
-  List<RouteBase> _buildRoutes() {
-    return [
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-
+      // Modal routes (outside shell)
       GoRoute(
         path: '/progress/:id',
         name: 'progressDetail',
         builder: (context, state) {
           final progressId = state.pathParameters['id'];
           debugPrint('Router received progressId: $progressId');
-          return ProgressDetailScreen(progressId: progressId ?? '');
+
+          // Early return for empty ID
+          if (progressId == null || progressId.isEmpty) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Invalid progress ID'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Go Back'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return ProgressDetailScreen(progressId: progressId);
         },
       ),
 
+      // Main app shell with bottom navigation
       ShellRoute(
         builder: (context, state, child) {
-          final int currentIndex = _getCurrentIndex(state.matchedLocation);
+          int currentIndex = 0;
+          final location = state.matchedLocation;
+          if (location.startsWith('/books')) {
+            currentIndex = 1;
+          } else if (location.startsWith('/due-progress')) {
+            currentIndex = 2;
+          } else if (location.startsWith('/learning')) {
+            currentIndex = 3;
+          } else if (location.startsWith('/profile')) {
+            currentIndex = 4;
+          }
+
           return ScaffoldWithBottomBar(
             currentIndex: currentIndex,
             child: child,
           );
         },
-        routes: _buildShellRoutes(),
-      ),
-    ];
-  }
-
-  int _getCurrentIndex(String location) {
-    if (location.startsWith('/books')) {
-      return 1;
-    }
-
-    if (location.startsWith('/due-progress')) {
-      return 2;
-    }
-
-    if (location.startsWith('/learning')) {
-      return 3;
-    }
-
-    if (location.startsWith('/profile')) {
-      return 4;
-    }
-
-    return 0; // Home is the default
-  }
-
-  List<RouteBase> _buildShellRoutes() {
-    return [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const HomeScreen(),
-        routes: [],
-      ),
-
-      GoRoute(
-        path: '/books',
-        builder: (context, state) => const BooksScreen(),
         routes: [
           GoRoute(
-            path: ':id',
-            builder: (context, state) {
-              final bookId = state.pathParameters['id'];
-              return BookDetailScreen(bookId: bookId ?? '');
-            },
+            path: '/',
+            name: 'home',
+            builder: (context, state) => const HomeScreen(),
+          ),
+
+          GoRoute(
+            path: '/books',
+            name: 'books',
+            builder: (context, state) => const BooksScreen(),
             routes: [
               GoRoute(
-                path: 'modules/:moduleId',
+                path: ':id',
+                name: 'bookDetail',
                 builder: (context, state) {
-                  final moduleId = state.pathParameters['moduleId'];
-                  return ModuleDetailScreen(moduleId: moduleId ?? '');
+                  final bookId = state.pathParameters['id'];
+                  if (bookId == null || bookId.isEmpty) {
+                    return _buildErrorScreen(
+                      'Invalid book ID',
+                      () => GoRouter.of(context).go('/books'),
+                    );
+                  }
+                  return BookDetailScreen(bookId: bookId);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'modules/:moduleId',
+                    name: 'moduleDetail',
+                    builder: (context, state) {
+                      final moduleId = state.pathParameters['moduleId'];
+                      if (moduleId == null || moduleId.isEmpty) {
+                        return _buildErrorScreen(
+                          'Invalid module ID',
+                          () => GoRouter.of(context).pop(),
+                        );
+                      }
+                      return ModuleDetailScreen(moduleId: moduleId);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          GoRoute(
+            path: '/learning',
+            name: 'learning',
+            builder: (context, state) => const LearningProgressScreen(),
+            routes: [
+              GoRoute(
+                path: 'progress/:id',
+                name: 'learningProgress',
+                builder: (context, state) {
+                  final progressId = state.pathParameters['id'];
+                  if (progressId == null || progressId.isEmpty) {
+                    return _buildErrorScreen(
+                      'Invalid progress ID',
+                      () => GoRouter.of(context).go('/learning'),
+                    );
+                  }
+                  return ProgressDetailScreen(progressId: progressId);
+                },
+              ),
+              GoRoute(
+                path: 'modules/:id',
+                name: 'learningModule',
+                builder: (context, state) {
+                  final moduleId = state.pathParameters['id'];
+                  if (moduleId == null || moduleId.isEmpty) {
+                    return _buildErrorScreen(
+                      'Invalid module ID',
+                      () => GoRouter.of(context).go('/learning'),
+                    );
+                  }
+                  return ModuleDetailScreen(moduleId: moduleId);
                 },
               ),
             ],
           ),
-        ],
-      ),
 
-      GoRoute(
-        path: '/learning',
-        builder: (context, state) => const LearningProgressScreen(),
-        routes: [
           GoRoute(
-            path: 'progress/:id',
-            builder: (context, state) {
-              final progressId = state.pathParameters['id'];
-              return ProgressDetailScreen(progressId: progressId ?? '');
-            },
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const ProfileScreen(),
           ),
+
           GoRoute(
-            path: 'modules/:id',
-            builder: (context, state) {
-              final moduleId = state.pathParameters['id'];
-              return ModuleDetailScreen(moduleId: moduleId ?? '');
-            },
+            path: '/due-progress',
+            name: 'dueProgress',
+            builder: (context, state) => const DueProgressScreen(),
           ),
-        ],
-      ),
 
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
-      ),
-
-      GoRoute(
-        path: '/due-progress',
-        builder: (context, state) => const DueProgressScreen(),
-      ),
-
-      GoRoute(
-        path: '/settings/reminders',
-        builder: (context, state) => const ReminderSettingsScreen(),
-      ),
-
-      GoRoute(
-        path: '/help',
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: Text('Help & Support'))),
-        routes: [
           GoRoute(
-            path: 'spaced-repetition',
-            builder: (context, state) => const SpacedRepetitionInfoScreen(),
+            path: '/settings/reminders',
+            name: 'reminderSettings',
+            builder: (context, state) => const ReminderSettingsScreen(),
+          ),
+
+          GoRoute(
+            path: '/help',
+            name: 'help',
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Help & Support'))),
+            routes: [
+              GoRoute(
+                path: 'spaced-repetition',
+                name: 'spacedRepetition',
+                builder: (context, state) => const SpacedRepetitionInfoScreen(),
+              ),
+            ],
+          ),
+
+          GoRoute(
+            path: '/task-report',
+            name: 'taskReport',
+            builder: (context, state) => const DailyTaskReportScreen(),
           ),
         ],
       ),
+    ],
+  );
 
-      GoRoute(
-        path: '/task-report',
-        builder: (context, state) => const DailyTaskReportScreen(),
+  // Xử lý redirect dựa trên trạng thái đăng nhập
+  String? _handleRedirect(BuildContext context, GoRouterState state) {
+    final isLoggedIn = authViewModel.isAuthenticated;
+    final isGoingToLogin = state.matchedLocation == '/login';
+
+    // Danh sách các route không cần đăng nhập
+    final publicRoutes = ['/login', '/register', '/forgot-password'];
+    final isGoingToPublicRoute = publicRoutes.contains(state.matchedLocation);
+
+    // Nếu chưa đăng nhập và đang cố truy cập route cần đăng nhập
+    if (!isLoggedIn && !isGoingToPublicRoute) {
+      return '/login';
+    }
+
+    // Nếu đã đăng nhập và cố truy cập route đăng nhập
+    if (isLoggedIn && isGoingToLogin) {
+      return '/';
+    }
+
+    // Không cần redirect
+    return null;
+  }
+
+  // Widget chung cho màn hình lỗi
+  Widget _buildErrorScreen(String message, VoidCallback onBack) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Error')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: onBack, child: const Text('Go Back')),
+          ],
+        ),
       ),
-    ];
+    );
   }
 }
 

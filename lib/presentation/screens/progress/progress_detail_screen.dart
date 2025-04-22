@@ -298,6 +298,27 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
   Widget build(BuildContext context) {
     final progressViewModel = context.watch<ProgressViewModel>();
 
+    if (widget.progressId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Progress Details')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text('Invalid progress ID'),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => GoRouter.of(context).pop(),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: _buildAppBar(progressViewModel.selectedProgress?.moduleTitle),
       body: FutureBuilder(

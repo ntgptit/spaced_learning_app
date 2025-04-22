@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
+
+import '../../../core/navigation/navigation_helper.dart';
 
 class ScaffoldWithBottomBar extends StatefulWidget {
   final Widget child;
@@ -108,22 +109,26 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
       }
     }
 
+    String route = '/';
     switch (index) {
       case 0:
-        GoRouter.of(context).go('/');
+        route = '/';
         break;
       case 1:
-        GoRouter.of(context).go('/books');
+        route = '/books';
         break;
       case 2:
-        GoRouter.of(context).go('/due-progress');
+        route = '/due-progress';
         break;
       case 3:
-        GoRouter.of(context).go('/learning');
+        route = '/learning';
         break;
       case 4:
-        GoRouter.of(context).go('/profile');
+        route = '/profile';
         break;
     }
+
+    // Clear stack và đi đến route mới (pop to root within tab)
+    NavigationHelper.clearStackAndGo(context, route);
   }
 }

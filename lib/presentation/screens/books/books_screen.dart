@@ -12,6 +12,8 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_empty_state.
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
+import '../../../core/navigation/navigation_helper.dart';
+
 class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
 
@@ -82,10 +84,9 @@ class _BooksScreenState extends State<BooksScreen>
       }
       await bookViewModel.loadBooks(); // This applies current filters if any
     } catch (e) {
-      final errorMessage =
-          e is AppException
-              ? e.message
-              : 'An unexpected error occurred. Please try again.';
+      final errorMessage = e is AppException
+          ? e.message
+          : 'An unexpected error occurred. Please try again.';
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -165,10 +166,9 @@ class _BooksScreenState extends State<BooksScreen>
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollController,
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [
-              _buildAppBar(theme, colorScheme, innerBoxIsScrolled),
-            ],
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          _buildAppBar(theme, colorScheme, innerBoxIsScrolled),
+        ],
         body: Column(
           children: [
             _buildSearchAndFilterBar(theme, colorScheme),
@@ -182,32 +182,31 @@ class _BooksScreenState extends State<BooksScreen>
                   child: child,
                 );
               },
-              child:
-                  _isFilterExpanded
-                      ? BookFilterPanel(
-                        categories: _categories,
-                        selectedCategory: _selectedCategory,
-                        selectedStatus: _selectedStatus,
-                        selectedDifficulty: _selectedDifficulty,
-                        onCategorySelected: (category) {
-                          setState(() => _selectedCategory = category);
-                          _applyFilters();
-                        },
-                        onStatusSelected: (status) {
-                          setState(() => _selectedStatus = status);
-                          _applyFilters();
-                        },
-                        onDifficultySelected: (difficulty) {
-                          setState(() => _selectedDifficulty = difficulty);
-                          _applyFilters();
-                        },
-                        onFiltersApplied: () {
-                          _applyFilters();
-                          _toggleFilterPanel();
-                        },
-                        onFilterCleared: _resetFilters,
-                      )
-                      : const SizedBox.shrink(),
+              child: _isFilterExpanded
+                  ? BookFilterPanel(
+                      categories: _categories,
+                      selectedCategory: _selectedCategory,
+                      selectedStatus: _selectedStatus,
+                      selectedDifficulty: _selectedDifficulty,
+                      onCategorySelected: (category) {
+                        setState(() => _selectedCategory = category);
+                        _applyFilters();
+                      },
+                      onStatusSelected: (status) {
+                        setState(() => _selectedStatus = status);
+                        _applyFilters();
+                      },
+                      onDifficultySelected: (difficulty) {
+                        setState(() => _selectedDifficulty = difficulty);
+                        _applyFilters();
+                      },
+                      onFiltersApplied: () {
+                        _applyFilters();
+                        _toggleFilterPanel();
+                      },
+                      onFilterCleared: _resetFilters,
+                    )
+                  : const SizedBox.shrink(),
             ),
 
             Expanded(
@@ -226,12 +225,12 @@ class _BooksScreenState extends State<BooksScreen>
       ),
       floatingActionButton:
           authViewModel.currentUser?.roles?.contains('ADMIN') == true
-              ? FloatingActionButton(
-                onPressed: () => GoRouter.of(context).push('/books/create'),
-                tooltip: 'Add Book',
-                child: const Icon(Icons.add),
-              )
-              : null,
+          ? FloatingActionButton(
+              onPressed: () => GoRouter.of(context).push('/books/create'),
+              tooltip: 'Add Book',
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
@@ -313,16 +312,15 @@ class _BooksScreenState extends State<BooksScreen>
       ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        boxShadow:
-            _isScrolled || _isFilterExpanded
-                ? [
-                  BoxShadow(
-                    color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-                : null,
+        boxShadow: _isScrolled || _isFilterExpanded
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         children: [
@@ -337,20 +335,19 @@ class _BooksScreenState extends State<BooksScreen>
                     Icons.search,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  suffixIcon:
-                      _searchController.text.isNotEmpty
-                          ? IconButton(
-                            icon: Icon(
-                              Icons.clear,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              _searchBooks('');
-                            },
-                            tooltip: 'Clear search',
-                          )
-                          : null,
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            _searchBooks('');
+                          },
+                          tooltip: 'Clear search',
+                        )
+                      : null,
                   filled: true,
                   fillColor: theme.colorScheme.surfaceContainerLowest,
                   contentPadding: const EdgeInsets.symmetric(
@@ -468,7 +465,26 @@ class _BooksScreenState extends State<BooksScreen>
                 final book = viewModel.books[index];
                 return BookListCard(
                   book: book,
-                  onTap: () => GoRouter.of(context).push('/books/${book.id}'),
+                  onTap: () {
+                    // Kiểm tra ID hợp lệ trước khi điều hướng
+                    if (book.id.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Invalid book ID')),
+                      );
+                      return;
+                    }
+
+                    // Sử dụng NavigationHelper.pushWithResult để lấy kết quả
+                    NavigationHelper.pushWithResult(
+                      context,
+                      '/books/${book.id}',
+                    ).then((result) {
+                      // Nếu có kết quả (hoặc result là true), refresh dữ liệu
+                      if (result == true) {
+                        _loadData(forceRefresh: true);
+                      }
+                    });
+                  },
                 );
               }, childCount: viewModel.books.length),
             ),
@@ -482,13 +498,13 @@ class _BooksScreenState extends State<BooksScreen>
     return AppEmptyState(
       icon: _isSearching ? Icons.search_off : Icons.book_outlined,
       title: _isSearching ? 'No books found' : 'No books available',
-      message:
-          _isSearching
-              ? 'Try adjusting your search or filters.'
-              : 'Check back later or refresh.',
+      message: _isSearching
+          ? 'Try adjusting your search or filters.'
+          : 'Check back later or refresh.',
       buttonText: _isSearching ? 'Clear Search & Filters' : 'Refresh',
-      onButtonPressed:
-          _isSearching ? _resetFilters : () => _loadData(forceRefresh: true),
+      onButtonPressed: _isSearching
+          ? _resetFilters
+          : () => _loadData(forceRefresh: true),
     );
   }
 }

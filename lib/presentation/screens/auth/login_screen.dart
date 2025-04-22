@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/register_screen.dart';
@@ -33,21 +34,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _validateUsernameOrEmail() {
     setState(() {
-      _usernameOrEmailError =
-          _usernameOrEmailController.text.isEmpty
-              ? 'Username or email is required'
-              : null;
+      _usernameOrEmailError = _usernameOrEmailController.text.isEmpty
+          ? 'Username or email is required'
+          : null;
     });
   }
 
   void _validatePassword() {
     setState(() {
-      _passwordError =
-          _passwordController.text.isEmpty
-              ? 'Password is required'
-              : _passwordController.text.length < 8
-              ? 'Password must be at least 8 characters'
-              : null;
+      _passwordError = _passwordController.text.isEmpty
+          ? 'Password is required'
+          : _passwordController.text.length < 8
+          ? 'Password must be at least 8 characters'
+          : null;
     });
   }
 
@@ -63,7 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted && authViewModel.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Sử dụng GoRouter thay vì Navigator
+        GoRouter.of(context).go('/');
       }
     }
   }
@@ -95,15 +95,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildErrorDisplay(AuthViewModel authViewModel, ThemeData theme) {
     return authViewModel.errorMessage != null
         ? Column(
-          children: [
-            ErrorDisplay(
-              message: authViewModel.errorMessage!,
-              compact: true,
-              onRetry: authViewModel.clearError,
-            ),
-            const SizedBox(height: 16),
-          ],
-        )
+            children: [
+              ErrorDisplay(
+                message: authViewModel.errorMessage!,
+                compact: true,
+                onRetry: authViewModel.clearError,
+              ),
+              const SizedBox(height: 16),
+            ],
+          )
         : const SizedBox.shrink();
   }
 
@@ -159,10 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             TextButton(
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  ),
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const RegisterScreen())),
               child: const Text('Register'),
             ),
           ],
