@@ -20,16 +20,15 @@ class ModuleRepositoryImpl implements ModuleRepository {
         queryParameters: {'page': page, 'size': size},
       );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> moduleList = response['content'];
-        return moduleList.map((item) => ModuleSummary.fromJson(item)).toList();
-      } else {
+      if (response['success'] != true || response['content'] == null) {
         return [];
       }
+
+      final List<dynamic> moduleList = response['content'];
+      return moduleList.map((item) => ModuleSummary.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get modules: $e');
     }
   }
@@ -39,15 +38,14 @@ class ModuleRepositoryImpl implements ModuleRepository {
     try {
       final response = await _apiClient.get('${ApiEndpoints.modules}/$id');
 
-      if (response['success'] == true && response['data'] != null) {
-        return ModuleDetail.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw NotFoundException('Module not found: ${response['message']}');
       }
+
+      return ModuleDetail.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get module: $e');
     }
   }
@@ -65,33 +63,15 @@ class ModuleRepositoryImpl implements ModuleRepository {
       );
 
       final content = response['content'];
-
-      if (content != null && content is List) {
-        return content.map((item) => ModuleSummary.fromJson(item)).toList();
-      } else {
+      if (content == null || content is! List) {
         return [];
       }
+
+      return content.map((item) => ModuleSummary.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get modules by book: $e');
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

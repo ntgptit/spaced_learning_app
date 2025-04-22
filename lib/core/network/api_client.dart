@@ -66,48 +66,60 @@ class ApiClient {
   }
 
   dynamic _processResponse(Response response) {
-    switch (response.statusCode) {
-      case 200:
-      case 201:
-        return response.data;
-      case 204:
-        return null;
-      case 400:
-        throw BadRequestException(
-          response.data?['message'] ?? 'Bad request',
-          response.requestOptions.path,
-          response.data?['errors'],
-        );
-      case 401:
-        throw AuthenticationException(
-          response.data?['message'] ?? 'Authentication failed',
-          response.requestOptions.path,
-        );
-      case 403:
-        throw ForbiddenException(
-          response.data?['message'] ?? 'Access denied',
-          response.requestOptions.path,
-        );
-      case 404:
-        throw NotFoundException(
-          response.data?['message'] ?? 'Resource not found',
-          response.requestOptions.path,
-        );
-      case 500:
-      case 502:
-      case 503:
-      case 504:
-        throw ServerException(
-          response.data?['message'] ?? 'Server error',
-          response.requestOptions.path,
-        );
-      default:
-        throw HttpException(
-          response.statusCode ?? 0,
-          response.data?['message'] ?? 'Unknown error occurred',
-          response.requestOptions.path,
-        );
+    final statusCode = response.statusCode;
+
+    if (statusCode == 200 || statusCode == 201) {
+      return response.data;
     }
+
+    if (statusCode == 204) {
+      return null;
+    }
+
+    if (statusCode == 400) {
+      throw BadRequestException(
+        response.data?['message'] ?? 'Bad request',
+        response.requestOptions.path,
+        response.data?['errors'],
+      );
+    }
+
+    if (statusCode == 401) {
+      throw AuthenticationException(
+        response.data?['message'] ?? 'Authentication failed',
+        response.requestOptions.path,
+      );
+    }
+
+    if (statusCode == 403) {
+      throw ForbiddenException(
+        response.data?['message'] ?? 'Access denied',
+        response.requestOptions.path,
+      );
+    }
+
+    if (statusCode == 404) {
+      throw NotFoundException(
+        response.data?['message'] ?? 'Resource not found',
+        response.requestOptions.path,
+      );
+    }
+
+    if (statusCode == 500 ||
+        statusCode == 502 ||
+        statusCode == 503 ||
+        statusCode == 504) {
+      throw ServerException(
+        response.data?['message'] ?? 'Server error',
+        response.requestOptions.path,
+      );
+    }
+
+    throw HttpException(
+      statusCode ?? 0,
+      response.data?['message'] ?? 'Unknown error occurred',
+      response.requestOptions.path,
+    );
   }
 
   dynamic _handleError(dynamic e, String? url) {

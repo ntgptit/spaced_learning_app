@@ -28,24 +28,27 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401 && !_isRefreshing) {
-      if (!_shouldSkipAuth(err.requestOptions.path)) {
-        try {
-          final refreshedToken = await _refreshToken();
-          if (refreshedToken != null) {
-            final options = err.requestOptions;
-            options.headers['Authorization'] = 'Bearer $refreshedToken';
-
-            final response = await _dio.fetch(options);
-            return handler.resolve(response);
-          }
-        } catch (e) {
-          return handler.next(err);
-        }
-      }
+    if (err.response?.statusCode != 401 || _isRefreshing) {
+      return handler.next(err);
     }
 
-    return handler.next(err);
+    if (_shouldSkipAuth(err.requestOptions.path)) {
+      return handler.next(err);
+    }
+
+    try {
+      final refreshedToken = await _refreshToken();
+      if (refreshedToken == null) {
+        return handler.next(err);
+      }
+
+      final options = err.requestOptions;
+      options.headers['Authorization'] = 'Bearer $refreshedToken';
+      final response = await _dio.fetch(options);
+      return handler.resolve(response);
+    } catch (e) {
+      return handler.next(err);
+    }
   }
 
   bool _shouldSkipAuth(String path) {
@@ -76,21 +79,25 @@ class AuthInterceptor extends Interceptor {
         data: {'refreshToken': refreshToken},
       );
 
-      if (response.statusCode == 200 && response.data != null) {
-        final newToken = response.data['data']['token'];
-        final newRefreshToken = response.data['data']['refreshToken'];
-
-        if (newToken != null && newRefreshToken != null) {
-          await _storageService.saveToken(newToken);
-          await _storageService.saveRefreshToken(newRefreshToken);
-          _isRefreshing = false;
-          return newToken;
-        }
+      if (response.statusCode != 200 || response.data == null) {
+        await _storageService.clearTokens();
+        _isRefreshing = false;
+        return null;
       }
 
-      await _storageService.clearTokens();
+      final newToken = response.data['data']['token'];
+      final newRefreshToken = response.data['data']['refreshToken'];
+
+      if (newToken == null || newRefreshToken == null) {
+        await _storageService.clearTokens();
+        _isRefreshing = false;
+        return null;
+      }
+
+      await _storageService.saveToken(newToken);
+      await _storageService.saveRefreshToken(newRefreshToken);
       _isRefreshing = false;
-      return null;
+      return newToken;
     } catch (e) {
       await _storageService.clearTokens();
       _isRefreshing = false;

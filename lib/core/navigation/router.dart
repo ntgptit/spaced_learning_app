@@ -5,6 +5,7 @@ import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart'
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
@@ -14,8 +15,6 @@ import 'package:spaced_learning_app/presentation/screens/report/daily_task_repor
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
-
-import '../../presentation/screens/home/home_screen.dart';
 
 class AppRouter {
   final AuthViewModel authViewModel;
@@ -27,27 +26,35 @@ class AppRouter {
     refreshListenable: authViewModel,
     debugLogDiagnostics: true,
     initialLocation: '/',
-    redirect: (context, state) {
-      final isLoggedIn = authViewModel.isAuthenticated;
-      final isGoingToLogin = state.uri.toString() == '/login';
-
-      if (!isLoggedIn && !isGoingToLogin) {
-        return '/login';
-      }
-      if (isLoggedIn && isGoingToLogin) {
-        return '/';
-      }
-      return null;
-    },
+    redirect: _handleRedirect,
     observers: [
       routeObserver,
-      GoRouterObserver(
-        onPop: (route, result) {
-          debugPrint('Popped route: ${route.settings.name}');
-        },
-      ),
+      GoRouterObserver(onPop: _handlePopRoute),
     ],
-    routes: [
+    routes: _buildRoutes(),
+  );
+
+  String? _handleRedirect(BuildContext context, GoRouterState state) {
+    final isLoggedIn = authViewModel.isAuthenticated;
+    final isGoingToLogin = state.uri.toString() == '/login';
+
+    if (!isLoggedIn && !isGoingToLogin) {
+      return '/login';
+    }
+
+    if (isLoggedIn && isGoingToLogin) {
+      return '/';
+    }
+
+    return null;
+  }
+
+  void _handlePopRoute(Route<dynamic> route, dynamic result) {
+    debugPrint('Popped route: ${route.settings.name}');
+  }
+
+  List<RouteBase> _buildRoutes() {
+    return [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
       GoRoute(
@@ -62,109 +69,122 @@ class AppRouter {
 
       ShellRoute(
         builder: (context, state, child) {
-          int currentIndex = 0;
-          final location = state.matchedLocation;
-          if (location.startsWith('/books')) {
-            currentIndex = 1;
-          } else if (location.startsWith('/due-progress')) {
-            currentIndex = 2;
-          } else if (location.startsWith('/learning')) {
-            currentIndex = 3;
-          } else if (location.startsWith('/profile')) {
-            currentIndex = 4;
-          }
-
+          final int currentIndex = _getCurrentIndex(state.matchedLocation);
           return ScaffoldWithBottomBar(
             currentIndex: currentIndex,
             child: child,
           );
         },
+        routes: _buildShellRoutes(),
+      ),
+    ];
+  }
+
+  int _getCurrentIndex(String location) {
+    if (location.startsWith('/books')) {
+      return 1;
+    }
+
+    if (location.startsWith('/due-progress')) {
+      return 2;
+    }
+
+    if (location.startsWith('/learning')) {
+      return 3;
+    }
+
+    if (location.startsWith('/profile')) {
+      return 4;
+    }
+
+    return 0; // Home is the default
+  }
+
+  List<RouteBase> _buildShellRoutes() {
+    return [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const HomeScreen(),
+        routes: [],
+      ),
+
+      GoRoute(
+        path: '/books',
+        builder: (context, state) => const BooksScreen(),
         routes: [
           GoRoute(
-            path: '/',
-            builder: (context, state) => const HomeScreen(),
-            routes: [],
-          ),
-
-          GoRoute(
-            path: '/books',
-            builder: (context, state) => const BooksScreen(),
+            path: ':id',
+            builder: (context, state) {
+              final bookId = state.pathParameters['id'];
+              return BookDetailScreen(bookId: bookId ?? '');
+            },
             routes: [
               GoRoute(
-                path: ':id',
+                path: 'modules/:moduleId',
                 builder: (context, state) {
-                  final bookId = state.pathParameters['id'];
-                  return BookDetailScreen(bookId: bookId ?? '');
-                },
-                routes: [
-                  GoRoute(
-                    path: 'modules/:moduleId',
-                    builder: (context, state) {
-                      final moduleId = state.pathParameters['moduleId'];
-                      return ModuleDetailScreen(moduleId: moduleId ?? '');
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          GoRoute(
-            path: '/learning',
-            builder: (context, state) => const LearningProgressScreen(),
-            routes: [
-              GoRoute(
-                path: 'progress/:id',
-                builder: (context, state) {
-                  final progressId = state.pathParameters['id'];
-                  return ProgressDetailScreen(progressId: progressId ?? '');
-                },
-              ),
-              GoRoute(
-                path: 'modules/:id',
-                builder: (context, state) {
-                  final moduleId = state.pathParameters['id'];
+                  final moduleId = state.pathParameters['moduleId'];
                   return ModuleDetailScreen(moduleId: moduleId ?? '');
                 },
               ),
             ],
           ),
+        ],
+      ),
 
+      GoRoute(
+        path: '/learning',
+        builder: (context, state) => const LearningProgressScreen(),
+        routes: [
           GoRoute(
-            path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            path: 'progress/:id',
+            builder: (context, state) {
+              final progressId = state.pathParameters['id'];
+              return ProgressDetailScreen(progressId: progressId ?? '');
+            },
           ),
-
           GoRoute(
-            path: '/due-progress',
-            builder: (context, state) => const DueProgressScreen(),
-          ),
-
-          GoRoute(
-            path: '/settings/reminders',
-            builder: (context, state) => const ReminderSettingsScreen(),
-          ),
-
-          GoRoute(
-            path: '/help',
-            builder: (context, state) =>
-                const Scaffold(body: Center(child: Text('Help & Support'))),
-            routes: [
-              GoRoute(
-                path: 'spaced-repetition',
-                builder: (context, state) => const SpacedRepetitionInfoScreen(),
-              ),
-            ],
-          ),
-
-          GoRoute(
-            path: '/task-report',
-            builder: (context, state) => const DailyTaskReportScreen(),
+            path: 'modules/:id',
+            builder: (context, state) {
+              final moduleId = state.pathParameters['id'];
+              return ModuleDetailScreen(moduleId: moduleId ?? '');
+            },
           ),
         ],
       ),
-    ],
-  );
+
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+
+      GoRoute(
+        path: '/due-progress',
+        builder: (context, state) => const DueProgressScreen(),
+      ),
+
+      GoRoute(
+        path: '/settings/reminders',
+        builder: (context, state) => const ReminderSettingsScreen(),
+      ),
+
+      GoRoute(
+        path: '/help',
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('Help & Support'))),
+        routes: [
+          GoRoute(
+            path: 'spaced-repetition',
+            builder: (context, state) => const SpacedRepetitionInfoScreen(),
+          ),
+        ],
+      ),
+
+      GoRoute(
+        path: '/task-report',
+        builder: (context, state) => const DailyTaskReportScreen(),
+      ),
+    ];
+  }
 }
 
 class GoRouterObserver extends NavigatorObserver {

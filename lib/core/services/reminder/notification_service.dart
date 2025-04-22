@@ -31,16 +31,8 @@ class NotificationService {
     if (_isInitialized) return true;
 
     try {
-      if (!_timezonesInitialized) {
-        try {
-          tz.initializeTimeZones();
-          _timezonesInitialized = true;
-
-          final String timeZoneName = tz.local.name;
-          debugPrint('Local timezone: $timeZoneName');
-        } catch (e) {
-          debugPrint('Error initializing timezone data: $e');
-        }
+      if (!await _initializeTimezones()) {
+        debugPrint('Warning: Failed to initialize timezones');
       }
 
       if (kIsWeb) {
@@ -51,6 +43,46 @@ class NotificationService {
         return true;
       }
 
+      if (!await _initializeNotifications()) {
+        debugPrint('Failed to initialize notifications plugin');
+        return false;
+      }
+
+      if (_deviceSpecificService.isAndroid) {
+        if (!await _createNotificationChannels()) {
+          debugPrint('Warning: Failed to create notification channels');
+        }
+      }
+
+      if (!await _requestPermissions()) {
+        debugPrint('Warning: Notification permissions not granted');
+      }
+
+      _isInitialized = true;
+      return true;
+    } catch (e) {
+      debugPrint('Error initializing NotificationService: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _initializeTimezones() async {
+    if (_timezonesInitialized) return true;
+
+    try {
+      tz.initializeTimeZones();
+      final String timeZoneName = tz.local.name;
+      debugPrint('Local timezone: $timeZoneName');
+      _timezonesInitialized = true;
+      return true;
+    } catch (e) {
+      debugPrint('Error initializing timezone data: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _initializeNotifications() async {
+    try {
       final AndroidInitializationSettings androidSettings =
           _getAndroidSettings();
 
@@ -70,76 +102,67 @@ class NotificationService {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
-      if (initialized != true) {
-        debugPrint('Failed to initialize notifications plugin');
-        return false;
-      }
-
-      if (_deviceSpecificService.isAndroid) {
-        final bool channelsCreated = await _createNotificationChannels();
-        if (!channelsCreated) {
-          debugPrint('Warning: Failed to create notification channels');
-        }
-      }
-
-      final bool permissionsGranted = await _requestPermissions();
-      if (!permissionsGranted) {
-        debugPrint('Warning: Notification permissions not granted');
-      }
-
-      _isInitialized = true;
-      return true;
+      return initialized ?? false;
     } catch (e) {
-      debugPrint('Error initializing NotificationService: $e');
+      debugPrint('Error initializing notifications: $e');
       return false;
     }
   }
 
   AndroidInitializationSettings _getAndroidSettings() {
-      return const AndroidInitializationSettings('ic_launcher');
+    return const AndroidInitializationSettings('ic_launcher');
   }
 
   Future<bool> _createNotificationChannels() async {
     if (!_deviceSpecificService.isAndroid) return true;
 
     try {
-      const regularChannel = AndroidNotificationChannel(
-        regularChannelId,
-        'Learning Reminders',
-        description: 'Reminders for your daily learning schedule',
-        importance: Importance.high,
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      if (androidPlugin == null) {
+        return false;
+      }
+
+      // Create regular channel
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          regularChannelId,
+          'Learning Reminders',
+          description: 'Reminders for your daily learning schedule',
+          importance: Importance.high,
+        ),
       );
 
-      const importantChannel = AndroidNotificationChannel(
-        importantChannelId,
-        'Important Reminders',
-        description: 'Urgent reminders for unfinished learning tasks',
-        importance: Importance.high,
-        sound: RawResourceAndroidNotificationSound('notification_sound'),
+      // Create important channel
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          importantChannelId,
+          'Important Reminders',
+          description: 'Urgent reminders for unfinished learning tasks',
+          importance: Importance.high,
+          sound: RawResourceAndroidNotificationSound('notification_sound'),
+        ),
       );
 
-      const alarmChannel = AndroidNotificationChannel(
-        alarmChannelId,
-        'Learning Alarms',
-        description: 'Alarm-style reminders for critical learning tasks',
-        importance: Importance.max,
-        sound: RawResourceAndroidNotificationSound('alarm_sound'),
-        playSound: true,
-        enableVibration: true,
+      // Create alarm channel
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          alarmChannelId,
+          'Learning Alarms',
+          description: 'Alarm-style reminders for critical learning tasks',
+          importance: Importance.max,
+          sound: RawResourceAndroidNotificationSound('alarm_sound'),
+          playSound: true,
+          enableVibration: true,
+        ),
       );
 
-      final androidPlugin =
-          _notificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
-
-      await androidPlugin?.createNotificationChannel(regularChannel);
-      await androidPlugin?.createNotificationChannel(importantChannel);
-      await androidPlugin?.createNotificationChannel(alarmChannel);
-
+      // Create Samsung-specific channels if needed
       if (_deviceSpecificService.isSamsungDevice) {
-        await _createSamsungSpecificChannels(androidPlugin!);
+        await _createSamsungSpecificChannels(androidPlugin);
       }
 
       return true;
@@ -153,14 +176,14 @@ class NotificationService {
     AndroidFlutterLocalNotificationsPlugin androidPlugin,
   ) async {
     try {
-      const samsungChannel = AndroidNotificationChannel(
-        'samsung_specific_channel',
-        'Samsung Special Notifications',
-        description: 'Optimized notifications for Samsung devices',
-        importance: Importance.high,
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'samsung_specific_channel',
+          'Samsung Special Notifications',
+          description: 'Optimized notifications for Samsung devices',
+          importance: Importance.high,
+        ),
       );
-
-      await androidPlugin.createNotificationChannel(samsungChannel);
       return true;
     } catch (e) {
       debugPrint('Error creating Samsung notification channels: $e');
@@ -171,13 +194,16 @@ class NotificationService {
   Future<bool> _requestPermissions() async {
     try {
       if (!_deviceSpecificService.isAndroid) {
-        final ios =
-            _notificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin
-                >();
+        final ios = _notificationsPlugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
 
-        final bool? result = await ios?.requestPermissions(
+        if (ios == null) {
+          return false;
+        }
+
+        final bool? result = await ios.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
@@ -217,16 +243,14 @@ class NotificationService {
       final androidDetails = AndroidNotificationDetails(
         isImportant ? importantChannelId : regularChannelId,
         isImportant ? 'Important Reminders' : 'Learning Reminders',
-        channelDescription:
-            isImportant
-                ? 'Urgent reminders for unfinished learning tasks'
-                : 'Reminders for your daily learning schedule',
+        channelDescription: isImportant
+            ? 'Urgent reminders for unfinished learning tasks'
+            : 'Reminders for your daily learning schedule',
         importance: isImportant ? Importance.max : Importance.high,
         priority: isImportant ? Priority.max : Priority.high,
-        category:
-            isImportant
-                ? AndroidNotificationCategory.reminder
-                : AndroidNotificationCategory.message,
+        category: isImportant
+            ? AndroidNotificationCategory.reminder
+            : AndroidNotificationCategory.message,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -280,75 +304,21 @@ class NotificationService {
     }
 
     try {
-      final androidDetails = AndroidNotificationDetails(
-        isAlarmStyle
-            ? alarmChannelId
-            : (isImportant ? importantChannelId : regularChannelId),
-        isAlarmStyle
-            ? 'Learning Alarms'
-            : (isImportant ? 'Important Reminders' : 'Learning Reminders'),
-        channelDescription:
-            isAlarmStyle
-                ? 'Alarm-style reminders for critical learning tasks'
-                : (isImportant
-                    ? 'Urgent reminders for unfinished learning tasks'
-                    : 'Reminders for your daily learning schedule'),
-        importance:
-            isAlarmStyle
-                ? Importance.max
-                : (isImportant ? Importance.max : Importance.high),
-        priority:
-            isAlarmStyle
-                ? Priority.max
-                : (isImportant ? Priority.max : Priority.high),
-        category:
-            isAlarmStyle
-                ? AndroidNotificationCategory.alarm
-                : (isImportant
-                    ? AndroidNotificationCategory.reminder
-                    : AndroidNotificationCategory.message),
-        fullScreenIntent: isAlarmStyle, // Full screen intent for alarm-style
-        sound:
-            isAlarmStyle
-                ? const RawResourceAndroidNotificationSound('alarm_sound')
-                : (isImportant
-                    ? const RawResourceAndroidNotificationSound(
-                      'notification_sound',
-                    )
-                    : null),
+      final notificationDetails = _getNotificationDetails(
+        isImportant,
+        isAlarmStyle,
       );
-
-      const iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
-
-      final details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
-
-      tz.TZDateTime tzScheduledTime;
-      try {
-        tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
-      } catch (e) {
-        debugPrint('Error converting to TZ datetime: $e');
-        tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.UTC);
-      }
+      final tzScheduledTime = _convertToTZDateTime(scheduledTime);
 
       await _notificationsPlugin.zonedSchedule(
         id,
         title,
         body,
         tzScheduledTime,
-        details,
-        androidScheduleMode:
-            isAlarmStyle
-                ? AndroidScheduleMode.exactAllowWhileIdle
-                : AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents:
-            DateTimeComponents.time, // Daily at the same time
+        notificationDetails,
+        androidScheduleMode: _getAndroidScheduleMode(isAlarmStyle),
+        matchDateTimeComponents: DateTimeComponents.time,
+        // Daily at the same time
         payload: payload,
       );
 
@@ -360,6 +330,68 @@ class NotificationService {
       debugPrint('Error scheduling notification: $e');
       return false;
     }
+  }
+
+  NotificationDetails _getNotificationDetails(
+    bool isImportant,
+    bool isAlarmStyle,
+  ) {
+    final androidDetails = AndroidNotificationDetails(
+      isAlarmStyle
+          ? alarmChannelId
+          : (isImportant ? importantChannelId : regularChannelId),
+      isAlarmStyle
+          ? 'Learning Alarms'
+          : (isImportant ? 'Important Reminders' : 'Learning Reminders'),
+      channelDescription: isAlarmStyle
+          ? 'Alarm-style reminders for critical learning tasks'
+          : (isImportant
+                ? 'Urgent reminders for unfinished learning tasks'
+                : 'Reminders for your daily learning schedule'),
+      importance: isAlarmStyle
+          ? Importance.max
+          : (isImportant ? Importance.max : Importance.high),
+      priority: isAlarmStyle
+          ? Priority.max
+          : (isImportant ? Priority.max : Priority.high),
+      category: isAlarmStyle
+          ? AndroidNotificationCategory.alarm
+          : (isImportant
+                ? AndroidNotificationCategory.reminder
+                : AndroidNotificationCategory.message),
+      fullScreenIntent: isAlarmStyle,
+      // Full screen intent for alarm-style
+      sound: isAlarmStyle
+          ? const RawResourceAndroidNotificationSound('alarm_sound')
+          : (isImportant
+                ? const RawResourceAndroidNotificationSound(
+                    'notification_sound',
+                  )
+                : null),
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    return NotificationDetails(android: androidDetails, iOS: iosDetails);
+  }
+
+  tz.TZDateTime _convertToTZDateTime(DateTime scheduledTime) {
+    try {
+      return tz.TZDateTime.from(scheduledTime, tz.local);
+    } catch (e) {
+      debugPrint('Error converting to TZ datetime: $e');
+      return tz.TZDateTime.from(scheduledTime, tz.UTC);
+    }
+  }
+
+  AndroidScheduleMode _getAndroidScheduleMode(bool isAlarmStyle) {
+    return isAlarmStyle
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.exactAllowWhileIdle;
   }
 
   Future<bool> cancelNotification(int id) async {
@@ -410,101 +442,82 @@ class NotificationService {
 
   Future<bool> scheduleNoonReminder() async {
     final now = DateTime.now();
-    final scheduledTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
+    final scheduledTime = _getScheduledTime(
+      now,
       AppConstants.noonReminderHour,
       AppConstants.noonReminderMinute,
     );
-
-    final effectiveTime =
-        scheduledTime.isBefore(now)
-            ? scheduledTime.add(const Duration(days: 1))
-            : scheduledTime;
 
     return scheduleNotification(
       id: noonReminderId,
       title: 'Kiểm tra lịch học tập',
       body: 'Đã đến giờ xem lại lịch học hôm nay của bạn',
-      scheduledTime: effectiveTime,
+      scheduledTime: scheduledTime,
       isImportant: false,
     );
   }
 
+  DateTime _getScheduledTime(DateTime now, int hour, int minute) {
+    final scheduledTime = DateTime(now.year, now.month, now.day, hour, minute);
+
+    return scheduledTime.isBefore(now)
+        ? scheduledTime.add(const Duration(days: 1))
+        : scheduledTime;
+  }
+
   Future<bool> scheduleEveningFirstReminder() async {
     final now = DateTime.now();
-    final scheduledTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
+    final scheduledTime = _getScheduledTime(
+      now,
       AppConstants.eveningFirstReminderHour,
       AppConstants.eveningFirstReminderMinute,
     );
-
-    final effectiveTime =
-        scheduledTime.isBefore(now)
-            ? scheduledTime.add(const Duration(days: 1))
-            : scheduledTime;
 
     return scheduleNotification(
       id: eveningFirstReminderId,
       title: 'Nhiệm vụ học tập chưa hoàn thành',
       body: 'Bạn còn một số bài học cần hoàn thành hôm nay',
-      scheduledTime: effectiveTime,
+      scheduledTime: scheduledTime,
       isImportant: true,
     );
   }
 
   Future<bool> scheduleEveningSecondReminder() async {
     final now = DateTime.now();
-    final scheduledTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
+    final scheduledTime = _getScheduledTime(
+      now,
       AppConstants.eveningSecondReminderHour,
       AppConstants.eveningSecondReminderMinute,
     );
-
-    final effectiveTime =
-        scheduledTime.isBefore(now)
-            ? scheduledTime.add(const Duration(days: 1))
-            : scheduledTime;
 
     return scheduleNotification(
       id: eveningSecondReminderId,
       title: 'Còn nhiệm vụ chưa hoàn thành!',
       body: 'Hoàn thành việc học của bạn trước khi đi ngủ',
-      scheduledTime: effectiveTime,
+      scheduledTime: scheduledTime,
       isImportant: true,
     );
   }
 
   Future<bool> scheduleEndOfDayReminder({bool useAlarmStyle = false}) async {
     final now = DateTime.now();
-    final scheduledTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
+    final scheduledTime = _getScheduledTime(
+      now,
       AppConstants.endOfDayReminderHour,
       AppConstants.endOfDayReminderMinute,
     );
-
-    final effectiveTime =
-        scheduledTime.isBefore(now)
-            ? scheduledTime.add(const Duration(days: 1))
-            : scheduledTime;
 
     return scheduleNotification(
       id: endOfDayReminderId,
       title: 'Đừng bỏ lỡ việc học hôm nay!',
       body: 'Đây là lời nhắc cuối cùng cho những nhiệm vụ chưa hoàn thành',
-      scheduledTime: effectiveTime,
+      scheduledTime: scheduledTime,
       isImportant: true,
       isAlarmStyle: useAlarmStyle, // Use alarm style for end-of-day
     );
   }
 
   bool get isInitialized => _isInitialized;
+
   bool get timezonesInitialized => _timezonesInitialized;
 }

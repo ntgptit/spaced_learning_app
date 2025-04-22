@@ -88,7 +88,7 @@ class DailyTaskChecker {
       final prefs = await SharedPreferences.getInstance();
 
       // Lấy thông tin user
-      final userData = await prefs.getString('user_data');
+      final userData = prefs.getString('user_data');
       if (userData != null) {
         final _ = Map<String, dynamic>.from(
           const JsonDecoder().convert(userData) as Map,
@@ -106,8 +106,8 @@ class DailyTaskChecker {
       // Đây chỉ là phần giả lập, bạn cần thay thế bằng kết nối API thật
 
       // Giả sử chúng ta có 2 task đến hạn
-      final hasDueTasks = true;
-      final taskCount = 2;
+      const hasDueTasks = true;
+      const taskCount = 2;
 
       // Lưu kết quả kiểm tra
       await prefs.setBool(LAST_CHECK_RESULT_KEY, true);
@@ -128,6 +128,8 @@ class DailyTaskChecker {
   }
 
   // Phương thức kiểm tra task đến hạn - đây là phiên bản non-static
+
+  // Phương thức để kiểm tra thủ công (có thể gọi từ UI)
   Future<DailyTaskCheckEvent> checkDueTasks() async {
     final now = DateTime.now();
 
@@ -161,15 +163,9 @@ class DailyTaskChecker {
         'Kiểm tra task: ${hasTasks ? "Có $taskCount task" : "Không có task"}',
       );
 
-      // Lưu kết quả kiểm tra
-      await _storageService.setString(
-        LAST_CHECK_TIME_KEY,
-        now.toIso8601String(),
-      );
-      await _storageService.setBool(LAST_CHECK_RESULT_KEY, true);
-      await _storageService.setInt(LAST_CHECK_TASK_COUNT_KEY, taskCount);
+      // Lưu kết quả kiểm tra và cập nhật thông báo
+      await _saveCheckResults(now, true, taskCount);
 
-      // Nếu có task, cập nhật thông báo
       if (hasTasks) {
         await _reminderService.scheduleAllReminders();
       }
@@ -184,13 +180,10 @@ class DailyTaskChecker {
       );
 
       _eventBus.fire(event);
-
       return event;
     } catch (e) {
       debugPrint('Lỗi khi kiểm tra task đến hạn: $e');
-
-      // Lưu thông tin lỗi
-      await _storageService.setString(LAST_CHECK_ERROR_KEY, e.toString());
+      await _saveErrorResult(now, e.toString());
 
       // Gửi sự kiện thất bại
       final event = DailyTaskCheckEvent(
@@ -203,12 +196,35 @@ class DailyTaskChecker {
       );
 
       _eventBus.fire(event);
-
       return event;
     }
   }
 
-  // Phương thức để kiểm tra thủ công (có thể gọi từ UI)
+  // Hàm mới để lưu kết quả kiểm tra
+  Future<void> _saveCheckResults(
+    DateTime checkTime,
+    bool success,
+    int taskCount,
+  ) async {
+    await _storageService.setString(
+      LAST_CHECK_TIME_KEY,
+      checkTime.toIso8601String(),
+    );
+    await _storageService.setBool(LAST_CHECK_RESULT_KEY, success);
+    await _storageService.setInt(LAST_CHECK_TASK_COUNT_KEY, taskCount);
+  }
+
+  // Hàm mới để lưu kết quả lỗi
+  Future<void> _saveErrorResult(DateTime checkTime, String errorMessage) async {
+    await _storageService.setString(
+      LAST_CHECK_TIME_KEY,
+      checkTime.toIso8601String(),
+    );
+    await _storageService.setBool(LAST_CHECK_RESULT_KEY, false);
+    await _storageService.setInt(LAST_CHECK_TASK_COUNT_KEY, 0);
+    await _storageService.setString(LAST_CHECK_ERROR_KEY, errorMessage);
+  }
+
   Future<DailyTaskCheckEvent> manualCheck() async {
     final event = await checkDueTasks();
 

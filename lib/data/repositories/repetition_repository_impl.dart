@@ -16,16 +16,15 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
         ApiEndpoints.repetitionsByProgress(progressId),
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> repetitionList = response['data'];
-        return repetitionList.map((item) => Repetition.fromJson(item)).toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         return [];
       }
+
+      final List<dynamic> repetitionList = response['data'];
+      return repetitionList.map((item) => Repetition.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get repetitions by progress: $e');
     }
   }
@@ -39,18 +38,17 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
         ApiEndpoints.repetitionSchedule(moduleProgressId),
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> repetitionList = response['data'];
-        return repetitionList.map((item) => Repetition.fromJson(item)).toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to create repetition schedule: ${response['message']}',
         );
       }
+
+      final List<dynamic> repetitionList = response['data'];
+      return repetitionList.map((item) => Repetition.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to create repetition schedule: $e');
     }
   }
@@ -64,7 +62,9 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
     double? percentComplete,
   }) async {
     try {
-      final data = <String, dynamic>{};
+      final data = <String, dynamic>{
+        'rescheduleFollowing': rescheduleFollowing,
+      };
 
       if (status != null) {
         data['status'] = status.toString().split('.').last.toUpperCase();
@@ -73,8 +73,6 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
       if (reviewDate != null) {
         data['reviewDate'] = _formatDate(reviewDate);
       }
-
-      data['rescheduleFollowing'] = rescheduleFollowing;
 
       if (percentComplete != null) {
         data['percentComplete'] = percentComplete;
@@ -85,17 +83,16 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
         data: data,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        return Repetition.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to update repetition: ${response['message']}',
         );
       }
+
+      return Repetition.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to update repetition: $e');
     }
   }
@@ -110,10 +107,13 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
 
       if (response['success'] == true && response['data'] != null) {
         return response['data'] as int;
-      } else {
-        return 0;
       }
+
+      // Fallback to counting the actual repetitions
+      final repetitions = await getRepetitionsByProgressId(moduleProgressId);
+      return repetitions.length;
     } catch (e) {
+      // Fallback to counting the actual repetitions
       final repetitions = await getRepetitionsByProgressId(moduleProgressId);
       return repetitions.length;
     }

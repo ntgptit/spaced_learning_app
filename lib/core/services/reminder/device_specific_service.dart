@@ -28,37 +28,43 @@ class DeviceSpecificService {
       }
 
       if (_isAndroid) {
-        final androidInfo = await _deviceInfo.androidInfo;
+        await _initializeAndroidDevice();
+        await _applyDeviceSpecificOptimizations();
 
-        _deviceModel = androidInfo.model;
-        _manufacturer = androidInfo.manufacturer;
-        _sdkVersion = androidInfo.version.sdkInt;
-
-        _isSamsungDevice = _manufacturer?.toLowerCase() == 'samsung';
-
-        _isS23Ultra =
-            _isSamsungDevice &&
-            (_deviceModel?.toLowerCase().contains('sm-s918') ?? false);
-
-        debugPrint(
-          'Device detected: $_manufacturer $_deviceModel (SDK: $_sdkVersion)',
-        );
-
-        if (_isSamsungDevice) {
-          await _applySamsungOptimizations();
-        } else {
-          await _applyGeneralOptimizations();
-        }
-
-        _isInitialized = true;
-        return true;
-      } else {
         _isInitialized = true;
         return true;
       }
+
+      _isInitialized = true;
+      return true;
     } catch (e) {
       debugPrint('Error detecting device: $e');
       return false;
+    }
+  }
+
+  Future<void> _initializeAndroidDevice() async {
+    final androidInfo = await _deviceInfo.androidInfo;
+
+    _deviceModel = androidInfo.model;
+    _manufacturer = androidInfo.manufacturer;
+    _sdkVersion = androidInfo.version.sdkInt;
+
+    _isSamsungDevice = _manufacturer?.toLowerCase() == 'samsung';
+    _isS23Ultra =
+        _isSamsungDevice &&
+        (_deviceModel?.toLowerCase().contains('sm-s918') ?? false);
+
+    debugPrint(
+      'Device detected: $_manufacturer $_deviceModel (SDK: $_sdkVersion)',
+    );
+  }
+
+  Future<void> _applyDeviceSpecificOptimizations() async {
+    if (_isSamsungDevice) {
+      await _applySamsungOptimizations();
+    } else {
+      await _applyGeneralOptimizations();
     }
   }
 
@@ -112,10 +118,7 @@ class DeviceSpecificService {
       );
 
       try {
-        final bool result = await methodChannel.invokeMethod(
-          'requestExactAlarmPermission',
-        );
-        return result;
+        return await methodChannel.invokeMethod('requestExactAlarmPermission');
       } on PlatformException catch (e) {
         debugPrint('Failed to configure Android 12 features: ${e.message}');
         return false;
@@ -136,10 +139,7 @@ class DeviceSpecificService {
       const methodChannel = MethodChannel('com.yourapp.device/optimization');
 
       try {
-        final bool result = await methodChannel.invokeMethod(
-          'disableSleepingApps',
-        );
-        return result;
+        return await methodChannel.invokeMethod('disableSleepingApps');
       } on PlatformException catch (e) {
         debugPrint('Failed to configure Samsung features: ${e.message}');
         return false;
@@ -255,7 +255,7 @@ class DeviceSpecificService {
 
   bool get isInitialized => _isInitialized;
 
-  // Thêm các phương thức mới để kết nối với DeviceSettingsService
+  // Delegate methods to DeviceSettingsService
   Future<bool> hasExactAlarmPermission() async {
     return _deviceSettingsService.hasExactAlarmPermission();
   }

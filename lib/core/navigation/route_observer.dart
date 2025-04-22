@@ -12,6 +12,7 @@ class AppRouteObserver extends NavigatorObserver {
 
   void subscribe(RouteAware routeAware, Route route) {
     _routeAwareWidgets.add(routeAware);
+
     for (final widget in _routeAwareWidgets) {
       if (widget == routeAware) {
         widget.didPush();
@@ -28,12 +29,17 @@ class AppRouteObserver extends NavigatorObserver {
     if (!_routeHandlers.containsKey(routePath)) {
       _routeHandlers[routePath] = [];
     }
+
     _routeHandlers[routePath]!.add(handler);
   }
 
   void removeRouteHandler(String routePath, Function handler) {
     if (_routeHandlers.containsKey(routePath)) {
       _routeHandlers[routePath]!.remove(handler);
+
+      if (_routeHandlers[routePath]!.isEmpty) {
+        _routeHandlers.remove(routePath);
+      }
     }
   }
 
@@ -42,19 +48,24 @@ class AppRouteObserver extends NavigatorObserver {
     super.didPush(route, previousRoute);
     _notifyRouteHandlers(route);
 
-    if (previousRoute != null) {
-      for (final widget in _routeAwareWidgets) {
-        widget.didPushNext();
-      }
+    if (previousRoute == null) {
+      return;
+    }
+
+    for (final widget in _routeAwareWidgets) {
+      widget.didPushNext();
     }
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    if (newRoute != null) {
-      _notifyRouteHandlers(newRoute);
+
+    if (newRoute == null) {
+      return;
     }
+
+    _notifyRouteHandlers(newRoute);
   }
 
   @override
@@ -65,12 +76,14 @@ class AppRouteObserver extends NavigatorObserver {
       widget.didPop();
     }
 
-    if (previousRoute != null) {
-      _notifyRouteHandlers(previousRoute);
+    if (previousRoute == null) {
+      return;
+    }
 
-      for (final widget in _routeAwareWidgets) {
-        widget.didPopNext();
-      }
+    _notifyRouteHandlers(previousRoute);
+
+    for (final widget in _routeAwareWidgets) {
+      widget.didPopNext();
     }
   }
 
@@ -78,10 +91,12 @@ class AppRouteObserver extends NavigatorObserver {
     final String routeName = route.settings.name ?? '';
 
     _routeHandlers.forEach((path, handlers) {
-      if (routeName.startsWith(path)) {
-        for (var handler in handlers) {
-          handler();
-        }
+      if (!routeName.startsWith(path)) {
+        return;
+      }
+
+      for (var handler in handlers) {
+        handler();
       }
     });
   }

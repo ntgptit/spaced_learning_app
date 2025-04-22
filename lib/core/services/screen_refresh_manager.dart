@@ -14,36 +14,45 @@ class ScreenRefreshManager {
     if (!_refreshCallbacks.containsKey(screenPath)) {
       _refreshCallbacks[screenPath] = [];
     }
+
     if (!_refreshCallbacks[screenPath]!.contains(callback)) {
       _refreshCallbacks[screenPath]!.add(callback);
     }
   }
 
   void unregisterRefreshCallback(String screenPath, VoidCallback callback) {
-    if (_refreshCallbacks.containsKey(screenPath)) {
-      _refreshCallbacks[screenPath]!.remove(callback);
-      if (_refreshCallbacks[screenPath]!.isEmpty) {
-        _refreshCallbacks.remove(screenPath);
-      }
+    if (!_refreshCallbacks.containsKey(screenPath)) {
+      return;
+    }
+
+    _refreshCallbacks[screenPath]!.remove(callback);
+
+    if (_refreshCallbacks[screenPath]!.isEmpty) {
+      _refreshCallbacks.remove(screenPath);
     }
   }
 
   void refreshScreen(String screenPath) {
     debugPrint('Refreshing screen: $screenPath');
-    if (_refreshCallbacks.containsKey(screenPath)) {
-      for (var callback in _refreshCallbacks[screenPath]!) {
-        callback();
-      }
+
+    if (!_refreshCallbacks.containsKey(screenPath)) {
+      return;
+    }
+
+    for (var callback in _refreshCallbacks[screenPath]!) {
+      callback();
     }
   }
 
   void refreshScreensWithPrefix(String prefix) {
     _refreshCallbacks.forEach((path, callbacks) {
-      if (path.startsWith(prefix)) {
-        debugPrint('Refreshing screen with prefix $prefix: $path');
-        for (var callback in callbacks) {
-          callback();
-        }
+      if (!path.startsWith(prefix)) {
+        return;
+      }
+
+      debugPrint('Refreshing screen with prefix $prefix: $path');
+      for (var callback in callbacks) {
+        callback();
       }
     });
   }

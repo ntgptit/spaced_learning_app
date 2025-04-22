@@ -18,15 +18,14 @@ class BookRepositoryImpl implements BookRepository {
       );
 
       final content = response['content'];
-      if (content != null && content is List) {
-        return content.map((item) => BookSummary.fromJson(item)).toList();
-      } else {
+      if (content == null || !(content is List)) {
         return [];
       }
+
+      return content.map((item) => BookSummary.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get books: $e');
     }
   }
@@ -36,15 +35,14 @@ class BookRepositoryImpl implements BookRepository {
     try {
       final response = await _apiClient.get('${ApiEndpoints.books}/$id');
 
-      if (response['success'] == true && response['data'] != null) {
-        return BookDetail.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw NotFoundException('Book not found: ${response['message']}');
       }
+
+      return BookDetail.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get book: $e');
     }
   }
@@ -61,16 +59,15 @@ class BookRepositoryImpl implements BookRepository {
         queryParameters: {'query': query, 'page': page, 'size': size},
       );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> bookList = response['content'];
-        return bookList.map((item) => BookSummary.fromJson(item)).toList();
-      } else {
+      if (response['success'] != true || response['content'] == null) {
         return [];
       }
+
+      final List<dynamic> bookList = response['content'];
+      return bookList.map((item) => BookSummary.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to search books: $e');
     }
   }
@@ -80,16 +77,15 @@ class BookRepositoryImpl implements BookRepository {
     try {
       final response = await _apiClient.get(ApiEndpoints.bookCategories);
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> categoryList = response['data'];
-        return categoryList.map((item) => item.toString()).toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         return [];
       }
+
+      final List<dynamic> categoryList = response['data'];
+      return categoryList.map((item) => item.toString()).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get categories: $e');
     }
   }
@@ -110,8 +106,11 @@ class BookRepositoryImpl implements BookRepository {
       }
 
       if (difficultyLevel != null) {
-        queryParams['difficultyLevel'] =
-            difficultyLevel.toString().split('.').last.toUpperCase();
+        queryParams['difficultyLevel'] = difficultyLevel
+            .toString()
+            .split('.')
+            .last
+            .toUpperCase();
       }
 
       if (category != null) {
@@ -123,34 +122,18 @@ class BookRepositoryImpl implements BookRepository {
         queryParameters: queryParams,
       );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> bookList = response['content'];
-        return bookList.map((item) => BookSummary.fromJson(item)).toList();
-      } else {
+      if (response['success'] != true || response['content'] == null) {
         return [];
       }
+
+      final List<dynamic> bookList = response['content'];
+      return bookList.map((item) => BookSummary.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to filter books: $e');
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   @override
   Future<void> deleteBook(String id) async {
@@ -162,10 +145,9 @@ class BookRepositoryImpl implements BookRepository {
           'Failed to delete book: ${response?['message']}',
         );
       }
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to delete book: $e');
     }
   }

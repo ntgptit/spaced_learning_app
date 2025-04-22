@@ -20,43 +20,37 @@ class LearningStatsRepositoryImpl implements LearningStatsRepository {
         queryParameters: {'refreshCache': refreshCache},
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        return LearningStatsDTO.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to get dashboard stats: ${response['message']}',
         );
       }
+
+      return LearningStatsDTO.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get dashboard stats: $e');
     }
   }
-
-
 
   @override
   Future<List<LearningInsightDTO>> getLearningInsights() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.learningInsights);
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> insightsList = response['data'];
-        return insightsList
-            .map((item) => LearningInsightDTO.fromJson(item))
-            .toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         return [];
       }
+
+      final List<dynamic> insightsList = response['data'];
+      return insightsList
+          .map((item) => LearningInsightDTO.fromJson(item))
+          .toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get learning insights: $e');
     }
   }
-
-
 }

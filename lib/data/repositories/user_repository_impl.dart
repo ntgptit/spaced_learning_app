@@ -14,22 +14,19 @@ class UserRepositoryImpl implements UserRepository {
     try {
       final response = await _apiClient.get(ApiEndpoints.currentUser);
 
-      if (response['success'] == true && response['data'] != null) {
-        return User.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw AuthenticationException(
           'Failed to get current user: ${response['message']}',
         );
       }
+
+      return User.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get current user: $e');
     }
   }
-
-
 
   @override
   Future<User> updateUser(
@@ -53,17 +50,16 @@ class UserRepositoryImpl implements UserRepository {
         data: data,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        return User.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to update user: ${response['message']}',
         );
       }
+
+      return User.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to update user: $e');
     }
   }
@@ -71,7 +67,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<bool> checkEmailExists(String email) async {
     try {
-
+      // Assuming this is a placeholder implementation
       return false;
     } catch (e) {
       return false;

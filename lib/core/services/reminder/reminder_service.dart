@@ -36,21 +36,17 @@ class ReminderService {
 
   void _listenToEvents() {
     _subscriptions.add(
-      _eventBus.on<ProgressChangedEvent>().listen((event) {
-        _handleProgressChanged(event);
-      }),
+      _eventBus.on<ProgressChangedEvent>().listen(_handleProgressChanged),
     );
 
     _subscriptions.add(
-      _eventBus.on<TaskCompletedEvent>().listen((event) {
-        _handleTaskCompleted(event);
-      }),
+      _eventBus.on<TaskCompletedEvent>().listen(_handleTaskCompleted),
     );
 
     _subscriptions.add(
-      _eventBus.on<ReminderSettingsChangedEvent>().listen((event) {
-        _handleSettingsChanged(event);
-      }),
+      _eventBus.on<ReminderSettingsChangedEvent>().listen(
+        _handleSettingsChanged,
+      ),
     );
   }
 
@@ -125,7 +121,7 @@ class ReminderService {
 
     if (userId == null) {
       debugPrint('Cannot check pending tasks: User not logged in');
-      return false; // Return early if user not logged in
+      return false;
     }
 
     try {
@@ -140,7 +136,7 @@ class ReminderService {
       return hasTasks;
     } catch (e) {
       debugPrint('Error checking pending tasks: $e');
-      return false; // Return false on error
+      return false;
     }
   }
 
@@ -149,47 +145,23 @@ class ReminderService {
     _isScheduling = true;
 
     try {
-      debugPrint('========== DEBUGGING REMINDERS ==========');
-      debugPrint('Initialized: $_isInitialized');
-
-      if (!_isInitialized) {
-        final bool initialized = await initialize();
-        debugPrint('Initialization result: $initialized');
-        if (!initialized) {
-          debugPrint('Failed to initialize ReminderService');
-          _isScheduling = false;
-          return false;
-        }
+      if (!await _prepareForScheduling()) {
+        _isScheduling = false;
+        return false;
       }
-
-      await _notificationService.cancelAllNotifications();
-      debugPrint('All previous notifications cancelled');
 
       final remindersEnabled =
           await _storageService.getBool('reminders_enabled') ?? true;
-      debugPrint('Reminders enabled: $remindersEnabled');
-
       if (!remindersEnabled) {
         debugPrint('Reminders are disabled, not scheduling any reminders');
         _isScheduling = false;
         return true;
       }
 
-      // Check permission status
-      final deviceService = _deviceSpecificService;
-      final hasAlarm = await deviceService.hasExactAlarmPermission();
-      final ignoresBattery = await deviceService
-          .isIgnoringBatteryOptimizations();
-      debugPrint(
-        'Permission check - Exact alarm: $hasAlarm, Battery optimization: $ignoresBattery',
-      );
+      await _checkAndLogPermissions();
 
-      final noonReminderEnabled =
-          await _storageService.getBool('noon_reminder_enabled') ?? true;
-      if (noonReminderEnabled) {
-        final bool noonResult = await _notificationService
-            .scheduleNoonReminder();
-        debugPrint('Noon reminder scheduled: $noonResult');
+      if (!await _scheduleNoonReminder()) {
+        debugPrint('Failed to schedule noon reminder');
       }
 
       final hasPendingTasks = await hasPendingTasksToday();
@@ -201,38 +173,8 @@ class ReminderService {
         return true;
       }
 
-      final eveningFirstReminderEnabled =
-          await _storageService.getBool('evening_first_reminder_enabled') ??
-          true;
-      if (eveningFirstReminderEnabled) {
-        final bool eveningFirstResult = await _notificationService
-            .scheduleEveningFirstReminder();
-        debugPrint('Evening first reminder scheduled: $eveningFirstResult');
-      }
-
-      final eveningSecondReminderEnabled =
-          await _storageService.getBool('evening_second_reminder_enabled') ??
-          true;
-      if (eveningSecondReminderEnabled) {
-        final bool eveningSecondResult = await _notificationService
-            .scheduleEveningSecondReminder();
-        debugPrint('Evening second reminder scheduled: $eveningSecondResult');
-      }
-
-      final endOfDayReminderEnabled =
-          await _storageService.getBool('end_of_day_reminder_enabled') ?? true;
-      if (endOfDayReminderEnabled) {
-        final useAlarmStyle =
-            _deviceSpecificService.isAndroid &&
-            (_deviceSpecificService.isSamsungDevice ||
-                _deviceSpecificService.sdkVersion >= 26);
-
-        final bool endOfDayResult = await _notificationService
-            .scheduleEndOfDayReminder(useAlarmStyle: useAlarmStyle);
-        debugPrint(
-          'End of day reminder scheduled: $endOfDayResult (alarm style: $useAlarmStyle)',
-        );
-      }
+      await _scheduleEveningReminders();
+      await _scheduleEndOfDayReminder();
 
       _isScheduling = false;
       return true;
@@ -241,6 +183,85 @@ class ReminderService {
       _isScheduling = false;
       return false;
     }
+  }
+
+  Future<bool> _prepareForScheduling() async {
+    debugPrint('========== DEBUGGING REMINDERS ==========');
+    debugPrint('Initialized: $_isInitialized');
+
+    if (!_isInitialized) {
+      final bool initialized = await initialize();
+      debugPrint('Initialization result: $initialized');
+      if (!initialized) {
+        debugPrint('Failed to initialize ReminderService');
+        return false;
+      }
+    }
+
+    await _notificationService.cancelAllNotifications();
+    debugPrint('All previous notifications cancelled');
+
+    return true;
+  }
+
+  Future<void> _checkAndLogPermissions() async {
+    // Check permission status
+    final deviceService = _deviceSpecificService;
+    final hasAlarm = await deviceService.hasExactAlarmPermission();
+    final ignoresBattery = await deviceService.isIgnoringBatteryOptimizations();
+    debugPrint(
+      'Permission check - Exact alarm: $hasAlarm, Battery optimization: $ignoresBattery',
+    );
+  }
+
+  Future<bool> _scheduleNoonReminder() async {
+    final noonReminderEnabled =
+        await _storageService.getBool('noon_reminder_enabled') ?? true;
+    if (!noonReminderEnabled) {
+      return true;
+    }
+
+    final bool noonResult = await _notificationService.scheduleNoonReminder();
+    debugPrint('Noon reminder scheduled: $noonResult');
+    return noonResult;
+  }
+
+  Future<void> _scheduleEveningReminders() async {
+    final eveningFirstReminderEnabled =
+        await _storageService.getBool('evening_first_reminder_enabled') ?? true;
+    if (eveningFirstReminderEnabled) {
+      final bool eveningFirstResult = await _notificationService
+          .scheduleEveningFirstReminder();
+      debugPrint('Evening first reminder scheduled: $eveningFirstResult');
+    }
+
+    final eveningSecondReminderEnabled =
+        await _storageService.getBool('evening_second_reminder_enabled') ??
+        true;
+    if (eveningSecondReminderEnabled) {
+      final bool eveningSecondResult = await _notificationService
+          .scheduleEveningSecondReminder();
+      debugPrint('Evening second reminder scheduled: $eveningSecondResult');
+    }
+  }
+
+  Future<void> _scheduleEndOfDayReminder() async {
+    final endOfDayReminderEnabled =
+        await _storageService.getBool('end_of_day_reminder_enabled') ?? true;
+    if (!endOfDayReminderEnabled) {
+      return;
+    }
+
+    final useAlarmStyle =
+        _deviceSpecificService.isAndroid &&
+        (_deviceSpecificService.isSamsungDevice ||
+            _deviceSpecificService.sdkVersion >= 26);
+
+    final bool endOfDayResult = await _notificationService
+        .scheduleEndOfDayReminder(useAlarmStyle: useAlarmStyle);
+    debugPrint(
+      'End of day reminder scheduled: $endOfDayResult (alarm style: $useAlarmStyle)',
+    );
   }
 
   Future<bool> updateRemindersAfterTaskCompletion() async {

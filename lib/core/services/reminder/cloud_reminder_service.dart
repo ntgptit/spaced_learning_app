@@ -20,34 +20,42 @@ class CloudReminderService {
 
   Future<void> initialize() async {
     try {
-      final settings = await _firebaseMessaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-
+      final settings = await _requestNotificationPermissions();
       debugPrint('FCM permission settings: ${settings.authorizationStatus}');
 
-      final token = await _firebaseMessaging.getToken();
-
-      if (token != null) {
-        await _saveDeviceToken(token);
-      } else {
-        debugPrint('Error: FCM token is null');
-      }
-
-      _firebaseMessaging.onTokenRefresh.listen(_saveDeviceToken);
-
-      FirebaseMessaging.onMessage.listen(_handleMessage);
-      FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler,
-      );
+      await _setupTokenHandling();
+      _setupMessageHandlers();
 
       debugPrint('FCM initialized successfully');
     } catch (e) {
       debugPrint('Error initializing FCM: $e');
     }
+  }
+
+  Future<NotificationSettings> _requestNotificationPermissions() async {
+    return _firebaseMessaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+  }
+
+  Future<void> _setupTokenHandling() async {
+    final token = await _firebaseMessaging.getToken();
+
+    if (token != null) {
+      await _saveDeviceToken(token);
+    } else {
+      debugPrint('Error: FCM token is null');
+    }
+
+    _firebaseMessaging.onTokenRefresh.listen(_saveDeviceToken);
+  }
+
+  void _setupMessageHandlers() {
+    FirebaseMessaging.onMessage.listen(_handleMessage);
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
   Future<void> _saveDeviceToken(String token) async {
@@ -57,11 +65,7 @@ class CloudReminderService {
 
       final userData = await _storageService.getUserData();
       if (userData != null && userData['id'] != null) {
-        try {
-          debugPrint('FCM token saved for user: ${userData['id']}');
-        } catch (e) {
-          debugPrint('Error saving FCM token to server: $e');
-        }
+        debugPrint('FCM token saved for user: ${userData['id']}');
       }
     } catch (e) {
       debugPrint('Error in _saveDeviceToken: $e');
@@ -72,19 +76,19 @@ class CloudReminderService {
     debugPrint('Got FCM message: ${message.notification?.title}');
 
     try {
-      if (_notificationService != null) {
-        _notificationService.showNotification(
-          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          title: message.notification?.title ?? 'Learning Reminder',
-          body:
-              message.notification?.body ?? 'Time to check your learning tasks',
-          isImportant: message.data['priority'] == 'high',
-        );
-      } else {
+      if (_notificationService == null) {
         debugPrint(
           'Warning: NotificationService is null, cannot show notification',
         );
+        return;
       }
+
+      _notificationService.showNotification(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: message.notification?.title ?? 'Learning Reminder',
+        body: message.notification?.body ?? 'Time to check your learning tasks',
+        isImportant: message.data['priority'] == 'high',
+      );
     } catch (e) {
       debugPrint('Error showing notification from FCM: $e');
     }
@@ -93,6 +97,5 @@ class CloudReminderService {
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-
   debugPrint('Handling a background message: ${message.messageId}');
 }

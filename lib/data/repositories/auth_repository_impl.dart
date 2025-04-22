@@ -35,10 +35,9 @@ class AuthRepositoryImpl implements AuthRepository {
         );
       }
       return AuthResponse.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw AuthenticationException('Failed to login: $e');
     }
   }
@@ -62,17 +61,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final response = await _apiClient.post(ApiEndpoints.register, data: data);
 
-      if (response['success'] == true && response['data'] != null) {
-        return login(email, password);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw AuthenticationException(
           'Failed to register: ${response['message']}',
         );
       }
+
+      return login(email, password);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw AuthenticationException('Failed to register: $e');
     }
   }
@@ -87,17 +85,16 @@ class AuthRepositoryImpl implements AuthRepository {
         data: data,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        return AuthResponse.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw AuthenticationException(
           'Failed to refresh token: ${response['message']}',
         );
       }
+
+      return AuthResponse.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw AuthenticationException('Failed to refresh token: $e');
     }
   }

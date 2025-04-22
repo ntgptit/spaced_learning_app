@@ -20,21 +20,22 @@ class StorageService {
   }
 
   Future<String?> getToken() async {
-    return _secureStorage.read(key: AppConstants.tokenKey);
+    return await _secureStorage.read(key: AppConstants.tokenKey);
   }
 
   Future<String?> getRefreshToken() async {
-    return _secureStorage.read(key: AppConstants.refreshTokenKey);
+    return await _secureStorage.read(key: AppConstants.refreshTokenKey);
   }
 
   Future<Map<String, dynamic>?> getUserData() async {
     final prefs = await _prefs;
     final userData = prefs.getString(AppConstants.userKey);
 
-    if (userData != null) {
-      return jsonDecode(userData) as Map<String, dynamic>;
+    if (userData == null) {
+      return null;
     }
-    return null;
+
+    return jsonDecode(userData) as Map<String, dynamic>;
   }
 
   Future<bool> isDarkMode() async {

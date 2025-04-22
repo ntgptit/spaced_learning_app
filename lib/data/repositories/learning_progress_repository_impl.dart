@@ -15,20 +15,15 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
     try {
       final response = await _apiClient.get(ApiEndpoints.learningModules);
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> modulesList = response['data'];
-
-        return modulesList.map((item) {
-          final learningModuleResponse = LearningModule.fromJson(item);
-          return learningModuleResponse;
-        }).toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         return [];
       }
+
+      final List<dynamic> modulesList = response['data'];
+      return modulesList.map((item) => LearningModule.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get modules: $e');
     }
   }
@@ -41,41 +36,33 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
         queryParameters: {'daysThreshold': daysThreshold},
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> modulesList = response['data'];
-
-        return modulesList.map((item) {
-          final learningModuleResponse = LearningModule.fromJson(item);
-          return learningModuleResponse;
-        }).toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         return [];
       }
+
+      final List<dynamic> modulesList = response['data'];
+      return modulesList.map((item) => LearningModule.fromJson(item)).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get due modules: $e');
     }
   }
-
-
 
   @override
   Future<List<String>> getUniqueBooks() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.uniqueBooks);
 
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> booksList = response['data'];
-        return booksList.map((item) => item.toString()).toList();
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         return [];
       }
+
+      final List<dynamic> booksList = response['data'];
+      return booksList.map((item) => item.toString()).toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get unique books: $e');
     }
   }
@@ -85,22 +72,19 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
     try {
       final response = await _apiClient.post(ApiEndpoints.exportData);
 
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'] as Map<String, dynamic>;
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to export data: ${response['message']}',
         );
       }
+
+      return response['data'] as Map<String, dynamic>;
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to export data: $e');
     }
   }
-
-
 
   @override
   Future<Map<String, dynamic>> getDashboardStats({
@@ -123,17 +107,16 @@ class LearningProgressRepositoryImpl implements LearningProgressRepository {
         queryParameters: queryParams,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        return response['data'] as Map<String, dynamic>;
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to get dashboard stats: ${response['message']}',
         );
       }
+
+      return response['data'] as Map<String, dynamic>;
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get dashboard stats: $e');
     }
   }

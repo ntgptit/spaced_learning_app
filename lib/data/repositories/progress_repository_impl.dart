@@ -21,18 +21,17 @@ class ProgressRepositoryImpl implements ProgressRepository {
         queryParameters: {'page': page, 'size': size},
       );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> progressList = response['content'];
-        return progressList
-            .map((item) => ProgressSummary.fromJson(item))
-            .toList();
-      } else {
+      if (response['success'] != true || response['content'] == null) {
         return [];
       }
+
+      final List<dynamic> progressList = response['content'];
+      return progressList
+          .map((item) => ProgressSummary.fromJson(item))
+          .toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get progress records: $e');
     }
   }
@@ -42,20 +41,17 @@ class ProgressRepositoryImpl implements ProgressRepository {
     try {
       final response = await _apiClient.get('${ApiEndpoints.progress}/$id');
 
-      if (response['success'] == true && response['data'] != null) {
-        return ProgressDetail.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw NotFoundException('Progress not found: ${response['message']}');
       }
+
+      return ProgressDetail.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get progress: $e');
     }
   }
-
-
 
   @override
   Future<List<ProgressSummary>> getProgressByModuleId(
@@ -69,25 +65,20 @@ class ProgressRepositoryImpl implements ProgressRepository {
         queryParameters: {'page': page, 'size': size},
       );
 
-      if (response['success'] == true && response['content'] != null) {
-        final List<dynamic> progressList = response['content'];
-        return progressList
-            .map((item) => ProgressSummary.fromJson(item))
-            .toList();
-      } else {
+      if (response['success'] != true || response['content'] == null) {
         return [];
       }
+
+      final List<dynamic> progressList = response['content'];
+      return progressList
+          .map((item) => ProgressSummary.fromJson(item))
+          .toList();
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to get progress by module: $e');
     }
   }
-
-
-
-
 
   @override
   Future<ProgressDetail?> getCurrentUserProgressByModule(
@@ -96,10 +87,11 @@ class ProgressRepositoryImpl implements ProgressRepository {
     try {
       final progressList = await getProgressByModuleId(moduleId, size: 1);
 
-      if (progressList.isNotEmpty) {
-        return await getProgressById(progressList[0].id);
+      if (progressList.isEmpty) {
+        return null;
       }
-      return null;
+
+      return await getProgressById(progressList[0].id);
     } on NotFoundException {
       return null;
     } on AppException {
@@ -131,39 +123,8 @@ class ProgressRepositoryImpl implements ProgressRepository {
         '[ProgressRepositoryImpl] Raw API response for getDueProgress: $response',
       );
 
-      if (response is Map<String, dynamic> && response['content'] is List) {
-        final List<dynamic> progressList = response['content'];
-        debugPrint(
-          '[ProgressRepositoryImpl] Found ${progressList.length} due progress items before parsing.',
-        );
-        try {
-          final parsedList =
-              progressList
-                  .map((item) {
-                    if (item is Map<String, dynamic>) {
-                      return ProgressSummary.fromJson(item);
-                    } else {
-                      debugPrint(
-                        '[ProgressRepositoryImpl] Invalid item format found in content list: $item',
-                      );
-                      return null; // Hoặc throw lỗi tùy logic xử lý
-                    }
-                  })
-                  .whereType<
-                    ProgressSummary
-                  >() // Chỉ giữ lại những item parse thành công và không null
-                  .toList();
-          debugPrint(
-            '[ProgressRepositoryImpl] Parsed ${parsedList.length} due progress items successfully.',
-          );
-          return parsedList;
-        } catch (e) {
-          debugPrint(
-            '[ProgressRepositoryImpl] Error parsing ProgressSummary: $e',
-          );
-          throw DataFormatException('Failed to parse progress data: $e');
-        }
-      } else {
+      if (!(response is Map<String, dynamic>) ||
+          !(response['content'] is List)) {
         debugPrint(
           '[ProgressRepositoryImpl] Response is not a valid Map or does not contain a "content" list.',
         );
@@ -171,6 +132,36 @@ class ProgressRepositoryImpl implements ProgressRepository {
           '[ProgressRepositoryImpl] Response type: ${response?.runtimeType}',
         );
         return [];
+      }
+
+      final List<dynamic> progressList = response['content'];
+      debugPrint(
+        '[ProgressRepositoryImpl] Found ${progressList.length} due progress items before parsing.',
+      );
+
+      try {
+        final parsedList = progressList
+            .map((item) {
+              if (!(item is Map<String, dynamic>)) {
+                debugPrint(
+                  '[ProgressRepositoryImpl] Invalid item format found in content list: $item',
+                );
+                return null;
+              }
+              return ProgressSummary.fromJson(item);
+            })
+            .whereType<ProgressSummary>()
+            .toList();
+
+        debugPrint(
+          '[ProgressRepositoryImpl] Parsed ${parsedList.length} due progress items successfully.',
+        );
+        return parsedList;
+      } catch (e) {
+        debugPrint(
+          '[ProgressRepositoryImpl] Error parsing ProgressSummary: $e',
+        );
+        throw DataFormatException('Failed to parse progress data: $e');
       }
     } on AppException catch (e) {
       debugPrint('[ProgressRepositoryImpl] AppException in getDueProgress: $e');
@@ -186,7 +177,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
   @override
   Future<ProgressDetail> createProgress({
     required String moduleId,
-    String? userId, // Changed to optional
+    String? userId,
     DateTime? firstLearningDate,
     CycleStudied? cyclesStudied,
     DateTime? nextStudyDate,
@@ -204,8 +195,11 @@ class ProgressRepositoryImpl implements ProgressRepository {
       }
 
       if (cyclesStudied != null) {
-        data['cyclesStudied'] =
-            cyclesStudied.toString().split('.').last.toUpperCase();
+        data['cyclesStudied'] = cyclesStudied
+            .toString()
+            .split('.')
+            .last
+            .toUpperCase();
       }
 
       if (nextStudyDate != null) {
@@ -218,17 +212,16 @@ class ProgressRepositoryImpl implements ProgressRepository {
 
       final response = await _apiClient.post(ApiEndpoints.progress, data: data);
 
-      if (response['success'] == true && response['data'] != null) {
-        return ProgressDetail.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to create progress: ${response['message']}',
         );
       }
+
+      return ProgressDetail.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to create progress: $e');
     }
   }
@@ -249,8 +242,11 @@ class ProgressRepositoryImpl implements ProgressRepository {
       }
 
       if (cyclesStudied != null) {
-        data['cyclesStudied'] =
-            cyclesStudied.toString().split('.').last.toUpperCase();
+        data['cyclesStudied'] = cyclesStudied
+            .toString()
+            .split('.')
+            .last
+            .toUpperCase();
       }
 
       if (nextStudyDate != null) {
@@ -266,22 +262,19 @@ class ProgressRepositoryImpl implements ProgressRepository {
         data: data,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        return ProgressDetail.fromJson(response['data']);
-      } else {
+      if (response['success'] != true || response['data'] == null) {
         throw BadRequestException(
           'Failed to update progress: ${response['message']}',
         );
       }
+
+      return ProgressDetail.fromJson(response['data']);
+    } on AppException {
+      rethrow;
     } catch (e) {
-      if (e is AppException) {
-        rethrow;
-      }
       throw UnexpectedException('Failed to update progress: $e');
     }
   }
-
-
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

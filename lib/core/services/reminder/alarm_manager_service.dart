@@ -102,9 +102,8 @@ class AlarmManagerService {
   }
 
   Future<bool> scheduleFixedTimeAlarms() async {
-    if (!_isInitialized) {
-      final bool initialized = await initialize();
-      if (!initialized) return false;
+    if (!await _ensureInitialized()) {
+      return false;
     }
 
     if (!_deviceSpecificService.isAndroid) {
@@ -129,6 +128,13 @@ class AlarmManagerService {
       debugPrint('Error scheduling fixed-time alarms: $e');
       return false;
     }
+  }
+
+  Future<bool> _ensureInitialized() async {
+    if (_isInitialized) return true;
+
+    final bool initialized = await initialize();
+    return initialized;
   }
 
   Future<bool> _scheduleNoonReminder() async {
