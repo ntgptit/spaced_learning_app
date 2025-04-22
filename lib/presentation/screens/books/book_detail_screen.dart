@@ -32,7 +32,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_onScroll);
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
   void _onScroll() {

@@ -34,12 +34,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with ViewModelRefresher, SingleTickerProviderStateMixin {
   final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
-  late Future<void> _dataFuture;
   bool _isFirstLoad = true;
 
   // Animation controller for smooth transitions
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  // Antes de initState, inicializa con un Future completado vacío
+  late Future<void> _dataFuture = Future.value();
 
   @override
   void initState() {
@@ -56,8 +58,12 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.easeIn,
     );
 
-    // Initialize data loading
-    _dataFuture = _loadInitialData();
+    // Programar la carga de datos después del frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _dataFuture = _loadInitialData();
+      });
+    });
   }
 
   @override
