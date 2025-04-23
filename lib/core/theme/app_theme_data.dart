@@ -1,6 +1,11 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spaced_learning_app/core/di/providers.dart';
+
+part 'app_theme_data.g.dart';
 
 abstract final class AppTheme {
   static ThemeData light = FlexThemeData.light(
@@ -43,4 +48,40 @@ abstract final class AppTheme {
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
   );
+}
+
+@riverpod
+ThemeData lightTheme(Ref ref) => AppTheme.light;
+
+@riverpod
+ThemeData darkTheme(Ref ref) => AppTheme.dark;
+
+@riverpod
+class ThemeModeState extends _$ThemeModeState {
+  @override
+  ThemeMode build() {
+    final isDarkMode = ref.watch(isDarkModeProvider).valueOrNull ?? false;
+    return isDarkMode ? ThemeMode.dark : ThemeMode.light;
+  }
+
+  Future<void> toggleTheme() async {
+    final storageService = ref.read(storageServiceProvider);
+    final current = state;
+
+    if (current == ThemeMode.dark) {
+      await storageService.saveDarkMode(false);
+      state = ThemeMode.light;
+    } else {
+      await storageService.saveDarkMode(true);
+      state = ThemeMode.dark;
+    }
+  }
+}
+
+@riverpod
+class IsDarkMode extends _$IsDarkMode {
+  Future<bool> build() {
+    final storageService = ref.watch(storageServiceProvider);
+    return storageService.isDarkMode();
+  }
 }

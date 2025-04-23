@@ -1,10 +1,14 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
-import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
+
+import '../../di/providers.dart';
+
+part 'alarm_manager_service.g.dart';
 
 @pragma('vm:entry-point')
 void noonReminderCallback() {
@@ -49,9 +53,8 @@ class AlarmManagerService {
   final DeviceSpecificService _deviceSpecificService;
   bool _isInitialized = false;
 
-  AlarmManagerService({DeviceSpecificService? deviceSpecificService})
-    : _deviceSpecificService =
-          deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
+  AlarmManagerService({required DeviceSpecificService deviceSpecificService})
+    : _deviceSpecificService = deviceSpecificService;
 
   Future<bool> initialize() async {
     if (_isInitialized) return true;
@@ -326,4 +329,71 @@ class AlarmManagerService {
   }
 
   bool get isInitialized => _isInitialized;
+}
+
+@riverpod
+class AlarmStatus extends _$AlarmStatus {
+  @override
+  Future<Map<String, dynamic>> build() async {
+    final alarmManager = ref.watch(alarmManagerServiceProvider);
+
+    final Map<String, dynamic> status = {
+      'isInitialized': alarmManager.isInitialized,
+    };
+
+    // If initialized, get the latest alarm data
+    if (alarmManager.isInitialized) {
+      final lastTriggeredId = await alarmManager.getLastTriggeredAlarmId();
+      final lastTriggeredTime = await alarmManager.getLastTriggeredTime();
+
+      status['lastTriggeredId'] = lastTriggeredId;
+      status['lastTriggeredTime'] = lastTriggeredTime;
+    }
+
+    return status;
+  }
+
+  Future<bool> initialize() async {
+    final alarmManager = ref.read(alarmManagerServiceProvider);
+    final result = await alarmManager.initialize();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> scheduleFixedTimeAlarms() async {
+    final alarmManager = ref.read(alarmManagerServiceProvider);
+    final result = await alarmManager.scheduleFixedTimeAlarms();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> cancelAllAlarms() async {
+    final alarmManager = ref.read(alarmManagerServiceProvider);
+    final result = await alarmManager.cancelAllAlarms();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> clearLastTriggeredData() async {
+    final alarmManager = ref.read(alarmManagerServiceProvider);
+    final result = await alarmManager.clearLastTriggeredData();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
 }

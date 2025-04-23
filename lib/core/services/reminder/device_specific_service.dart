@@ -1,8 +1,14 @@
+// Không cần thay đổi nhiều, chỉ cần thêm provider
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/services/platform/device_settings_service.dart';
+
+import '../../di/providers.dart';
+
+part 'device_specific_service.g.dart';
 
 class DeviceSpecificService {
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
@@ -278,5 +284,64 @@ class DeviceSpecificService {
 
   Future<Map<String, dynamic>> getDeviceInfo() async {
     return _deviceSettingsService.getDeviceInfo();
+  }
+}
+
+@riverpod
+class DeviceInfo extends _$DeviceInfo {
+  @override
+  Future<Map<String, dynamic>> build() async {
+    final deviceService = await ref.watch(deviceSpecificServiceProvider.future);
+
+    final Map<String, dynamic> info = {
+      'isAndroid': deviceService.isAndroid,
+      'isSamsungDevice': deviceService.isSamsungDevice,
+      'isS23Ultra': deviceService.isS23Ultra,
+      'deviceModel': deviceService.deviceModel,
+      'manufacturer': deviceService.manufacturer,
+      'sdkVersion': deviceService.sdkVersion,
+      'isInitialized': deviceService.isInitialized,
+    };
+
+    // Add battery optimization status
+    info['isIgnoringBatteryOptimizations'] = await deviceService
+        .isIgnoringBatteryOptimizations();
+
+    // Add alarm permission status for Android 12+
+    if (deviceService.isAndroid && deviceService.sdkVersion >= 31) {
+      info['hasExactAlarmPermission'] = await deviceService
+          .hasExactAlarmPermission();
+    }
+
+    return info;
+  }
+
+  Future<bool> requestBatteryOptimization() async {
+    final deviceService = await ref.read(deviceSpecificServiceProvider.future);
+    final result = await deviceService.requestBatteryOptimization();
+
+    // Invalidate cache to trigger rebuild with new permission status
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    final deviceService = await ref.read(deviceSpecificServiceProvider.future);
+    final result = await deviceService.requestExactAlarmPermission();
+
+    // Invalidate cache to trigger rebuild with new permission status
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> disableSleepingApps() async {
+    final deviceService = await ref.read(deviceSpecificServiceProvider.future);
+    return deviceService.disableSleepingApps();
   }
 }

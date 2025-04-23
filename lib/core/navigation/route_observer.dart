@@ -1,3 +1,4 @@
+// Không cần thay đổi gì nhiều
 import 'package:flutter/material.dart';
 
 class AppRouteObserver extends NavigatorObserver {

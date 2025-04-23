@@ -1,20 +1,23 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/services/reminder/notification_service.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
+
+import '../../di/providers.dart';
+
+part 'cloud_reminder_service.g.dart';
 
 class CloudReminderService {
   late final FirebaseMessaging _firebaseMessaging;
   final StorageService _storageService;
-  final NotificationService? _notificationService;
+  final NotificationService _notificationService;
 
   CloudReminderService({
-    StorageService? storageService,
-    NotificationService? notificationService,
-  }) : _storageService = storageService ?? serviceLocator<StorageService>(),
-       _notificationService =
-           notificationService ?? serviceLocator<NotificationService>() {
+    required StorageService storageService,
+    required NotificationService notificationService,
+  }) : _storageService = storageService,
+       _notificationService = notificationService {
     _firebaseMessaging = FirebaseMessaging.instance;
   }
 
@@ -76,13 +79,6 @@ class CloudReminderService {
     debugPrint('Got FCM message: ${message.notification?.title}');
 
     try {
-      if (_notificationService == null) {
-        debugPrint(
-          'Warning: NotificationService is null, cannot show notification',
-        );
-        return;
-      }
-
       _notificationService.showNotification(
         id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         title: message.notification?.title ?? 'Learning Reminder',
@@ -98,4 +94,25 @@ class CloudReminderService {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('Handling a background message: ${message.messageId}');
+}
+
+@riverpod
+class CloudNotification extends _$CloudNotification {
+  @override
+  Future<String?> build() async {
+    final storageService = ref.watch(storageServiceProvider);
+    return storageService.getString('fcm_token');
+  }
+
+  Future<void> initialize() async {
+    state = const AsyncValue.loading();
+
+    final cloudReminderService = ref.read(cloudReminderServiceProvider);
+    await cloudReminderService.initialize();
+
+    // After initialization, update the token
+    final storageService = ref.read(storageServiceProvider);
+    final token = await storageService.getString('fcm_token');
+    state = AsyncValue.data(token);
+  }
 }

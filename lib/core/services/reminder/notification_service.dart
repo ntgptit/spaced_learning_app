@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
-import 'package:spaced_learning_app/core/di/service_locator.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
+import '../../di/providers.dart';
+
+part 'notification_service.g.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -14,8 +18,7 @@ class NotificationService {
   bool _timezonesInitialized = false;
 
   NotificationService({DeviceSpecificService? deviceSpecificService})
-    : _deviceSpecificService =
-          deviceSpecificService ?? serviceLocator<DeviceSpecificService>();
+    : _deviceSpecificService = deviceSpecificService!;
 
   static const String regularChannelId = 'spaced_learning_reminders';
   static const String importantChannelId =
@@ -318,7 +321,6 @@ class NotificationService {
         notificationDetails,
         androidScheduleMode: _getAndroidScheduleMode(isAlarmStyle),
         matchDateTimeComponents: DateTimeComponents.time,
-        // Daily at the same time
         payload: payload,
       );
 
@@ -360,7 +362,6 @@ class NotificationService {
                 ? AndroidNotificationCategory.reminder
                 : AndroidNotificationCategory.message),
       fullScreenIntent: isAlarmStyle,
-      // Full screen intent for alarm-style
       sound: isAlarmStyle
           ? const RawResourceAndroidNotificationSound('alarm_sound')
           : (isImportant
@@ -450,8 +451,8 @@ class NotificationService {
 
     return scheduleNotification(
       id: noonReminderId,
-      title: 'Kiểm tra lịch học tập',
-      body: 'Đã đến giờ xem lại lịch học hôm nay của bạn',
+      title: 'Check Your Learning Schedule',
+      body: 'It’s time to review today’s learning schedule',
       scheduledTime: scheduledTime,
       isImportant: false,
     );
@@ -475,8 +476,8 @@ class NotificationService {
 
     return scheduleNotification(
       id: eveningFirstReminderId,
-      title: 'Nhiệm vụ học tập chưa hoàn thành',
-      body: 'Bạn còn một số bài học cần hoàn thành hôm nay',
+      title: 'Unfinished Learning Tasks',
+      body: 'You still have some lessons to complete today',
       scheduledTime: scheduledTime,
       isImportant: true,
     );
@@ -492,8 +493,8 @@ class NotificationService {
 
     return scheduleNotification(
       id: eveningSecondReminderId,
-      title: 'Còn nhiệm vụ chưa hoàn thành!',
-      body: 'Hoàn thành việc học của bạn trước khi đi ngủ',
+      title: 'Tasks Still Pending!',
+      body: 'Complete your learning before bedtime',
       scheduledTime: scheduledTime,
       isImportant: true,
     );
@@ -509,11 +510,11 @@ class NotificationService {
 
     return scheduleNotification(
       id: endOfDayReminderId,
-      title: 'Đừng bỏ lỡ việc học hôm nay!',
-      body: 'Đây là lời nhắc cuối cùng cho những nhiệm vụ chưa hoàn thành',
+      title: 'Don’t Miss Today’s Learning!',
+      body: 'This is the final reminder for unfinished tasks',
       scheduledTime: scheduledTime,
       isImportant: true,
-      isAlarmStyle: useAlarmStyle, // Use alarm style for end-of-day
+      isAlarmStyle: useAlarmStyle,
     );
   }
 
@@ -521,3 +522,57 @@ class NotificationService {
 
   bool get timezonesInitialized => _timezonesInitialized;
 }
+
+// Riverpod provider for notification status
+@riverpod
+class NotificationStatus extends _$NotificationStatus {
+  @override
+  Future<bool> build() async {
+    final notificationService = await ref.watch(
+      notificationServiceProvider.future,
+    );
+    return notificationService.isInitialized;
+  }
+
+  Future<void> initialize() async {
+    state = const AsyncValue.loading();
+    final notificationService = await ref.read(
+      notificationServiceProvider.future,
+    );
+    state = await AsyncValue.guard(() async {
+      return await notificationService.initialize();
+    });
+  }
+
+  Future<bool> scheduleReminder(ReminderType type) async {
+    final notificationService = await ref.read(
+      notificationServiceProvider.future,
+    );
+    switch (type) {
+      case ReminderType.noon:
+        return await notificationService.scheduleNoonReminder();
+      case ReminderType.eveningFirst:
+        return await notificationService.scheduleEveningFirstReminder();
+      case ReminderType.eveningSecond:
+        return await notificationService.scheduleEveningSecondReminder();
+      case ReminderType.endOfDay:
+        return await notificationService.scheduleEndOfDayReminder();
+    }
+  }
+
+  Future<bool> cancelReminder(int id) async {
+    final notificationService = await ref.read(
+      notificationServiceProvider.future,
+    );
+    return await notificationService.cancelNotification(id);
+  }
+
+  Future<bool> cancelAllReminders() async {
+    final notificationService = await ref.read(
+      notificationServiceProvider.future,
+    );
+    return await notificationService.cancelAllNotifications();
+  }
+}
+
+enum ReminderType { noon, eveningFirst, eveningSecond, endOfDay }

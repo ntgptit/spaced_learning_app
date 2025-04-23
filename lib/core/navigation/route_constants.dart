@@ -1,3 +1,4 @@
+// Không cần thay đổi, giữ nguyên
 /// Lớp chứa các constant cho các route trong ứng dụng
 /// Sử dụng thay vì hardcode string để tránh lỗi typo
 class RouteConstants {
@@ -22,6 +23,7 @@ class RouteConstants {
   static const String help = '/help';
   static const String spacedRepetition = '/help/spaced-repetition';
   static const String taskReport = '/task-report';
+  static const String progressDetail = '/progress/:id';
 
   // Helper methods to format routes with parameters
   static String bookDetailRoute(String bookId) => '/books/$bookId';

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'screen_refresh_manager.g.dart';
 
 class ScreenRefreshManager {
   static final ScreenRefreshManager _instance =
@@ -64,5 +67,33 @@ class ScreenRefreshManager {
         callback();
       }
     });
+  }
+}
+
+@Riverpod(keepAlive: true)
+ScreenRefreshManager screenRefreshManager(ScreenRefreshManagerRef ref) {
+  return ScreenRefreshManager();
+}
+
+@riverpod
+class ScreenRefresh extends _$ScreenRefresh {
+  @override
+  void build() {
+    // This just provides a way to trigger screen refreshes
+  }
+
+  void refreshScreen(String screenPath) {
+    final manager = ref.read(screenRefreshManagerProvider);
+    manager.refreshScreen(screenPath);
+  }
+
+  void refreshScreensWithPrefix(String prefix) {
+    final manager = ref.read(screenRefreshManagerProvider);
+    manager.refreshScreensWithPrefix(prefix);
+  }
+
+  void refreshAllScreens() {
+    final manager = ref.read(screenRefreshManagerProvider);
+    manager.refreshAllScreens();
   }
 }

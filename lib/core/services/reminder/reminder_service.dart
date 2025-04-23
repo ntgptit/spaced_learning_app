@@ -2,11 +2,16 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/events/app_events.dart';
 import 'package:spaced_learning_app/core/services/reminder/device_specific_service.dart';
 import 'package:spaced_learning_app/core/services/reminder/notification_service.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/domain/repositories/progress_repository.dart';
+
+import '../../di/providers.dart';
+
+part 'reminder_service.g.dart';
 
 class ReminderService {
   final NotificationService _notificationService;
@@ -407,5 +412,95 @@ class ReminderService {
       debugPrint('Error setting end of day reminder: $e');
       return false;
     }
+  }
+}
+
+@riverpod
+class ReminderSettings extends _$ReminderSettings {
+  @override
+  Future<Map<String, bool>> build() async {
+    final reminderService = await ref.watch(reminderServiceProvider.future);
+
+    final Map<String, bool> settings = {
+      'reminders_enabled': await reminderService.getRemindersEnabled(),
+      'noon_reminder_enabled': await reminderService.getNoonReminderEnabled(),
+      'evening_first_reminder_enabled': await reminderService
+          .getEveningFirstReminderEnabled(),
+      'evening_second_reminder_enabled': await reminderService
+          .getEveningSecondReminderEnabled(),
+      'end_of_day_reminder_enabled': await reminderService
+          .getEndOfDayReminderEnabled(),
+    };
+
+    return settings;
+  }
+
+  Future<void> setRemindersEnabled(bool value) async {
+    final reminderService = await ref.read(reminderServiceProvider.future);
+    final result = await reminderService.setRemindersEnabled(value);
+
+    if (result) {
+      state = AsyncValue.data({
+        ...state.valueOrNull ?? {},
+        'reminders_enabled': value,
+      });
+
+      // Broadcast event
+      final eventBus = ref.read(eventBusProvider);
+      eventBus.fire(ReminderSettingsChangedEvent(enabled: value));
+    }
+  }
+
+  Future<void> setNoonReminderEnabled(bool value) async {
+    final reminderService = await ref.read(reminderServiceProvider.future);
+    final result = await reminderService.setNoonReminderEnabled(value);
+
+    if (result) {
+      state = AsyncValue.data({
+        ...state.valueOrNull ?? {},
+        'noon_reminder_enabled': value,
+      });
+    }
+  }
+
+  Future<void> setEveningFirstReminderEnabled(bool value) async {
+    final reminderService = await ref.read(reminderServiceProvider.future);
+    final result = await reminderService.setEveningFirstReminderEnabled(value);
+
+    if (result) {
+      state = AsyncValue.data({
+        ...state.valueOrNull ?? {},
+        'evening_first_reminder_enabled': value,
+      });
+    }
+  }
+
+  Future<void> setEveningSecondReminderEnabled(bool value) async {
+    final reminderService = await ref.read(reminderServiceProvider.future);
+    final result = await reminderService.setEveningSecondReminderEnabled(value);
+
+    if (result) {
+      state = AsyncValue.data({
+        ...state.valueOrNull ?? {},
+        'evening_second_reminder_enabled': value,
+      });
+    }
+  }
+
+  Future<void> setEndOfDayReminderEnabled(bool value) async {
+    final reminderService = await ref.read(reminderServiceProvider.future);
+    final result = await reminderService.setEndOfDayReminderEnabled(value);
+
+    if (result) {
+      state = AsyncValue.data({
+        ...state.valueOrNull ?? {},
+        'end_of_day_reminder_enabled': value,
+      });
+    }
+  }
+
+  Future<void> scheduleAllReminders() async {
+    final reminderService = await ref.read(reminderServiceProvider.future);
+    await reminderService.scheduleAllReminders();
   }
 }

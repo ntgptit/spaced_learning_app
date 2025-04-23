@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../di/providers.dart';
+
+part 'device_settings_service.g.dart';
 
 class DeviceSettingsService {
   static const MethodChannel _channel = MethodChannel(
@@ -150,5 +155,60 @@ class DeviceSettingsService {
       debugPrint('Unexpected error getting device info: $e');
       return {'sdkVersion': 0, 'manufacturer': 'Unknown', 'model': 'Unknown'};
     }
+  }
+}
+
+@riverpod
+class DeviceSettings extends _$DeviceSettings {
+  @override
+  Future<Map<String, dynamic>> build() async {
+    final deviceSettingsService = ref.watch(deviceSettingsServiceProvider);
+
+    final Map<String, dynamic> settings = {
+      'isAndroid': deviceSettingsService.isAndroid,
+    };
+
+    if (deviceSettingsService.isAndroid) {
+      settings['isIgnoringBatteryOptimizations'] = await deviceSettingsService
+          .isIgnoringBatteryOptimizations();
+      settings['hasExactAlarmPermission'] = await deviceSettingsService
+          .hasExactAlarmPermission();
+      settings['deviceInfo'] = await deviceSettingsService.getDeviceInfo();
+    }
+
+    return settings;
+  }
+
+  Future<bool> requestBatteryOptimization() async {
+    final deviceSettingsService = ref.read(deviceSettingsServiceProvider);
+    final result = await deviceSettingsService.requestBatteryOptimization();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    final deviceSettingsService = ref.read(deviceSettingsServiceProvider);
+    final result = await deviceSettingsService.requestExactAlarmPermission();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
+  }
+
+  Future<bool> disableSleepingApps() async {
+    final deviceSettingsService = ref.read(deviceSettingsServiceProvider);
+    final result = await deviceSettingsService.disableSleepingApps();
+
+    if (result) {
+      ref.invalidateSelf();
+    }
+
+    return result;
   }
 }

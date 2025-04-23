@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spaced_learning_app/core/navigation/route_constants.dart';
 import 'package:spaced_learning_app/core/navigation/route_observer.dart';
+import 'package:spaced_learning_app/presentation/providers/auth_provider.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
@@ -12,24 +16,44 @@ import 'package:spaced_learning_app/presentation/screens/progress/due_progress_s
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/report/daily_task_report_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
 
-import '../../presentation/screens/home/home_screen.dart';
+part 'router.g.dart';
 
-class AppRouter {
-  final AuthViewModel authViewModel;
-  final AppRouteObserver routeObserver = AppRouteObserver();
+@riverpod
+GoRouter router(RouterRef ref) {
+  final authState = ref.watch(authStateProvider);
 
-  AppRouter(this.authViewModel);
-
-  late final router = GoRouter(
-    refreshListenable: authViewModel,
-    debugLogDiagnostics: true,
+  return GoRouter(
     initialLocation: '/',
-    redirect: _handleRedirect,
+    debugLogDiagnostics: true,
+    redirect: (context, state) {
+      final isLoggedIn = authState.valueOrNull ?? false;
+      final isGoingToLogin = state.matchedLocation == RouteConstants.login;
+
+      // Danh sách các route không cần đăng nhập
+      final publicRoutes = [
+        RouteConstants.login,
+        RouteConstants.register,
+        RouteConstants.forgotPassword,
+      ];
+      final isGoingToPublicRoute = publicRoutes.contains(state.matchedLocation);
+
+      // Nếu chưa đăng nhập và đang cố truy cập route cần đăng nhập
+      if (!isLoggedIn && !isGoingToPublicRoute) {
+        return RouteConstants.login;
+      }
+
+      // Nếu đã đăng nhập và cố truy cập route đăng nhập
+      if (isLoggedIn && isGoingToLogin) {
+        return RouteConstants.home;
+      }
+
+      // Không cần redirect
+      return null;
+    },
     observers: [
-      routeObserver,
+      AppRouteObserver(),
       GoRouterObserver(
         onPop: (route, result) {
           debugPrint('Popped route: ${route.settings.name}');
@@ -39,18 +63,17 @@ class AppRouter {
     routes: [
       // Auth routes (outside shell)
       GoRoute(
-        path: '/login',
+        path: RouteConstants.login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
       ),
 
       // Modal routes (outside shell)
       GoRoute(
-        path: '/progress/:id',
+        path: RouteConstants.progressDetail,
         name: 'progressDetail',
         builder: (context, state) {
           final progressId = state.pathParameters['id'];
-          debugPrint('Router received progressId: $progressId');
 
           // Early return for empty ID
           if (progressId == null || progressId.isEmpty) {
@@ -98,13 +121,13 @@ class AppRouter {
         },
         routes: [
           GoRoute(
-            path: '/',
+            path: RouteConstants.home,
             name: 'home',
             builder: (context, state) => const HomeScreen(),
           ),
 
           GoRoute(
-            path: '/books',
+            path: RouteConstants.books,
             name: 'books',
             builder: (context, state) => const BooksScreen(),
             routes: [
@@ -116,7 +139,7 @@ class AppRouter {
                   if (bookId == null || bookId.isEmpty) {
                     return _buildErrorScreen(
                       'Invalid book ID',
-                      () => GoRouter.of(context).go('/books'),
+                      () => GoRouter.of(context).go(RouteConstants.books),
                     );
                   }
                   return BookDetailScreen(bookId: bookId);
@@ -142,7 +165,7 @@ class AppRouter {
           ),
 
           GoRoute(
-            path: '/learning',
+            path: RouteConstants.learning,
             name: 'learning',
             builder: (context, state) => const LearningProgressScreen(),
             routes: [
@@ -154,7 +177,7 @@ class AppRouter {
                   if (progressId == null || progressId.isEmpty) {
                     return _buildErrorScreen(
                       'Invalid progress ID',
-                      () => GoRouter.of(context).go('/learning'),
+                      () => GoRouter.of(context).go(RouteConstants.learning),
                     );
                   }
                   return ProgressDetailScreen(progressId: progressId);
@@ -168,7 +191,7 @@ class AppRouter {
                   if (moduleId == null || moduleId.isEmpty) {
                     return _buildErrorScreen(
                       'Invalid module ID',
-                      () => GoRouter.of(context).go('/learning'),
+                      () => GoRouter.of(context).go(RouteConstants.learning),
                     );
                   }
                   return ModuleDetailScreen(moduleId: moduleId);
@@ -178,25 +201,25 @@ class AppRouter {
           ),
 
           GoRoute(
-            path: '/profile',
+            path: RouteConstants.profile,
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
           ),
 
           GoRoute(
-            path: '/due-progress',
+            path: RouteConstants.dueProgress,
             name: 'dueProgress',
             builder: (context, state) => const DueProgressScreen(),
           ),
 
           GoRoute(
-            path: '/settings/reminders',
+            path: RouteConstants.reminderSettings,
             name: 'reminderSettings',
             builder: (context, state) => const ReminderSettingsScreen(),
           ),
 
           GoRoute(
-            path: '/help',
+            path: RouteConstants.help,
             name: 'help',
             builder: (context, state) =>
                 const Scaffold(body: Center(child: Text('Help & Support'))),
@@ -210,7 +233,7 @@ class AppRouter {
           ),
 
           GoRoute(
-            path: '/task-report',
+            path: RouteConstants.taskReport,
             name: 'taskReport',
             builder: (context, state) => const DailyTaskReportScreen(),
           ),
@@ -218,46 +241,23 @@ class AppRouter {
       ),
     ],
   );
+}
 
-  // Xử lý redirect dựa trên trạng thái đăng nhập
-  String? _handleRedirect(BuildContext context, GoRouterState state) {
-    final isLoggedIn = authViewModel.isAuthenticated;
-    final isGoingToLogin = state.matchedLocation == '/login';
-
-    // Danh sách các route không cần đăng nhập
-    final publicRoutes = ['/login', '/register', '/forgot-password'];
-    final isGoingToPublicRoute = publicRoutes.contains(state.matchedLocation);
-
-    // Nếu chưa đăng nhập và đang cố truy cập route cần đăng nhập
-    if (!isLoggedIn && !isGoingToPublicRoute) {
-      return '/login';
-    }
-
-    // Nếu đã đăng nhập và cố truy cập route đăng nhập
-    if (isLoggedIn && isGoingToLogin) {
-      return '/';
-    }
-
-    // Không cần redirect
-    return null;
-  }
-
-  // Widget chung cho màn hình lỗi
-  Widget _buildErrorScreen(String message, VoidCallback onBack) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Error')),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onBack, child: const Text('Go Back')),
-          ],
-        ),
+// Widget chung cho màn hình lỗi
+Widget _buildErrorScreen(String message, VoidCallback onBack) {
+  return Scaffold(
+    appBar: AppBar(title: const Text('Error')),
+    body: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: onBack, child: const Text('Go Back')),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
 
 class GoRouterObserver extends NavigatorObserver {

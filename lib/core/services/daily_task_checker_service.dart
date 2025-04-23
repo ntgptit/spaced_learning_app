@@ -5,11 +5,16 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spaced_learning_app/core/events/app_events.dart';
 import 'package:spaced_learning_app/core/services/reminder/reminder_service.dart';
 import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/domain/repositories/progress_repository.dart';
+
+import '../di/providers.dart';
+
+part 'daily_task_checker_service.g.dart';
 
 class DailyTaskChecker {
   final ProgressRepository _progressRepository;
@@ -128,8 +133,6 @@ class DailyTaskChecker {
   }
 
   // Phương thức kiểm tra task đến hạn - đây là phiên bản non-static
-
-  // Phương thức để kiểm tra thủ công (có thể gọi từ UI)
   Future<DailyTaskCheckEvent> checkDueTasks() async {
     final now = DateTime.now();
 
@@ -399,5 +402,32 @@ class DailyTaskChecker {
       debugPrint('Lỗi khi hủy lịch kiểm tra task hàng ngày: $e');
       return false;
     }
+  }
+}
+
+@riverpod
+class DailyTaskCheck extends _$DailyTaskCheck {
+  Future<DailyTaskCheckEvent?> build() async {
+    // Chỉ trả về null làm giá trị mặc định
+    return null;
+  }
+
+  Future<void> checkTasks() async {
+    state = const AsyncValue.loading();
+
+    final dailyTaskChecker = await ref.read(dailyTaskCheckerProvider.future);
+    state = await AsyncValue.guard(() => dailyTaskChecker.checkDueTasks());
+  }
+
+  Future<void> manualCheck() async {
+    state = const AsyncValue.loading();
+
+    final dailyTaskChecker = await ref.read(dailyTaskCheckerProvider.future);
+    state = await AsyncValue.guard(() => dailyTaskChecker.manualCheck());
+  }
+
+  Future<Map<String, dynamic>> getLastReport() async {
+    final dailyTaskChecker = await ref.read(dailyTaskCheckerProvider.future);
+    return dailyTaskChecker.getLastCheckReport();
   }
 }

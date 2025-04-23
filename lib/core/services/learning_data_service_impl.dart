@@ -1,3 +1,4 @@
+// Không cần thay đổi nhiều, nhưng đã cập nhật imports
 import 'package:spaced_learning_app/core/services/learning_data_service.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/domain/repositories/learning_progress_repository.dart';
@@ -80,8 +81,8 @@ class LearningDataServiceImpl implements LearningDataService {
   @override
   List<String> getUniqueBooks(List<LearningModule> modules) {
     if (modules.isEmpty) return ['All'];
-    final books =
-        modules.map((module) => module.bookName).toSet().toList()..sort();
+    final books = modules.map((module) => module.bookName).toSet().toList()
+      ..sort();
     return ['All', ...books];
   }
 
@@ -139,10 +140,9 @@ class LearningDataServiceImpl implements LearningDataService {
   List<LearningModule> getDueThisMonth(List<LearningModule> modules) {
     final now = DateTime.now();
     final monthStart = DateTime(now.year, now.month, 1);
-    final monthEnd =
-        (now.month < 12)
-            ? DateTime(now.year, now.month + 1, 0)
-            : DateTime(now.year + 1, 1, 0);
+    final monthEnd = (now.month < 12)
+        ? DateTime(now.year, now.month + 1, 0)
+        : DateTime(now.year + 1, 1, 0);
 
     return modules
         .where(
@@ -157,7 +157,6 @@ class LearningDataServiceImpl implements LearningDataService {
         )
         .toList();
   }
-
 
   @override
   Future<Map<String, dynamic>> getDashboardStats({
