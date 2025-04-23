@@ -118,7 +118,7 @@ final notificationServiceProvider =
 // ignore: unused_element
 typedef NotificationServiceRef = FutureProviderRef<NotificationService>;
 String _$alarmManagerServiceHash() =>
-    r'84f8d0271fcff8d5ba09b6c115af32f9233f1ede';
+    r'1b31b8094a596f03d9ca042a77247624deb26d16';
 
 /// See also [alarmManagerService].
 @ProviderFor(alarmManagerService)
@@ -138,7 +138,7 @@ final alarmManagerServiceProvider =
 // ignore: unused_element
 typedef AlarmManagerServiceRef = AutoDisposeProviderRef<AlarmManagerService>;
 String _$cloudReminderServiceHash() =>
-    r'fd5c77fd5b144d99cda88038181d977dab1f2043';
+    r'8f1c3199a9adc934232dd5faa018e666e77e68da';
 
 /// See also [cloudReminderService].
 @ProviderFor(cloudReminderService)

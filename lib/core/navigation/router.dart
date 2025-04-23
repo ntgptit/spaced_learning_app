@@ -1,9 +1,10 @@
+// lib/core/navigation/router.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/navigation/route_constants.dart';
 import 'package:spaced_learning_app/core/navigation/route_observer.dart';
-import 'package:spaced_learning_app/presentation/providers/auth_provider.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/login_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/book_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart';
@@ -18,10 +19,12 @@ import 'package:spaced_learning_app/presentation/screens/report/daily_task_repor
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
 
+import '../../presentation/providers/auth_provider.dart';
+
 part 'router.g.dart';
 
 @riverpod
-GoRouter router(RouterRef ref) {
+GoRouter router(Ref ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
