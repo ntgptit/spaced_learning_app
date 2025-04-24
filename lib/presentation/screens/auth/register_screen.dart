@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
+import 'package:spaced_learning_app/core/navigation/navigation_helper.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-import '../../../core/navigation/navigation_helper.dart';
-
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -118,8 +117,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _confirmPasswordError == null &&
         _firstNameError == null &&
         _lastNameError == null) {
-      final authViewModel = context.read<AuthViewModel>();
-      final success = await authViewModel.register(
+      final authNotifier = ref.read(authStateProvider.notifier);
+      final success = await authNotifier.register(
         _usernameController.text,
         _emailController.text,
         _passwordController.text,
@@ -127,11 +126,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _lastNameController.text,
       );
 
-      if (success && mounted && authViewModel.isAuthenticated) {
+      if (success &&
+          mounted &&
+          ref.read(authStateProvider).valueOrNull == true) {
         // Sử dụng NavigationHelper để clear stack và đi đến home
         NavigationHelper.clearStackAndGo(context, '/');
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final authState = ref.watch(authStateProvider);
+    final authError = ref.watch(authErrorProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Register')),
+      body: LoadingOverlay(
+        isLoading: authState.isLoading,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeader(theme),
+                    _buildErrorDisplay(authError, theme),
+                    _buildNameFields(),
+                    const SizedBox(height: 16),
+                    _buildAuthFields(theme),
+                    _buildActions(authState.isLoading, theme),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildHeader(ThemeData theme) {
@@ -158,14 +195,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildErrorDisplay(AuthViewModel authViewModel, ThemeData theme) {
-    return authViewModel.errorMessage != null
+  Widget _buildErrorDisplay(String? errorMessage, ThemeData theme) {
+    return errorMessage != null
         ? Column(
             children: [
               ErrorDisplay(
-                message: authViewModel.errorMessage!,
+                message: errorMessage,
                 compact: true,
-                onRetry: authViewModel.clearError,
+                onRetry: () =>
+                    ref.read(authErrorProvider.notifier).clearError(),
               ),
               const SizedBox(height: 16),
             ],
@@ -255,18 +293,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildActions(
-    BuildContext context,
-    AuthViewModel authViewModel,
-    ThemeData theme,
-  ) {
+  Widget _buildActions(bool isLoading, ThemeData theme) {
     return Column(
       children: [
         const SizedBox(height: 24),
         AppButton(
           text: 'Register',
           onPressed: _register,
-          isLoading: authViewModel.isLoading,
+          isLoading: isLoading,
           isFullWidth: true,
         ),
         const SizedBox(height: 16),
@@ -289,41 +323,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final authViewModel = context.watch<AuthViewModel>();
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
-      body: LoadingOverlay(
-        isLoading: authViewModel.isLoading,
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(theme),
-                    _buildErrorDisplay(authViewModel, theme),
-                    _buildNameFields(),
-                    const SizedBox(height: 16),
-                    _buildAuthFields(theme),
-                    _buildActions(context, authViewModel, theme),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

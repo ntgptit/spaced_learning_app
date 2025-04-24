@@ -36,12 +36,15 @@ class BooksState extends _$BooksState {
       return loadBooks(page: page, size: size);
     }
 
+    state = const AsyncValue.loading();
     try {
       final books = await ref
           .read(bookRepositoryProvider)
           .searchBooks(query, page: page, size: size);
+      state = AsyncValue.data(books);
       return books;
     } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
       return [];
     }
   }

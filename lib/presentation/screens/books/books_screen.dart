@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
@@ -14,14 +14,14 @@ import 'package:spaced_learning_app/presentation/widgets/common/loading_indicato
 
 import '../../../core/navigation/navigation_helper.dart';
 
-class BooksScreen extends StatefulWidget {
+class BooksScreen extends ConsumerStatefulWidget {
   const BooksScreen({super.key});
 
   @override
-  State<BooksScreen> createState() => _BooksScreenState();
+  ConsumerState<BooksScreen> createState() => _BooksScreenState();
 }
 
-class _BooksScreenState extends State<BooksScreen>
+class _BooksScreenState extends ConsumerState<BooksScreen>
     with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -72,17 +72,19 @@ class _BooksScreenState extends State<BooksScreen>
   }
 
   Future<void> _loadData({bool forceRefresh = false}) async {
-    final bookViewModel = context.read<BookViewModel>();
+    final booksNotifier = ref.read(booksStateProvider.notifier);
+    final categoriesNotifier = ref.read(categoriesProvider.notifier);
+
     try {
       if (_categories.isEmpty || forceRefresh) {
-        await bookViewModel.loadCategories();
+        await categoriesNotifier.loadCategories();
         if (mounted) {
           setState(() {
-            _categories = bookViewModel.categories;
+            _categories = ref.read(categoriesProvider).valueOrNull ?? [];
           });
         }
       }
-      await bookViewModel.loadBooks(); // This applies current filters if any
+      await booksNotifier.loadBooks(); // This applies current filters if any
     } catch (e) {
       final errorMessage = e is AppException
           ? e.message
@@ -104,11 +106,13 @@ class _BooksScreenState extends State<BooksScreen>
   }
 
   void _applyFilters() {
-    context.read<BookViewModel>().filterBooks(
-      status: _selectedStatus,
-      difficultyLevel: _selectedDifficulty,
-      category: _selectedCategory,
-    );
+    ref
+        .read(booksStateProvider.notifier)
+        .filterBooks(
+          status: _selectedStatus,
+          difficultyLevel: _selectedDifficulty,
+          category: _selectedCategory,
+        );
   }
 
   void _resetFilters() {
@@ -117,19 +121,19 @@ class _BooksScreenState extends State<BooksScreen>
       _selectedStatus = null;
       _selectedDifficulty = null;
     });
-    context.read<BookViewModel>().loadBooks();
+    ref.read(booksStateProvider.notifier).loadBooks();
     if (_isFilterExpanded) {
       _toggleFilterPanel();
     }
   }
 
   Future<void> _searchBooks(String query) async {
-    final bookViewModel = context.read<BookViewModel>();
+    final booksNotifier = ref.read(booksStateProvider.notifier);
     if (query.isEmpty) {
       setState(() {
         _isSearching = false;
       });
-      return bookViewModel.filterBooks(
+      return booksNotifier.filterBooks(
         status: _selectedStatus,
         difficultyLevel: _selectedDifficulty,
         category: _selectedCategory,
@@ -138,7 +142,7 @@ class _BooksScreenState extends State<BooksScreen>
     setState(() {
       _isSearching = true;
     });
-    await bookViewModel.searchBooks(query);
+    await booksNotifier.searchBooks(query);
   }
 
   void _toggleFilterPanel() {
@@ -157,9 +161,9 @@ class _BooksScreenState extends State<BooksScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final authViewModel = context.watch<AuthViewModel>();
+    final currentUser = ref.watch(currentUserProvider);
 
-    if (authViewModel.currentUser == null) {
+    if (currentUser == null) {
       return _buildLoginPrompt(theme);
     }
 
@@ -210,12 +214,23 @@ class _BooksScreenState extends State<BooksScreen>
             ),
 
             Expanded(
-              child: Consumer<BookViewModel>(
-                builder: (context, bookViewModel, child) {
-                  return _buildBooksList(
-                    bookViewModel,
-                    theme,
-                    _isSearching ? 'Search results' : 'Books Library',
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final booksState = ref.watch(booksStateProvider);
+
+                  return booksState.when(
+                    data: (books) => _buildBooksList(
+                      books,
+                      theme,
+                      _isSearching ? 'Search results' : 'Books Library',
+                    ),
+                    error: (error, stackTrace) => Center(
+                      child: ErrorDisplay(
+                        message: error.toString(),
+                        onRetry: () => _loadData(forceRefresh: true),
+                      ),
+                    ),
+                    loading: () => const Center(child: AppLoadingIndicator()),
                   );
                 },
               ),
@@ -223,8 +238,7 @@ class _BooksScreenState extends State<BooksScreen>
           ],
         ),
       ),
-      floatingActionButton:
-          authViewModel.currentUser?.roles?.contains('ADMIN') == true
+      floatingActionButton: currentUser.roles?.contains('ADMIN') == true
           ? FloatingActionButton(
               onPressed: () => GoRouter.of(context).push('/books/create'),
               tooltip: 'Add Book',
@@ -407,24 +421,11 @@ class _BooksScreenState extends State<BooksScreen>
   }
 
   Widget _buildBooksList(
-    BookViewModel viewModel,
+    List<BookSummary> books,
     ThemeData theme,
     String title,
   ) {
-    if (viewModel.isLoading) {
-      return const Center(child: AppLoadingIndicator());
-    }
-
-    if (viewModel.errorMessage != null) {
-      return Center(
-        child: ErrorDisplay(
-          message: viewModel.errorMessage!,
-          onRetry: () => _loadData(forceRefresh: true),
-        ),
-      );
-    }
-
-    if (viewModel.books.isEmpty) {
+    if (books.isEmpty) {
       return _buildEmptyState(theme);
     }
 
@@ -445,7 +446,7 @@ class _BooksScreenState extends State<BooksScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '$title (${viewModel.books.length})',
+                    '$title (${books.length})',
                     style: theme.textTheme.titleLarge,
                   ),
                 ],
@@ -462,7 +463,7 @@ class _BooksScreenState extends State<BooksScreen>
             ),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
-                final book = viewModel.books[index];
+                final book = books[index];
                 return BookListCard(
                   book: book,
                   onTap: () {
@@ -486,7 +487,7 @@ class _BooksScreenState extends State<BooksScreen>
                     });
                   },
                 );
-              }, childCount: viewModel.books.length),
+              }, childCount: books.length),
             ),
           ),
         ],

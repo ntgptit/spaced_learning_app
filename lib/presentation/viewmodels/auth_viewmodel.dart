@@ -9,6 +9,7 @@ part 'auth_viewmodel.g.dart';
 
 @riverpod
 class AuthState extends _$AuthState {
+  @override
   Future<bool> build() async {
     return _checkAuthentication();
   }
@@ -27,15 +28,15 @@ class AuthState extends _$AuthState {
       if (isValid) {
         final userData = await ref.read(storageServiceProvider).getUserData();
         if (userData != null) {
-          ref.read(currentUserProvider.notifier).state = User.fromJson(
-            userData,
-          );
+          ref
+              .read(currentUserProvider.notifier)
+              .updateUser(User.fromJson(userData));
         }
         return true;
-      } else {
-        await ref.read(storageServiceProvider).clearTokens();
-        return false;
       }
+
+      await ref.read(storageServiceProvider).clearTokens();
+      return false;
     } catch (e) {
       await ref.read(storageServiceProvider).clearTokens();
       return false;
@@ -83,7 +84,7 @@ class AuthState extends _$AuthState {
     try {
       await ref.read(storageServiceProvider).clearTokens();
       await ref.read(storageServiceProvider).clearUserData();
-      ref.read(currentUserProvider.notifier).state = null;
+      ref.read(currentUserProvider.notifier).updateUser(null);
       state = const AsyncValue.data(false);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
@@ -98,7 +99,7 @@ class AuthState extends _$AuthState {
           .saveRefreshToken(response.refreshToken!);
     }
     await ref.read(storageServiceProvider).saveUserData(response.user.toJson());
-    ref.read(currentUserProvider.notifier).state = response.user;
+    ref.read(currentUserProvider.notifier).updateUser(response.user);
   }
 }
 
@@ -109,7 +110,7 @@ class CurrentUser extends _$CurrentUser {
     return null;
   }
 
-  void updateUser(User user) {
+  void updateUser(User? user) {
     state = user;
   }
 }
@@ -120,5 +121,9 @@ class AuthError extends _$AuthError {
   String? build() {
     final authState = ref.watch(authStateProvider);
     return authState.hasError ? authState.error.toString() : null;
+  }
+
+  void clearError() {
+    state = null;
   }
 }

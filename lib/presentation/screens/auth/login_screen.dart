@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/register_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -9,14 +9,14 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.d
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _usernameOrEmailController =
       TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -55,17 +55,54 @@ class _LoginScreenState extends State<LoginScreen> {
     _validatePassword();
 
     if (_usernameOrEmailError == null && _passwordError == null) {
-      final authViewModel = context.read<AuthViewModel>();
-      final success = await authViewModel.login(
+      final authNotifier = ref.read(authStateProvider.notifier);
+      final success = await authNotifier.login(
         _usernameOrEmailController.text,
         _passwordController.text,
       );
 
-      if (success && mounted && authViewModel.isAuthenticated) {
+      if (success &&
+          mounted &&
+          ref.read(authStateProvider).valueOrNull == true) {
         // Sử dụng GoRouter thay vì Navigator
         GoRouter.of(context).go('/');
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final authState = ref.watch(authStateProvider);
+    final authError = ref.watch(authErrorProvider);
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      body: LoadingOverlay(
+        isLoading: authState.isLoading,
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeader(theme),
+                    _buildErrorDisplay(authError, theme),
+                    _buildFormFields(theme),
+                    _buildActions(authState.isLoading, theme),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildHeader(ThemeData theme) {
@@ -92,14 +129,15 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildErrorDisplay(AuthViewModel authViewModel, ThemeData theme) {
-    return authViewModel.errorMessage != null
+  Widget _buildErrorDisplay(String? errorMessage, ThemeData theme) {
+    return errorMessage != null
         ? Column(
             children: [
               ErrorDisplay(
-                message: authViewModel.errorMessage!,
+                message: errorMessage,
                 compact: true,
-                onRetry: authViewModel.clearError,
+                onRetry: () =>
+                    ref.read(authErrorProvider.notifier).clearError(),
               ),
               const SizedBox(height: 16),
             ],
@@ -134,18 +172,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildActions(
-    BuildContext context,
-    AuthViewModel authViewModel,
-    ThemeData theme,
-  ) {
+  Widget _buildActions(bool isLoading, ThemeData theme) {
     return Column(
       children: [
         const SizedBox(height: 24),
         AppButton(
           text: 'Login',
           onPressed: _login,
-          isLoading: authViewModel.isLoading,
+          isLoading: isLoading,
           isFullWidth: true,
         ),
         const SizedBox(height: 16),
@@ -167,40 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final authViewModel = context.watch<AuthViewModel>();
-
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: LoadingOverlay(
-        isLoading: authViewModel.isLoading,
-        color: theme.colorScheme.surfaceContainerHighest,
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(theme),
-                    _buildErrorDisplay(authViewModel, theme),
-                    _buildFormFields(theme),
-                    _buildActions(context, authViewModel, theme),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

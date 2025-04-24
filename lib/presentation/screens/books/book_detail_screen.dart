@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -12,16 +12,18 @@ import 'package:spaced_learning_app/presentation/widgets/books/info_chip.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-class BookDetailScreen extends StatefulWidget {
+import '../../../domain/models/user.dart';
+
+class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
 
   const BookDetailScreen({super.key, required this.bookId});
 
   @override
-  State<BookDetailScreen> createState() => _BookDetailScreenState();
+  ConsumerState<BookDetailScreen> createState() => _BookDetailScreenState();
 }
 
-class _BookDetailScreenState extends State<BookDetailScreen>
+class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
@@ -54,93 +56,104 @@ class _BookDetailScreenState extends State<BookDetailScreen>
   Future<void> _loadData() async {
     if (!mounted) return;
 
-    final bookViewModel = context.read<BookViewModel>();
-    final moduleViewModel = context.read<ModuleViewModel>();
+    final bookNotifier = ref.read(selectedBookProvider.notifier);
+    final moduleNotifier = ref.read(modulesStateProvider.notifier);
 
-    await bookViewModel.loadBookDetails(widget.bookId);
+    await bookNotifier.loadBookDetails(widget.bookId);
 
     if (!mounted) return;
 
-    await moduleViewModel.loadModulesByBookId(widget.bookId);
+    await moduleNotifier.loadModulesByBookId(widget.bookId);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bookViewModel = context.watch<BookViewModel>();
-    final moduleViewModel = context.watch<ModuleViewModel>();
-    final authViewModel = context.watch<AuthViewModel>();
-    final book = bookViewModel.selectedBook;
+    final bookState = ref.watch(selectedBookProvider);
+    final modulesState = ref.watch(modulesStateProvider);
+    final currentUser = ref.watch(currentUserProvider);
     final colorScheme = theme.colorScheme;
 
-    if (bookViewModel.isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Book Details')),
-        body: const Center(child: AppLoadingIndicator()),
-      );
-    }
+    return bookState.when(
+      data: (book) {
+        if (book == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Book Details')),
+            body: const Center(child: Text('Book not found')),
+          );
+        }
 
-    if (bookViewModel.errorMessage != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Book Details')),
-        body: Center(
-          child: ErrorDisplay(
-            message: bookViewModel.errorMessage!,
-            onRetry: _loadData,
-          ),
-        ),
-      );
-    }
-
-    if (book == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Book Details')),
-        body: const Center(child: Text('Book not found')),
-      );
-    }
-
-    return Scaffold(
-      body: NestedScrollView(
-        controller: _scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          _buildFlexibleAppBar(
-            theme,
-            colorScheme,
-            book,
-            authViewModel,
-            innerBoxIsScrolled,
-          ),
-        ],
-        body: Column(
-          children: [
-            TabBar(
-              controller: _tabController,
-              labelColor: colorScheme.primary,
-              unselectedLabelColor: colorScheme.onSurfaceVariant,
-              indicatorColor: colorScheme.primary,
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.label,
-              tabs: const [
-                Tab(icon: Icon(Icons.info_outline), text: 'Overview'),
-                Tab(icon: Icon(Icons.view_module_outlined), text: 'Modules'),
+        return Scaffold(
+          body: NestedScrollView(
+            controller: _scrollController,
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              _buildFlexibleAppBar(
+                theme,
+                colorScheme,
+                book,
+                currentUser,
+                innerBoxIsScrolled,
+              ),
+            ],
+            body: Column(
+              children: [
+                TabBar(
+                  controller: _tabController,
+                  labelColor: colorScheme.primary,
+                  unselectedLabelColor: colorScheme.onSurfaceVariant,
+                  indicatorColor: colorScheme.primary,
+                  indicatorWeight: 3,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.info_outline), text: 'Overview'),
+                    Tab(
+                      icon: Icon(Icons.view_module_outlined),
+                      text: 'Modules',
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      BookOverviewTab(book: book),
+                      modulesState.when(
+                        data: (modules) => BookModulesTab(
+                          bookId: widget.bookId,
+                          modules: modules,
+                          isLoading: false,
+                          errorMessage: null,
+                          onRetry: () => ref
+                              .read(modulesStateProvider.notifier)
+                              .loadModulesByBookId(widget.bookId),
+                        ),
+                        loading: () =>
+                            const Center(child: AppLoadingIndicator()),
+                        error: (error, stackTrace) => Center(
+                          child: ErrorDisplay(
+                            message: error.toString(),
+                            onRetry: () => ref
+                                .read(modulesStateProvider.notifier)
+                                .loadModulesByBookId(widget.bookId),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  BookOverviewTab(book: book),
-
-                  BookModulesTab(
-                    bookId: widget.bookId,
-                    viewModel: moduleViewModel,
-                    onRetry: () =>
-                        moduleViewModel.loadModulesByBookId(widget.bookId),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
+        );
+      },
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Book Details')),
+        body: const Center(child: AppLoadingIndicator()),
+      ),
+      error: (error, stackTrace) => Scaffold(
+        appBar: AppBar(title: const Text('Book Details')),
+        body: Center(
+          child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
         ),
       ),
     );
@@ -150,7 +163,7 @@ class _BookDetailScreenState extends State<BookDetailScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     BookDetail book,
-    AuthViewModel authViewModel,
+    User? currentUser,
     bool innerBoxIsScrolled,
   ) {
     final statusColor = _getStatusColor(book.status);
