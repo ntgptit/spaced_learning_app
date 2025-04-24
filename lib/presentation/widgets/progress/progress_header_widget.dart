@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 
-class ProgressHeaderWidget extends StatelessWidget {
+class ProgressHeaderWidget extends ConsumerWidget {
   final ProgressDetail progress;
   final VoidCallback onCycleCompleteDialogRequested;
 
@@ -18,7 +18,7 @@ class ProgressHeaderWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('MMM dd, yyyy');
 
@@ -35,6 +35,8 @@ class ProgressHeaderWidget extends StatelessWidget {
         .length;
     final totalCount = progress.repetitions.length;
 
+    final cycleInfo = ref.watch(getCycleInfoProvider(progress.cyclesStudied));
+
     return Card(
       elevation: AppDimens.elevationS,
       shape: RoundedRectangleBorder(
@@ -49,18 +51,7 @@ class ProgressHeaderWidget extends StatelessWidget {
             const SizedBox(height: AppDimens.spaceL),
             _buildOverallProgress(theme),
             const SizedBox(height: AppDimens.spaceL),
-            Selector<RepetitionViewModel, String>(
-              selector: (context, vm) =>
-                  vm.getCycleInfo(progress.cyclesStudied),
-              builder: (context, cycleInfo, child) {
-                return _buildCycleProgress(
-                  theme,
-                  cycleInfo,
-                  completedCount,
-                  totalCount,
-                );
-              },
-            ),
+            _buildCycleProgress(theme, cycleInfo, completedCount, totalCount),
             const SizedBox(height: AppDimens.spaceL),
             _buildMetadata(theme, startDateText, nextDateText),
           ],

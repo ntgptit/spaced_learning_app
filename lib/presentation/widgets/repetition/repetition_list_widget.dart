@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
@@ -10,7 +10,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_card.dart';
 
-class RepetitionListWidget extends StatefulWidget {
+class RepetitionListWidget extends ConsumerStatefulWidget {
   final String progressId;
   final CycleStudied currentCycleStudied;
   final Future<void> Function(String) onMarkCompleted;
@@ -27,10 +27,11 @@ class RepetitionListWidget extends StatefulWidget {
   });
 
   @override
-  State<RepetitionListWidget> createState() => _RepetitionListWidgetState();
+  ConsumerState<RepetitionListWidget> createState() =>
+      _RepetitionListWidgetState();
 }
 
-class _RepetitionListWidgetState extends State<RepetitionListWidget>
+class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -49,6 +50,13 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
     );
 
     _animationController.forward();
+
+    // Load repetitions when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(repetitionStateProvider.notifier)
+          .loadRepetitionsByProgressId(widget.progressId);
+    });
   }
 
   @override
@@ -75,27 +83,14 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final repetitionsState = ref.watch(repetitionStateProvider);
 
-    return Consumer<RepetitionViewModel>(
-      builder: (context, viewModel, _) {
-        if (viewModel.isLoading) {
-          return _buildLoadingState(theme, colorScheme);
+    return repetitionsState.when(
+      data: (repetitions) {
+        if (repetitions.isEmpty) {
+          return _buildEmptyState(context, ref, colorScheme);
         }
 
-        if (viewModel.errorMessage != null) {
-          return ErrorDisplay(
-            message: viewModel.errorMessage!,
-            onRetry: () =>
-                viewModel.loadRepetitionsByProgressId(widget.progressId),
-            compact: true,
-          );
-        }
-
-        if (viewModel.repetitions.isEmpty) {
-          return _buildEmptyState(context, viewModel, colorScheme);
-        }
-
-        final repetitions = List<Repetition>.from(viewModel.repetitions);
         final notStarted =
             repetitions
                 .where((r) => r.status == RepetitionStatus.notStarted)
@@ -104,6 +99,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                 (a, b) =>
                     a.repetitionOrder.index.compareTo(b.repetitionOrder.index),
               );
+
         final completed =
             repetitions
                 .where((r) => r.status == RepetitionStatus.completed)
@@ -113,7 +109,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
         final notStartedByCycle = RepetitionUtils.groupByCycle(notStarted);
         final completedByCycle = RepetitionUtils.groupByCycle(completed);
 
-        if (viewModel.repetitions.isNotEmpty) {
+        if (repetitions.isNotEmpty) {
           _restartAnimation();
         }
 
@@ -139,8 +135,8 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
                   context,
                   'Completed Tasks',
                   Icons.check_circle_outline,
-                  colorScheme.primaryContainer, // Đảm bảo màu đồng nhất
-                  colorScheme.onPrimaryContainer, // Đảm bảo màu đồng nhất
+                  colorScheme.primaryContainer,
+                  colorScheme.onPrimaryContainer,
                   completedByCycle,
                   true,
                   colorScheme,
@@ -149,6 +145,14 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
           ),
         );
       },
+      loading: () => _buildLoadingState(theme, colorScheme),
+      error: (error, stackTrace) => ErrorDisplay(
+        message: error.toString(),
+        onRetry: () => ref
+            .read(repetitionStateProvider.notifier)
+            .loadRepetitionsByProgressId(widget.progressId),
+        compact: true,
+      ),
     );
   }
 
@@ -175,7 +179,7 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
 
   Widget _buildEmptyState(
     BuildContext context,
-    RepetitionViewModel viewModel,
+    WidgetRef ref,
     ColorScheme colorScheme,
   ) {
     final theme = Theme.of(context);
@@ -223,7 +227,9 @@ class _RepetitionListWidgetState extends State<RepetitionListWidget>
               type: AppButtonType.primary,
               prefixIcon: Icons.add_circle_outline,
               onPressed: () async {
-                await viewModel.createDefaultSchedule(widget.progressId);
+                await ref
+                    .read(repetitionStateProvider.notifier)
+                    .createDefaultSchedule(widget.progressId);
                 await widget.onReload();
               },
             ),

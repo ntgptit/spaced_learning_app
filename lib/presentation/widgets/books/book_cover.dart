@@ -148,7 +148,6 @@ class _BookPatternPainter extends CustomPainter {
     }
 
     canvas.drawLine(const Offset(0, 0), Offset(size.width, size.height), paint);
-
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
   }
 

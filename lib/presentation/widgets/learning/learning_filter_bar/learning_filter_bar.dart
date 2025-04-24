@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/filter_book_selector.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/filter_date_selector.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/filter_stats_row.dart';
 
-class LearningFilterBar extends StatelessWidget {
+class LearningFilterBar extends ConsumerWidget {
   final int totalCount;
   final int dueCount;
   final int completeCount;
@@ -19,33 +19,40 @@ class LearningFilterBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<LearningProgressViewModel>(
-      builder: (context, viewModel, _) {
-        return _FilterBarContent(
-          selectedBook: viewModel.selectedBook,
-          selectedDate: viewModel.selectedDate,
-          books: viewModel.getUniqueBooks(),
-          onBookChanged: (book) => viewModel.setSelectedBook(book ?? 'All'),
-          onDateSelected: () => _selectDate(context, viewModel),
-          onDateCleared: () => viewModel.clearDateFilter(),
-          totalCount: totalCount,
-          dueCount: dueCount,
-          completeCount: completeCount,
-          hasActiveFilters:
-              viewModel.selectedBook != 'All' || viewModel.selectedDate != null,
-        );
-      },
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedBook = ref.watch(selectedBookFilterProvider);
+    final selectedDate = ref.watch(selectedDateFilterProvider);
+    final books = ref.watch(
+      learningProgressStateProvider.select(
+        (value) => value.valueOrNull != null
+            ? ref.read(learningProgressStateProvider.notifier).getUniqueBooks()
+            : ['All'],
+      ),
+    );
+
+    return _FilterBarContent(
+      selectedBook: selectedBook,
+      selectedDate: selectedDate,
+      books: books,
+      onBookChanged: (book) => ref
+          .read(selectedBookFilterProvider.notifier)
+          .setSelectedBook(book ?? 'All'),
+      onDateSelected: () => _selectDate(context, ref),
+      onDateCleared: () =>
+          ref.read(selectedDateFilterProvider.notifier).clearDateFilter(),
+      totalCount: totalCount,
+      dueCount: dueCount,
+      completeCount: completeCount,
+      hasActiveFilters: selectedBook != 'All' || selectedDate != null,
     );
   }
 
-  Future<void> _selectDate(
-    BuildContext context,
-    LearningProgressViewModel viewModel,
-  ) async {
+  Future<void> _selectDate(BuildContext context, WidgetRef ref) async {
+    final selectedDate = ref.read(selectedDateFilterProvider);
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: viewModel.selectedDate ?? DateTime.now(),
+      initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       builder: (BuildContext context, Widget? child) {
@@ -64,7 +71,7 @@ class LearningFilterBar extends StatelessWidget {
     );
 
     if (picked != null) {
-      viewModel.setSelectedDate(picked);
+      ref.read(selectedDateFilterProvider.notifier).setSelectedDate(picked);
     }
   }
 }
