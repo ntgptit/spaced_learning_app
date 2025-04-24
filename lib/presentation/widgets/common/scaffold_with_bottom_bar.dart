@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_drawer.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
 
-class ScaffoldWithBottomBar extends StatefulWidget {
+class ScaffoldWithBottomBar extends ConsumerStatefulWidget {
   final Widget child;
   final int currentIndex;
 
@@ -15,12 +16,12 @@ class ScaffoldWithBottomBar extends StatefulWidget {
   });
 
   @override
-  State<ScaffoldWithBottomBar> createState() => _ScaffoldWithBottomBarState();
+  ConsumerState<ScaffoldWithBottomBar> createState() =>
+      _ScaffoldWithBottomBarState();
 }
 
-class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
+class _ScaffoldWithBottomBarState extends ConsumerState<ScaffoldWithBottomBar> {
   DateTime? _lastTabChangeTime;
-  final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
 
   @override
   void didUpdateWidget(ScaffoldWithBottomBar oldWidget) {
@@ -37,19 +38,25 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
 
           switch (widget.currentIndex) {
             case 0:
-              _refreshManager.refreshScreen('/');
+              ref.read(screenRefreshProvider.notifier).refreshScreen('/');
               break;
             case 1:
-              _refreshManager.refreshScreen('/books');
+              ref.read(screenRefreshProvider.notifier).refreshScreen('/books');
               break;
             case 2:
-              _refreshManager.refreshScreen('/due-progress');
+              ref
+                  .read(screenRefreshProvider.notifier)
+                  .refreshScreen('/due-progress');
               break;
             case 3:
-              _refreshManager.refreshScreen('/learning');
+              ref
+                  .read(screenRefreshProvider.notifier)
+                  .refreshScreen('/learning');
               break;
             case 4:
-              _refreshManager.refreshScreen('/profile');
+              ref
+                  .read(screenRefreshProvider.notifier)
+                  .refreshScreen('/profile');
               break;
           }
         });
@@ -92,19 +99,21 @@ class _ScaffoldWithBottomBarState extends State<ScaffoldWithBottomBar> {
     if (index == widget.currentIndex) {
       switch (index) {
         case 0:
-          _refreshManager.refreshScreen('/');
+          ref.read(screenRefreshProvider.notifier).refreshScreen('/');
           break;
         case 1:
-          _refreshManager.refreshScreen('/books');
+          ref.read(screenRefreshProvider.notifier).refreshScreen('/books');
           break;
         case 2:
-          _refreshManager.refreshScreen('/due-progress');
+          ref
+              .read(screenRefreshProvider.notifier)
+              .refreshScreen('/due-progress');
           break;
         case 3:
-          _refreshManager.refreshScreen('/learning');
+          ref.read(screenRefreshProvider.notifier).refreshScreen('/learning');
           break;
         case 4:
-          _refreshManager.refreshScreen('/profile');
+          ref.read(screenRefreshProvider.notifier).refreshScreen('/profile');
           break;
       }
     }

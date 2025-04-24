@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final authViewModel = context.watch<AuthViewModel>();
-    final themeViewModel = context.watch<ThemeViewModel>();
+    final currentUser = ref.watch(currentUserProvider);
+    final isDarkMode = ref.watch(isDarkModeProvider);
 
     return Drawer(
       child: SafeArea(
@@ -29,9 +29,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 child: Text(
                   _getInitials(
-                    authViewModel.currentUser?.displayName ??
-                        authViewModel.currentUser?.email ??
-                        'User',
+                    currentUser?.displayName ?? currentUser?.email ?? 'User',
                   ),
                   style: TextStyle(
                     color: colorScheme.onPrimaryContainer,
@@ -40,11 +38,11 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
               accountName: Text(
-                authViewModel.currentUser?.displayName ?? 'User',
+                currentUser?.displayName ?? 'User',
                 style: TextStyle(color: colorScheme.onPrimaryContainer),
               ),
               accountEmail: Text(
-                authViewModel.currentUser?.email ?? '',
+                currentUser?.email ?? '',
                 style: TextStyle(
                   color: colorScheme.onPrimaryContainer.withValues(
                     alpha: AppDimens.opacityHigh,
@@ -122,12 +120,12 @@ class AppDrawer extends StatelessWidget {
             ),
             _buildMenuItem(
               context,
-              themeViewModel.isDarkMode ? 'Light Mode' : 'Dark Mode',
-              themeViewModel.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              isDarkMode ? 'Light Mode' : 'Dark Mode',
+              isDarkMode ? Icons.light_mode : Icons.dark_mode,
               theme,
               colorScheme,
               () {
-                themeViewModel.toggleTheme();
+                ref.read(themeStateProvider.notifier).toggleTheme();
                 Navigator.pop(context);
               },
             ),
@@ -140,7 +138,7 @@ class AppDrawer extends StatelessWidget {
               colorScheme,
               () async {
                 Navigator.pop(context);
-                await authViewModel.logout();
+                await ref.read(authStateProvider.notifier).logout();
                 if (context.mounted) {
                   GoRouter.of(context).go('/login');
                 }

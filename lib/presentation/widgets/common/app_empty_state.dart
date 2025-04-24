@@ -27,7 +27,7 @@ class AppEmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingXXL),
+        padding: const EdgeInsets.all(AppDimens.paddingXL),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
