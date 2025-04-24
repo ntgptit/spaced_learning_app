@@ -1,13 +1,12 @@
+// lib/presentation/widgets/books/book_detail_tabs.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-
-import '../learning/main/module_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/metadata_item.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/module_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/books/stat_item.dart';
 
 class BookOverviewTab extends StatelessWidget {
   final BookDetail book;
@@ -24,127 +23,200 @@ class BookOverviewTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (book.description != null && book.description!.isNotEmpty) ...[
-            Text('Description', style: theme.textTheme.titleLarge),
+          if (book.description?.isNotEmpty ?? false) ...[
+            Text(
+              'Description',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
             const SizedBox(height: AppDimens.spaceM),
-            Text(book.description!),
+            Text(
+              book.description ?? '',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: AppDimens.spaceXL),
           ],
 
-          Text('Book Details', style: theme.textTheme.titleLarge),
-          const SizedBox(height: AppDimens.spaceM),
-          _buildDetailItem(context, 'Author', book.author ?? 'Unknown'),
-          _buildDetailItem(
-            context,
-            'Published',
-            book.publishedAt != null
-                ? _formatDate(book.publishedAt!)
-                : 'Not published',
-          ),
-          _buildDetailItem(
-            context,
-            'Last Updated',
-            book.updatedAt != null
-                ? _formatDate(book.updatedAt!)
-                : 'Not updated',
-          ),
-          if (book.modules.isNotEmpty) ...[
-            const SizedBox(height: AppDimens.spaceL),
-            Text('Featured Modules', style: theme.textTheme.titleLarge),
-            const SizedBox(height: AppDimens.spaceM),
-            _buildFeaturedModules(context, book.modules, colorScheme),
-          ],
+          _buildStatsSection(context),
+          const SizedBox(height: AppDimens.spaceXL),
+
+          _buildBookMetadataSection(context),
           const SizedBox(height: AppDimens.spaceXXL),
         ],
       ),
     );
   }
 
-  Widget _buildDetailItem(BuildContext context, String label, String value) {
+  Widget _buildStatsSection(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+    final colorScheme = theme.colorScheme;
+
+    // Calculate total words
+    final totalWords = book.modules.fold<int>(
+      0,
+      (total, module) => total + (module.wordCount ?? 0),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Book Stats',
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
+        ),
+        const SizedBox(height: AppDimens.spaceM),
+        Container(
+          padding: const EdgeInsets.all(AppDimens.paddingL),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
           ),
-        ],
-      ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              StatItemWidget(
+                value: book.modules.length.toString(),
+                label: 'Modules',
+                icon: Icons.menu_book,
+                color: colorScheme.primary,
+              ),
+              StatItemWidget(
+                value: totalWords.toString(),
+                label: 'Words',
+                icon: Icons.text_fields,
+                color: colorScheme.secondary,
+              ),
+              StatItemWidget(
+                value: book.modules
+                    .fold<int>(
+                      0,
+                      (total, module) => total + (module.progress.length),
+                    )
+                    .toString(),
+                label: 'Students',
+                icon: Icons.people,
+                color: colorScheme.tertiary,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildFeaturedModules(
-    BuildContext context,
-    List<ModuleInfo> modules,
-    ColorScheme colorScheme,
-  ) {
-    // Only show first 3 modules as featured
-    final featuredModules = modules.take(3).toList();
+  Widget _buildBookMetadataSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
-      children: featuredModules.map((module) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
-          child: ModuleCard(
-            title: module.title,
-            subtitle: 'Module ${module.moduleNo}',
-            onTap: () {
-              if (module.id.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invalid module ID')),
-                );
-                return;
-              }
-
-              GoRouter.of(context).push('/modules/${module.id}');
-            },
-            leading: CircleAvatar(
-              backgroundColor: colorScheme.primary,
-              child: Text(
-                module.moduleNo.toString(),
-                style: TextStyle(color: colorScheme.onPrimary),
-              ),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Book Details',
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: AppDimens.spaceM),
+        Card(
+          elevation: 0,
+          color: colorScheme.surfaceContainerLow,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            child: Column(
+              children: [
+                // Display metadata fields
+                MetadataItemWidget(
+                  label: 'Status',
+                  value: _formatStatus(book.status),
+                  icon: Icons.info_outline,
+                ),
+                if (book.difficultyLevel != null) ...[
+                  const SizedBox(height: AppDimens.spaceM),
+                  MetadataItemWidget(
+                    label: 'Difficulty',
+                    value: _formatDifficulty(book.difficultyLevel!),
+                    icon: Icons.signal_cellular_alt_outlined,
+                  ),
+                ],
+                if (book.category != null) ...[
+                  const SizedBox(height: AppDimens.spaceM),
+                  MetadataItemWidget(
+                    label: 'Category',
+                    value: book.category!,
+                    icon: Icons.category_outlined,
+                  ),
+                ],
+                if (book.createdAt != null) ...[
+                  const SizedBox(height: AppDimens.spaceM),
+                  MetadataItemWidget(
+                    label: 'Created',
+                    value: _formatDate(book.createdAt!),
+                    icon: Icons.calendar_today,
+                  ),
+                ],
+                if (book.updatedAt != null) ...[
+                  const SizedBox(height: AppDimens.spaceM),
+                  MetadataItemWidget(
+                    label: 'Updated',
+                    value: _formatDate(book.updatedAt!),
+                    icon: Icons.update,
+                  ),
+                ],
+              ],
             ),
           ),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
+
+  String _formatStatus(BookStatus status) {
+    switch (status) {
+      case BookStatus.published:
+        return 'Published';
+      case BookStatus.draft:
+        return 'Draft';
+      case BookStatus.archived:
+        return 'Archived';
+    }
+  }
+
+  String _formatDifficulty(DifficultyLevel level) {
+    switch (level) {
+      case DifficultyLevel.beginner:
+        return 'Beginner';
+      case DifficultyLevel.intermediate:
+        return 'Intermediate';
+      case DifficultyLevel.advanced:
+        return 'Advanced';
+      case DifficultyLevel.expert:
+        return 'Expert';
+    }
+  }
 }
 
 class BookModulesTab extends StatelessWidget {
+  final List<ModuleSummary> modules;
   final String bookId;
-  final List<ModuleSummary>? modules;
-  final bool isLoading;
-  final String? errorMessage;
   final VoidCallback onRetry;
 
   const BookModulesTab({
     super.key,
+    required this.modules,
     required this.bookId,
-    this.modules,
-    this.isLoading = false,
-    this.errorMessage,
     required this.onRetry,
   });
 
@@ -153,82 +225,53 @@ class BookModulesTab extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (isLoading) {
-      return const Center(child: AppLoadingIndicator());
-    }
-
-    if (errorMessage != null) {
+    if (modules.isEmpty) {
       return Center(
-        child: ErrorDisplay(message: errorMessage!, onRetry: onRetry),
-      );
-    }
-
-    final moduleList = modules ?? [];
-    if (moduleList.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimens.paddingL),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.book_outlined,
-                size: 64,
-                color: colorScheme.primary.withOpacity(0.5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.menu_book_outlined,
+              size: AppDimens.iconXXL,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+            Text(
+              'No modules available for this book',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(height: AppDimens.spaceL),
-              Text(
-                'No modules available',
-                style: theme.textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppDimens.spaceM),
-              Text(
-                'This book doesn\'t have any modules yet.',
-                style: theme.textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+            ),
+          ],
         ),
       );
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(AppDimens.paddingL),
-      itemCount: moduleList.length,
+      itemCount: modules.length,
       itemBuilder: (context, index) {
-        final module = moduleList[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
-          child: ModuleCard(
-            title: module.title,
-            subtitle: 'Module ${module.moduleNo}',
-            onTap: () => _navigateToModule(context, module),
-            leading: CircleAvatar(
-              backgroundColor: colorScheme.primary,
-              child: Text(
-                module.moduleNo.toString(),
-                style: TextStyle(color: colorScheme.onPrimary),
-              ),
-            ),
-            trailing: module.isCompleted == true
-                ? Icon(Icons.check_circle, color: colorScheme.tertiary)
-                : null,
-          ),
+        final module = modules[index];
+        return ModuleCardWidget(
+          module: module,
+          index: index,
+          onTap: () => _navigateToModuleDetail(context, bookId, module.id),
         );
       },
     );
   }
 
-  void _navigateToModule(BuildContext context, ModuleSummary module) {
-    if (module.id.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid module ID')));
-      return;
-    }
-
-    GoRouter.of(context).push('/books/$bookId/modules/${module.id}');
+  void _navigateToModuleDetail(
+    BuildContext context,
+    String bookId,
+    String moduleId,
+  ) {
+    GoRouter.of(context).push('/books/$bookId/modules/$moduleId');
   }
 }

@@ -1,3 +1,4 @@
+// lib/presentation/screens/books/book_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,8 +12,6 @@ import 'package:spaced_learning_app/presentation/widgets/books/book_detail_tabs.
 import 'package:spaced_learning_app/presentation/widgets/books/info_chip.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-
-import '../../../domain/models/user.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -49,6 +48,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -56,23 +56,28 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
   Future<void> _loadData() async {
     if (!mounted) return;
 
-    final bookNotifier = ref.read(selectedBookProvider.notifier);
-    final moduleNotifier = ref.read(modulesStateProvider.notifier);
-
-    await bookNotifier.loadBookDetails(widget.bookId);
-
-    if (!mounted) return;
-
-    await moduleNotifier.loadModulesByBookId(widget.bookId);
+    await ref
+        .read(selectedBookProvider.notifier)
+        .loadBookDetails(widget.bookId);
+    await ref
+        .read(modulesStateProvider.notifier)
+        .loadModulesByBookId(widget.bookId);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bookState = ref.watch(selectedBookProvider);
-    final modulesState = ref.watch(modulesStateProvider);
-    final currentUser = ref.watch(currentUserProvider);
     final colorScheme = theme.colorScheme;
+
+    final bookState = ref.watch(selectedBookProvider);
+    final moduleState = ref.watch(modulesStateProvider);
+    final isAdmin = ref.watch(
+      authStateProvider.select(
+        (value) =>
+            value.valueOrNull == true &&
+            (ref.read(currentUserProvider)?.roles?.contains('ADMIN') ?? false),
+      ),
+    );
 
     return bookState.when(
       data: (book) {
@@ -91,7 +96,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                 theme,
                 colorScheme,
                 book,
-                currentUser,
+                isAdmin,
                 innerBoxIsScrolled,
               ),
             ],
@@ -117,19 +122,17 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                     controller: _tabController,
                     children: [
                       BookOverviewTab(book: book),
-                      modulesState.when(
+                      moduleState.when(
                         data: (modules) => BookModulesTab(
-                          bookId: widget.bookId,
                           modules: modules,
-                          isLoading: false,
-                          errorMessage: null,
+                          bookId: widget.bookId,
                           onRetry: () => ref
                               .read(modulesStateProvider.notifier)
                               .loadModulesByBookId(widget.bookId),
                         ),
                         loading: () =>
                             const Center(child: AppLoadingIndicator()),
-                        error: (error, stackTrace) => Center(
+                        error: (error, stack) => Center(
                           child: ErrorDisplay(
                             message: error.toString(),
                             onRetry: () => ref
@@ -150,7 +153,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
         appBar: AppBar(title: const Text('Book Details')),
         body: const Center(child: AppLoadingIndicator()),
       ),
-      error: (error, stackTrace) => Scaffold(
+      error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Book Details')),
         body: Center(
           child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
@@ -163,7 +166,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     BookDetail book,
-    User? currentUser,
+    bool isAdmin,
     bool innerBoxIsScrolled,
   ) {
     final statusColor = _getStatusColor(book.status);
@@ -180,7 +183,6 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () {
-          // Đảm bảo cũng refresh dữ liệu khi quay lại
           final router = GoRouter.of(context);
           if (router.canPop()) {
             router.pop(true); // Trả về true để indicate cần refresh
