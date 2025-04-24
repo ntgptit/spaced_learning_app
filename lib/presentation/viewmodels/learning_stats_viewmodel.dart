@@ -1,76 +1,67 @@
+// lib/presentation/viewmodels/learning_stats_viewmodel.dart
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/learning_insight.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
-import 'package:spaced_learning_app/domain/repositories/learning_stats_repository.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class LearningStatsViewModel extends BaseViewModel {
-  final LearningStatsRepository _repository;
+import '../../core/di/providers.dart';
 
-  LearningStatsDTO? _stats;
-  List<LearningInsightDTO> _insights = [];
+part 'learning_stats_viewmodel.g.dart';
 
-  LearningStatsDTO? get stats => _stats;
-
-  List<LearningInsightDTO> get insights => _insights;
-
-  LearningStatsViewModel({required LearningStatsRepository repository})
-    : _repository = repository;
-
-  /// Load dashboard statistics
-  Future<void> loadDashboardStats({bool refreshCache = false}) async {
-    if (!beginRefresh()) return;
-
-    await safeCall(
-      action: () async {
-        _stats = await _repository.getDashboardStats(
-          refreshCache: refreshCache,
-        );
-        setInitialized(true);
-        return _stats;
-      },
-      errorPrefix: 'Failed to load dashboard statistics',
-      handleLoading: false, // Already handled by beginRefresh
-      updateTimestamp: true,
-    );
-    endRefresh();
+@riverpod
+class LearningStatsState extends _$LearningStatsState {
+  @override
+  Future<LearningStatsDTO?> build() async {
+    return loadDashboardStats();
   }
 
-  /// Load learning insights
-  Future<void> loadLearningInsights() async {
-    if (!beginRefresh()) return;
+  Future<LearningStatsDTO?> loadDashboardStats({
+    bool refreshCache = false,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final stats = await ref
+          .read(learningStatsRepositoryProvider)
+          .getDashboardStats(refreshCache: refreshCache);
+      state = AsyncValue.data(stats);
+      return stats;
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+      return null;
+    }
+  }
+}
 
-    await safeCall(
-      action: () async {
-        _insights = await _repository.getLearningInsights();
-        return _insights;
-      },
-      errorPrefix: 'Failed to load learning insights',
-      handleLoading: false, // Already handled by beginRefresh
-      updateTimestamp: true,
-    );
-    endRefresh();
+@riverpod
+class LearningInsights extends _$LearningInsights {
+  @override
+  Future<List<LearningInsightDTO>> build() async {
+    return loadLearningInsights();
   }
 
-  /// Load all statistics at once
-  Future<void> loadAllStats({bool refreshCache = false}) async {
-    if (!beginRefresh()) return;
-
-    await safeCall(
-      action: () async {
-        final results = await Future.wait([
-          _repository.getDashboardStats(refreshCache: refreshCache),
-          _repository.getLearningInsights(),
-        ]);
-
-        _stats = results[0] as LearningStatsDTO;
-        _insights = results[1] as List<LearningInsightDTO>;
-        setInitialized(true);
-        return true;
-      },
-      errorPrefix: 'Failed to load learning statistics',
-      handleLoading: false, // Already handled by beginRefresh
-      updateTimestamp: true,
-    );
-    endRefresh();
+  Future<List<LearningInsightDTO>> loadLearningInsights() async {
+    state = const AsyncValue.loading();
+    try {
+      final insights = await ref
+          .read(learningStatsRepositoryProvider)
+          .getLearningInsights();
+      state = AsyncValue.data(insights);
+      return insights;
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+      return [];
+    }
   }
+}
+
+@riverpod
+Future<void> loadAllStats(
+  LoadAllStatsRef ref, {
+  bool refreshCache = false,
+}) async {
+  await Future.wait([
+    ref
+        .read(learningStatsStateProvider.notifier)
+        .loadDashboardStats(refreshCache: refreshCache),
+    ref.read(learningInsightsProvider.notifier).loadLearningInsights(),
+  ]);
 }

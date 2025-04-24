@@ -1,29 +1,21 @@
+// lib/presentation/viewmodels/repetition_viewmodel.dart
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
-import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class RepetitionViewModel extends BaseViewModel {
-  final RepetitionRepository repetitionRepository;
-  List<Repetition> _repetitions = [];
-  Repetition? _selectedRepetition;
-  bool _isLoading = false;
+import '../../core/di/providers.dart';
 
-  RepetitionViewModel({required this.repetitionRepository});
+part 'repetition_viewmodel.g.dart';
 
-  List<Repetition> get repetitions => _repetitions;
-
-  Repetition? get selectedRepetition => _selectedRepetition;
-
-  /// Clears stored repetitions and selected repetition state
-  void clearRepetitions() {
-    _repetitions = [];
-    _selectedRepetition = null;
-    notifyListeners();
+@riverpod
+class RepetitionState extends _$RepetitionState {
+  @override
+  Future<List<Repetition>> build() async {
+    return [];
   }
 
-  /// Validates and sanitizes ID inputs
   String? _sanitizeId(String id) {
     if (id.isEmpty) {
       debugPrint('WARNING: Empty ID detected in RepetitionViewModel');
@@ -37,82 +29,65 @@ class RepetitionViewModel extends BaseViewModel {
     return sanitizedId;
   }
 
-  /// Loads repetitions by progress ID
-  Future<void> loadRepetitionsByProgressId(
-    String progressId, {
-    bool notifyAtStart = false,
-  }) async {
+  Future<void> loadRepetitionsByProgressId(String progressId) async {
     final sanitizedId = _sanitizeId(progressId);
     if (sanitizedId == null) {
-      setError('Invalid progress ID: Empty ID provided');
-      notifyListeners();
+      state = AsyncValue.error(
+        'Invalid progress ID: Empty ID provided',
+        StackTrace.current,
+      );
       return;
     }
 
-    if (_isLoading) {
-      debugPrint('Already loading repetitions, skipping duplicate request');
-      return;
-    }
-
-    _isLoading = true;
-    if (notifyAtStart) {
-      beginLoading();
-    }
-    clearError();
+    state = const AsyncValue.loading();
 
     try {
       debugPrint('Loading repetitions for progressId: $sanitizedId');
-      _repetitions = await repetitionRepository.getRepetitionsByProgressId(
-        sanitizedId,
-      );
-      debugPrint('Loaded ${_repetitions.length} repetitions');
+      final repetitions = await ref
+          .read(repetitionRepositoryProvider)
+          .getRepetitionsByProgressId(sanitizedId);
+      debugPrint('Loaded ${repetitions.length} repetitions');
 
-      if (_repetitions.isNotEmpty) {
-        for (int i = 0; i < min(_repetitions.length, 3); i++) {
-          final rep = _repetitions[i];
+      if (repetitions.isNotEmpty) {
+        for (int i = 0; i < min(repetitions.length, 3); i++) {
+          final rep = repetitions[i];
           debugPrint(
             'Repetition $i: ID=${rep.id}, Order=${rep.repetitionOrder}, Status=${rep.status}',
           );
         }
       }
+
+      state = AsyncValue.data(repetitions);
     } catch (e) {
-      handleError(e, prefix: 'Failed to load repetitions by progress');
-      _repetitions = []; // Clear data on error
-    } finally {
-      _isLoading = false;
-      endLoading();
+      debugPrint('Failed to load repetitions by progress: $e');
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 
-  /// Creates default repetition schedule
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
     final sanitizedId = _sanitizeId(moduleProgressId);
     if (sanitizedId == null) {
-      setError('Invalid progress ID: Empty ID provided');
-      notifyListeners();
-      return [];
+      throw Exception('Invalid progress ID: Empty ID provided');
     }
 
-    return await safeCall<List<Repetition>>(
-          action: () async {
-            debugPrint(
-              'Creating default schedule for progressId: $sanitizedId',
-            );
-            final schedule = await repetitionRepository.createDefaultSchedule(
-              sanitizedId,
-            );
-            debugPrint('Created schedule with ${schedule.length} repetitions');
-            return schedule;
-          },
-          errorPrefix: 'Failed to create repetition schedule',
-          handleLoading: true,
-        ) ??
-        [];
+    try {
+      debugPrint('Creating default schedule for progressId: $sanitizedId');
+      final schedule = await ref
+          .read(repetitionRepositoryProvider)
+          .createDefaultSchedule(sanitizedId);
+      debugPrint('Created schedule with ${schedule.length} repetitions');
+
+      await loadRepetitionsByProgressId(sanitizedId);
+
+      return schedule;
+    } catch (e) {
+      debugPrint('Failed to create repetition schedule: $e');
+      rethrow;
+    }
   }
 
-  /// Updates repetition status, date and completion
   Future<Repetition?> updateRepetition(
     String id, {
     RepetitionStatus? status,
@@ -122,71 +97,73 @@ class RepetitionViewModel extends BaseViewModel {
   }) async {
     final sanitizedId = _sanitizeId(id);
     if (sanitizedId == null) {
-      setError('Invalid repetition ID: Empty ID provided');
-      notifyListeners();
-      return null;
+      throw Exception('Invalid repetition ID: Empty ID provided');
     }
 
-    return safeCall<Repetition?>(
-      action: () async {
-        debugPrint('Updating repetition: $sanitizedId');
-        debugPrint(
-          'Status: $status, ReviewDate: $reviewDate, RescheduleFollowing: $rescheduleFollowing',
-        );
+    try {
+      debugPrint('Updating repetition: $sanitizedId');
+      debugPrint(
+        'Status: $status, ReviewDate: $reviewDate, RescheduleFollowing: $rescheduleFollowing',
+      );
 
-        final repetition = await repetitionRepository.updateRepetition(
-          sanitizedId,
-          status: status,
-          reviewDate: reviewDate,
-          rescheduleFollowing: rescheduleFollowing,
-          percentComplete: percentComplete,
-        );
+      final repetition = await ref
+          .read(repetitionRepositoryProvider)
+          .updateRepetition(
+            sanitizedId,
+            status: status,
+            reviewDate: reviewDate,
+            rescheduleFollowing: rescheduleFollowing,
+            percentComplete: percentComplete,
+          );
 
-        if (_selectedRepetition?.id == sanitizedId) {
-          _selectedRepetition = repetition;
-        }
+      ref
+          .read(selectedRepetitionProvider.notifier)
+          .updateSelectedRepetition(repetition);
 
-        final index = _repetitions.indexWhere((r) => r.id == sanitizedId);
-        if (index >= 0) {
-          _repetitions[index] = repetition;
-        }
+      final repetitions = state.valueOrNull ?? [];
+      final index = repetitions.indexWhere((r) => r.id == sanitizedId);
+      if (index >= 0) {
+        final updatedList = [...repetitions]
+          ..replaceRange(index, index + 1, [repetition]);
+        state = AsyncValue.data(updatedList);
+      }
 
-        if (rescheduleFollowing) {
-          await loadRepetitionsByProgressId(repetition.moduleProgressId);
-        }
+      if (rescheduleFollowing) {
+        await loadRepetitionsByProgressId(repetition.moduleProgressId);
+      }
 
-        debugPrint('Repetition updated successfully');
-        return repetition;
-      },
-      errorPrefix: 'Failed to update repetition',
-    );
+      debugPrint('Repetition updated successfully');
+      return repetition;
+    } catch (e) {
+      debugPrint('Failed to update repetition: $e');
+      return null;
+    }
   }
 
-  /// Checks if all repetitions for a progress are completed
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
     final sanitizedId = _sanitizeId(progressId);
     if (sanitizedId == null) {
-      setError('Invalid progress ID: Empty ID provided');
-      notifyListeners();
-      return false;
+      throw Exception('Invalid progress ID: Empty ID provided');
     }
 
     try {
       debugPrint('Checking completion status for progressId: $sanitizedId');
 
       List<Repetition> repetitionsToCheck;
+      final currentData = state.valueOrNull ?? [];
       final bool currentDataValid =
-          _repetitions.isNotEmpty &&
-          _repetitions.first.moduleProgressId == sanitizedId;
+          currentData.isNotEmpty &&
+          currentData.first.moduleProgressId == sanitizedId;
 
       if (!currentDataValid) {
         debugPrint(
           'No cached repetitions for progressId: $sanitizedId, loading from repository',
         );
-        repetitionsToCheck = await repetitionRepository
+        repetitionsToCheck = await ref
+            .read(repetitionRepositoryProvider)
             .getRepetitionsByProgressId(sanitizedId);
       } else {
-        repetitionsToCheck = _repetitions;
+        repetitionsToCheck = currentData;
       }
 
       if (repetitionsToCheck.isEmpty) {
@@ -205,29 +182,49 @@ class RepetitionViewModel extends BaseViewModel {
       );
       return isCompleted;
     } catch (e) {
-      handleError(e, prefix: 'Failed to check repetition completion status');
       debugPrint('Error checking completion status: $e');
       return false;
     }
   }
 
-  /// Get cycle information text based on cycle studied
-  String getCycleInfo(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'You are in the first learning cycle. Complete 5 review sessions to move to the next cycle.';
-      case CycleStudied.firstReview:
-        return 'You are in the first review cycle. Complete all 5 review sessions to proceed.';
-      case CycleStudied.secondReview:
-        return 'You are in the second review cycle. You\'re doing great!';
-      case CycleStudied.thirdReview:
-        return 'You are in the third review cycle. You almost have this mastered!';
-      case CycleStudied.moreThanThreeReviews:
-        return 'You\'ve completed more than 3 review cycles. The knowledge is well reinforced!';
-    }
+  void clearRepetitions() {
+    state = const AsyncValue.data([]);
+    ref.read(selectedRepetitionProvider.notifier).clearSelectedRepetition();
   }
 
   int min(int a, int b) {
     return a < b ? a : b;
+  }
+}
+
+@riverpod
+class SelectedRepetition extends _$SelectedRepetition {
+  @override
+  Repetition? build() {
+    return null;
+  }
+
+  void updateSelectedRepetition(Repetition repetition) {
+    state = repetition;
+  }
+
+  void clearSelectedRepetition() {
+    state = null;
+  }
+}
+
+@riverpod
+String getCycleInfo(Ref ref, CycleStudied cycle) {
+  switch (cycle) {
+    case CycleStudied.firstTime:
+      return 'You are in the first learning cycle. Complete 5 review sessions to move to the next cycle.';
+    case CycleStudied.firstReview:
+      return 'You are in the first review cycle. Complete all 5 review sessions to proceed.';
+    case CycleStudied.secondReview:
+      return 'You are in the second review cycle. You\'re doing great!';
+    case CycleStudied.thirdReview:
+      return 'You are in the third review cycle. You almost have this mastered!';
+    case CycleStudied.moreThanThreeReviews:
+      return 'You\'ve completed more than 3 review cycles. The knowledge is well reinforced!';
   }
 }

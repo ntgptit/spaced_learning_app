@@ -1,57 +1,52 @@
-import 'package:spaced_learning_app/core/services/storage_service.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
+// lib/presentation/viewmodels/theme_viewmodel.dart
+import 'package:flutter/material.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class ThemeViewModel extends BaseViewModel {
-  final StorageService storageService;
+import '../../core/di/providers.dart';
 
-  bool _isDarkMode = false;
+part 'theme_viewmodel.g.dart';
 
-  ThemeViewModel({required this.storageService}) {
+@riverpod
+class ThemeState extends _$ThemeState {
+  @override
+  ThemeMode build() {
     _loadThemePreference();
+    return ThemeMode.system;
   }
 
-  bool get isDarkMode => _isDarkMode;
-
-  /// Load theme preference from storage
   Future<void> _loadThemePreference() async {
-    beginLoading();
-
     try {
-      _isDarkMode = await storageService.isDarkMode();
-      setInitialized(true);
+      final isDarkMode = await ref.read(storageServiceProvider).isDarkMode();
+      state = isDarkMode ? ThemeMode.dark : ThemeMode.light;
     } catch (e) {
-      _isDarkMode = false;
-      handleError(e, prefix: 'Failed to load theme preference');
-    } finally {
-      endLoading();
+      state = ThemeMode.light;
     }
   }
 
-  /// Toggle between light and dark theme
   Future<void> toggleTheme() async {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
-
+    final newIsDarkMode = state != ThemeMode.dark;
     try {
-      await storageService.saveDarkMode(_isDarkMode);
+      await ref.read(storageServiceProvider).saveDarkMode(newIsDarkMode);
+      state = newIsDarkMode ? ThemeMode.dark : ThemeMode.light;
     } catch (e) {
-      _isDarkMode = !_isDarkMode; // Revert if saving fails
-      handleError(e, prefix: 'Failed to save theme preference');
+      // Keep current state on error
     }
   }
 
-  /// Set specific dark mode value
   Future<void> setDarkMode(bool isDarkMode) async {
-    if (_isDarkMode == isDarkMode) return;
-
-    _isDarkMode = isDarkMode;
-    notifyListeners();
+    if ((state == ThemeMode.dark) == isDarkMode) return;
 
     try {
-      await storageService.saveDarkMode(_isDarkMode);
+      await ref.read(storageServiceProvider).saveDarkMode(isDarkMode);
+      state = isDarkMode ? ThemeMode.dark : ThemeMode.light;
     } catch (e) {
-      _isDarkMode = !_isDarkMode; // Revert if saving fails
-      handleError(e, prefix: 'Failed to save theme preference');
+      // Keep current state on error
     }
   }
+}
+
+@riverpod
+bool isDarkMode(IsDarkModeRef ref) {
+  final themeMode = ref.watch(themeStateProvider);
+  return themeMode == ThemeMode.dark;
 }

@@ -1,92 +1,77 @@
+// lib/presentation/viewmodels/base_viewmodel.dart
 import 'package:flutter/foundation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-abstract class BaseViewModel extends ChangeNotifier {
-  bool _isLoading = false;
-  String? _errorMessage;
-  DateTime? _lastUpdated;
-  bool _isInitialized = false;
+// Base AsyncNotifier class that extends all common functionality
+// for viewmodels with async operations
+class BaseAsyncNotifier<T> extends AsyncNotifier<T> {
+  @override
+  Future<T> build() {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+
+  DateTime? lastUpdated;
   bool _isRefreshing = false;
 
-  bool get isLoading => _isLoading;
+  Future<void> refresh() async {
+    if (_isRefreshing) return;
 
-  String? get errorMessage => _errorMessage;
+    _isRefreshing = true;
+    state = const AsyncValue.loading();
 
-  DateTime? get lastUpdated => _lastUpdated;
-
-  bool get isInitialized => _isInitialized;
-
-  bool get isRefreshing => _isRefreshing;
-
-  void setLoading(bool loading) {
-    if (_isLoading != loading) {
-      _isLoading = loading;
-      notifyListeners();
+    try {
+      final result = await build();
+      lastUpdated = DateTime.now();
+      state = AsyncValue.data(result);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    } finally {
+      _isRefreshing = false;
     }
   }
 
-  void beginLoading() {
-    if (!_isLoading) {
-      _isLoading = true;
-      debugPrint('${runtimeType.toString()}: beginLoading()');
-      notifyListeners();
+  Future<R> executeTask<R>(
+    Future<R> Function() task, {
+    bool updateOnSuccess = true,
+    bool handleLoading = true,
+  }) async {
+    if (handleLoading) {
+      state = const AsyncValue.loading();
+    }
+
+    try {
+      final result = await task();
+      if (updateOnSuccess) {
+        lastUpdated = DateTime.now();
+        await refresh();
+      }
+      return result;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      rethrow;
     }
   }
 
-  void endLoading() {
-    if (_isLoading) {
-      _isLoading = false;
-      debugPrint('${runtimeType.toString()}: endLoading()');
-      notifyListeners();
-    }
+  bool shouldRefresh({Duration threshold = const Duration(minutes: 5)}) {
+    if (lastUpdated == null) return true;
+    final now = DateTime.now();
+    return now.difference(lastUpdated!) > threshold;
   }
+}
+
+// Mixin for notifiers that need error handling
+mixin ErrorHandling {
+  String? errorMessage;
 
   void setError(String? message) {
-    if (_errorMessage != message) {
-      _errorMessage = message;
-      debugPrint('${runtimeType.toString()}: setError($message)');
-      notifyListeners();
-    }
+    errorMessage = message;
+    debugPrint('${runtimeType.toString()}: setError($message)');
   }
 
   void clearError() {
-    if (_errorMessage != null) {
-      _errorMessage = null;
-      debugPrint('${runtimeType.toString()}: clearError()');
-      notifyListeners();
-    }
-  }
-
-  void updateLastUpdated() {
-    _lastUpdated = DateTime.now();
-    debugPrint('${runtimeType.toString()}: updateLastUpdated($_lastUpdated)');
-  }
-
-  void setInitialized(bool initialized) {
-    if (_isInitialized != initialized) {
-      _isInitialized = initialized;
-      debugPrint('${runtimeType.toString()}: setInitialized($initialized)');
-      notifyListeners();
-    }
-  }
-
-  bool beginRefresh() {
-    if (_isRefreshing) return false;
-
-    _isRefreshing = true;
-    beginLoading();
-    debugPrint('${runtimeType.toString()}: beginRefresh()');
-    return true;
-  }
-
-  void endRefresh({bool successful = true}) {
-    _isRefreshing = false;
-    if (successful) {
-      updateLastUpdated();
-    }
-    endLoading();
-    debugPrint(
-      '${runtimeType.toString()}: endRefresh(successful: $successful)',
-    );
+    errorMessage = null;
+    debugPrint('${runtimeType.toString()}: clearError()');
   }
 
   void handleError(dynamic error, {String prefix = 'An error occurred'}) {
@@ -96,57 +81,5 @@ abstract class BaseViewModel extends ChangeNotifier {
 
     debugPrint('Error in ${runtimeType.toString()}: $errorMessage');
     setError(errorMessage);
-    _isLoading = false;
-    _isRefreshing = false;
-    notifyListeners();
-  }
-
-  bool shouldRefresh({Duration threshold = const Duration(minutes: 5)}) {
-    if (_lastUpdated == null) return true;
-    final now = DateTime.now();
-    return now.difference(_lastUpdated!) > threshold;
-  }
-
-  /// Runs async operation safely with error handling, loading state management
-  /// and optional timestamp updates
-  ///
-  /// [action] - The async function to execute
-  /// [errorPrefix] - Prefix for error messages
-  /// [handleLoading] - Whether to manage loading state
-  /// [updateTimestamp] - Whether to update the lastUpdated timestamp
-  Future<T?> safeCall<T>({
-    required Future<T> Function() action,
-    String errorPrefix = 'Operation failed',
-    bool handleLoading = true,
-    bool updateTimestamp = true,
-    bool notifyAtStart = true,
-  }) async {
-    if (handleLoading) {
-      _isLoading = true;
-      if (notifyAtStart) {
-        notifyListeners();
-      }
-    }
-
-    clearError();
-    if (notifyAtStart) {
-      notifyListeners();
-    }
-
-    try {
-      final result = await action();
-      if (updateTimestamp) {
-        updateLastUpdated();
-      }
-      return result;
-    } catch (e) {
-      handleError(e, prefix: errorPrefix);
-      return null;
-    } finally {
-      if (handleLoading) {
-        _isLoading = false;
-        notifyListeners();
-      }
-    }
   }
 }

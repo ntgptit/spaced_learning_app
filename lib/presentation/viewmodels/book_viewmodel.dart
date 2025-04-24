@@ -1,69 +1,51 @@
+// lib/presentation/viewmodels/book_viewmodel.dart
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
-import 'package:spaced_learning_app/domain/repositories/book_repository.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class BookViewModel extends BaseViewModel {
-  final BookRepository bookRepository;
+import '../../core/di/providers.dart';
 
-  List<BookSummary> _books = [];
-  BookDetail? _selectedBook;
-  List<String> _categories = [];
+part 'book_viewmodel.g.dart';
 
-  BookViewModel({required this.bookRepository});
-
-  List<BookSummary> get books => _books;
-
-  BookDetail? get selectedBook => _selectedBook;
-
-  List<String> get categories => _categories;
-
-  /// Load all books with pagination
-  Future<void> loadBooks({int page = 0, int size = 20}) async {
-    await safeCall(
-      action: () async {
-        _books = await bookRepository.getAllBooks(page: page, size: size);
-        return _books;
-      },
-      errorPrefix: 'Failed to load books',
-    );
+@riverpod
+class BooksState extends _$BooksState {
+  @override
+  Future<List<BookSummary>> build() async {
+    return loadBooks();
   }
 
-  /// Load book details by ID
-  Future<void> loadBookDetails(String id) async {
-    await safeCall(
-      action: () async {
-        _selectedBook = await bookRepository.getBookById(id);
-        return _selectedBook;
-      },
-      errorPrefix: 'Failed to load book details',
-    );
+  Future<List<BookSummary>> loadBooks({int page = 0, int size = 20}) async {
+    state = const AsyncValue.loading();
+    try {
+      final books = await ref
+          .read(bookRepositoryProvider)
+          .getAllBooks(page: page, size: size);
+      state = AsyncValue.data(books);
+      return books;
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+      return [];
+    }
   }
 
-  /// Search books by query term
   Future<List<BookSummary>> searchBooks(
     String query, {
     int page = 0,
     int size = 20,
   }) async {
-    final result = await safeCall<List<BookSummary>>(
-      action: () => bookRepository.searchBooks(query, page: page, size: size),
-      errorPrefix: 'Failed to search books',
-    );
-    return result ?? [];
+    if (query.isEmpty) {
+      return loadBooks(page: page, size: size);
+    }
+
+    try {
+      final books = await ref
+          .read(bookRepositoryProvider)
+          .searchBooks(query, page: page, size: size);
+      return books;
+    } catch (e) {
+      return [];
+    }
   }
 
-  /// Load all book categories
-  Future<void> loadCategories() async {
-    await safeCall(
-      action: () async {
-        _categories = await bookRepository.getAllCategories();
-        return _categories;
-      },
-      errorPrefix: 'Failed to load categories',
-    );
-  }
-
-  /// Filter books by criteria
   Future<void> filterBooks({
     BookStatus? status,
     DifficultyLevel? difficultyLevel,
@@ -71,36 +53,88 @@ class BookViewModel extends BaseViewModel {
     int page = 0,
     int size = 20,
   }) async {
-    await safeCall(
-      action: () async {
-        _books = await bookRepository.filterBooks(
-          status: status,
-          difficultyLevel: difficultyLevel,
-          category: category,
-          page: page,
-          size: size,
-        );
-        return _books;
-      },
-      errorPrefix: 'Failed to filter books',
-    );
+    state = const AsyncValue.loading();
+    try {
+      final books = await ref
+          .read(bookRepositoryProvider)
+          .filterBooks(
+            status: status,
+            difficultyLevel: difficultyLevel,
+            category: category,
+            page: page,
+            size: size,
+          );
+      state = AsyncValue.data(books);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
   }
 
-  /// Delete book
   Future<bool> deleteBook(String id) async {
-    final result = await safeCall<bool>(
-      action: () async {
-        await bookRepository.deleteBook(id);
+    try {
+      await ref.read(bookRepositoryProvider).deleteBook(id);
 
-        if (_selectedBook?.id == id) {
-          _selectedBook = null;
-        }
+      final books = state.valueOrNull ?? [];
+      state = AsyncValue.data(books.where((book) => book.id != id).toList());
 
-        _books = _books.where((book) => book.id != id).toList();
-        return true;
-      },
-      errorPrefix: 'Failed to delete book',
-    );
-    return result ?? false;
+      // If the selected book is being deleted, clear it
+      final selectedBook = ref.read(selectedBookProvider).valueOrNull;
+      if (selectedBook?.id == id) {
+        ref.read(selectedBookProvider.notifier)._clearSelectedBook();
+      }
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+}
+
+@riverpod
+class SelectedBook extends _$SelectedBook {
+  @override
+  Future<BookDetail?> build() async {
+    return null;
+  }
+
+  Future<void> loadBookDetails(String id) async {
+    if (id.isEmpty) {
+      state = const AsyncValue.data(null);
+      return;
+    }
+
+    state = const AsyncValue.loading();
+    try {
+      final book = await ref.read(bookRepositoryProvider).getBookById(id);
+      state = AsyncValue.data(book);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  void _clearSelectedBook() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+@riverpod
+class Categories extends _$Categories {
+  @override
+  Future<List<String>> build() async {
+    return loadCategories();
+  }
+
+  Future<List<String>> loadCategories() async {
+    state = const AsyncValue.loading();
+    try {
+      final categories = await ref
+          .read(bookRepositoryProvider)
+          .getAllCategories();
+      state = AsyncValue.data(categories);
+      return categories;
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+      return [];
+    }
   }
 }

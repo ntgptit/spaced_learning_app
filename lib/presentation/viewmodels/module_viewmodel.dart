@@ -1,56 +1,59 @@
+// lib/presentation/viewmodels/module_viewmodel.dart
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
-import 'package:spaced_learning_app/domain/repositories/module_repository.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class ModuleViewModel extends BaseViewModel {
-  final ModuleRepository moduleRepository;
+import '../../core/di/providers.dart';
 
-  List<ModuleSummary> _modules = [];
-  ModuleDetail? _selectedModule;
+part 'module_viewmodel.g.dart';
 
-  ModuleViewModel({required this.moduleRepository});
-
-  List<ModuleSummary> get modules => _modules;
-
-  ModuleDetail? get selectedModule => _selectedModule;
-
-  /// Load module details by ID
-  Future<void> loadModuleDetails(String id) async {
-    if (id.isEmpty) {
-      setError('Module ID cannot be empty');
-      return;
-    }
-
-    await safeCall(
-      action: () async {
-        _selectedModule = await moduleRepository.getModuleById(id);
-        return _selectedModule;
-      },
-      errorPrefix: 'Failed to load module details',
-    );
+@riverpod
+class ModulesState extends _$ModulesState {
+  @override
+  Future<List<ModuleSummary>> build() async {
+    return [];
   }
 
-  /// Load modules for a book with pagination
   Future<void> loadModulesByBookId(
     String bookId, {
     int page = 0,
     int size = 20,
   }) async {
     if (bookId.isEmpty) {
-      setError('Book ID cannot be empty');
+      state = AsyncValue.error('Book ID cannot be empty', StackTrace.current);
       return;
     }
 
-    await safeCall(
-      action: () async {
-        _modules = await moduleRepository.getModulesByBookId(
-          bookId,
-          page: page,
-          size: size,
-        );
-        return _modules;
-      },
-      errorPrefix: 'Failed to load modules by book',
-    );
+    state = const AsyncValue.loading();
+    try {
+      final modules = await ref
+          .read(moduleRepositoryProvider)
+          .getModulesByBookId(bookId, page: page, size: size);
+      state = AsyncValue.data(modules);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+}
+
+@riverpod
+class SelectedModule extends _$SelectedModule {
+  @override
+  Future<ModuleDetail?> build() async {
+    return null;
+  }
+
+  Future<void> loadModuleDetails(String id) async {
+    if (id.isEmpty) {
+      state = AsyncValue.error('Module ID cannot be empty', StackTrace.current);
+      return;
+    }
+
+    state = const AsyncValue.loading();
+    try {
+      final module = await ref.read(moduleRepositoryProvider).getModuleById(id);
+      state = AsyncValue.data(module);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
   }
 }

@@ -17,14 +17,14 @@ import 'package:spaced_learning_app/presentation/screens/progress/due_progress_s
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/report/daily_task_report_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/settings/reminder_settings_screen.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/scaffold_with_bottom_bar.dart';
-
-import '../../presentation/providers/auth_provider.dart';
 
 part 'router.g.dart';
 
 @riverpod
 GoRouter router(Ref ref) {
+  // Sử dụng trực tiếp AuthState provider từ auth_viewmodel
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(

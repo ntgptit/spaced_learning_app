@@ -1,72 +1,62 @@
-import 'package:spaced_learning_app/core/services/storage_service.dart';
+// lib/presentation/viewmodels/auth_viewmodel.dart
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/auth_response.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
-import 'package:spaced_learning_app/domain/repositories/auth_repository.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class AuthViewModel extends BaseViewModel {
-  final AuthRepository authRepository;
-  final StorageService storageService;
+import '../../core/di/providers.dart';
 
-  bool _isAuthenticated = false;
-  User? _currentUser;
+part 'auth_viewmodel.g.dart';
 
-  AuthViewModel({required this.authRepository, required this.storageService}) {
-    _checkAuthentication();
+@riverpod
+class AuthState extends _$AuthState {
+  Future<bool> build() async {
+    return _checkAuthentication();
   }
 
-  bool get isAuthenticated => _isAuthenticated;
-
-  User? get currentUser => _currentUser;
-
-  /// Check authentication status from stored token
-  Future<void> _checkAuthentication() async {
-    beginLoading();
+  Future<bool> _checkAuthentication() async {
+    final token = await ref.read(storageServiceProvider).getToken();
+    if (token == null || token.isEmpty) {
+      return false;
+    }
 
     try {
-      final token = await storageService.getToken();
-      if (token == null || token.isEmpty) {
-        _isAuthenticated = false;
-        return;
-      }
-
-      final isValid = await authRepository.validateToken(token);
-      _isAuthenticated = isValid;
+      final isValid = await ref
+          .read(authRepositoryProvider)
+          .validateToken(token);
 
       if (isValid) {
-        final userData = await storageService.getUserData();
+        final userData = await ref.read(storageServiceProvider).getUserData();
         if (userData != null) {
-          _currentUser = User.fromJson(userData);
+          ref.read(currentUserProvider.notifier).state = User.fromJson(
+            userData,
+          );
         }
+        return true;
       } else {
-        await storageService.clearTokens();
+        await ref.read(storageServiceProvider).clearTokens();
+        return false;
       }
     } catch (e) {
-      _isAuthenticated = false;
-      await storageService.clearTokens();
-      handleError(e, prefix: 'Authentication check failed');
-    } finally {
-      endLoading();
+      await ref.read(storageServiceProvider).clearTokens();
+      return false;
     }
   }
 
-  /// Perform login with username/email and password
   Future<bool> login(String usernameOrEmail, String password) async {
-    return await safeCall<bool>(
-          action: () async {
-            final response = await authRepository.login(
-              usernameOrEmail,
-              password,
-            );
-            await _handleAuthResponse(response);
-            return true;
-          },
-          errorPrefix: 'Login failed',
-        ) ??
-        false;
+    state = const AsyncValue.loading();
+    try {
+      final response = await ref
+          .read(authRepositoryProvider)
+          .login(usernameOrEmail, password);
+      await _handleAuthResponse(response);
+      state = const AsyncValue.data(true);
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+      return false;
+    }
   }
 
-  /// Register new user
   Future<bool> register(
     String username,
     String email,
@@ -74,50 +64,61 @@ class AuthViewModel extends BaseViewModel {
     String firstName,
     String lastName,
   ) async {
-    return await safeCall<bool>(
-          action: () async {
-            final response = await authRepository.register(
-              username,
-              email,
-              password,
-              firstName,
-              lastName,
-            );
-            await _handleAuthResponse(response);
-            return true;
-          },
-          errorPrefix: 'Registration failed',
-        ) ??
-        false;
-  }
-
-  /// Logout current user
-  Future<void> logout() async {
-    beginLoading();
-
+    state = const AsyncValue.loading();
     try {
-      await storageService.clearTokens();
-      await storageService.clearUserData();
-      _isAuthenticated = false;
-      _currentUser = null;
-      clearError();
+      final response = await ref
+          .read(authRepositoryProvider)
+          .register(username, email, password, firstName, lastName);
+      await _handleAuthResponse(response);
+      state = const AsyncValue.data(true);
+      return true;
     } catch (e) {
-      handleError(e, prefix: 'Logout failed');
-    } finally {
-      endLoading();
+      state = AsyncValue.error(e, StackTrace.current);
+      return false;
     }
   }
 
-  /// Handle successful authentication response
-  Future<void> _handleAuthResponse(AuthResponse response) async {
-    await storageService.saveToken(response.token);
-    if (response.refreshToken != null) {
-      await storageService.saveRefreshToken(response.refreshToken!);
+  Future<void> logout() async {
+    state = const AsyncValue.loading();
+    try {
+      await ref.read(storageServiceProvider).clearTokens();
+      await ref.read(storageServiceProvider).clearUserData();
+      ref.read(currentUserProvider.notifier).state = null;
+      state = const AsyncValue.data(false);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
     }
-    await storageService.saveUserData(response.user.toJson());
+  }
 
-    _currentUser = response.user;
-    _isAuthenticated = true;
-    clearError();
+  Future<void> _handleAuthResponse(AuthResponse response) async {
+    await ref.read(storageServiceProvider).saveToken(response.token);
+    if (response.refreshToken != null) {
+      await ref
+          .read(storageServiceProvider)
+          .saveRefreshToken(response.refreshToken!);
+    }
+    await ref.read(storageServiceProvider).saveUserData(response.user.toJson());
+    ref.read(currentUserProvider.notifier).state = response.user;
+  }
+}
+
+@riverpod
+class CurrentUser extends _$CurrentUser {
+  @override
+  User? build() {
+    return null;
+  }
+
+  void updateUser(User user) {
+    state = user;
+  }
+}
+
+@riverpod
+class AuthError extends _$AuthError {
+  @override
+  String? build() {
+    final authState = ref.watch(authStateProvider);
+    return authState.hasError ? authState.error.toString() : null;
   }
 }

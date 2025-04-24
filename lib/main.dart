@@ -33,9 +33,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Spaced Learning App',
-      // Light theme with Gemini colors
       theme: ref.watch(lightThemeProvider),
-      // Dark theme with Gemini colors
       darkTheme: ref.watch(darkThemeProvider),
       themeMode: themeMode,
       routerConfig: router,

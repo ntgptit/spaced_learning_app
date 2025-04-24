@@ -1,41 +1,20 @@
-import 'package:event_bus/event_bus.dart';
+// lib/presentation/viewmodels/progress_viewmodel.dart
 import 'package:flutter/foundation.dart';
-import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/events/app_events.dart';
-import 'package:spaced_learning_app/core/services/storage_service.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
-import 'package:spaced_learning_app/domain/repositories/progress_repository.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/base_viewmodel.dart';
 
-class ProgressViewModel extends BaseViewModel {
-  final ProgressRepository progressRepository;
-  final EventBus eventBus;
+import '../../core/di/providers.dart';
 
-  bool _isLoadingDueProgress = false;
-  bool _isLoadingDetails = false;
-  bool _isUpdating = false;
+part 'progress_viewmodel.g.dart';
 
-  List<ProgressSummary> _progressRecords = [];
-  ProgressDetail? _selectedProgress;
-
-  ProgressViewModel({required this.progressRepository, required this.eventBus});
-
-  bool get isLoadingDueProgress => _isLoadingDueProgress;
-
-  bool get isLoadingDetails => _isLoadingDetails;
-
-  bool get isUpdating => _isUpdating;
-
-  List<ProgressSummary> get progressRecords => _progressRecords;
-
-  ProgressDetail? get selectedProgress => _selectedProgress;
-
-  void clearSelectedProgress() {
-    _selectedProgress = null;
-    notifyListeners();
+@riverpod
+class ProgressState extends _$ProgressState {
+  @override
+  Future<List<ProgressSummary>> build() async {
+    return [];
   }
 
-  /// Validates and sanitizes ID inputs
   String? _sanitizeId(String id) {
     if (id.isEmpty) {
       debugPrint('WARNING: Empty ID detected in ProgressViewModel');
@@ -49,94 +28,6 @@ class ProgressViewModel extends BaseViewModel {
     return sanitizedId;
   }
 
-  /// Loads progress details by ID
-  Future<void> loadProgressDetails(
-    String id, {
-    bool notifyAtStart = false,
-  }) async {
-    final sanitizedId = _sanitizeId(id);
-    if (sanitizedId == null) {
-      setError('Invalid progress ID: Empty ID provided');
-      notifyListeners();
-      return;
-    }
-
-    if (_isLoadingDetails) {
-      debugPrint(
-        'Already loading progress details, skipping duplicate request',
-      );
-      return;
-    }
-
-    _isLoadingDetails = true;
-    if (notifyAtStart) {
-      beginLoading();
-    }
-
-    try {
-      debugPrint('Loading progress details for id: $sanitizedId');
-      _selectedProgress = await progressRepository.getProgressById(sanitizedId);
-
-      if (_selectedProgress == null) {
-        debugPrint('WARNING: Progress details loaded but result is null');
-        setError('Failed to load progress: No data returned');
-      } else {
-        debugPrint(
-          'Progress details loaded successfully for id: ${_selectedProgress!.id}',
-        );
-        clearError();
-      }
-    } catch (e) {
-      handleError(e, prefix: 'Failed to load progress details');
-      _selectedProgress = null;
-    } finally {
-      _isLoadingDetails = false;
-      endLoading();
-    }
-  }
-
-  /// Loads module progress by module ID
-  Future<ProgressDetail?> loadModuleProgress(String moduleId) async {
-    final sanitizedId = _sanitizeId(moduleId);
-    if (sanitizedId == null) {
-      setError('Invalid module ID: Empty ID provided');
-      notifyListeners();
-      return null;
-    }
-
-    return safeCall<ProgressDetail?>(
-      action: () async {
-        debugPrint('Loading module progress for moduleId: $sanitizedId');
-        final progressList = await progressRepository.getProgressByModuleId(
-          sanitizedId,
-          page: 0,
-          size: 1,
-        );
-
-        debugPrint('Progress list length: ${progressList.length}');
-        if (progressList.isEmpty) {
-          _selectedProgress = null;
-          return null;
-        }
-
-        final progressId = progressList[0].id;
-        debugPrint(
-          'Found progress with ID: $progressId for module: $sanitizedId',
-        );
-
-        final progressDetail = await progressRepository.getProgressById(
-          progressId,
-        );
-        _selectedProgress = progressDetail;
-        debugPrint('Loaded progress details: ${_selectedProgress?.id}');
-
-        return progressDetail;
-      },
-      errorPrefix: 'Failed to load module progress',
-    );
-  }
-
-  /// Loads due progress for a user
   Future<void> loadDueProgress(
     String userId, {
     DateTime? studyDate,
@@ -145,27 +36,18 @@ class ProgressViewModel extends BaseViewModel {
   }) async {
     final sanitizedId = _sanitizeId(userId);
     if (sanitizedId == null) {
-      setError('Invalid user ID: Empty ID provided');
-      notifyListeners();
-      return;
+      throw Exception('Invalid user ID: Empty ID provided');
     }
 
-    if (_isLoadingDueProgress) {
-      debugPrint('Already loading due progress, skipping duplicate request');
-      return;
-    }
-
-    _isLoadingDueProgress = true;
-    beginLoading();
-    notifyListeners();
-    clearError();
-
-    debugPrint(
-      '[ProgressViewModel] Starting loadDueProgress for userId: $sanitizedId, date: $studyDate',
-    );
+    state = const AsyncValue.loading();
 
     try {
-      final List<ProgressSummary> result = await progressRepository
+      debugPrint(
+        '[ProgressViewModel] Starting loadDueProgress for userId: $sanitizedId, date: $studyDate',
+      );
+
+      final List<ProgressSummary> result = await ref
+          .read(progressRepositoryProvider)
           .getDueProgress(
             sanitizedId,
             studyDate: studyDate,
@@ -184,27 +66,22 @@ class ProgressViewModel extends BaseViewModel {
         );
       }
 
-      _progressRecords = result;
+      ref
+          .read(eventBusProvider)
+          .fire(
+            ProgressChangedEvent(
+              userId: sanitizedId,
+              hasDueTasks: result.isNotEmpty,
+            ),
+          );
 
-      eventBus.fire(
-        ProgressChangedEvent(
-          userId: sanitizedId,
-          hasDueTasks: result.isNotEmpty,
-        ),
-      );
-
-      updateLastUpdated();
+      state = AsyncValue.data(result);
     } catch (e) {
-      handleError(e, prefix: 'Failed to load due progress');
-      _progressRecords = []; // Clear old data if there's an error
       debugPrint('Error loading due progress: $e');
-    } finally {
-      _isLoadingDueProgress = false;
-      endLoading();
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 
-  /// Creates new progress
   Future<ProgressDetail?> createProgress({
     required String moduleId,
     String? userId,
@@ -215,37 +92,36 @@ class ProgressViewModel extends BaseViewModel {
   }) async {
     final sanitizedModuleId = _sanitizeId(moduleId);
     if (sanitizedModuleId == null) {
-      setError('Invalid module ID: Empty ID provided');
-      notifyListeners();
-      return null;
+      throw Exception('Invalid module ID: Empty ID provided');
     }
 
-    return safeCall<ProgressDetail?>(
-      action: () async {
-        debugPrint('Creating progress for moduleId: $sanitizedModuleId');
-        final progress = await progressRepository.createProgress(
-          moduleId: sanitizedModuleId,
-          userId: userId,
-          firstLearningDate: firstLearningDate,
-          cyclesStudied: cyclesStudied,
-          nextStudyDate: nextStudyDate,
-          percentComplete: percentComplete,
-        );
-
-        if (userId != null) {
-          eventBus.fire(
-            ProgressChangedEvent(userId: userId, hasDueTasks: true),
+    try {
+      debugPrint('Creating progress for moduleId: $sanitizedModuleId');
+      final progress = await ref
+          .read(progressRepositoryProvider)
+          .createProgress(
+            moduleId: sanitizedModuleId,
+            userId: userId,
+            firstLearningDate: firstLearningDate,
+            cyclesStudied: cyclesStudied,
+            nextStudyDate: nextStudyDate,
+            percentComplete: percentComplete,
           );
-        }
 
-        debugPrint('Progress created successfully: ${progress.id}');
-        return progress;
-      },
-      errorPrefix: 'Failed to create progress',
-    );
+      if (userId != null) {
+        ref
+            .read(eventBusProvider)
+            .fire(ProgressChangedEvent(userId: userId, hasDueTasks: true));
+      }
+
+      debugPrint('Progress created successfully: ${progress.id}');
+      return progress;
+    } catch (e) {
+      debugPrint('Failed to create progress: $e');
+      return null;
+    }
   }
 
-  /// Updates existing progress
   Future<ProgressDetail?> updateProgress(
     String id, {
     DateTime? firstLearningDate,
@@ -255,55 +131,105 @@ class ProgressViewModel extends BaseViewModel {
   }) async {
     final sanitizedId = _sanitizeId(id);
     if (sanitizedId == null) {
-      setError('Invalid progress ID: Empty ID provided');
-      notifyListeners();
-      return null;
+      throw Exception('Invalid progress ID: Empty ID provided');
     }
-
-    if (_isUpdating) {
-      debugPrint('Already updating progress, skipping duplicate request');
-      return null;
-    }
-
-    _isUpdating = true;
-    beginLoading();
-    notifyListeners();
-    clearError();
 
     try {
       debugPrint('Updating progress with id: $sanitizedId');
-      final progress = await progressRepository.updateProgress(
-        sanitizedId,
-        firstLearningDate: firstLearningDate,
-        cyclesStudied: cyclesStudied,
-        nextStudyDate: nextStudyDate,
-        percentComplete: percentComplete,
-      );
+      final progress = await ref
+          .read(progressRepositoryProvider)
+          .updateProgress(
+            sanitizedId,
+            firstLearningDate: firstLearningDate,
+            cyclesStudied: cyclesStudied,
+            nextStudyDate: nextStudyDate,
+            percentComplete: percentComplete,
+          );
 
-      if (_selectedProgress?.id == sanitizedId) {
-        _selectedProgress = progress;
-      }
-
-      final userData = await serviceLocator<StorageService>().getUserData();
+      final userData = await ref.read(storageServiceProvider).getUserData();
       final userId = userData?['id'];
       if (userId != null) {
-        eventBus.fire(
-          TaskCompletedEvent(
-            userId: userId.toString(),
-            progressId: sanitizedId,
-          ),
-        );
+        ref
+            .read(eventBusProvider)
+            .fire(
+              TaskCompletedEvent(
+                userId: userId.toString(),
+                progressId: sanitizedId,
+              ),
+            );
       }
 
       debugPrint('Progress updated successfully');
       return progress;
     } catch (e) {
-      handleError(e, prefix: 'Failed to update progress');
       debugPrint('Error updating progress: $e');
       return null;
-    } finally {
-      _isUpdating = false;
-      endLoading();
     }
   }
+}
+
+@riverpod
+class SelectedProgress extends _$SelectedProgress {
+  @override
+  Future<ProgressDetail?> build() async {
+    return null;
+  }
+
+  Future<void> loadProgressDetails(String id) async {
+    if (id.trim().isEmpty) {
+      state = const AsyncValue.data(null);
+      return;
+    }
+
+    state = const AsyncValue.loading();
+
+    try {
+      final progress = await ref
+          .read(progressRepositoryProvider)
+          .getProgressById(id.trim());
+      state = AsyncValue.data(progress);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  Future<void> loadModuleProgress(String moduleId) async {
+    if (moduleId.trim().isEmpty) {
+      state = const AsyncValue.data(null);
+      return;
+    }
+
+    state = const AsyncValue.loading();
+
+    try {
+      final progressList = await ref
+          .read(progressRepositoryProvider)
+          .getProgressByModuleId(moduleId.trim(), page: 0, size: 1);
+
+      if (progressList.isEmpty) {
+        state = const AsyncValue.data(null);
+        return;
+      }
+
+      final progressId = progressList[0].id;
+      debugPrint('Found progress with ID: $progressId for module: $moduleId');
+
+      final progressDetail = await ref
+          .read(progressRepositoryProvider)
+          .getProgressById(progressId);
+      state = AsyncValue.data(progressDetail);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  void clearSelectedProgress() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+@riverpod
+bool isUpdatingProgress(IsUpdatingProgressRef ref) {
+  final progressState = ref.watch(progressStateProvider);
+  return progressState.isLoading;
 }
