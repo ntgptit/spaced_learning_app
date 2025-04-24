@@ -407,6 +407,7 @@ class DailyTaskChecker {
 
 @riverpod
 class DailyTaskCheck extends _$DailyTaskCheck {
+  @override
   Future<DailyTaskCheckEvent?> build() async {
     // Chỉ trả về null làm giá trị mặc định
     return null;

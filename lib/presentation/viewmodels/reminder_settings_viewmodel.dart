@@ -15,7 +15,7 @@ class ReminderSettingsState extends _$ReminderSettingsState {
 
   Future<Map<String, bool>> _loadSettings() async {
     try {
-      final reminderService = ref.read(reminderServiceProvider);
+      final reminderService = await ref.read(reminderServiceProvider.future);
 
       return {
         'remindersEnabled': await reminderService.getRemindersEnabled(),
@@ -34,7 +34,7 @@ class ReminderSettingsState extends _$ReminderSettingsState {
 
   Future<bool> setRemindersEnabled(bool value) async {
     try {
-      final reminderService = ref.read(reminderServiceProvider);
+      final reminderService = await ref.read(reminderServiceProvider.future);
       final success = await reminderService.setRemindersEnabled(value);
 
       if (success) {
@@ -56,7 +56,7 @@ class ReminderSettingsState extends _$ReminderSettingsState {
 
   Future<bool> setNoonReminderEnabled(bool value) async {
     try {
-      final reminderService = ref.read(reminderServiceProvider);
+      final reminderService = await ref.read(reminderServiceProvider.future);
       final success = await reminderService.setNoonReminderEnabled(value);
 
       if (success) {
@@ -74,7 +74,7 @@ class ReminderSettingsState extends _$ReminderSettingsState {
 
   Future<bool> setEveningFirstReminderEnabled(bool value) async {
     try {
-      final reminderService = ref.read(reminderServiceProvider);
+      final reminderService = await ref.read(reminderServiceProvider.future);
       final success = await reminderService.setEveningFirstReminderEnabled(
         value,
       );
@@ -94,7 +94,7 @@ class ReminderSettingsState extends _$ReminderSettingsState {
 
   Future<bool> setEveningSecondReminderEnabled(bool value) async {
     try {
-      final reminderService = ref.read(reminderServiceProvider);
+      final reminderService = await ref.read(reminderServiceProvider.future);
       final success = await reminderService.setEveningSecondReminderEnabled(
         value,
       );
@@ -114,7 +114,7 @@ class ReminderSettingsState extends _$ReminderSettingsState {
 
   Future<bool> setEndOfDayReminderEnabled(bool value) async {
     try {
-      final reminderService = ref.read(reminderServiceProvider);
+      final reminderService = await ref.read(reminderServiceProvider.future);
       final success = await reminderService.setEndOfDayReminderEnabled(value);
 
       if (success) {

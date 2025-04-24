@@ -1,5 +1,6 @@
 // lib/core/services/reminder/reminder_manager.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spaced_learning_app/core/services/reminder/notification_service.dart';
@@ -32,7 +33,7 @@ class ReminderManager extends _$ReminderManager {
   }
 
   Future<Map<String, dynamic>> _loadCurrentSettings() async {
-    final storageService = ref.watch(storageServiceProvider);
+    final storageService = ref.read(storageServiceProvider);
 
     return {
       'remindersEnabled': await storageService.getBool(_enabledKey) ?? true,
@@ -56,7 +57,9 @@ class ReminderManager extends _$ReminderManager {
       await _loadPreferences();
 
       // Initialize notification service
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       final bool notificationsInitialized = await notificationService
           .initialize();
       if (!notificationsInitialized) {
@@ -64,7 +67,9 @@ class ReminderManager extends _$ReminderManager {
       }
 
       // Initialize device specific service
-      final deviceSpecificService = ref.watch(deviceSpecificServiceProvider);
+      final deviceSpecificService = await ref.read(
+        deviceSpecificServiceProvider.future,
+      );
       final bool deviceServicesInitialized = await deviceSpecificService
           .initialize();
       if (!deviceServicesInitialized) {
@@ -90,7 +95,7 @@ class ReminderManager extends _$ReminderManager {
   Future<void> _loadPreferences() async {
     try {
       final _ = await SharedPreferences.getInstance();
-      final storageService = ref.watch(storageServiceProvider);
+      final storageService = ref.read(storageServiceProvider);
 
       final remindersEnabled =
           await storageService.getBool(_enabledKey) ?? true;
@@ -116,7 +121,7 @@ class ReminderManager extends _$ReminderManager {
 
   Future<bool> _savePreferences(Map<String, dynamic> settings) async {
     try {
-      final storageService = ref.watch(storageServiceProvider);
+      final storageService = ref.read(storageServiceProvider);
       await storageService.setBool(_enabledKey, settings['remindersEnabled']);
       await storageService.setBool(
         _noonReminderKey,
@@ -143,7 +148,7 @@ class ReminderManager extends _$ReminderManager {
 
   Future<bool> hasPendingTasksToday() async {
     try {
-      final storageService = ref.watch(storageServiceProvider);
+      final storageService = ref.read(storageServiceProvider);
       final userData = await storageService.getUserData();
       final userId = userData?['id'];
 
@@ -177,7 +182,9 @@ class ReminderManager extends _$ReminderManager {
         }
       }
 
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       await notificationService.cancelAllNotifications();
 
       final settings = state.valueOrNull ?? {};
@@ -220,8 +227,8 @@ class ReminderManager extends _$ReminderManager {
         final endOfDayReminderEnabled =
             settings['endOfDayReminderEnabled'] ?? true;
         if (endOfDayReminderEnabled) {
-          final deviceSpecificService = ref.watch(
-            deviceSpecificServiceProvider,
+          final deviceSpecificService = await ref.read(
+            deviceSpecificServiceProvider.future,
           );
           final useAlarmStyle =
               deviceSpecificService.isAndroid &&
@@ -256,7 +263,9 @@ class ReminderManager extends _$ReminderManager {
           'All tasks completed, cancelling evening and end-of-day reminders',
         );
 
-        final notificationService = ref.watch(notificationServiceProvider);
+        final notificationService = await ref.read(
+          notificationServiceProvider.future,
+        );
         await notificationService.cancelNotification(
           NotificationService.eveningFirstReminderId,
         );
@@ -287,7 +296,9 @@ class ReminderManager extends _$ReminderManager {
       state = AsyncValue.data(updatedSettings);
       return result;
     } else {
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       final result = await notificationService.cancelAllNotifications();
       state = AsyncValue.data(updatedSettings);
       return result;
@@ -303,7 +314,9 @@ class ReminderManager extends _$ReminderManager {
     if (!saved) return false;
 
     if (currentSettings['remindersEnabled'] == true) {
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       if (value) {
         final result = await notificationService.scheduleNoonReminder();
         state = AsyncValue.data(updatedSettings);
@@ -333,7 +346,9 @@ class ReminderManager extends _$ReminderManager {
     if (!saved) return false;
 
     if (currentSettings['remindersEnabled'] == true) {
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       if (value && await hasPendingTasksToday()) {
         final result = await notificationService.scheduleEveningFirstReminder();
         state = AsyncValue.data(updatedSettings);
@@ -363,7 +378,9 @@ class ReminderManager extends _$ReminderManager {
     if (!saved) return false;
 
     if (currentSettings['remindersEnabled'] == true) {
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       if (value && await hasPendingTasksToday()) {
         final result = await notificationService
             .scheduleEveningSecondReminder();
@@ -394,7 +411,9 @@ class ReminderManager extends _$ReminderManager {
     if (!saved) return false;
 
     if (currentSettings['remindersEnabled'] == true) {
-      final notificationService = ref.watch(notificationServiceProvider);
+      final notificationService = await ref.read(
+        notificationServiceProvider.future,
+      );
       if (value && await hasPendingTasksToday()) {
         final result = await notificationService.scheduleEndOfDayReminder();
         state = AsyncValue.data(updatedSettings);
@@ -415,37 +434,37 @@ class ReminderManager extends _$ReminderManager {
 
 // Convenience providers for accessing reminder settings
 @riverpod
-bool isReminderInitialized(IsReminderInitializedRef ref) {
+bool isReminderInitialized(Ref ref) {
   final settings = ref.watch(reminderManagerProvider).valueOrNull;
   return settings?['isInitialized'] ?? false;
 }
 
 @riverpod
-bool areRemindersEnabled(AreRemindersEnabledRef ref) {
+bool areRemindersEnabled(Ref ref) {
   final settings = ref.watch(reminderManagerProvider).valueOrNull;
   return settings?['remindersEnabled'] ?? true;
 }
 
 @riverpod
-bool isNoonReminderEnabled(IsNoonReminderEnabledRef ref) {
+bool isNoonReminderEnabled(Ref ref) {
   final settings = ref.watch(reminderManagerProvider).valueOrNull;
   return settings?['noonReminderEnabled'] ?? true;
 }
 
 @riverpod
-bool isEveningFirstReminderEnabled(IsEveningFirstReminderEnabledRef ref) {
+bool isEveningFirstReminderEnabled(Ref ref) {
   final settings = ref.watch(reminderManagerProvider).valueOrNull;
   return settings?['eveningFirstReminderEnabled'] ?? true;
 }
 
 @riverpod
-bool isEveningSecondReminderEnabled(IsEveningSecondReminderEnabledRef ref) {
+bool isEveningSecondReminderEnabled(Ref ref) {
   final settings = ref.watch(reminderManagerProvider).valueOrNull;
   return settings?['eveningSecondReminderEnabled'] ?? true;
 }
 
 @riverpod
-bool isEndOfDayReminderEnabled(IsEndOfDayReminderEnabledRef ref) {
+bool isEndOfDayReminderEnabled(Ref ref) {
   final settings = ref.watch(reminderManagerProvider).valueOrNull;
   return settings?['endOfDayReminderEnabled'] ?? true;
 }

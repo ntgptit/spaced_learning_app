@@ -6,7 +6,7 @@ part of 'daily_task_checker_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dailyTaskCheckHash() => r'8dfd20e75e060f3c3d8d5e5eba85e22bb030d6a2';
+String _$dailyTaskCheckHash() => r'c817131ca004bdb21972f239cb0131749f2fdf44';
 
 /// See also [DailyTaskCheck].
 @ProviderFor(DailyTaskCheck)

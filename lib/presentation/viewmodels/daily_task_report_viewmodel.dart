@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/di/providers.dart';
@@ -69,13 +70,13 @@ class DailyTaskReportState extends _$DailyTaskReportState {
   Future<Map<String, dynamic>> loadReportData() async {
     try {
       // Get active state
+      final storageService = ref.read(storageServiceProvider);
       final isCheckerActive =
-          await ref.read(storageServiceProvider).getBool(_isActiveKey) ?? false;
+          await storageService.getBool(_isActiveKey) ?? false;
 
       // Get latest check report
-      final report = await ref
-          .read(dailyTaskCheckerProvider)
-          .getLastCheckReport();
+      final dailyTaskChecker = await ref.read(dailyTaskCheckerProvider.future);
+      final report = await dailyTaskChecker.getLastCheckReport();
 
       // Get logs
       final logs = await _loadLogs();
@@ -95,9 +96,8 @@ class DailyTaskReportState extends _$DailyTaskReportState {
 
   Future<List<LogEntry>> _loadLogs() async {
     try {
-      final logsJson = await ref
-          .read(storageServiceProvider)
-          .getString(_logEntriesKey);
+      final storageService = ref.read(storageServiceProvider);
+      final logsJson = await storageService.getString(_logEntriesKey);
       if (logsJson == null) {
         return [];
       }
@@ -120,7 +120,10 @@ class DailyTaskReportState extends _$DailyTaskReportState {
 
       if (value) {
         // Activate checker
-        final success = await ref.read(dailyTaskCheckerProvider).initialize();
+        final dailyTaskChecker = await ref.read(
+          dailyTaskCheckerProvider.future,
+        );
+        final success = await dailyTaskChecker.initialize();
         if (success) {
           await _addLogEntry(
             message: 'Daily automated check activated',
@@ -135,9 +138,10 @@ class DailyTaskReportState extends _$DailyTaskReportState {
         }
       } else {
         // Deactivate checker
-        final success = await ref
-            .read(dailyTaskCheckerProvider)
-            .cancelDailyCheck();
+        final dailyTaskChecker = await ref.read(
+          dailyTaskCheckerProvider.future,
+        );
+        final success = await dailyTaskChecker.cancelDailyCheck();
         await _addLogEntry(
           message: 'Daily automated check deactivated',
           isSuccess: success,
@@ -171,7 +175,8 @@ class DailyTaskReportState extends _$DailyTaskReportState {
       await _addLogEntry(message: 'Starting manual check', isSuccess: true);
 
       // Perform check
-      final event = await ref.read(dailyTaskCheckerProvider).manualCheck();
+      final dailyTaskChecker = await ref.read(dailyTaskCheckerProvider.future);
+      final event = await dailyTaskChecker.manualCheck();
 
       // Add log entry
       await _addLogEntry(
@@ -236,9 +241,15 @@ class DailyTaskReportState extends _$DailyTaskReportState {
 
       // Get existing logs
       final currentStateValue = state.valueOrNull;
-      final List<LogEntry> existingLogs =
-          (currentStateValue?['logEntries'] as List<LogEntry>?) ??
-          await _loadLogs();
+      List<LogEntry> existingLogs = [];
+
+      if (currentStateValue != null &&
+          currentStateValue['logEntries'] != null &&
+          currentStateValue['logEntries'] is List<LogEntry>) {
+        existingLogs = currentStateValue['logEntries'] as List<LogEntry>;
+      } else {
+        existingLogs = await _loadLogs();
+      }
 
       // Add to start of list
       final updatedLogs = [entry, ...existingLogs];
@@ -258,7 +269,8 @@ class DailyTaskReportState extends _$DailyTaskReportState {
 
   Future<void> clearLogs() async {
     try {
-      await ref.read(storageServiceProvider).setString(_logEntriesKey, '[]');
+      final storageService = ref.read(storageServiceProvider);
+      await storageService.setString(_logEntriesKey, '[]');
       await _addLogEntry(message: 'Logs cleared', isSuccess: true);
       state = await AsyncValue.guard(() => loadReportData());
     } catch (e) {
@@ -268,7 +280,7 @@ class DailyTaskReportState extends _$DailyTaskReportState {
 }
 
 @riverpod
-bool isManualCheckInProgress(IsManualCheckInProgressRef ref) {
+bool isManualCheckInProgress(Ref ref) {
   final reportState = ref.watch(dailyTaskReportStateProvider);
   return reportState.valueOrNull?['isManualCheckInProgress'] ?? false;
 }

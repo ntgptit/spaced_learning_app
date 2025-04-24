@@ -122,7 +122,7 @@ final isEndOfDayReminderEnabledProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsEndOfDayReminderEnabledRef = AutoDisposeProviderRef<bool>;
-String _$reminderManagerHash() => r'85e675f512359d98e25dc768b0548c10df789bbf';
+String _$reminderManagerHash() => r'650a07c628989b41380f9cee14704986c01d256a';
 
 /// See also [ReminderManager].
 @ProviderFor(ReminderManager)
