@@ -1,7 +1,9 @@
+// lib/presentation/widgets/learning/learning_filter_bar/filter_stats_row.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class FilterStatsRow extends StatelessWidget {
+class FilterStatsRow extends ConsumerWidget {
   final int totalCount;
   final int dueCount;
   final int completeCount;
@@ -20,7 +22,7 @@ class FilterStatsRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

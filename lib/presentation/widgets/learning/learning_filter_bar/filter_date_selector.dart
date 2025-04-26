@@ -1,8 +1,10 @@
+// lib/presentation/widgets/learning/learning_filter_bar/filter_date_selector.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class FilterDateSelector extends StatelessWidget {
+class FilterDateSelector extends ConsumerWidget {
   final DateTime? selectedDate;
   final VoidCallback onDateSelected;
   final VoidCallback onDateCleared;
@@ -15,7 +17,7 @@ class FilterDateSelector extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

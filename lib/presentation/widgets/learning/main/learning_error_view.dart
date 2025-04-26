@@ -1,7 +1,9 @@
+// lib/presentation/widgets/learning/main/learning_error_view.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class LearningErrorView extends StatelessWidget {
+class LearningErrorView extends ConsumerWidget {
   final String errorMessage;
   final VoidCallback onRetry;
 
@@ -12,7 +14,7 @@ class LearningErrorView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

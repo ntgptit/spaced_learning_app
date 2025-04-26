@@ -1,11 +1,13 @@
+// lib/presentation/widgets/learning/module_details_bottom_sheet.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
-class ModuleDetailsBottomSheet extends StatelessWidget {
+class ModuleDetailsBottomSheet extends ConsumerWidget {
   final LearningModule module;
   final String? heroTagPrefix;
 
@@ -16,7 +18,7 @@ class ModuleDetailsBottomSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;

@@ -1,4 +1,6 @@
+// lib/presentation/widgets/learning/main/module_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -6,14 +8,14 @@ import 'package:spaced_learning_app/domain/models/learning_module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/module_details_bottom_sheet.dart';
 
-class ModuleCard extends StatelessWidget {
+class ModuleCard extends ConsumerWidget {
   final LearningModule module;
   final int index;
 
   const ModuleCard({super.key, required this.module, required this.index});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

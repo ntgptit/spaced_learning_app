@@ -1,7 +1,9 @@
+// lib/presentation/widgets/learning/learning_filter_bar/filter_book_selector.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class FilterBookSelector extends StatelessWidget {
+class FilterBookSelector extends ConsumerWidget {
   final String selectedBook;
   final List<String> books;
   final Function(String?) onBookChanged;
@@ -14,7 +16,7 @@ class FilterBookSelector extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final hasBookFilter = selectedBook != 'All';

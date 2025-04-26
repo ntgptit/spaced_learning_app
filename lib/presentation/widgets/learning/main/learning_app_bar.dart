@@ -1,7 +1,9 @@
+// lib/presentation/widgets/learning/main/learning_app_bar.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class LearningAppBar extends StatelessWidget {
+class LearningAppBar extends ConsumerWidget {
   final bool isScrolled;
   final VoidCallback onRefresh;
   final VoidCallback onHelp;
@@ -14,7 +16,7 @@ class LearningAppBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SliverAppBar(

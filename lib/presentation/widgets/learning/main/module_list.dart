@@ -1,9 +1,11 @@
+// lib/presentation/widgets/learning/main/module_list.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_list_header.dart';
 
-class ModuleList extends StatelessWidget {
+class ModuleList extends ConsumerWidget {
   final List<dynamic> modules;
   final ScrollController? scrollController;
   final VoidCallback onRefresh;
@@ -16,7 +18,7 @@ class ModuleList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (modules.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -27,7 +29,8 @@ class ModuleList extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: AppDimens.paddingXXXL),
         physics: const AlwaysScrollableScrollPhysics(),
         controller: scrollController,
-        itemCount: modules.length + 1, // Adding header
+        itemCount: modules.length + 1,
+        // Adding header
         itemBuilder: (context, index) {
           if (index == 0) {
             return const ModuleListHeader();

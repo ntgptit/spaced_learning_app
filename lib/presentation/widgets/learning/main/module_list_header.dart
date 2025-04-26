@@ -1,11 +1,13 @@
+// lib/presentation/widgets/learning/main/module_list_header.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class ModuleListHeader extends StatelessWidget {
+class ModuleListHeader extends ConsumerWidget {
   const ModuleListHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
