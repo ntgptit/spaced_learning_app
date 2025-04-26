@@ -1,7 +1,8 @@
+// lib/presentation/screens/progress/progress_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -14,18 +15,17 @@ import 'package:spaced_learning_app/presentation/widgets/progress/score_input_di
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_list_widget.dart';
 
 @pragma('vm:entry-point')
-class ProgressDetailScreen extends StatefulWidget {
+class ProgressDetailScreen extends ConsumerStatefulWidget {
   final String progressId;
 
-  ProgressDetailScreen({super.key, required this.progressId}) {
-    debugPrint('ProgressDetailScreen created with progressId: $progressId');
-  }
+  const ProgressDetailScreen({super.key, required this.progressId});
 
   @override
-  State<ProgressDetailScreen> createState() => _ProgressDetailScreenState();
+  ConsumerState<ProgressDetailScreen> createState() =>
+      _ProgressDetailScreenState();
 }
 
-class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
+class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
   late Future<void> _dataLoadingFuture;
   bool _isFirstLoad = true;
 
@@ -79,29 +79,29 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
     debugPrint('Fetching data for progressId: ${widget.progressId}');
 
-    final progressViewModel = Provider.of<ProgressViewModel>(
-      context,
-      listen: false,
-    );
-    final repetitionViewModel = Provider.of<RepetitionViewModel>(
-      context,
-      listen: false,
-    );
+    // Clear previous states
+    ref.read(selectedProgressProvider.notifier).clearSelectedProgress();
+    ref.read(repetitionStateProvider.notifier).clearRepetitions();
 
-    progressViewModel.clearSelectedProgress();
-    repetitionViewModel.clearRepetitions();
-
-    await progressViewModel.loadProgressDetails(widget.progressId);
+    // Load progress details
+    await ref
+        .read(selectedProgressProvider.notifier)
+        .loadProgressDetails(widget.progressId);
     if (!mounted) return;
 
     debugPrint(
-      'Progress details loaded: ${progressViewModel.selectedProgress?.id}',
+      'Progress details loaded: ${ref.read(selectedProgressProvider).valueOrNull?.id}',
     );
 
-    await repetitionViewModel.loadRepetitionsByProgressId(widget.progressId);
+    // Load repetitions for this progress
+    await ref
+        .read(repetitionStateProvider.notifier)
+        .loadRepetitionsByProgressId(widget.progressId);
     if (!mounted) return;
 
-    debugPrint('Repetitions loaded: ${repetitionViewModel.repetitions.length}');
+    debugPrint(
+      'Repetitions loaded: ${ref.read(repetitionStateProvider).valueOrNull?.length}',
+    );
   }
 
   Future<void> _markRepetitionCompleted(String repetitionId) async {
@@ -115,33 +115,26 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
     debugPrint('Score received from dialog: $score');
 
-    final repetitionViewModel = Provider.of<RepetitionViewModel>(
-      context,
-      listen: false,
-    );
-    final progressViewModel = Provider.of<ProgressViewModel>(
-      context,
-      listen: false,
-    );
-
-    final updatedRepetition = await repetitionViewModel.updateRepetition(
-      repetitionId,
-      status: RepetitionStatus.completed,
-      percentComplete: score,
-    );
+    final updatedRepetition = await ref
+        .read(repetitionStateProvider.notifier)
+        .updateRepetition(
+          repetitionId,
+          status: RepetitionStatus.completed,
+          percentComplete: score,
+        );
 
     if (!mounted || updatedRepetition == null) return;
 
-    final allCompleted = await repetitionViewModel.areAllRepetitionsCompleted(
-      updatedRepetition.moduleProgressId,
-    );
+    final allCompleted = await ref
+        .read(repetitionStateProvider.notifier)
+        .areAllRepetitionsCompleted(updatedRepetition.moduleProgressId);
 
     if (!mounted) return;
 
     if (allCompleted) {
       _handleCycleCompletion();
     } else {
-      _handleSingleCompletion(repetitionViewModel, progressViewModel, score);
+      _handleSingleCompletion(score);
     }
 
     await _reloadData();
@@ -247,11 +240,8 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     String repetitionId,
     DateTime currentDate,
   ) async {
-    final repetitionViewModel = Provider.of<RepetitionViewModel>(
-      context,
-      listen: false,
-    );
-    final currentRepetition = repetitionViewModel.repetitions.firstWhere(
+    final repetitions = ref.read(repetitionStateProvider).valueOrNull ?? [];
+    final currentRepetition = repetitions.firstWhere(
       (r) => r.id == repetitionId,
       orElse: () => throw Exception('Repetition not found'),
     );
@@ -266,11 +256,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       final newDate = result['date'] as DateTime;
       final rescheduleFollowing = result['rescheduleFollowing'] as bool;
 
-      final updatedRepetition = await repetitionViewModel.updateRepetition(
-        repetitionId,
-        reviewDate: newDate,
-        rescheduleFollowing: rescheduleFollowing,
-      );
+      final updatedRepetition = await ref
+          .read(repetitionStateProvider.notifier)
+          .updateRepetition(
+            repetitionId,
+            reviewDate: newDate,
+            rescheduleFollowing: rescheduleFollowing,
+          );
 
       if (mounted && updatedRepetition != null) {
         _showSnackBar(
@@ -286,17 +278,13 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     _showCycleCompletionSnackBar();
   }
 
-  void _handleSingleCompletion(
-    RepetitionViewModel repetitionViewModel,
-    ProgressViewModel progressViewModel,
-    double score,
-  ) {
+  void _handleSingleCompletion(double score) {
     _showCompletionSnackBar(score);
   }
 
   @override
   Widget build(BuildContext context) {
-    final progressViewModel = context.watch<ProgressViewModel>();
+    final progressAsync = ref.watch(selectedProgressProvider);
 
     if (widget.progressId.isEmpty) {
       return Scaffold(
@@ -310,7 +298,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
               const Text('Invalid progress ID'),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => GoRouter.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: const Text('Go Back'),
               ),
             ],
@@ -320,7 +308,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
     }
 
     return Scaffold(
-      appBar: _buildAppBar(progressViewModel.selectedProgress?.moduleTitle),
+      appBar: _buildAppBar(progressAsync.valueOrNull?.moduleTitle),
       body: FutureBuilder(
         future: _dataLoadingFuture,
         builder: (context, snapshot) {
@@ -340,7 +328,7 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
 
           return RefreshIndicator(
             onRefresh: _reloadData,
-            child: _buildScreenContent(progressViewModel),
+            child: _buildScreenContent(progressAsync),
           );
         },
       ),
@@ -353,73 +341,67 @@ class _ProgressDetailScreenState extends State<ProgressDetailScreen> {
       IconButton(
         icon: const Icon(Icons.help_outline),
         tooltip: 'Learn about repetition cycles',
-        onPressed: () => GoRouter.of(context).push('/help/spaced-repetition'),
+        onPressed: () => context.push('/help/spaced-repetition'),
       ),
     ],
   );
 
-  Widget _buildScreenContent(ProgressViewModel progressViewModel) {
+  Widget _buildScreenContent(AsyncValue progressAsync) {
     final theme = Theme.of(context);
 
-    if (progressViewModel.isLoading && _isFirstLoad) {
-      return const Center(child: AppLoadingIndicator());
-    }
+    return progressAsync.when(
+      data: (progress) {
+        if (progress == null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.warning_amber, size: 48, color: Colors.orange),
+                const SizedBox(height: 16),
+                Text(
+                  'Progress with ID ${widget.progressId} not found',
+                  style: theme.textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _reloadData,
+                  child: const Text('Try Again'),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => context.go('/due-progress'),
+                  child: const Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        }
 
-    if (progressViewModel.errorMessage != null) {
-      return Center(
-        child: ErrorDisplay(
-          message: progressViewModel.errorMessage!,
-          onRetry: _reloadData,
-        ),
-      );
-    }
-
-    final progress = progressViewModel.selectedProgress;
-    if (progress == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        return ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            const Icon(Icons.warning_amber, size: 48, color: Colors.orange),
+            ProgressHeaderWidget(
+              progress: progress,
+              onCycleCompleteDialogRequested: _showCycleCompletionDialog,
+            ),
+            const SizedBox(height: 32),
+            Text('Review Schedule', style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
-            Text(
-              'Progress with ID ${widget.progressId} not found',
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _reloadData,
-              child: const Text('Try Again'),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => GoRouter.of(context).go('/due-progress'),
-              child: const Text('Go Back'),
+            RepetitionListWidget(
+              progressId: widget.progressId,
+              currentCycleStudied: progress.cyclesStudied,
+              onMarkCompleted: _markRepetitionCompleted,
+              onReschedule: _rescheduleRepetition,
+              onReload: _reloadData,
             ),
           ],
-        ),
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        ProgressHeaderWidget(
-          progress: progress,
-          onCycleCompleteDialogRequested: _showCycleCompletionDialog,
-        ),
-        const SizedBox(height: 32),
-        Text('Review Schedule', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
-        RepetitionListWidget(
-          progressId: widget.progressId,
-          currentCycleStudied: progress.cyclesStudied,
-          onMarkCompleted: _markRepetitionCompleted,
-          onReschedule: _rescheduleRepetition,
-          onReload: _reloadData,
-        ),
-      ],
+        );
+      },
+      loading: () => const Center(child: AppLoadingIndicator()),
+      error: (error, stack) => Center(
+        child: ErrorDisplay(message: error.toString(), onRetry: _reloadData),
+      ),
     );
   }
 }

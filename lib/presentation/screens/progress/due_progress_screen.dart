@@ -1,6 +1,7 @@
+// lib/presentation/screens/progress/due_progress_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -11,14 +12,14 @@ import 'package:spaced_learning_app/presentation/widgets/common/loading_indicato
 
 import '../../../core/navigation/navigation_helper.dart';
 
-class DueProgressScreen extends StatefulWidget {
+class DueProgressScreen extends ConsumerStatefulWidget {
   const DueProgressScreen({super.key});
 
   @override
-  State<DueProgressScreen> createState() => _DueProgressScreenState();
+  ConsumerState<DueProgressScreen> createState() => _DueProgressScreenState();
 }
 
-class _DueProgressScreenState extends State<DueProgressScreen>
+class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -65,27 +66,29 @@ class _DueProgressScreenState extends State<DueProgressScreen>
   Future<void> _loadData() async {
     if (!mounted) return;
 
-    final authViewModel = context.read<AuthViewModel>();
-    final progressViewModel = context.read<ProgressViewModel>();
+    final authState = ref.read(authStateProvider);
+    final isAuthorized = authState.valueOrNull ?? false;
+    final currentUser = ref.read(currentUserProvider);
 
-    if (authViewModel.currentUser == null) {
+    if (!isAuthorized || currentUser == null) {
       return;
     }
 
-    await progressViewModel.loadDueProgress(
-      authViewModel.currentUser!.id,
-      studyDate: _selectedDate,
-    );
+    await ref
+        .read(progressStateProvider.notifier)
+        .loadDueProgress(currentUser.id, studyDate: _selectedDate);
 
-    if (!mounted || progressViewModel.progressRecords.isEmpty) return;
+    if (!mounted) return;
 
-    await _loadModuleTitles(progressViewModel.progressRecords);
+    final progressList = ref.read(progressStateProvider).valueOrNull ?? [];
+    if (progressList.isEmpty) return;
+
+    await _loadModuleTitles(progressList);
   }
 
   Future<void> _loadModuleTitles(List<ProgressSummary> progressList) async {
     setState(() => _isLoadingModules = true);
 
-    final moduleViewModel = context.read<ModuleViewModel>();
     final moduleIds = progressList
         .map((progress) => progress.moduleId)
         .where((id) => !_moduleTitles.containsKey(id))
@@ -94,12 +97,17 @@ class _DueProgressScreenState extends State<DueProgressScreen>
 
     for (final moduleId in moduleIds) {
       try {
-        await moduleViewModel.loadModuleDetails(moduleId);
-        if (moduleViewModel.selectedModule == null) {
+        await ref
+            .read(selectedModuleProvider.notifier)
+            .loadModuleDetails(moduleId);
+        final moduleDetail = ref.read(selectedModuleProvider).valueOrNull;
+
+        if (moduleDetail == null) {
           _moduleTitles[moduleId] = 'Module $moduleId';
           continue;
         }
-        _moduleTitles[moduleId] = moduleViewModel.selectedModule!.title;
+
+        _moduleTitles[moduleId] = moduleDetail.title;
       } catch (e) {
         _moduleTitles[moduleId] = 'Module $moduleId';
       }
@@ -175,10 +183,14 @@ class _DueProgressScreenState extends State<DueProgressScreen>
 
   @override
   Widget build(BuildContext context) {
-    final authViewModel = context.watch<AuthViewModel>();
+    final authState = ref.watch(authStateProvider);
+    final isAuthorized = authState.valueOrNull ?? false;
+    final currentUser = ref.watch(currentUserProvider);
     final theme = Theme.of(context);
 
-    if (authViewModel.currentUser == null) return _buildLoginPrompt(theme);
+    if (!isAuthorized || currentUser == null) {
+      return _buildLoginPrompt(theme);
+    }
 
     return Scaffold(
       body: NestedScrollView(
@@ -309,7 +321,8 @@ class _DueProgressScreenState extends State<DueProgressScreen>
             FilledButton.icon(
               icon: const Icon(Icons.login),
               label: const Text('Sign in'),
-              onPressed: () {},
+              onPressed: () =>
+                  NavigationHelper.clearStackAndGo(context, '/login'),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -336,207 +349,76 @@ class _DueProgressScreenState extends State<DueProgressScreen>
   );
 
   Widget _buildSummarySection() {
-    final progressViewModel = context.watch<ProgressViewModel>();
+    final progressAsync = ref.watch(progressStateProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (progressViewModel.isLoading &&
-        progressViewModel.progressRecords.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    return progressAsync.when(
+      data: (progressRecords) {
+        if (progressRecords.isEmpty && progressAsync.isLoading) {
+          return const SizedBox.shrink();
+        }
 
-    if (progressViewModel.errorMessage != null) return const SizedBox.shrink();
+        if (progressAsync.hasError) {
+          return const SizedBox.shrink();
+        }
 
-    final totalCount = progressViewModel.progressRecords.length;
-    final dueCount = progressViewModel.progressRecords.where(_isDue).length;
-    final completedPercent = totalCount == 0
-        ? 0
-        : ((totalCount - dueCount) / totalCount * 100).toInt();
+        final totalCount = progressRecords.length;
+        final dueCount = progressRecords.where(_isDue).length;
+        final completedPercent = totalCount == 0
+            ? 0
+            : ((totalCount - dueCount) / totalCount * 100).toInt();
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Card(
-        elevation: 0,
-        color: colorScheme.surfaceContainerLowest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-            width: 1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              _buildStatItem(
-                theme,
-                'Total',
-                totalCount.toString(),
-                Icons.book,
-                colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              _buildStatItem(
-                theme,
-                'Due',
-                dueCount.toString(),
-                Icons.event_available,
-                dueCount > 0 ? colorScheme.error : colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 8),
-              _buildStatItem(
-                theme,
-                'Completed',
-                '$completedPercent%',
-                Icons.task_alt,
-                colorScheme.tertiary,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) => Expanded(
-    child: Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Card(
+            elevation: 0,
+            color: colorScheme.surfaceContainerLowest,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                width: 1,
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  _buildStatItem(
+                    theme,
+                    'Total',
+                    totalCount.toString(),
+                    Icons.book,
+                    colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStatItem(
+                    theme,
+                    'Due',
+                    dueCount.toString(),
+                    Icons.event_available,
+                    dueCount > 0
+                        ? colorScheme.error
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStatItem(
+                    theme,
+                    'Completed',
+                    '$completedPercent%',
+                    Icons.task_alt,
+                    colorScheme.tertiary,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildProgressList() {
-    final progressViewModel = context.watch<ProgressViewModel>();
-    final theme = Theme.of(context);
-
-    if (progressViewModel.isLoading &&
-        progressViewModel.progressRecords.isEmpty) {
-      return const Center(child: AppLoadingIndicator());
-    }
-
-    if (progressViewModel.errorMessage != null) {
-      return Center(
-        child: ErrorDisplay(
-          message: progressViewModel.errorMessage!,
-          onRetry: _loadData,
-        ),
-      );
-    }
-
-    if (_isLoadingModules) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppLoadingIndicator(),
-            SizedBox(height: 16),
-            Text('Loading module information...'),
-          ],
-        ),
-      );
-    }
-
-    if (progressViewModel.progressRecords.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    final today = DateTime.now();
-    final todayProgressRecords = <ProgressSummary>[];
-    final overdueProgressRecords = <ProgressSummary>[];
-    final upcomingProgressRecords = <ProgressSummary>[];
-
-    for (final progress in progressViewModel.progressRecords) {
-      if (progress.nextStudyDate == null) continue;
-
-      final progressDate = DateTime(
-        progress.nextStudyDate!.year,
-        progress.nextStudyDate!.month,
-        progress.nextStudyDate!.day,
-      );
-      final nowDate = DateTime(today.year, today.month, today.day);
-
-      if (progressDate.isAtSameMomentAs(nowDate)) {
-        todayProgressRecords.add(progress);
-        continue;
-      }
-      if (progressDate.isBefore(nowDate)) {
-        overdueProgressRecords.add(progress);
-        continue;
-      }
-      upcomingProgressRecords.add(progress);
-    }
-
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: RefreshIndicator(
-        onRefresh: _loadData,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 80),
-          children: [
-            if (overdueProgressRecords.isNotEmpty) ...[
-              _buildSectionHeader(
-                theme,
-                'Overdue',
-                Icons.warning_amber,
-                theme.colorScheme.error,
-              ),
-              ...overdueProgressRecords.map(_buildProgressItem),
-              const SizedBox(height: 24),
-            ],
-            if (todayProgressRecords.isNotEmpty) ...[
-              _buildSectionHeader(
-                theme,
-                'Due Today',
-                Icons.today,
-                theme.colorScheme.tertiary,
-              ),
-              ...todayProgressRecords.map(_buildProgressItem),
-              const SizedBox(height: 24),
-            ],
-            if (upcomingProgressRecords.isNotEmpty &&
-                _selectedDate != null) ...[
-              _buildSectionHeader(
-                theme,
-                'Upcoming',
-                Icons.event,
-                theme.colorScheme.primary,
-              ),
-              ...upcomingProgressRecords.map(_buildProgressItem),
-            ],
-            if (todayProgressRecords.isEmpty &&
-                overdueProgressRecords.isEmpty &&
-                upcomingProgressRecords.isEmpty)
-              _buildEmptyState(),
-          ],
-        ),
+        );
+      },
+      loading: () => const Center(child: AppLoadingIndicator()),
+      error: (error, _) => Center(
+        child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
       ),
     );
   }
@@ -614,6 +496,121 @@ class _DueProgressScreenState extends State<DueProgressScreen>
     );
   }
 
+  Widget _buildProgressList() {
+    final progressAsync = ref.watch(progressStateProvider);
+    final theme = Theme.of(context);
+
+    return progressAsync.when(
+      data: (progressRecords) {
+        if (progressRecords.isEmpty && progressAsync.isLoading) {
+          return const Center(child: AppLoadingIndicator());
+        }
+
+        if (progressAsync.hasError) {
+          return Center(
+            child: ErrorDisplay(
+              message: progressAsync.error.toString(),
+              onRetry: _loadData,
+            ),
+          );
+        }
+
+        if (_isLoadingModules) {
+          return const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppLoadingIndicator(),
+                SizedBox(height: 16),
+                Text('Loading module information...'),
+              ],
+            ),
+          );
+        }
+
+        if (progressRecords.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        final today = DateTime.now();
+        final todayProgressRecords = <ProgressSummary>[];
+        final overdueProgressRecords = <ProgressSummary>[];
+        final upcomingProgressRecords = <ProgressSummary>[];
+
+        for (final progress in progressRecords) {
+          if (progress.nextStudyDate == null) continue;
+
+          final progressDate = DateTime(
+            progress.nextStudyDate!.year,
+            progress.nextStudyDate!.month,
+            progress.nextStudyDate!.day,
+          );
+          final nowDate = DateTime(today.year, today.month, today.day);
+
+          if (progressDate.isAtSameMomentAs(nowDate)) {
+            todayProgressRecords.add(progress);
+            continue;
+          }
+          if (progressDate.isBefore(nowDate)) {
+            overdueProgressRecords.add(progress);
+            continue;
+          }
+          upcomingProgressRecords.add(progress);
+        }
+
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: RefreshIndicator(
+            onRefresh: _loadData,
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 80),
+              children: [
+                if (overdueProgressRecords.isNotEmpty) ...[
+                  _buildSectionHeader(
+                    theme,
+                    'Overdue',
+                    Icons.warning_amber,
+                    theme.colorScheme.error,
+                  ),
+                  ...overdueProgressRecords.map(_buildProgressItem),
+                  const SizedBox(height: 24),
+                ],
+                if (todayProgressRecords.isNotEmpty) ...[
+                  _buildSectionHeader(
+                    theme,
+                    'Due Today',
+                    Icons.today,
+                    theme.colorScheme.tertiary,
+                  ),
+                  ...todayProgressRecords.map(_buildProgressItem),
+                  const SizedBox(height: 24),
+                ],
+                if (upcomingProgressRecords.isNotEmpty &&
+                    _selectedDate != null) ...[
+                  _buildSectionHeader(
+                    theme,
+                    'Upcoming',
+                    Icons.event,
+                    theme.colorScheme.primary,
+                  ),
+                  ...upcomingProgressRecords.map(_buildProgressItem),
+                ],
+                if (todayProgressRecords.isEmpty &&
+                    overdueProgressRecords.isEmpty &&
+                    upcomingProgressRecords.isEmpty)
+                  _buildEmptyState(),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: AppLoadingIndicator()),
+      error: (error, _) => Center(
+        child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
+      ),
+    );
+  }
+
   Widget _buildProgressItem(ProgressSummary progress) {
     final moduleTitle = _moduleTitles[progress.moduleId] ?? 'Loading...';
     final cycleText = _formatCycleStudied(progress.cyclesStudied);
@@ -663,11 +660,11 @@ class _DueProgressScreenState extends State<DueProgressScreen>
           return;
         }
 
-        // Sử dụng NavigationHelper.pushWithResult để lấy kết quả và refresh
+        // Use NavigationHelper.pushWithResult to get result and refresh
         NavigationHelper.pushWithResult(
           context,
           '/progress/$progressId',
-        ).then((_) => _loadData()); // Tự động refresh khi quay lại
+        ).then((_) => _loadData()); // Auto-refresh when returning
       },
       borderRadius: BorderRadius.circular(12),
       child: Padding(
@@ -796,4 +793,38 @@ class _DueProgressScreenState extends State<DueProgressScreen>
         CycleStudied.thirdReview => Colors.orange,
         CycleStudied.moreThanThreeReviews => Colors.purple,
       };
+
+  Widget _buildStatItem(
+    ThemeData theme,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) => Expanded(
+    child: Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
 }

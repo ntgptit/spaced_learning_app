@@ -1,9 +1,11 @@
+// lib/presentation/widgets/progress/progress_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
-class ProgressCard extends StatelessWidget {
+class ProgressCard extends ConsumerWidget {
   final ProgressSummary progress;
   final String moduleTitle;
   final bool isDue;
@@ -20,7 +22,7 @@ class ProgressCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;

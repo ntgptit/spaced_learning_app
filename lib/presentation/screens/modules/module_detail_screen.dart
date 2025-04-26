@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
@@ -13,16 +13,16 @@ import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.
 
 import '../../../core/navigation/navigation_helper.dart';
 
-class ModuleDetailScreen extends StatefulWidget {
+class ModuleDetailScreen extends ConsumerStatefulWidget {
   final String moduleId;
 
   const ModuleDetailScreen({super.key, required this.moduleId});
 
   @override
-  State<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
+  ConsumerState<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
 }
 
-class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
+class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
   late Future<void> _dataFuture;
   bool _isInitialLoad = true;
 
@@ -33,28 +33,30 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 
   Future<void> _loadData() async {
-    final moduleViewModel = context.read<ModuleViewModel>();
-    final authViewModel = context.read<AuthViewModel>();
-    final progressViewModel = context.read<ProgressViewModel>();
     final moduleId = widget.moduleId;
 
     try {
-      await moduleViewModel.loadModuleDetails(moduleId);
-      if (!mounted) return;
+      await ref
+          .read(selectedModuleProvider.notifier)
+          .loadModuleDetails(moduleId);
 
-      final module = moduleViewModel.selectedModule;
+      final module = ref.read(selectedModuleProvider).valueOrNull;
       if (module == null) return;
 
       if (module.progress.isNotEmpty) {
         final progressId = module.progress[0].id;
-        await progressViewModel.loadProgressDetails(progressId);
+        await ref
+            .read(selectedProgressProvider.notifier)
+            .loadProgressDetails(progressId);
         debugPrint('Loaded progress directly from module: $progressId');
-      } else if (authViewModel.isAuthenticated) {
-        await progressViewModel.loadModuleProgress(moduleId);
+      } else if (ref.read(authStateProvider).valueOrNull ?? false) {
+        await ref
+            .read(selectedProgressProvider.notifier)
+            .loadModuleProgress(moduleId);
       }
 
       debugPrint(
-        'After loading - Progress exists: ${progressViewModel.selectedProgress != null}',
+        'After loading - Progress exists: ${ref.read(selectedProgressProvider).valueOrNull != null}',
       );
       debugPrint('Module progress count: ${module.progress.length}');
 
@@ -81,31 +83,25 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
   }
 
   Future<void> _startLearning() async {
-    final authViewModel = context.read<AuthViewModel>();
-    final moduleViewModel = context.read<ModuleViewModel>();
-    final progressViewModel = context.read<ProgressViewModel>();
+    final currentUser = ref.read(currentUserProvider);
     final moduleId = widget.moduleId;
 
-    if (!_isAuthenticated(authViewModel)) {
+    if (!_isAuthenticated()) {
       _showLoginSnackBar();
       return;
     }
 
-    final module = moduleViewModel.selectedModule;
+    final module = ref.read(selectedModuleProvider).valueOrNull;
     if (module == null) return;
 
-    final existingProgress = progressViewModel.selectedProgress;
+    final existingProgress = ref.read(selectedProgressProvider).valueOrNull;
     if (existingProgress != null) {
       _navigateToProgress(existingProgress.id);
       return;
     }
 
     try {
-      final newProgress = await _createNewProgress(
-        progressViewModel,
-        authViewModel,
-        moduleId,
-      );
+      final newProgress = await _createNewProgress(moduleId);
 
       if (newProgress != null && mounted) {
         _navigateToProgress(newProgress.id);
@@ -124,8 +120,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     }
   }
 
-  bool _isAuthenticated(AuthViewModel authViewModel) {
-    return authViewModel.isAuthenticated && authViewModel.currentUser != null;
+  bool _isAuthenticated() {
+    final isLoggedIn = ref.read(authStateProvider).valueOrNull ?? false;
+    final currentUser = ref.read(currentUserProvider);
+    return isLoggedIn && currentUser != null;
   }
 
   void _showLoginSnackBar() {
@@ -136,23 +134,23 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
     }
   }
 
-  Future<ProgressDetail?> _createNewProgress(
-    ProgressViewModel progressViewModel,
-    AuthViewModel authViewModel,
-    String moduleId,
-  ) async {
-    return progressViewModel.createProgress(
-      moduleId: moduleId,
-      userId: authViewModel.currentUser!.id,
-      firstLearningDate: DateTime.now(),
-      nextStudyDate: DateTime.now(),
-    );
+  Future<ProgressDetail?> _createNewProgress(String moduleId) async {
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) return null;
+
+    return ref
+        .read(progressStateProvider.notifier)
+        .createProgress(
+          moduleId: moduleId,
+          userId: currentUser.id,
+          firstLearningDate: DateTime.now(),
+          nextStudyDate: DateTime.now(),
+        );
   }
 
   void _navigateToProgress(String progressId) {
     if (!mounted) return;
 
-    // Sử dụng NavigationHelper thay vì GoRouter trực tiếp
     if (progressId.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -168,17 +166,13 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final moduleViewModel = context.watch<ModuleViewModel>();
-    final progressViewModel = context.watch<ProgressViewModel>();
-    final module = moduleViewModel.selectedModule;
+    final moduleAsync = ref.watch(selectedModuleProvider);
+    final progressAsync = ref.watch(selectedProgressProvider);
 
+    final module = moduleAsync.valueOrNull;
     final bool hasProgress =
-        progressViewModel.selectedProgress != null ||
+        progressAsync.valueOrNull != null ||
         (module?.progress != null && module!.progress.isNotEmpty);
-
-    debugPrint('Has progress (combined check): $hasProgress');
-    debugPrint('selectedProgress: ${progressViewModel.selectedProgress?.id}');
-    debugPrint('module.progress count: ${module?.progress.length ?? 0}');
 
     return Scaffold(
       appBar: AppBar(
@@ -210,9 +204,9 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
 
           return _BodyBuilder(
             module: module,
-            isLoading: moduleViewModel.isLoading,
-            errorMessage: moduleViewModel.errorMessage,
-            userProgress: progressViewModel.selectedProgress,
+            isLoading: moduleAsync.isLoading,
+            errorMessage: moduleAsync.error?.toString(),
+            userProgress: progressAsync.valueOrNull,
             onRefresh: _refreshData,
             onProgressTap: _navigateToProgress,
           );
@@ -398,7 +392,7 @@ class _ModuleHeader extends StatelessWidget {
 
   Widget _buildDivider(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = theme.colorScheme.outline.withValues(alpha: 0.5);
+    final dividerColor = theme.colorScheme.outline.withOpacity(0.5);
 
     return Container(height: 40, width: 1, color: dividerColor);
   }
@@ -514,7 +508,7 @@ class _ContentSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        color: theme.colorScheme.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Column(

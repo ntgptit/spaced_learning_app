@@ -1,4 +1,6 @@
+// lib/presentation/widgets/progress/reschedule_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
@@ -13,42 +15,94 @@ class RescheduleDialog {
 
     return showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusL),
-          ),
-          elevation: AppDimens.elevationM,
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(context, title),
-                const SizedBox(height: AppDimens.spaceM),
-                _buildDatePicker(
-                  context,
-                  selectedDate,
-                  (date) => setState(() => selectedDate = date),
-                ),
-                const SizedBox(height: AppDimens.spaceM),
-                _buildRescheduleSwitchOption(
-                  context,
-                  rescheduleFollowing,
-                  (value) => setState(() => rescheduleFollowing = value),
-                ),
-                const SizedBox(height: AppDimens.spaceL),
-                _buildActionButtons(context, selectedDate, rescheduleFollowing),
-              ],
-            ),
-          ),
+      builder: (dialogContext) => ProviderScope(
+        child: _RescheduleDialogContent(
+          initialDate: initialDate,
+          title: title,
+          onDateSelected: (date) => selectedDate = date,
+          onRescheduleFollowingChanged: (value) => rescheduleFollowing = value,
+          onCancel: () => Navigator.pop(dialogContext),
+          onReschedule: () => Navigator.pop(dialogContext, {
+            'date': selectedDate,
+            'rescheduleFollowing': rescheduleFollowing,
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class _RescheduleDialogContent extends ConsumerStatefulWidget {
+  final DateTime initialDate;
+  final String title;
+  final ValueChanged<DateTime> onDateSelected;
+  final ValueChanged<bool> onRescheduleFollowingChanged;
+  final VoidCallback onCancel;
+  final VoidCallback onReschedule;
+
+  const _RescheduleDialogContent({
+    required this.initialDate,
+    required this.title,
+    required this.onDateSelected,
+    required this.onRescheduleFollowingChanged,
+    required this.onCancel,
+    required this.onReschedule,
+  });
+
+  @override
+  ConsumerState<_RescheduleDialogContent> createState() =>
+      _RescheduleDialogContentState();
+}
+
+class _RescheduleDialogContentState
+    extends ConsumerState<_RescheduleDialogContent> {
+  late DateTime _selectedDate;
+  bool _rescheduleFollowing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.initialDate;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      ),
+      elevation: AppDimens.elevationM,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.paddingL),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(context, widget.title),
+            const SizedBox(height: AppDimens.spaceM),
+            _buildDatePicker(context, _selectedDate, (date) {
+              setState(() => _selectedDate = date);
+              widget.onDateSelected(date);
+            }),
+            const SizedBox(height: AppDimens.spaceM),
+            _buildRescheduleSwitchOption(context, _rescheduleFollowing, (
+              value,
+            ) {
+              setState(() => _rescheduleFollowing = value);
+              widget.onRescheduleFollowingChanged(value);
+            }),
+            const SizedBox(height: AppDimens.spaceL),
+            _buildActionButtons(context),
+          ],
         ),
       ),
     );
   }
 
-  static Widget _buildHeader(BuildContext context, String title) {
+  Widget _buildHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -61,7 +115,7 @@ class RescheduleDialog {
     );
   }
 
-  static Widget _buildDatePicker(
+  Widget _buildDatePicker(
     BuildContext context,
     DateTime selectedDate,
     Function(DateTime) onDateChanged,
@@ -104,7 +158,7 @@ class RescheduleDialog {
     );
   }
 
-  static Widget _buildRescheduleSwitchOption(
+  Widget _buildRescheduleSwitchOption(
     BuildContext context,
     bool rescheduleFollowing,
     Function(bool) onChanged,
@@ -144,11 +198,7 @@ class RescheduleDialog {
     );
   }
 
-  static Widget _buildActionButtons(
-    BuildContext context,
-    DateTime selectedDate,
-    bool rescheduleFollowing,
-  ) {
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -156,7 +206,7 @@ class RescheduleDialog {
           text: 'Cancel',
           type: AppButtonType.text,
           size: AppButtonSize.small,
-          onPressed: () => Navigator.pop(context),
+          onPressed: widget.onCancel,
         ),
         const SizedBox(width: AppDimens.spaceM),
         AppButton(
@@ -164,10 +214,7 @@ class RescheduleDialog {
           type: AppButtonType.primary,
           prefixIcon: Icons.calendar_today,
           size: AppButtonSize.small,
-          onPressed: () => Navigator.pop(context, {
-            'date': selectedDate,
-            'rescheduleFollowing': rescheduleFollowing,
-          }),
+          onPressed: widget.onReschedule,
         ),
       ],
     );

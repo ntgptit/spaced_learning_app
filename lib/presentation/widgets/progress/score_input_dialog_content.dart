@@ -1,17 +1,20 @@
+// lib/presentation/widgets/progress/score_input_dialog_content.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class ScoreInputDialogContent extends StatefulWidget {
+class ScoreInputDialogContent extends ConsumerStatefulWidget {
   final ValueNotifier<double> scoreNotifier;
 
   const ScoreInputDialogContent({super.key, required this.scoreNotifier});
 
   @override
-  State<ScoreInputDialogContent> createState() =>
+  ConsumerState<ScoreInputDialogContent> createState() =>
       _ScoreInputDialogContentState();
 }
 
-class _ScoreInputDialogContentState extends State<ScoreInputDialogContent>
+class _ScoreInputDialogContentState
+    extends ConsumerState<ScoreInputDialogContent>
     with SingleTickerProviderStateMixin {
   late double _currentScore;
   late TextEditingController _controller;

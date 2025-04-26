@@ -1,7 +1,6 @@
 // lib/presentation/screens/learning/learning_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
@@ -195,23 +194,16 @@ class _LearningProgressScreenState extends ConsumerState<LearningProgressScreen>
   }
 
   Widget _buildFilterBar() {
-    return Selector<int, int, int>(
-      selector: (context, ref) {
+    // Thay thế Selector bằng cách sử dụng Consumer Riverpod
+    return Consumer(
+      builder: (context, ref, _) {
+        // Lấy các giá trị cần thiết
         final filteredModules = ref.watch(filteredModulesProvider);
-        final dueCount = ref.read(dueModulesCountProvider);
-        final completedCount = ref.read(completedModulesCountProvider);
-
-        return (filteredModules.length << 16) |
-            (dueCount << 8) |
-            completedCount;
-      },
-      builder: (context, combinedValue, _) {
-        final filteredCount = combinedValue >> 16;
-        final dueCount = (combinedValue >> 8) & 0xFF;
-        final completedCount = combinedValue & 0xFF;
+        final dueCount = ref.watch(dueModulesCountProvider);
+        final completedCount = ref.watch(completedModulesCountProvider);
 
         return LearningFilterBar(
-          totalCount: filteredCount,
+          totalCount: filteredModules.length,
           dueCount: dueCount,
           completeCount: completedCount,
         );
