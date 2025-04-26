@@ -1,3 +1,4 @@
+// lib/presentation/widgets/home/welcome_section.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';

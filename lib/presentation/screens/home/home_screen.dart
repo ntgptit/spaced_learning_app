@@ -1,11 +1,15 @@
-// Before migating this file from provider to riverpod
+// lib/presentation/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/completion_stats.dart';
+import 'package:spaced_learning_app/domain/models/due_stats.dart';
+import 'package:spaced_learning_app/domain/models/module_stats.dart';
+import 'package:spaced_learning_app/domain/models/streak_stats.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
-import 'package:spaced_learning_app/presentation/mixins/view_model_refresher.dart';
+import 'package:spaced_learning_app/domain/models/vocabulary_stats.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -19,21 +23,15 @@ import 'package:spaced_learning_app/presentation/widgets/home/quick_actions_sect
 import 'package:spaced_learning_app/presentation/widgets/home/welcome_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_insights_card.dart';
 
-import '../../../domain/models/completion_stats.dart';
-import '../../../domain/models/due_stats.dart';
-import '../../../domain/models/module_stats.dart';
-import '../../../domain/models/streak_stats.dart';
-import '../../../domain/models/vocabulary_stats.dart';
-
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with ViewModelRefresher, SingleTickerProviderStateMixin {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
   bool _isFirstLoad = true;
 
@@ -41,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  // Antes de initState, inicializa con un Future completado vacío
   late Future<void> _dataFuture = Future.value();
 
   @override
@@ -59,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.easeIn,
     );
 
-    // Programar la carga de datos después del frame
+    // Schedule data loading after the frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _dataFuture = _loadInitialData();
@@ -74,26 +71,17 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  @override
-  void refreshData() => _refreshData();
-
   Future<void> _loadInitialData() async {
     try {
-      final progressViewModel = context.read<ProgressViewModel>();
-      final learningStatsViewModel = context.read<LearningStatsViewModel>();
-      final authViewModel = context.read<AuthViewModel>();
+      final user = ref.read(currentUserProvider);
 
-      final futures = [
-        learningStatsViewModel.loadAllStats(refreshCache: false),
-      ];
+      // Load stats regardless of user login status
+      await ref.read(loadAllStatsProvider(refreshCache: false).future);
 
-      if (authViewModel.currentUser != null) {
-        futures.add(
-          progressViewModel.loadDueProgress(authViewModel.currentUser!.id),
-        );
+      // Load due progress if user is logged in
+      if (user != null) {
+        await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
       }
-
-      await Future.wait(futures);
 
       // Start fade in animation after data is loaded
       if (mounted) {
@@ -121,19 +109,15 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _loadData() async {
     try {
-      final progressViewModel = context.read<ProgressViewModel>();
-      final learningStatsViewModel = context.read<LearningStatsViewModel>();
-      final authViewModel = context.read<AuthViewModel>();
+      final user = ref.read(currentUserProvider);
 
-      final futures = [learningStatsViewModel.loadAllStats(refreshCache: true)];
+      // Always refresh stats
+      await ref.read(loadAllStatsProvider(refreshCache: true).future);
 
-      if (authViewModel.currentUser != null) {
-        futures.add(
-          progressViewModel.loadDueProgress(authViewModel.currentUser!.id),
-        );
+      // Refresh due progress if user is logged in
+      if (user != null) {
+        await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
       }
-
-      await Future.wait(futures);
 
       // Restart animation after refresh
       if (mounted) {
@@ -146,16 +130,17 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final themeViewModel = context.watch<ThemeViewModel>();
-    final authViewModel = context.watch<AuthViewModel>();
+    final isDarkMode = ref.watch(isDarkModeProvider);
+    final user = ref.watch(currentUserProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: HomeAppBar(
-        isDarkMode: themeViewModel.isDarkMode,
-        onThemeToggle: themeViewModel.toggleTheme,
+        isDarkMode: isDarkMode,
+        onThemeToggle: () =>
+            ref.read(themeStateProvider.notifier).toggleTheme(),
         onMenuPressed: () => Scaffold.of(context).openDrawer(),
       ),
       body: FutureBuilder(
@@ -177,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen>
             );
           }
 
-          return _buildBody(authViewModel.currentUser, theme, colorScheme);
+          return _buildBody(user, theme, colorScheme);
         },
       ),
     );
@@ -229,164 +214,186 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildDashboardSection() {
-    final statsViewModel = context.watch<LearningStatsViewModel>();
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final statsAsync = ref.watch(learningStatsStateProvider);
 
-    if (statsViewModel.errorMessage != null) {
-      return ErrorDisplay(
-        message: statsViewModel.errorMessage!,
-        onRetry: statsViewModel.loadDashboardStats,
+    return statsAsync.when(
+      data: (stats) {
+        if (stats == null) {
+          final theme = Theme.of(context);
+          final colorScheme = theme.colorScheme;
+
+          return Center(
+            child: Column(
+              children: [
+                Text(
+                  'No statistics available',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppDimens.spaceM),
+                AppButton(
+                  text: 'Load Statistics',
+                  type: AppButtonType.primary,
+                  onPressed: () => ref
+                      .read(learningStatsStateProvider.notifier)
+                      .loadDashboardStats(),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return DashboardSection(
+          moduleStats: ModuleStats(
+            totalModules: stats.totalModules,
+            cycleStats: stats.cycleStats,
+          ),
+          dueStats: DueStats(
+            dueToday: stats.dueToday,
+            dueThisWeek: stats.dueThisWeek,
+            dueThisMonth: stats.dueThisMonth,
+            wordsDueToday: stats.wordsDueToday,
+            wordsDueThisWeek: stats.wordsDueThisWeek,
+            wordsDueThisMonth: stats.wordsDueThisMonth,
+          ),
+          completionStats: CompletionStats(
+            completedToday: stats.completedToday,
+            completedThisWeek: stats.completedThisWeek,
+            completedThisMonth: stats.completedThisMonth,
+            wordsCompletedToday: stats.wordsCompletedToday,
+            wordsCompletedThisWeek: stats.wordsCompletedThisWeek,
+            wordsCompletedThisMonth: stats.wordsCompletedThisMonth,
+          ),
+          streakStats: StreakStats(
+            streakDays: stats.streakDays,
+            streakWeeks: stats.streakWeeks,
+          ),
+          vocabularyStats: VocabularyStats(
+            totalWords: stats.totalWords,
+            learnedWords: stats.learnedWords,
+            pendingWords: stats.pendingWords,
+            vocabularyCompletionRate: stats.vocabularyCompletionRate,
+            weeklyNewWordsRate: stats.weeklyNewWordsRate,
+          ),
+          onViewProgress: () => GoRouter.of(context).go('/learning'),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => ErrorDisplay(
+        message: 'Failed to load stats: $error',
+        onRetry: () =>
+            ref.read(learningStatsStateProvider.notifier).loadDashboardStats(),
         compact: true,
-      );
-    }
-
-    if (statsViewModel.stats == null) {
-      return Center(
-        child: Column(
-          children: [
-            Text(
-              'No statistics available',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceM),
-            AppButton(
-              text: 'Load Statistics',
-              type: AppButtonType.primary,
-              onPressed: statsViewModel.loadDashboardStats,
-            ),
-          ],
-        ),
-      );
-    }
-
-    final stats = statsViewModel.stats!;
-
-    return DashboardSection(
-      moduleStats: ModuleStats(
-        totalModules: stats.totalModules,
-        cycleStats: stats.cycleStats,
       ),
-      dueStats: DueStats(
-        dueToday: stats.dueToday,
-        dueThisWeek: stats.dueThisWeek,
-        dueThisMonth: stats.dueThisMonth,
-        wordsDueToday: stats.wordsDueToday,
-        wordsDueThisWeek: stats.wordsDueThisWeek,
-        wordsDueThisMonth: stats.wordsDueThisMonth,
-      ),
-      completionStats: CompletionStats(
-        completedToday: stats.completedToday,
-        completedThisWeek: stats.completedThisWeek,
-        completedThisMonth: stats.completedThisMonth,
-        wordsCompletedToday: stats.wordsCompletedToday,
-        wordsCompletedThisWeek: stats.wordsCompletedThisWeek,
-        wordsCompletedThisMonth: stats.wordsCompletedThisMonth,
-      ),
-      streakStats: StreakStats(
-        streakDays: stats.streakDays,
-        streakWeeks: stats.streakWeeks,
-      ),
-      vocabularyStats: VocabularyStats(
-        totalWords: stats.totalWords,
-        learnedWords: stats.learnedWords,
-        pendingWords: stats.pendingWords,
-        vocabularyCompletionRate: stats.vocabularyCompletionRate,
-        weeklyNewWordsRate: stats.weeklyNewWordsRate,
-      ),
-      onViewProgress: () => GoRouter.of(context).go('/learning'),
     );
   }
 
   Widget _buildInsightsSection() {
-    final statsViewModel = context.watch<LearningStatsViewModel>();
+    final insightsAsync = ref.watch(learningInsightsProvider);
     final theme = Theme.of(context);
 
-    if (statsViewModel.insights.isEmpty) return const SizedBox.shrink();
+    return insightsAsync.when(
+      data: (insights) {
+        if (insights.isEmpty) return const SizedBox.shrink();
 
-    return LearningInsightsCard(
-      insights: statsViewModel.insights,
-      title: 'Learning Insights',
-      onViewMorePressed: () {},
-      theme: theme,
+        return LearningInsightsCard(
+          insights: insights,
+          title: 'Learning Insights',
+          onViewMorePressed: () {},
+          theme: theme,
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
   Widget _buildDueTasksSection() {
-    final progressViewModel = context.watch<ProgressViewModel>();
+    final progressAsync = ref.watch(progressStateProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (progressViewModel.errorMessage != null) {
-      return ErrorDisplay(
-        message: progressViewModel.errorMessage!,
-        onRetry: () {
-          final authViewModel = context.read<AuthViewModel>();
-          if (authViewModel.currentUser == null) return;
-          progressViewModel.loadDueProgress(authViewModel.currentUser!.id);
-        },
-        compact: true,
-      );
-    }
+    return progressAsync.when(
+      data: (progressRecords) {
+        final dueCount = progressRecords.length;
 
-    final dueCount = progressViewModel.progressRecords.length;
-
-    return Card(
-      elevation: AppDimens.elevationS,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        return Card(
+          elevation: AppDimens.elevationS,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.assignment_late,
-                  color: colorScheme.primary,
-                  size: AppDimens.iconM,
-                ),
-                const SizedBox(width: AppDimens.spaceS),
-                Text(
-                  'Due Tasks',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: AppDimens.spaceXXL),
-            dueCount > 0
-                ? Text(
-                    'You have $dueCount task${dueCount > 1 ? 's' : ''} due today',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurface,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.assignment_late,
+                      color: colorScheme.primary,
+                      size: AppDimens.iconM,
                     ),
-                  )
-                : Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppDimens.paddingL),
-                      child: Text(
-                        'No tasks due today!',
+                    const SizedBox(width: AppDimens.spaceS),
+                    Text(
+                      'Due Tasks',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: AppDimens.spaceXXL),
+                dueCount > 0
+                    ? Text(
+                        'You have $dueCount task${dueCount > 1 ? 's' : ''} due today',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: colorScheme.onSurface,
                         ),
+                      )
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppDimens.paddingL),
+                          child: Text(
+                            'No tasks due today!',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-            const SizedBox(height: AppDimens.spaceL),
-            AppButton(
-              text: 'View Due Tasks',
-              type: AppButtonType.primary,
-              prefixIcon: Icons.play_arrow,
-              onPressed: () => GoRouter.of(context).go('/due-progress'),
+                const SizedBox(height: AppDimens.spaceL),
+                AppButton(
+                  text: 'View Due Tasks',
+                  type: AppButtonType.primary,
+                  prefixIcon: Icons.play_arrow,
+                  onPressed: () => GoRouter.of(context).go('/due-progress'),
+                ),
+              ],
             ),
-          ],
+          ),
+        );
+      },
+      loading: () => Card(
+        elevation: AppDimens.elevationS,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
         ),
+        child: const Padding(
+          padding: EdgeInsets.all(AppDimens.paddingL),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => ErrorDisplay(
+        message: 'Failed to load due tasks: $error',
+        onRetry: () {
+          final user = ref.read(currentUserProvider);
+          if (user != null) {
+            ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
+          }
+        },
+        compact: true,
       ),
     );
   }

@@ -1,23 +1,25 @@
+// lib/presentation/widgets/home/due_tasks_section.dart
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
-class DueTasksSection extends StatelessWidget {
+class DueTasksSection extends ConsumerWidget {
   final List<ProgressSummary> tasks;
   final VoidCallback onViewAllTasks;
 
   const DueTasksSection({
-    Key? key,
+    super.key,
     required this.tasks,
     required this.onViewAllTasks,
-  }) : super(key: key);
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

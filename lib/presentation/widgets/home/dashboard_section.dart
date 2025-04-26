@@ -1,12 +1,12 @@
+// lib/presentation/widgets/home/dashboard_section.dart
 import 'package:flutter/material.dart';
+import 'package:spaced_learning_app/domain/models/completion_stats.dart';
+import 'package:spaced_learning_app/domain/models/due_stats.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
+import 'package:spaced_learning_app/domain/models/module_stats.dart';
+import 'package:spaced_learning_app/domain/models/streak_stats.dart';
+import 'package:spaced_learning_app/domain/models/vocabulary_stats.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/learning_stats_card.dart';
-
-import '../../../domain/models/completion_stats.dart';
-import '../../../domain/models/due_stats.dart';
-import '../../../domain/models/module_stats.dart';
-import '../../../domain/models/streak_stats.dart';
-import '../../../domain/models/vocabulary_stats.dart';
 
 class DashboardSection extends StatelessWidget {
   final ModuleStats moduleStats;

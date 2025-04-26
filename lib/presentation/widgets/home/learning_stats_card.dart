@@ -1,6 +1,7 @@
+// lib/presentation/widgets/home/learning_stats_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/learning_stats.dart'; // Ensure path is correct
+import 'package:spaced_learning_app/domain/models/learning_stats.dart';
 
 class LearningStatsCard extends StatelessWidget {
   final LearningStatsDTO stats;
@@ -20,28 +21,23 @@ class LearningStatsCard extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < AppDimens.breakpointXS;
 
-    final Color successColor =
-        currentTheme.brightness == Brightness.light
-            ? const Color(0xFF4CAF50)
-            : const Color(0xFF81C784);
-    final Color successDarkerColor =
-        currentTheme.brightness == Brightness.light
-            ? const Color(0xFF2E7D32)
-            : const Color(0xFFC8E6C9); // Example mapping for successDark
-    final Color warningColor =
-        currentTheme.brightness == Brightness.light
-            ? const Color(0xFFFFC107)
-            : const Color(0xFFFFD54F); // Example mapping for warningLight/Dark
-    final Color warningDarkerColor =
-        currentTheme.brightness == Brightness.light
-            ? const Color(0xFFFFA000)
-            : const Color(0xFFFFECB3); // Example mapping for warningDark
+    final Color successColor = currentTheme.brightness == Brightness.light
+        ? const Color(0xFF4CAF50)
+        : const Color(0xFF81C784);
+    final Color successDarkerColor = currentTheme.brightness == Brightness.light
+        ? const Color(0xFF2E7D32)
+        : const Color(0xFFC8E6C9); // Example mapping for successDark
+    final Color warningColor = currentTheme.brightness == Brightness.light
+        ? const Color(0xFFFFC107)
+        : const Color(0xFFFFD54F); // Example mapping for warningLight/Dark
+    final Color warningDarkerColor = currentTheme.brightness == Brightness.light
+        ? const Color(0xFFFFA000)
+        : const Color(0xFFFFECB3); // Example mapping for warningDark
     final Color errorColor =
         currentTheme.colorScheme.error; // Use theme's error
-    final Color infoColor =
-        currentTheme.brightness == Brightness.light
-            ? const Color(0xFF2196F3)
-            : const Color(0xFF64B5F6); // Example mapping for infoLight/Dark
+    final Color infoColor = currentTheme.brightness == Brightness.light
+        ? const Color(0xFF2196F3)
+        : const Color(0xFF64B5F6); // Example mapping for infoLight/Dark
     final Color primaryColor = currentTheme.colorScheme.primary;
     final Color secondaryColor =
         currentTheme.colorScheme.secondary; // Often purple/pink in Material 3
@@ -83,66 +79,62 @@ class LearningStatsCard extends StatelessWidget {
               height: isSmallScreen ? AppDimens.spaceM : AppDimens.spaceL,
             ),
             _buildStatsSection(
-              theme: currentTheme, // Pass theme
-              semanticColors: semanticColors, // Pass colors map
+              theme: currentTheme,
+              // Pass theme
+              semanticColors: semanticColors,
+              // Pass colors map
               sectionIcon: Icons.auto_stories,
               sectionTitle: 'Module Progress',
-              sectionColor:
-                  semanticColors['warning']!, // Example: Orange for Modules
-              gridContentBuilder:
-                  (theme, isSmall) => _buildModuleStatsGrid(
-                    theme,
-                    isSmall,
-                    semanticColors,
-                  ), // Pass colors map
+              sectionColor: semanticColors['warning']!,
+              // Example: Orange for Modules
+              gridContentBuilder: (theme, isSmall) =>
+                  _buildModuleStatsGrid(theme, isSmall, semanticColors),
+              // Pass colors map
               isSmallScreen: isSmallScreen,
             ),
             const Divider(height: AppDimens.spaceXXL), // Uses theme divider
             _buildStatsSection(
-              theme: currentTheme, // Pass theme
-              semanticColors: semanticColors, // Pass colors map
+              theme: currentTheme,
+              // Pass theme
+              semanticColors: semanticColors,
+              // Pass colors map
               sectionIcon: Icons.calendar_today,
               sectionTitle: 'Due Sessions',
-              sectionColor:
-                  semanticColors['success']!, // Example: Green for Due
-              gridContentBuilder:
-                  (theme, isSmall) => _buildDueStatsGrid(
-                    theme,
-                    isSmall,
-                    semanticColors,
-                  ), // Pass colors map
+              sectionColor: semanticColors['success']!,
+              // Example: Green for Due
+              gridContentBuilder: (theme, isSmall) =>
+                  _buildDueStatsGrid(theme, isSmall, semanticColors),
+              // Pass colors map
               isSmallScreen: isSmallScreen,
             ),
             const Divider(height: AppDimens.spaceXXL), // Uses theme divider
             _buildStatsSection(
-              theme: currentTheme, // Pass theme
-              semanticColors: semanticColors, // Pass colors map
+              theme: currentTheme,
+              // Pass theme
+              semanticColors: semanticColors,
+              // Pass colors map
               sectionIcon: Icons.menu_book,
               sectionTitle: 'Vocabulary',
-              sectionColor:
-                  semanticColors['secondary']!, // Example: Purple for Vocabulary
-              gridContentBuilder:
-                  (theme, isSmall) => _buildVocabularyStatsGrid(
-                    theme,
-                    isSmall,
-                    semanticColors,
-                  ), // Pass colors map
+              sectionColor: semanticColors['secondary']!,
+              // Example: Purple for Vocabulary
+              gridContentBuilder: (theme, isSmall) =>
+                  _buildVocabularyStatsGrid(theme, isSmall, semanticColors),
+              // Pass colors map
               isSmallScreen: isSmallScreen,
             ),
             const Divider(height: AppDimens.spaceXXL), // Uses theme divider
             _buildStatsSection(
-              theme: currentTheme, // Pass theme
-              semanticColors: semanticColors, // Pass colors map
+              theme: currentTheme,
+              // Pass theme
+              semanticColors: semanticColors,
+              // Pass colors map
               sectionIcon: Icons.local_fire_department,
               sectionTitle: 'Streaks',
-              sectionColor:
-                  semanticColors['error']!, // Example: Red for Streaks
-              gridContentBuilder:
-                  (theme, isSmall) => _buildStreakStatsGrid(
-                    theme,
-                    isSmall,
-                    semanticColors,
-                  ), // Pass colors map
+              sectionColor: semanticColors['error']!,
+              // Example: Red for Streaks
+              gridContentBuilder: (theme, isSmall) =>
+                  _buildStreakStatsGrid(theme, isSmall, semanticColors),
+              // Pass colors map
               isSmallScreen: isSmallScreen,
             ),
             if (onViewDetailPressed != null) ...[
@@ -158,6 +150,7 @@ class LearningStatsCard extends StatelessWidget {
                 ),
               ),
             ],
+            // Finished from previous part
           ],
         ),
       ),
@@ -268,8 +261,9 @@ class LearningStatsCard extends StatelessWidget {
       childAspectRatio: isSmallScreen ? 0.8 : 0.8,
       mainAxisSpacing: AppDimens.spaceS,
       crossAxisSpacing: AppDimens.spaceS,
-      children:
-          items.cast<Widget>().toList(), // Filter nulls if any logic changes
+      children: items
+          .cast<Widget>()
+          .toList(), // Filter nulls if any logic changes
     );
   }
 
@@ -329,10 +323,9 @@ class LearningStatsCard extends StatelessWidget {
   ) {
     final starColor =
         colors['warning'] ?? Colors.amber; // Fallback if warning not in map
-    final onStarColor =
-        theme.brightness == Brightness.light
-            ? Colors.white
-            : theme.colorScheme.surface; // Example contrast color
+    final onStarColor = theme.brightness == Brightness.light
+        ? Colors.white
+        : theme.colorScheme.surface; // Example contrast color
 
     return GridView.count(
       shrinkWrap: true,
@@ -449,14 +442,14 @@ class LearningStatsCard extends StatelessWidget {
         (theme.brightness == Brightness.light
             ? Colors.white
             : theme
-                .colorScheme
-                .surface); // Example: Theme-based text-on-star color
+                  .colorScheme
+                  .surface); // Example: Theme-based text-on-star color
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          physics:
-              const NeverScrollableScrollPhysics(), // Không scroll thực sự nhưng tránh overflow
+          physics: const NeverScrollableScrollPhysics(),
+          // Không scroll thực sự nhưng tránh overflow
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
@@ -479,8 +472,8 @@ class LearningStatsCard extends StatelessWidget {
                           ),
                           child: Icon(
                             Icons.star,
-                            color:
-                                effectiveOnStarColor, // Use theme-derived color for star icon itself
+                            color: effectiveOnStarColor,
+                            // Use theme-derived color for star icon itself
                             size: AppDimens.iconXXS,
                           ),
                         ),

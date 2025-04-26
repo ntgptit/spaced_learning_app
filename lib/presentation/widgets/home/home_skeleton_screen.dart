@@ -1,3 +1,4 @@
+// lib/presentation/widgets/home/home_skeleton_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
