@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
+import 'package:spaced_learning_app/presentation/utils/book_formatter.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/filter_chip.dart';
 
 class BookFilterPanel extends StatelessWidget {
@@ -77,7 +78,7 @@ class BookFilterPanel extends StatelessWidget {
                     ),
                   if (selectedStatus != null)
                     FilterChipWidget(
-                      label: _formatStatus(selectedStatus!),
+                      label: BookFormatter.formatStatus(selectedStatus!),
                       color: colorScheme.primary,
                       onDeleted: () {
                         if (onStatusSelected != null) {
@@ -87,7 +88,9 @@ class BookFilterPanel extends StatelessWidget {
                     ),
                   if (selectedDifficulty != null)
                     FilterChipWidget(
-                      label: _formatDifficulty(selectedDifficulty!),
+                      label: BookFormatter.formatDifficulty(
+                        selectedDifficulty!,
+                      ),
                       color: colorScheme.secondary,
                       onDeleted: () {
                         if (onDifficultySelected != null) {
@@ -162,7 +165,7 @@ class BookFilterPanel extends StatelessWidget {
               children: [
                 for (final status in BookStatus.values)
                   ChoiceChip(
-                    label: Text(_formatStatus(status)),
+                    label: Text(BookFormatter.formatStatus(status)),
                     selected: selectedStatus == status,
                     onSelected: (selected) {
                       if (onStatusSelected != null) {
@@ -192,7 +195,7 @@ class BookFilterPanel extends StatelessWidget {
               children: [
                 for (final difficulty in DifficultyLevel.values)
                   ChoiceChip(
-                    label: Text(_formatDifficulty(difficulty)),
+                    label: Text(BookFormatter.formatDifficulty(difficulty)),
                     selected: selectedDifficulty == difficulty,
                     onSelected: (selected) {
                       if (onDifficultySelected != null) {
@@ -268,29 +271,5 @@ class BookFilterPanel extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatStatus(BookStatus status) {
-    switch (status) {
-      case BookStatus.published:
-        return 'Published';
-      case BookStatus.draft:
-        return 'Draft';
-      case BookStatus.archived:
-        return 'Archived';
-    }
-  }
-
-  String _formatDifficulty(DifficultyLevel difficulty) {
-    switch (difficulty) {
-      case DifficultyLevel.beginner:
-        return 'Beginner';
-      case DifficultyLevel.intermediate:
-        return 'Intermediate';
-      case DifficultyLevel.advanced:
-        return 'Advanced';
-      case DifficultyLevel.expert:
-        return 'Expert';
-    }
   }
 }

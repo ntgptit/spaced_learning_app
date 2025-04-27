@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/utils/date_utils.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
+import 'package:spaced_learning_app/presentation/utils/book_formatter.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/metadata_item.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/module_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/stat_item.dart';
@@ -136,14 +138,14 @@ class BookOverviewTab extends StatelessWidget {
                 // Display metadata fields
                 MetadataItemWidget(
                   label: 'Status',
-                  value: _formatStatus(book.status),
+                  value: BookFormatter.formatStatus(book.status),
                   icon: Icons.info_outline,
                 ),
                 if (book.difficultyLevel != null) ...[
                   const SizedBox(height: AppDimens.spaceM),
                   MetadataItemWidget(
                     label: 'Difficulty',
-                    value: _formatDifficulty(book.difficultyLevel!),
+                    value: BookFormatter.formatDifficulty(book.difficultyLevel),
                     icon: Icons.signal_cellular_alt_outlined,
                   ),
                 ],
@@ -159,7 +161,7 @@ class BookOverviewTab extends StatelessWidget {
                   const SizedBox(height: AppDimens.spaceM),
                   MetadataItemWidget(
                     label: 'Created',
-                    value: _formatDate(book.createdAt!),
+                    value: AppDateUtils.formatDate(book.createdAt!),
                     icon: Icons.calendar_today,
                   ),
                 ],
@@ -167,7 +169,7 @@ class BookOverviewTab extends StatelessWidget {
                   const SizedBox(height: AppDimens.spaceM),
                   MetadataItemWidget(
                     label: 'Updated',
-                    value: _formatDate(book.updatedAt!),
+                    value: AppDateUtils.formatDate(book.updatedAt!),
                     icon: Icons.update,
                   ),
                 ],
@@ -177,34 +179,6 @@ class BookOverviewTab extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  String _formatStatus(BookStatus status) {
-    switch (status) {
-      case BookStatus.published:
-        return 'Published';
-      case BookStatus.draft:
-        return 'Draft';
-      case BookStatus.archived:
-        return 'Archived';
-    }
-  }
-
-  String _formatDifficulty(DifficultyLevel level) {
-    switch (level) {
-      case DifficultyLevel.beginner:
-        return 'Beginner';
-      case DifficultyLevel.intermediate:
-        return 'Intermediate';
-      case DifficultyLevel.advanced:
-        return 'Advanced';
-      case DifficultyLevel.expert:
-        return 'Expert';
-    }
   }
 }
 

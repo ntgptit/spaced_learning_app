@@ -1,7 +1,9 @@
 // lib/presentation/viewmodels/progress_viewmodel.dart
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/events/app_events.dart';
+import 'package:spaced_learning_app/core/utils/string_utils.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 import '../../core/di/providers.dart';
@@ -15,26 +17,16 @@ class ProgressState extends _$ProgressState {
     return [];
   }
 
-  String? _sanitizeId(String id) {
-    if (id.isEmpty) {
-      debugPrint('WARNING: Empty ID detected in ProgressViewModel');
-      return null;
-    }
-
-    final sanitizedId = id.trim();
-    if (sanitizedId != id) {
-      debugPrint('ID sanitized from "$id" to "$sanitizedId"');
-    }
-    return sanitizedId;
-  }
-
   Future<void> loadDueProgress(
     String userId, {
     DateTime? studyDate,
     int page = 0,
     int size = 20,
   }) async {
-    final sanitizedId = _sanitizeId(userId);
+    final sanitizedId = StringUtils.sanitizeId(
+      userId,
+      source: 'ProgressViewModel',
+    );
     if (sanitizedId == null) {
       throw Exception('Invalid user ID: Empty ID provided');
     }
@@ -90,7 +82,10 @@ class ProgressState extends _$ProgressState {
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
-    final sanitizedModuleId = _sanitizeId(moduleId);
+    final sanitizedModuleId = StringUtils.sanitizeId(
+      moduleId,
+      source: 'ProgressViewModel',
+    );
     if (sanitizedModuleId == null) {
       throw Exception('Invalid module ID: Empty ID provided');
     }
@@ -129,7 +124,7 @@ class ProgressState extends _$ProgressState {
     DateTime? nextStudyDate,
     double? percentComplete,
   }) async {
-    final sanitizedId = _sanitizeId(id);
+    final sanitizedId = StringUtils.sanitizeId(id, source: 'ProgressViewModel');
     if (sanitizedId == null) {
       throw Exception('Invalid progress ID: Empty ID provided');
     }
@@ -176,7 +171,8 @@ class SelectedProgress extends _$SelectedProgress {
   }
 
   Future<void> loadProgressDetails(String id) async {
-    if (id.trim().isEmpty) {
+    final sanitizedId = StringUtils.sanitizeId(id, source: 'SelectedProgress');
+    if (sanitizedId == null) {
       state = const AsyncValue.data(null);
       return;
     }
@@ -186,7 +182,7 @@ class SelectedProgress extends _$SelectedProgress {
     try {
       final progress = await ref
           .read(progressRepositoryProvider)
-          .getProgressById(id.trim());
+          .getProgressById(sanitizedId);
       state = AsyncValue.data(progress);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
@@ -194,7 +190,11 @@ class SelectedProgress extends _$SelectedProgress {
   }
 
   Future<void> loadModuleProgress(String moduleId) async {
-    if (moduleId.trim().isEmpty) {
+    final sanitizedId = StringUtils.sanitizeId(
+      moduleId,
+      source: 'SelectedProgress',
+    );
+    if (sanitizedId == null) {
       state = const AsyncValue.data(null);
       return;
     }
@@ -204,7 +204,7 @@ class SelectedProgress extends _$SelectedProgress {
     try {
       final progressList = await ref
           .read(progressRepositoryProvider)
-          .getProgressByModuleId(moduleId.trim(), page: 0, size: 1);
+          .getProgressByModuleId(sanitizedId, page: 0, size: 1);
 
       if (progressList.isEmpty) {
         state = const AsyncValue.data(null);
@@ -229,7 +229,7 @@ class SelectedProgress extends _$SelectedProgress {
 }
 
 @riverpod
-bool isUpdatingProgress(IsUpdatingProgressRef ref) {
+bool isUpdatingProgress(Ref ref) {
   final progressState = ref.watch(progressStateProvider);
   return progressState.isLoading;
 }

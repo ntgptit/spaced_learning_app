@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/utils/date_utils.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
+import 'package:spaced_learning_app/presentation/utils/book_formatter.dart';
 
 import 'book_cover.dart';
 
@@ -94,7 +95,7 @@ class BookListCard extends StatelessWidget {
                           ),
                           const SizedBox(width: AppDimens.spaceXXS),
                           Text(
-                            'Created: ${_formatDate(book.createdAt!)}',
+                            'Created: ${AppDateUtils.formatDate(book.createdAt!)}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -123,33 +124,11 @@ class BookListCard extends StatelessWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    Color backgroundColor;
-    Color textColor;
-    String label;
-
-    switch (status) {
-      case BookStatus.published:
-        backgroundColor = colorScheme.success.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.success;
-        label = 'Published';
-        break;
-      case BookStatus.draft:
-        backgroundColor = colorScheme.secondary.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.secondary;
-        label = 'Draft';
-        break;
-      case BookStatus.archived:
-        backgroundColor = colorScheme.onSurfaceVariant.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.onSurfaceVariant;
-        label = 'Archived';
-        break;
-    }
+    final backgroundColor = BookFormatter.getStatusColor(
+      status,
+      colorScheme,
+    ).withValues(alpha: AppDimens.opacityLight);
+    final textColor = BookFormatter.getStatusColor(status, colorScheme);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -161,7 +140,7 @@ class BookListCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
       ),
       child: Text(
-        label,
+        BookFormatter.formatStatus(status),
         style: theme.textTheme.labelSmall?.copyWith(
           color: textColor,
           fontWeight: FontWeight.bold,
@@ -175,40 +154,11 @@ class BookListCard extends StatelessWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    Color backgroundColor;
-    Color textColor;
-    String label;
-
-    switch (level) {
-      case DifficultyLevel.beginner:
-        backgroundColor = colorScheme.success.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.success;
-        label = 'Beginner';
-        break;
-      case DifficultyLevel.intermediate:
-        backgroundColor = colorScheme.tertiary.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.tertiary;
-        label = 'Intermediate';
-        break;
-      case DifficultyLevel.advanced:
-        backgroundColor = colorScheme.secondary.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.secondary;
-        label = 'Advanced';
-        break;
-      case DifficultyLevel.expert:
-        backgroundColor = colorScheme.error.withValues(
-          alpha: AppDimens.opacityLight,
-        );
-        textColor = colorScheme.error;
-        label = 'Expert';
-        break;
-    }
+    final backgroundColor = BookFormatter.getDifficultyColor(
+      level,
+      colorScheme,
+    ).withValues(alpha: AppDimens.opacityLight);
+    final textColor = BookFormatter.getDifficultyColor(level, colorScheme);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -220,16 +170,12 @@ class BookListCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
       ),
       child: Text(
-        label,
+        BookFormatter.formatDifficulty(level),
         style: theme.textTheme.labelSmall?.copyWith(
           color: textColor,
           fontWeight: FontWeight.bold,
         ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }

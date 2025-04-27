@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/utils/date_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/daily_task_report_viewmodel.dart';
 
 class LogEntryWidget extends StatelessWidget {
@@ -31,7 +32,10 @@ class LogEntryWidget extends StatelessWidget {
             ),
             const SizedBox(width: AppDimens.spaceXS),
             Text(
-              dateFormat.format(log.timestamp),
+              AppDateUtils.formatDate(
+                log.timestamp,
+                format: 'dd/MM/yyyy HH:mm:ss',
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),

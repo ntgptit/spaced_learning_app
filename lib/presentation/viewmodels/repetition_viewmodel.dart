@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spaced_learning_app/core/utils/string_utils.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 
@@ -16,21 +17,11 @@ class RepetitionState extends _$RepetitionState {
     return [];
   }
 
-  String? _sanitizeId(String id) {
-    if (id.isEmpty) {
-      debugPrint('WARNING: Empty ID detected in RepetitionViewModel');
-      return null;
-    }
-
-    final sanitizedId = id.trim();
-    if (sanitizedId != id) {
-      debugPrint('ID sanitized from "$id" to "$sanitizedId"');
-    }
-    return sanitizedId;
-  }
-
   Future<void> loadRepetitionsByProgressId(String progressId) async {
-    final sanitizedId = _sanitizeId(progressId);
+    final sanitizedId = StringUtils.sanitizeId(
+      progressId,
+      source: 'RepetitionViewModel',
+    );
     if (sanitizedId == null) {
       state = AsyncValue.error(
         'Invalid progress ID: Empty ID provided',
@@ -67,7 +58,10 @@ class RepetitionState extends _$RepetitionState {
   Future<List<Repetition>> createDefaultSchedule(
     String moduleProgressId,
   ) async {
-    final sanitizedId = _sanitizeId(moduleProgressId);
+    final sanitizedId = StringUtils.sanitizeId(
+      moduleProgressId,
+      source: 'RepetitionViewModel',
+    );
     if (sanitizedId == null) {
       throw Exception('Invalid progress ID: Empty ID provided');
     }
@@ -95,7 +89,10 @@ class RepetitionState extends _$RepetitionState {
     bool rescheduleFollowing = false,
     double? percentComplete,
   }) async {
-    final sanitizedId = _sanitizeId(id);
+    final sanitizedId = StringUtils.sanitizeId(
+      id,
+      source: 'RepetitionViewModel',
+    );
     if (sanitizedId == null) {
       throw Exception('Invalid repetition ID: Empty ID provided');
     }
@@ -141,7 +138,10 @@ class RepetitionState extends _$RepetitionState {
   }
 
   Future<bool> areAllRepetitionsCompleted(String progressId) async {
-    final sanitizedId = _sanitizeId(progressId);
+    final sanitizedId = StringUtils.sanitizeId(
+      progressId,
+      source: 'RepetitionViewModel',
+    );
     if (sanitizedId == null) {
       throw Exception('Invalid progress ID: Empty ID provided');
     }

@@ -1,7 +1,7 @@
 // lib/presentation/widgets/report/last_check_card_widget.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/utils/date_utils.dart';
 import 'package:spaced_learning_app/presentation/widgets/report/info_row_widget.dart';
 
 class LastCheckCardWidget extends StatelessWidget {
@@ -22,7 +22,6 @@ class LastCheckCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
 
     return Card(
       elevation: AppDimens.elevationM,
@@ -44,7 +43,10 @@ class LastCheckCardWidget extends StatelessWidget {
             InfoRowWidget(
               label: 'Time:',
               value: lastCheckTime != null
-                  ? dateFormat.format(lastCheckTime!)
+                  ? AppDateUtils.formatDate(
+                      lastCheckTime!,
+                      format: 'dd/MM/yyyy HH:mm:ss',
+                    )
                   : 'No data',
               icon: Icons.access_time,
             ),
