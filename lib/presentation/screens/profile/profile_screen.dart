@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
@@ -12,14 +12,14 @@ import 'package:spaced_learning_app/presentation/widgets/common/loading_indicato
 
 import '../../../core/navigation/navigation_helper.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _displayNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
@@ -37,23 +37,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final vm = context.read<UserViewModel?>();
-    if (vm == null) return;
-    await vm.loadCurrentUser();
-    if (mounted && vm.currentUser != null) {
-      _displayNameController.text = vm.currentUser!.displayName ?? '';
+    await ref.read(userStateProvider.notifier).loadCurrentUser();
+    if (mounted) {
+      final currentUser = ref.read(userStateProvider).valueOrNull;
+      if (currentUser != null) {
+        _displayNameController.text = currentUser.displayName ?? '';
+      }
     }
   }
 
   Future<void> _updateProfile() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final vm = context.read<UserViewModel?>();
-    if (vm == null) return;
 
-    final success = await vm.updateProfile(
-      displayName: _displayNameController.text.trim(),
-    );
+    final success = await ref
+        .read(userStateProvider.notifier)
+        .updateProfile(displayName: _displayNameController.text.trim());
+
     if (!mounted) return;
+
     if (success) {
       await _loadUserData();
       setState(() => _isEditing = false);
@@ -64,12 +65,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    final vm = context.read<AuthViewModel?>();
-    if (vm == null) return;
-    await vm.logout();
+    await ref.read(authStateProvider.notifier).logout();
+
     if (!mounted) return;
-    if (!vm.isAuthenticated) {
-      // Sử dụng NavigationHelper để đảm bảo clear stack
+
+    if (!(ref.read(authStateProvider).valueOrNull ?? false)) {
       NavigationHelper.clearStackAndGo(context, '/login');
     }
   }
@@ -82,9 +82,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _resetForm() {
-    final vm = context.read<UserViewModel?>();
-    if (vm?.currentUser != null) {
-      _displayNameController.text = vm!.currentUser!.displayName ?? '';
+    final currentUser = ref.read(userStateProvider).valueOrNull;
+    if (currentUser != null) {
+      _displayNameController.text = currentUser.displayName ?? '';
     }
   }
 
@@ -114,111 +114,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildContent(ThemeData theme) {
-    return Selector<AuthViewModel, User?>(
-      selector: (_, vm) => vm.currentUser,
-      builder: (_, user, __) {
-        if (user == null) {
-          return const Center(
-            child: Text('Please log in to view your profile'),
-          );
-        }
+    final authState = ref.watch(authStateProvider);
+    final user = authState.valueOrNull == true
+        ? ref.watch(currentUserProvider)
+        : null;
 
-        return Selector<UserViewModel, (bool, String?, User?)>(
-          selector: (_, vm) => (vm.isLoading, vm.errorMessage, vm.currentUser),
-          builder: (_, data, __) {
-            final isLoading = data.$1;
-            final errorMsg = data.$2;
-            final currentUser = data.$3 ?? user;
+    if (user == null) {
+      return const Center(child: Text('Please log in to view your profile'));
+    }
 
-            if (isLoading) {
-              return const Center(child: AppLoadingIndicator());
-            }
+    final userStateAsync = ref.watch(userStateProvider);
+    final colorScheme = theme.colorScheme;
 
-            return ListView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.paddingL,
-                vertical: AppDimens.spaceL,
+    return userStateAsync.when(
+      data: (currentUser) {
+        final effectiveUser = currentUser ?? user;
+
+        return ListView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingL,
+            vertical: AppDimens.spaceL,
+          ),
+          children: [
+            // Avatar + Title
+            Center(
+              child: CircleAvatar(
+                radius: AppDimens.avatarSizeL,
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: Text(
+                  _getInitials(effectiveUser),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ),
-              children: [
-                // Avatar + Title
-                Center(
-                  child: CircleAvatar(
-                    radius: AppDimens.avatarSizeL,
-                    backgroundColor: theme.colorScheme.primaryContainer,
-                    child: Text(
-                      _getInitials(currentUser),
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+            Center(
+              child: Text(
+                _isEditing ? 'Edit Profile' : 'Profile',
+                style: theme.textTheme.titleLarge,
+              ),
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+
+            _isEditing
+                ? _buildEditForm(theme)
+                : _buildInfoCard(theme, effectiveUser),
+
+            const SizedBox(height: AppDimens.spaceXXL),
+
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppDimens.paddingL),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final isDarkMode = ref.watch(isDarkModeProvider);
+                    return Row(
+                      children: [
+                        Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                        const SizedBox(width: AppDimens.spaceL),
+                        Text('Dark Mode', style: theme.textTheme.bodyLarge),
+                        const Spacer(),
+                        Switch(
+                          value: isDarkMode,
+                          onChanged: (value) => ref
+                              .read(themeStateProvider.notifier)
+                              .setDarkMode(value),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(height: AppDimens.spaceL),
-                Center(
-                  child: Text(
-                    _isEditing ? 'Edit Profile' : 'Profile',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-                const SizedBox(height: AppDimens.spaceL),
+              ),
+            ),
 
-                if (errorMsg != null)
-                  ErrorDisplay(
-                    message: errorMsg,
-                    compact: true,
-                    onRetry: () {
-                      context.read<UserViewModel>()..clearError();
-                      _runSafe(_loadUserData);
-                    },
-                  ),
+            const SizedBox(height: AppDimens.spaceXL),
 
-                _isEditing
-                    ? _buildEditForm(theme)
-                    : _buildInfoCard(theme, currentUser),
-
-                const SizedBox(height: AppDimens.spaceXXL),
-
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppDimens.paddingL),
-                    child: Selector<ThemeViewModel, bool>(
-                      selector: (_, vm) => vm.isDarkMode,
-                      builder: (_, isDark, __) => Row(
-                        children: [
-                          Icon(isDark ? Icons.dark_mode : Icons.light_mode),
-                          const SizedBox(width: AppDimens.spaceL),
-                          Text('Dark Mode', style: theme.textTheme.bodyLarge),
-                          const Spacer(),
-                          Switch(
-                            value: isDark,
-                            onChanged: context
-                                .read<ThemeViewModel>()
-                                .setDarkMode,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: AppDimens.spaceXL),
-
-                AppButton(
-                  text: 'Logout',
-                  type: AppButtonType.outline,
-                  prefixIcon: Icons.logout,
-                  isFullWidth: true,
-                  onPressed: _logout,
-                ),
-              ],
-            );
-          },
+            AppButton(
+              text: 'Logout',
+              type: AppButtonType.outline,
+              prefixIcon: Icons.logout,
+              isFullWidth: true,
+              onPressed: _logout,
+            ),
+          ],
         );
       },
+      loading: () => const Center(child: AppLoadingIndicator()),
+      error: (error, stack) => ErrorDisplay(
+        message: error.toString(),
+        onRetry: () {
+          ref.read(userStateProvider.notifier).clearError();
+          _runSafe(_loadUserData);
+        },
+        compact: true,
+      ),
     );
   }
 
@@ -287,13 +282,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: _toggleEditing,
                   ),
                   const SizedBox(width: AppDimens.spaceM),
-                  AppButton(
-                    text: 'Save',
-                    type: AppButtonType.primary,
-                    onPressed: _updateProfile,
-                    isLoading: context.select<UserViewModel, bool>(
-                      (vm) => vm.isLoading,
-                    ),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final isLoading = ref.watch(userStateProvider).isLoading;
+                      return AppButton(
+                        text: 'Save',
+                        type: AppButtonType.primary,
+                        onPressed: _updateProfile,
+                        isLoading: isLoading,
+                      );
+                    },
                   ),
                 ],
               ),

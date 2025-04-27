@@ -23,5 +23,22 @@ final userStateProvider =
     );
 
 typedef _$UserState = AutoDisposeAsyncNotifier<User?>;
+String _$userErrorHash() => r'2af29f31c9f064a40dc19cc91b86eda6dc4783ae';
+
+/// See also [UserError].
+@ProviderFor(UserError)
+final userErrorProvider =
+    AutoDisposeNotifierProvider<UserError, String?>.internal(
+      UserError.new,
+      name: r'userErrorProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$userErrorHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$UserError = AutoDisposeNotifier<String?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

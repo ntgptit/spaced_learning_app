@@ -7,7 +7,7 @@ part of 'reminder_settings_viewmodel.dart';
 // **************************************************************************
 
 String _$reminderSettingsStateHash() =>
-    r'c1eb7e98253d3412bde687e8e5babfd35eede33e';
+    r'01cf98ce1d4de3f2effdbe9b42b41091ee10d749';
 
 /// See also [ReminderSettingsState].
 @ProviderFor(ReminderSettingsState)

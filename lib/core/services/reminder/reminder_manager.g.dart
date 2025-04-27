@@ -7,7 +7,7 @@ part of 'reminder_manager.dart';
 // **************************************************************************
 
 String _$isReminderInitializedHash() =>
-    r'7772fc459490cf5553bb7176c547ca6e7ab7d6f6';
+    r'1a51b1ae844002a1e51814784d19cc1f97a3f664';
 
 /// See also [isReminderInitialized].
 @ProviderFor(isReminderInitialized)
@@ -26,7 +26,7 @@ final isReminderInitializedProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsReminderInitializedRef = AutoDisposeProviderRef<bool>;
 String _$areRemindersEnabledHash() =>
-    r'52d51d98b49498416156c32431349ce9af863662';
+    r'f36288e4b5756ba4b0d98b5012ebbbd3fb54265a';
 
 /// See also [areRemindersEnabled].
 @ProviderFor(areRemindersEnabled)
@@ -45,7 +45,7 @@ final areRemindersEnabledProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef AreRemindersEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isNoonReminderEnabledHash() =>
-    r'364153b67e43a8e7e6c6d9f2c6de1bfb3d1b1ccb';
+    r'208a19d4ea5e6027db883a8b932b5e8c80613d91';
 
 /// See also [isNoonReminderEnabled].
 @ProviderFor(isNoonReminderEnabled)
@@ -64,7 +64,7 @@ final isNoonReminderEnabledProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsNoonReminderEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isEveningFirstReminderEnabledHash() =>
-    r'177004a32a294f76d883ecf218dcc0878a76524d';
+    r'63a8b399e02d95f2082b5f8a5b1fc48c470d6214';
 
 /// See also [isEveningFirstReminderEnabled].
 @ProviderFor(isEveningFirstReminderEnabled)
@@ -84,7 +84,7 @@ final isEveningFirstReminderEnabledProvider =
 // ignore: unused_element
 typedef IsEveningFirstReminderEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isEveningSecondReminderEnabledHash() =>
-    r'15869f5f7674aef9d2e76600c4a42a13cfd4da86';
+    r'709e31245d2643e55fc82bddb5421f679a921ffb';
 
 /// See also [isEveningSecondReminderEnabled].
 @ProviderFor(isEveningSecondReminderEnabled)
@@ -104,7 +104,7 @@ final isEveningSecondReminderEnabledProvider =
 // ignore: unused_element
 typedef IsEveningSecondReminderEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isEndOfDayReminderEnabledHash() =>
-    r'37ff748312e9e13b9ea4583f86e8a034699ea08d';
+    r'761ad02ef786f3ca25582776aded106cbeba1172';
 
 /// See also [isEndOfDayReminderEnabled].
 @ProviderFor(isEndOfDayReminderEnabled)
@@ -122,7 +122,7 @@ final isEndOfDayReminderEnabledProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsEndOfDayReminderEnabledRef = AutoDisposeProviderRef<bool>;
-String _$reminderManagerHash() => r'650a07c628989b41380f9cee14704986c01d256a';
+String _$reminderManagerHash() => r'e2fd6bfc24956508a1e6bb2afc307974fe53b92a';
 
 /// See also [ReminderManager].
 @ProviderFor(ReminderManager)

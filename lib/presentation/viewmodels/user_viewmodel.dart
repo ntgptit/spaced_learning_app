@@ -48,3 +48,16 @@ class UserState extends _$UserState {
     }
   }
 }
+
+@riverpod
+class UserError extends _$UserError {
+  @override
+  String? build() {
+    final userState = ref.watch(userStateProvider);
+    return userState.hasError ? userState.error.toString() : null;
+  }
+
+  void clearError() {
+    state = null;
+  }
+}

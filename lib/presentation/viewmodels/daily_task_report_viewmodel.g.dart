@@ -7,7 +7,7 @@ part of 'daily_task_report_viewmodel.dart';
 // **************************************************************************
 
 String _$isManualCheckInProgressHash() =>
-    r'6ebea6c0522b8883242435ef91a521300f2f401f';
+    r'0236bfce572905c29a2f920bd7d5d0a5cbc83feb';
 
 /// See also [isManualCheckInProgress].
 @ProviderFor(isManualCheckInProgress)
@@ -26,7 +26,7 @@ final isManualCheckInProgressProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsManualCheckInProgressRef = AutoDisposeProviderRef<bool>;
 String _$dailyTaskReportStateHash() =>
-    r'dcc9088b3d98b2848be6d0b89ea46a8db9064f70';
+    r'f02818eac560083d379eadd900e73636913f83bd';
 
 /// See also [DailyTaskReportState].
 @ProviderFor(DailyTaskReportState)

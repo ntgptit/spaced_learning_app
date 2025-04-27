@@ -6,7 +6,7 @@ part of 'auth_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authStateHash() => r'cf52090b1ae99fe451adf2dda192210600e66888';
+String _$authStateHash() => r'527fe5bbdbe7fc5eea83e6d4a5fd26e1c9c05366';
 
 /// See also [AuthState].
 @ProviderFor(AuthState)
@@ -23,7 +23,7 @@ final authStateProvider =
     );
 
 typedef _$AuthState = AutoDisposeAsyncNotifier<bool>;
-String _$currentUserHash() => r'1ec076673d8752c84cbe02110bd156a33e7d3986';
+String _$currentUserHash() => r'47f777fef0759b261ac40f29da43630d20f7e6cb';
 
 /// See also [CurrentUser].
 @ProviderFor(CurrentUser)
@@ -40,7 +40,7 @@ final currentUserProvider =
     );
 
 typedef _$CurrentUser = AutoDisposeNotifier<User?>;
-String _$authErrorHash() => r'4e133a297fc5bc4b69af432013e029e41ceab2d9';
+String _$authErrorHash() => r'2e305f21f75dffcd046dafa1db3126093237df76';
 
 /// See also [AuthError].
 @ProviderFor(AuthError)
