@@ -11,6 +11,7 @@ import 'package:spaced_learning_app/domain/models/streak_stats.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/domain/models/vocabulary_stats.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/home_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
@@ -33,13 +34,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   final ScreenRefreshManager _refreshManager = ScreenRefreshManager();
-  bool _isFirstLoad = true;
 
   // Animation controller for smooth transitions
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  late Future<void> _dataFuture = Future.value();
 
   @override
   void initState() {
@@ -58,9 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     // Schedule data loading after the frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        _dataFuture = _loadInitialData();
-      });
+      ref.read(homeViewModelProvider.notifier).loadInitialData();
     });
   }
 
@@ -71,60 +67,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Future<void> _loadInitialData() async {
-    try {
-      final user = ref.read(currentUserProvider);
-
-      // Load stats regardless of user login status
-      await ref.read(loadAllStatsProvider(refreshCache: false).future);
-
-      // Load due progress if user is logged in
-      if (user != null) {
-        await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
-      }
-
-      // Start fade in animation after data is loaded
-      if (mounted) {
-        _animationController.forward();
-      }
-    } catch (e) {
-      debugPrint('Error loading initial data: $e');
-    }
-
-    if (mounted) {
-      setState(() {
-        _isFirstLoad = false;
-      });
-    }
-  }
-
   Future<void> _refreshData() async {
+    if (!mounted) return;
+
+    _animationController.reset();
+    await ref.read(homeViewModelProvider.notifier).refreshData();
+
     if (mounted) {
-      setState(() {
-        _dataFuture = _loadData();
-        _animationController.reset();
-      });
-    }
-  }
-
-  Future<void> _loadData() async {
-    try {
-      final user = ref.read(currentUserProvider);
-
-      // Always refresh stats
-      await ref.read(loadAllStatsProvider(refreshCache: true).future);
-
-      // Refresh due progress if user is logged in
-      if (user != null) {
-        await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
-      }
-
-      // Restart animation after refresh
-      if (mounted) {
-        _animationController.forward();
-      }
-    } catch (e) {
-      debugPrint('Error refreshing data: $e');
+      _animationController.forward();
     }
   }
 
@@ -132,6 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(isDarkModeProvider);
     final user = ref.watch(currentUserProvider);
+    final homeState = ref.watch(homeViewModelProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -143,23 +94,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ref.read(themeStateProvider.notifier).toggleTheme(),
         onMenuPressed: () => Scaffold.of(context).openDrawer(),
       ),
-      body: FutureBuilder(
-        future: _dataFuture,
-        builder: (context, snapshot) {
+      body: Builder(
+        builder: (context) {
           // Show skeleton screen while loading for first time
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              _isFirstLoad) {
+          if (ref.read(homeViewModelProvider.notifier).isFirstLoading) {
             return const HomeSkeletonScreen();
           }
 
           // Show error state if data loading failed
-          if (snapshot.hasError) {
+          if (ref.read(homeViewModelProvider.notifier).hasError) {
             return Center(
               child: ErrorDisplay(
-                message: 'Failed to load data: ${snapshot.error}',
+                message: 'Failed to load data: ${homeState.errorMessage}',
                 onRetry: _refreshData,
               ),
             );
+          }
+
+          // Start animation when data is loaded
+          if (ref.read(homeViewModelProvider.notifier).isLoaded &&
+              !_animationController.isAnimating) {
+            _animationController.forward();
           }
 
           return _buildBody(user, theme, colorScheme);

@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/auth_viewmodel.dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/auth_response.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
@@ -7,7 +6,7 @@ import '../../core/di/providers.dart';
 
 part 'auth_viewmodel.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class AuthState extends _$AuthState {
   @override
   Future<bool> build() async {
@@ -103,7 +102,7 @@ class AuthState extends _$AuthState {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CurrentUser extends _$CurrentUser {
   @override
   User? build() {

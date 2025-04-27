@@ -6,7 +6,7 @@ part of 'user_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userStateHash() => r'd95222cff1ac8ab519450fe7cddd300d75c44b7e';
+String _$userStateHash() => r'8dd2b6916ff6560373cb708ff7398fdc3b531584';
 
 /// See also [UserState].
 @ProviderFor(UserState)
@@ -23,7 +23,7 @@ final userStateProvider =
     );
 
 typedef _$UserState = AutoDisposeAsyncNotifier<User?>;
-String _$userErrorHash() => r'2af29f31c9f064a40dc19cc91b86eda6dc4783ae';
+String _$userErrorHash() => r'f2a49aa5c7291f97ce057797704cdef0fca56d19';
 
 /// See also [UserError].
 @ProviderFor(UserError)

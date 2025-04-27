@@ -1,3 +1,4 @@
+// lib/presentation/widgets/repetition/repetition_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
@@ -55,13 +56,13 @@ class _RepetitionCardState extends State<RepetitionCard>
 
     if (isHovering) {
       _controller.forward();
-    } else {
-      _controller.reverse();
+      return;
     }
+
+    _controller.reverse();
   }
 
   Color _getRepetitionColor(int orderIndex, ColorScheme colorScheme) {
-    // Palette màu tinh tế hơn với độ bão hòa và độ sáng khác nhau
     final List<Color> repetitionColors = [
       Color(0xFF4CAF50).withValues(alpha: 0.9), // Green nhạt hơn
       Color(0xFF2196F3).withValues(alpha: 0.9), // Blue nhạt hơn
@@ -75,7 +76,6 @@ class _RepetitionCardState extends State<RepetitionCard>
 
     // Dùng độ sáng/bão hòa khác nhau dựa trên trạng thái
     if (widget.isHistory) {
-      // Màu nhẹ hơn cho history items
       return baseColor.withValues(alpha: 0.7);
     }
 
@@ -95,55 +95,36 @@ class _RepetitionCardState extends State<RepetitionCard>
         widget.repetition.reviewDate != null &&
         widget.repetition.reviewDate!.isBefore(DateTime.now());
 
-    // Màu nền tinh tế hơn - chỉ thay đổi nhẹ
+    // Gán các giá trị màu mặc định
     Color cardColor = colorScheme.surface;
+    Color borderColor = colorScheme.outlineVariant;
+    Color textColor = colorScheme.onSurface;
+    Color iconColor = colorScheme.primary;
+
+    // Ghi đè các màu dựa vào điều kiện
     if (isOverdue) {
       cardColor = colorScheme.errorContainer.withValues(alpha: 0.15);
-    } else if (isCompleted) {
-      // Màu nền nhẹ nhàng hơn cho trạng thái completed
-      cardColor = colorScheme.surfaceContainerLow;
-    }
-
-    // Chỉ sử dụng màu đậm cho border, không quá nổi bật
-    Color borderColor = colorScheme.outlineVariant;
-    if (isOverdue) {
       borderColor = colorScheme.error.withValues(alpha: 0.7);
-    } else if (isCompleted) {
-      // Sử dụng màu success nhưng ở mức độ nhẹ nhàng hơn
-      borderColor = colorScheme.success.withValues(alpha: 0.5);
-    }
-
-    // Màu text tinh tế hơn
-    Color textColor = colorScheme.onSurface;
-    if (isOverdue) {
       textColor = colorScheme.error;
-    } else if (isCompleted) {
-      // Dùng màu onSurface thông thường với trọng lượng font tăng lên
-      textColor = colorScheme.onSurface;
+      iconColor = colorScheme.error;
     }
 
-    // Chỉ dùng màu đặc biệt cho biểu tượng để tạo điểm nhấn
-    Color iconColor = colorScheme.primary;
-    if (isOverdue) {
-      iconColor = colorScheme.error;
-    } else if (isCompleted) {
-      iconColor =
-          colorScheme.success; // Giữ màu success cho icon để làm điểm nhấn
+    if (isCompleted) {
+      cardColor = colorScheme.surfaceContainerLow;
+      borderColor = colorScheme.success.withValues(alpha: 0.5);
+      iconColor = colorScheme.success;
     }
 
     String statusText = 'Pending';
+    IconData statusIcon = Icons.pending;
+
     if (isCompleted) {
       statusText = 'Completed';
-    }
-    if (isOverdue) {
-      statusText = 'Overdue';
-    }
-
-    IconData statusIcon = Icons.pending;
-    if (isCompleted) {
       statusIcon = Icons.check_circle;
     }
+
     if (isOverdue) {
+      statusText = 'Overdue';
       statusIcon = Icons.warning_amber;
     }
 

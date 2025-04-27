@@ -31,6 +31,12 @@ GoRouter router(Ref ref) {
     initialLocation: '/',
     debugLogDiagnostics: true,
     redirect: (context, state) {
+      // Đảm bảo rằng chúng ta chờ đợi trạng thái authState được tải hoàn tất
+      if (authState.isLoading) {
+        // Không chuyển hướng khi đang kiểm tra xác thực
+        return null;
+      }
+
       final isLoggedIn = authState.valueOrNull ?? false;
       final isGoingToLogin = state.matchedLocation == RouteConstants.login;
 

@@ -6,40 +6,34 @@ part of 'auth_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authStateHash() => r'527fe5bbdbe7fc5eea83e6d4a5fd26e1c9c05366';
+String _$authStateHash() => r'7e1d75c91c257f7123d047fce0c09d164ac3ef35';
 
 /// See also [AuthState].
 @ProviderFor(AuthState)
-final authStateProvider =
-    AutoDisposeAsyncNotifierProvider<AuthState, bool>.internal(
-      AuthState.new,
-      name: r'authStateProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$authStateHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final authStateProvider = AsyncNotifierProvider<AuthState, bool>.internal(
+  AuthState.new,
+  name: r'authStateProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$authStateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
-typedef _$AuthState = AutoDisposeAsyncNotifier<bool>;
-String _$currentUserHash() => r'47f777fef0759b261ac40f29da43630d20f7e6cb';
+typedef _$AuthState = AsyncNotifier<bool>;
+String _$currentUserHash() => r'20f0fea4e181bbb6d7195f3eb1d667129a7495cc';
 
 /// See also [CurrentUser].
 @ProviderFor(CurrentUser)
-final currentUserProvider =
-    AutoDisposeNotifierProvider<CurrentUser, User?>.internal(
-      CurrentUser.new,
-      name: r'currentUserProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$currentUserHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final currentUserProvider = NotifierProvider<CurrentUser, User?>.internal(
+  CurrentUser.new,
+  name: r'currentUserProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$currentUserHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
-typedef _$CurrentUser = AutoDisposeNotifier<User?>;
+typedef _$CurrentUser = Notifier<User?>;
 String _$authErrorHash() => r'2e305f21f75dffcd046dafa1db3126093237df76';
 
 /// See also [AuthError].

@@ -1,9 +1,9 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spaced_learning_app/core/navigation/router.dart';
 import 'package:spaced_learning_app/core/theme/app_theme_data.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 
 import 'core/di/providers.dart';
 
@@ -15,6 +15,10 @@ void main() async {
   final isCheckerActive = prefs.getBool('daily_task_checker_active') ?? false;
 
   final container = ProviderContainer();
+
+  // Khởi tạo trạng thái xác thực ngay khi ứng dụng khởi động
+  await container.read(authStateProvider.future);
+
   if (isCheckerActive) {
     // Initialize the daily task checker
     await container.read(dailyTaskCheckerProvider.future);

@@ -1,4 +1,7 @@
 // lib/presentation/viewmodels/learning_stats_viewmodel.dart
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/learning_insight.dart';
 import 'package:spaced_learning_app/domain/models/learning_stats.dart';
@@ -55,13 +58,23 @@ class LearningInsights extends _$LearningInsights {
 
 @riverpod
 Future<void> loadAllStats(
-  LoadAllStatsRef ref, {
-  bool refreshCache = false,
+  Ref ref, {
+  @Default(false) required bool refreshCache,
 }) async {
-  await Future.wait([
+  try {
+    // Sử dụng repository trực tiếp
+    final statsRepo = ref.read(learningStatsRepositoryProvider);
+
+    // Tải dữ liệu
+    final stats = await statsRepo.getDashboardStats(refreshCache: refreshCache);
+    final insights = await statsRepo.getLearningInsights();
+
+    // Sử dụng notifier methods thay vì truy cập state trực tiếp
     ref
         .read(learningStatsStateProvider.notifier)
-        .loadDashboardStats(refreshCache: refreshCache),
-    ref.read(learningInsightsProvider.notifier).loadLearningInsights(),
-  ]);
+        .loadDashboardStats(refreshCache: refreshCache);
+    ref.read(learningInsightsProvider.notifier).loadLearningInsights();
+  } catch (e) {
+    debugPrint('Error loading all stats: $e');
+  }
 }
