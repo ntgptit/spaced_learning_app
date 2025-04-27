@@ -6,7 +6,7 @@ part of 'learning_stats_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$loadAllStatsHash() => r'9df3345532b7dbebb362e561c91f14eb6369fbb2';
+String _$loadAllStatsHash() => r'61604458b6703c119a3a1fd5f606bed135b16102';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -39,7 +39,7 @@ class LoadAllStatsFamily extends Family<AsyncValue<void>> {
   const LoadAllStatsFamily();
 
   /// See also [loadAllStats].
-  LoadAllStatsProvider call({bool refreshCache = false}) {
+  LoadAllStatsProvider call({required bool refreshCache}) {
     return LoadAllStatsProvider(refreshCache: refreshCache);
   }
 
@@ -68,7 +68,7 @@ class LoadAllStatsFamily extends Family<AsyncValue<void>> {
 /// See also [loadAllStats].
 class LoadAllStatsProvider extends AutoDisposeFutureProvider<void> {
   /// See also [loadAllStats].
-  LoadAllStatsProvider({bool refreshCache = false})
+  LoadAllStatsProvider({required bool refreshCache})
     : this._internal(
         (ref) =>
             loadAllStats(ref as LoadAllStatsRef, refreshCache: refreshCache),
@@ -169,13 +169,13 @@ final learningStatsStateProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$LearningStatsState = AutoDisposeAsyncNotifier<LearningStatsDTO?>;
-String _$learningInsightsHash() => r'95844da6c005dcbe009fe5f5b8500fe6c798c6f6';
+String _$learningInsightsHash() => r'1db8e90c2ec6800cfa8c44480ada6546b357b561';
 
 /// See also [LearningInsights].
 @ProviderFor(LearningInsights)
 final learningInsightsProvider = AutoDisposeAsyncNotifierProvider<
   LearningInsights,
-  List<LearningInsightDTO>
+  List<LearningInsightRespone>
 >.internal(
   LearningInsights.new,
   name: r'learningInsightsProvider',
@@ -187,6 +187,7 @@ final learningInsightsProvider = AutoDisposeAsyncNotifierProvider<
   allTransitiveDependencies: null,
 );
 
-typedef _$LearningInsights = AutoDisposeAsyncNotifier<List<LearningInsightDTO>>;
+typedef _$LearningInsights =
+    AutoDisposeAsyncNotifier<List<LearningInsightRespone>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

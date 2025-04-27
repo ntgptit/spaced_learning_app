@@ -35,7 +35,7 @@ class LearningStatsRepositoryImpl implements LearningStatsRepository {
   }
 
   @override
-  Future<List<LearningInsightDTO>> getLearningInsights() async {
+  Future<List<LearningInsightRespone>> getLearningInsights() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.learningInsights);
 
@@ -45,7 +45,7 @@ class LearningStatsRepositoryImpl implements LearningStatsRepository {
 
       final List<dynamic> insightsList = response['data'];
       return insightsList
-          .map((item) => LearningInsightDTO.fromJson(item))
+          .map((item) => LearningInsightRespone.fromJson(item))
           .toList();
     } on AppException {
       rethrow;

@@ -49,7 +49,9 @@ _LearningStatsDTO _$LearningStatsDTOFromJson(
   weeklyNewWordsRate: (json['weeklyNewWordsRate'] as num?)?.toDouble() ?? 0.0,
   learningInsights:
       (json['learningInsights'] as List<dynamic>?)
-          ?.map((e) => LearningInsightDTO.fromJson(e as Map<String, dynamic>))
+          ?.map(
+            (e) => LearningInsightRespone.fromJson(e as Map<String, dynamic>),
+          )
           .toList() ??
       const [],
   lastUpdated:

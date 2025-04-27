@@ -45,7 +45,7 @@ abstract class LearningStatsDTO with _$LearningStatsDTO {
     @Default(0.0) double vocabularyCompletionRate,
     @Default(0.0) double weeklyNewWordsRate,
 
-    @Default([]) List<LearningInsightDTO> learningInsights,
+    @Default([]) List<LearningInsightRespone> learningInsights,
 
     DateTime? lastUpdated,
   }) = _LearningStatsDTO;

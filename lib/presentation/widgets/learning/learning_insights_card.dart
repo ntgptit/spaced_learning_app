@@ -3,7 +3,7 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/learning_insight.dart';
 
 class LearningInsightsCard extends StatelessWidget {
-  final List<LearningInsightDTO> insights;
+  final List<LearningInsightRespone> insights;
   final String? title;
   final VoidCallback? onViewMorePressed;
   final ThemeData? theme;
@@ -22,7 +22,7 @@ class LearningInsightsCard extends StatelessWidget {
     final colorScheme = currentTheme.colorScheme;
     final textTheme = currentTheme.textTheme;
 
-    final sortedInsights = List<LearningInsightDTO>.from(insights)
+    final sortedInsights = List<LearningInsightRespone>.from(insights)
       ..sort((a, b) => a.priority.compareTo(b.priority));
     final displayInsights = sortedInsights.length > 4
         ? sortedInsights.sublist(0, 4)
@@ -106,7 +106,7 @@ class LearningInsightsCard extends StatelessWidget {
 
   Widget _buildInsightItem(
     BuildContext context,
-    LearningInsightDTO insight,
+    LearningInsightRespone insight,
     ThemeData theme,
   ) {
     final color = _getColorFromString(insight.color, theme);

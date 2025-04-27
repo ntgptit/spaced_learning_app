@@ -37,11 +37,11 @@ class LearningStatsState extends _$LearningStatsState {
 @riverpod
 class LearningInsights extends _$LearningInsights {
   @override
-  Future<List<LearningInsightDTO>> build() async {
+  Future<List<LearningInsightRespone>> build() async {
     return loadLearningInsights();
   }
 
-  Future<List<LearningInsightDTO>> loadLearningInsights() async {
+  Future<List<LearningInsightRespone>> loadLearningInsights() async {
     state = const AsyncValue.loading();
     try {
       final insights = await ref
@@ -56,25 +56,27 @@ class LearningInsights extends _$LearningInsights {
   }
 }
 
+// Sửa lại provider này để không sử dụng state của Ref
 @riverpod
 Future<void> loadAllStats(
   Ref ref, {
   @Default(false) required bool refreshCache,
 }) async {
   try {
-    // Sử dụng repository trực tiếp
+    // Sử dụng repository trực tiếp thay vì gọi các provider khác
     final statsRepo = ref.read(learningStatsRepositoryProvider);
 
-    // Tải dữ liệu
-    final stats = await statsRepo.getDashboardStats(refreshCache: refreshCache);
-    final insights = await statsRepo.getLearningInsights();
+    // Tải dữ liệu đồng thời
+    final results = await Future.wait([
+      statsRepo.getDashboardStats(refreshCache: refreshCache),
+      statsRepo.getLearningInsights(),
+    ]);
 
-    // Sử dụng notifier methods thay vì truy cập state trực tiếp
-    ref
-        .read(learningStatsStateProvider.notifier)
-        .loadDashboardStats(refreshCache: refreshCache);
-    ref.read(learningInsightsProvider.notifier).loadLearningInsights();
+    // Sau khi tải xong, làm mới các provider thay vì cố gắng kiểm tra trạng thái
+    ref.invalidate(learningStatsStateProvider);
+    ref.invalidate(learningInsightsProvider);
   } catch (e) {
     debugPrint('Error loading all stats: $e');
+    rethrow;
   }
 }

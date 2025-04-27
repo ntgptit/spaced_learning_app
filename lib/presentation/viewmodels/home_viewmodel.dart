@@ -40,10 +40,10 @@ class HomeViewModel extends _$HomeViewModel {
     try {
       final user = ref.read(currentUserProvider);
 
-      // Load stats một cách an toàn
+      // Tải dữ liệu thống kê
       await ref.read(loadAllStatsProvider(refreshCache: false).future);
 
-      // Load due progress if user is logged in
+      // Tải dữ liệu tiến trình nếu người dùng đã đăng nhập
       if (user != null) {
         await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
       }
@@ -62,10 +62,10 @@ class HomeViewModel extends _$HomeViewModel {
     try {
       final user = ref.read(currentUserProvider);
 
-      // Always refresh stats
+      // Tải lại dữ liệu thống kê
       await ref.read(loadAllStatsProvider(refreshCache: true).future);
 
-      // Refresh due progress if user is logged in
+      // Tải lại dữ liệu tiến trình nếu người dùng đã đăng nhập
       if (user != null) {
         await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
       }
@@ -73,7 +73,10 @@ class HomeViewModel extends _$HomeViewModel {
       state = state.copyWith(status: HomeLoadingStatus.loaded);
     } catch (e) {
       debugPrint('Error refreshing data: $e');
-      // Keep previous state on error, just log it
+      state = state.copyWith(
+        status: HomeLoadingStatus.error,
+        errorMessage: e.toString(),
+      );
     }
   }
 

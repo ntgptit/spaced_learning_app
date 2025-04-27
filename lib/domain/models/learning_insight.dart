@@ -19,16 +19,16 @@ enum InsightType {
 }
 
 @freezed
-abstract class LearningInsightDTO with _$LearningInsightDTO {
-  const factory LearningInsightDTO({
+abstract class LearningInsightRespone with _$LearningInsightRespone {
+  const factory LearningInsightRespone({
     required InsightType type,
     required String message,
     required String icon,
     required String color,
     @Default(0.0) double dataPoint,
     @Default(0) int priority,
-  }) = _LearningInsightDTO;
+  }) = _LearningInsightRespone;
 
-  factory LearningInsightDTO.fromJson(Map<String, dynamic> json) =>
-      _$LearningInsightDTOFromJson(json);
+  factory LearningInsightRespone.fromJson(Map<String, dynamic> json) =>
+      _$LearningInsightResponeFromJson(json);
 }

@@ -39,6 +39,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  bool _isInitialLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     // Schedule data loading after the frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(homeViewModelProvider.notifier).loadInitialData();
+      _loadInitialData();
     });
   }
 
@@ -67,13 +69,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isInitialLoading = true;
+    });
+
+    await ref.read(homeViewModelProvider.notifier).loadInitialData();
+
+    if (mounted) {
+      setState(() {
+        _isInitialLoading = false;
+      });
+      _animationController.forward();
+    }
+  }
+
   Future<void> _refreshData() async {
     if (!mounted) return;
 
+    setState(() {
+      _isInitialLoading = true;
+    });
+
     _animationController.reset();
+
+    // Đảm bảo tất cả dữ liệu được tải lại đồng thời
     await ref.read(homeViewModelProvider.notifier).refreshData();
 
     if (mounted) {
+      setState(() {
+        _isInitialLoading = false;
+      });
       _animationController.forward();
     }
   }
@@ -96,12 +122,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       body: Builder(
         builder: (context) {
-          // Show skeleton screen while loading for first time
-          if (ref.read(homeViewModelProvider.notifier).isFirstLoading) {
+          // Kiểm tra trạng thái tải dữ liệu
+          if (_isInitialLoading ||
+              ref.read(homeViewModelProvider.notifier).isFirstLoading) {
             return const HomeSkeletonScreen();
           }
 
-          // Show error state if data loading failed
+          // Kiểm tra trạng thái lỗi
           if (ref.read(homeViewModelProvider.notifier).hasError) {
             return Center(
               child: ErrorDisplay(
@@ -109,12 +136,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 onRetry: _refreshData,
               ),
             );
-          }
-
-          // Start animation when data is loaded
-          if (ref.read(homeViewModelProvider.notifier).isLoaded &&
-              !_animationController.isAnimating) {
-            _animationController.forward();
           }
 
           return _buildBody(user, theme, colorScheme);
@@ -131,6 +152,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           style: theme.textTheme.titleLarge?.copyWith(
             color: colorScheme.onSurface,
           ),
+        ),
+      );
+    }
+
+    // Kiểm tra trạng thái của tất cả các provider chính
+    final statsAsync = ref.watch(learningStatsStateProvider);
+    final insightsAsync = ref.watch(learningInsightsProvider);
+    final progressAsync = ref.watch(progressStateProvider);
+
+    // Nếu bất kỳ provider nào đang loading, hiển thị skeleton
+    final isAnyLoading =
+        statsAsync.isLoading ||
+        insightsAsync.isLoading ||
+        progressAsync.isLoading;
+    if (isAnyLoading && !_isInitialLoading) {
+      return const HomeSkeletonScreen();
+    }
+
+    // Nếu có lỗi ở bất kỳ provider nào
+    final hasError =
+        statsAsync.hasError || insightsAsync.hasError || progressAsync.hasError;
+    if (hasError) {
+      return Center(
+        child: ErrorDisplay(
+          message: 'Failed to load content. Please try again.',
+          onRetry: _refreshData,
         ),
       );
     }
@@ -190,9 +237,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 AppButton(
                   text: 'Load Statistics',
                   type: AppButtonType.primary,
-                  onPressed: () => ref
-                      .read(learningStatsStateProvider.notifier)
-                      .loadDashboardStats(),
+                  onPressed: _refreshData,
                 ),
               ],
             ),
@@ -234,13 +279,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           onViewProgress: () => GoRouter.of(context).go('/learning'),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => ErrorDisplay(
-        message: 'Failed to load stats: $error',
-        onRetry: () =>
-            ref.read(learningStatsStateProvider.notifier).loadDashboardStats(),
-        compact: true,
-      ),
+      loading: () => const SizedBox.shrink(),
+      // Không hiển thị loading ở đây vì đã xử lý ở ngoài
+      error: (error, stack) =>
+          const SizedBox.shrink(), // Không hiển thị lỗi ở đây vì đã xử lý ở ngoài
     );
   }
 
@@ -259,8 +301,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           theme: theme,
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () => const SizedBox.shrink(), // Không hiển thị loading ở đây
+      error: (_, __) => const SizedBox.shrink(), // Không hiển thị lỗi ở đây
     );
   }
 
@@ -330,26 +372,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         );
       },
-      loading: () => Card(
-        elevation: AppDimens.elevationS,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        ),
-        child: const Padding(
-          padding: EdgeInsets.all(AppDimens.paddingL),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
-      error: (error, stack) => ErrorDisplay(
-        message: 'Failed to load due tasks: $error',
-        onRetry: () {
-          final user = ref.read(currentUserProvider);
-          if (user != null) {
-            ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
-          }
-        },
-        compact: true,
-      ),
+      loading: () => const SizedBox.shrink(), // Không hiển thị loading ở đây
+      error: (error, stack) =>
+          const SizedBox.shrink(), // Không hiển thị lỗi ở đây
     );
   }
 

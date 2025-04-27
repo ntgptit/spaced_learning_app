@@ -14,22 +14,22 @@ part of 'learning_insight.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$LearningInsightDTO {
+mixin _$LearningInsightRespone {
 
  InsightType get type; String get message; String get icon; String get color; double get dataPoint; int get priority;
-/// Create a copy of LearningInsightDTO
+/// Create a copy of LearningInsightRespone
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$LearningInsightDTOCopyWith<LearningInsightDTO> get copyWith => _$LearningInsightDTOCopyWithImpl<LearningInsightDTO>(this as LearningInsightDTO, _$identity);
+$LearningInsightResponeCopyWith<LearningInsightRespone> get copyWith => _$LearningInsightResponeCopyWithImpl<LearningInsightRespone>(this as LearningInsightRespone, _$identity);
 
-  /// Serializes this LearningInsightDTO to a JSON map.
+  /// Serializes this LearningInsightRespone to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LearningInsightDTO&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.dataPoint, dataPoint) || other.dataPoint == dataPoint)&&(identical(other.priority, priority) || other.priority == priority));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LearningInsightRespone&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.dataPoint, dataPoint) || other.dataPoint == dataPoint)&&(identical(other.priority, priority) || other.priority == priority));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,15 +38,15 @@ int get hashCode => Object.hash(runtimeType,type,message,icon,color,dataPoint,pr
 
 @override
 String toString() {
-  return 'LearningInsightDTO(type: $type, message: $message, icon: $icon, color: $color, dataPoint: $dataPoint, priority: $priority)';
+  return 'LearningInsightRespone(type: $type, message: $message, icon: $icon, color: $color, dataPoint: $dataPoint, priority: $priority)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $LearningInsightDTOCopyWith<$Res>  {
-  factory $LearningInsightDTOCopyWith(LearningInsightDTO value, $Res Function(LearningInsightDTO) _then) = _$LearningInsightDTOCopyWithImpl;
+abstract mixin class $LearningInsightResponeCopyWith<$Res>  {
+  factory $LearningInsightResponeCopyWith(LearningInsightRespone value, $Res Function(LearningInsightRespone) _then) = _$LearningInsightResponeCopyWithImpl;
 @useResult
 $Res call({
  InsightType type, String message, String icon, String color, double dataPoint, int priority
@@ -57,14 +57,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$LearningInsightDTOCopyWithImpl<$Res>
-    implements $LearningInsightDTOCopyWith<$Res> {
-  _$LearningInsightDTOCopyWithImpl(this._self, this._then);
+class _$LearningInsightResponeCopyWithImpl<$Res>
+    implements $LearningInsightResponeCopyWith<$Res> {
+  _$LearningInsightResponeCopyWithImpl(this._self, this._then);
 
-  final LearningInsightDTO _self;
-  final $Res Function(LearningInsightDTO) _then;
+  final LearningInsightRespone _self;
+  final $Res Function(LearningInsightRespone) _then;
 
-/// Create a copy of LearningInsightDTO
+/// Create a copy of LearningInsightRespone
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? message = null,Object? icon = null,Object? color = null,Object? dataPoint = null,Object? priority = null,}) {
   return _then(_self.copyWith(
@@ -84,9 +84,9 @@ as int,
 /// @nodoc
 @JsonSerializable()
 
-class _LearningInsightDTO implements LearningInsightDTO {
-  const _LearningInsightDTO({required this.type, required this.message, required this.icon, required this.color, this.dataPoint = 0.0, this.priority = 0});
-  factory _LearningInsightDTO.fromJson(Map<String, dynamic> json) => _$LearningInsightDTOFromJson(json);
+class _LearningInsightRespone implements LearningInsightRespone {
+  const _LearningInsightRespone({required this.type, required this.message, required this.icon, required this.color, this.dataPoint = 0.0, this.priority = 0});
+  factory _LearningInsightRespone.fromJson(Map<String, dynamic> json) => _$LearningInsightResponeFromJson(json);
 
 @override final  InsightType type;
 @override final  String message;
@@ -95,20 +95,20 @@ class _LearningInsightDTO implements LearningInsightDTO {
 @override@JsonKey() final  double dataPoint;
 @override@JsonKey() final  int priority;
 
-/// Create a copy of LearningInsightDTO
+/// Create a copy of LearningInsightRespone
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$LearningInsightDTOCopyWith<_LearningInsightDTO> get copyWith => __$LearningInsightDTOCopyWithImpl<_LearningInsightDTO>(this, _$identity);
+_$LearningInsightResponeCopyWith<_LearningInsightRespone> get copyWith => __$LearningInsightResponeCopyWithImpl<_LearningInsightRespone>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$LearningInsightDTOToJson(this, );
+  return _$LearningInsightResponeToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LearningInsightDTO&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.dataPoint, dataPoint) || other.dataPoint == dataPoint)&&(identical(other.priority, priority) || other.priority == priority));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LearningInsightRespone&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.dataPoint, dataPoint) || other.dataPoint == dataPoint)&&(identical(other.priority, priority) || other.priority == priority));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -117,15 +117,15 @@ int get hashCode => Object.hash(runtimeType,type,message,icon,color,dataPoint,pr
 
 @override
 String toString() {
-  return 'LearningInsightDTO(type: $type, message: $message, icon: $icon, color: $color, dataPoint: $dataPoint, priority: $priority)';
+  return 'LearningInsightRespone(type: $type, message: $message, icon: $icon, color: $color, dataPoint: $dataPoint, priority: $priority)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$LearningInsightDTOCopyWith<$Res> implements $LearningInsightDTOCopyWith<$Res> {
-  factory _$LearningInsightDTOCopyWith(_LearningInsightDTO value, $Res Function(_LearningInsightDTO) _then) = __$LearningInsightDTOCopyWithImpl;
+abstract mixin class _$LearningInsightResponeCopyWith<$Res> implements $LearningInsightResponeCopyWith<$Res> {
+  factory _$LearningInsightResponeCopyWith(_LearningInsightRespone value, $Res Function(_LearningInsightRespone) _then) = __$LearningInsightResponeCopyWithImpl;
 @override @useResult
 $Res call({
  InsightType type, String message, String icon, String color, double dataPoint, int priority
@@ -136,17 +136,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$LearningInsightDTOCopyWithImpl<$Res>
-    implements _$LearningInsightDTOCopyWith<$Res> {
-  __$LearningInsightDTOCopyWithImpl(this._self, this._then);
+class __$LearningInsightResponeCopyWithImpl<$Res>
+    implements _$LearningInsightResponeCopyWith<$Res> {
+  __$LearningInsightResponeCopyWithImpl(this._self, this._then);
 
-  final _LearningInsightDTO _self;
-  final $Res Function(_LearningInsightDTO) _then;
+  final _LearningInsightRespone _self;
+  final $Res Function(_LearningInsightRespone) _then;
 
-/// Create a copy of LearningInsightDTO
+/// Create a copy of LearningInsightRespone
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? message = null,Object? icon = null,Object? color = null,Object? dataPoint = null,Object? priority = null,}) {
-  return _then(_LearningInsightDTO(
+  return _then(_LearningInsightRespone(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as InsightType,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,icon: null == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable

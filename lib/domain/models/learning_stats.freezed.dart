@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LearningStatsDTO {
 
- int get totalModules; Map<String, int> get cycleStats; int get dueToday; int get dueThisWeek; int get dueThisMonth; int get wordsDueToday; int get wordsDueThisWeek; int get wordsDueThisMonth; int get completedToday; int get completedThisWeek; int get completedThisMonth; int get wordsCompletedToday; int get wordsCompletedThisWeek; int get wordsCompletedThisMonth; int get streakDays; int get streakWeeks; int get longestStreakDays; int get totalWords; int get totalCompletedModules; int get totalInProgressModules; int get learnedWords; int get pendingWords; double get vocabularyCompletionRate; double get weeklyNewWordsRate; List<LearningInsightDTO> get learningInsights; DateTime? get lastUpdated;
+ int get totalModules; Map<String, int> get cycleStats; int get dueToday; int get dueThisWeek; int get dueThisMonth; int get wordsDueToday; int get wordsDueThisWeek; int get wordsDueThisMonth; int get completedToday; int get completedThisWeek; int get completedThisMonth; int get wordsCompletedToday; int get wordsCompletedThisWeek; int get wordsCompletedThisMonth; int get streakDays; int get streakWeeks; int get longestStreakDays; int get totalWords; int get totalCompletedModules; int get totalInProgressModules; int get learnedWords; int get pendingWords; double get vocabularyCompletionRate; double get weeklyNewWordsRate; List<LearningInsightRespone> get learningInsights; DateTime? get lastUpdated;
 /// Create a copy of LearningStatsDTO
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $LearningStatsDTOCopyWith<$Res>  {
   factory $LearningStatsDTOCopyWith(LearningStatsDTO value, $Res Function(LearningStatsDTO) _then) = _$LearningStatsDTOCopyWithImpl;
 @useResult
 $Res call({
- int totalModules, Map<String, int> cycleStats, int dueToday, int dueThisWeek, int dueThisMonth, int wordsDueToday, int wordsDueThisWeek, int wordsDueThisMonth, int completedToday, int completedThisWeek, int completedThisMonth, int wordsCompletedToday, int wordsCompletedThisWeek, int wordsCompletedThisMonth, int streakDays, int streakWeeks, int longestStreakDays, int totalWords, int totalCompletedModules, int totalInProgressModules, int learnedWords, int pendingWords, double vocabularyCompletionRate, double weeklyNewWordsRate, List<LearningInsightDTO> learningInsights, DateTime? lastUpdated
+ int totalModules, Map<String, int> cycleStats, int dueToday, int dueThisWeek, int dueThisMonth, int wordsDueToday, int wordsDueThisWeek, int wordsDueThisMonth, int completedToday, int completedThisWeek, int completedThisMonth, int wordsCompletedToday, int wordsCompletedThisWeek, int wordsCompletedThisMonth, int streakDays, int streakWeeks, int longestStreakDays, int totalWords, int totalCompletedModules, int totalInProgressModules, int learnedWords, int pendingWords, double vocabularyCompletionRate, double weeklyNewWordsRate, List<LearningInsightRespone> learningInsights, DateTime? lastUpdated
 });
 
 
@@ -93,7 +93,7 @@ as int,pendingWords: null == pendingWords ? _self.pendingWords : pendingWords //
 as int,vocabularyCompletionRate: null == vocabularyCompletionRate ? _self.vocabularyCompletionRate : vocabularyCompletionRate // ignore: cast_nullable_to_non_nullable
 as double,weeklyNewWordsRate: null == weeklyNewWordsRate ? _self.weeklyNewWordsRate : weeklyNewWordsRate // ignore: cast_nullable_to_non_nullable
 as double,learningInsights: null == learningInsights ? _self.learningInsights : learningInsights // ignore: cast_nullable_to_non_nullable
-as List<LearningInsightDTO>,lastUpdated: freezed == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
+as List<LearningInsightRespone>,lastUpdated: freezed == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -105,7 +105,7 @@ as DateTime?,
 @JsonSerializable()
 
 class _LearningStatsDTO implements LearningStatsDTO {
-  const _LearningStatsDTO({this.totalModules = 0, final  Map<String, int> cycleStats = const {'FIRST_TIME' : 0, 'FIRST_REVIEW' : 0, 'SECOND_REVIEW' : 0, 'THIRD_REVIEW' : 0, 'MORE_THAN_THREE_REVIEWS' : 0}, this.dueToday = 0, this.dueThisWeek = 0, this.dueThisMonth = 0, this.wordsDueToday = 0, this.wordsDueThisWeek = 0, this.wordsDueThisMonth = 0, this.completedToday = 0, this.completedThisWeek = 0, this.completedThisMonth = 0, this.wordsCompletedToday = 0, this.wordsCompletedThisWeek = 0, this.wordsCompletedThisMonth = 0, this.streakDays = 0, this.streakWeeks = 0, this.longestStreakDays = 0, this.totalWords = 0, this.totalCompletedModules = 0, this.totalInProgressModules = 0, this.learnedWords = 0, this.pendingWords = 0, this.vocabularyCompletionRate = 0.0, this.weeklyNewWordsRate = 0.0, final  List<LearningInsightDTO> learningInsights = const [], this.lastUpdated}): _cycleStats = cycleStats,_learningInsights = learningInsights;
+  const _LearningStatsDTO({this.totalModules = 0, final  Map<String, int> cycleStats = const {'FIRST_TIME' : 0, 'FIRST_REVIEW' : 0, 'SECOND_REVIEW' : 0, 'THIRD_REVIEW' : 0, 'MORE_THAN_THREE_REVIEWS' : 0}, this.dueToday = 0, this.dueThisWeek = 0, this.dueThisMonth = 0, this.wordsDueToday = 0, this.wordsDueThisWeek = 0, this.wordsDueThisMonth = 0, this.completedToday = 0, this.completedThisWeek = 0, this.completedThisMonth = 0, this.wordsCompletedToday = 0, this.wordsCompletedThisWeek = 0, this.wordsCompletedThisMonth = 0, this.streakDays = 0, this.streakWeeks = 0, this.longestStreakDays = 0, this.totalWords = 0, this.totalCompletedModules = 0, this.totalInProgressModules = 0, this.learnedWords = 0, this.pendingWords = 0, this.vocabularyCompletionRate = 0.0, this.weeklyNewWordsRate = 0.0, final  List<LearningInsightRespone> learningInsights = const [], this.lastUpdated}): _cycleStats = cycleStats,_learningInsights = learningInsights;
   factory _LearningStatsDTO.fromJson(Map<String, dynamic> json) => _$LearningStatsDTOFromJson(json);
 
 @override@JsonKey() final  int totalModules;
@@ -138,8 +138,8 @@ class _LearningStatsDTO implements LearningStatsDTO {
 @override@JsonKey() final  int pendingWords;
 @override@JsonKey() final  double vocabularyCompletionRate;
 @override@JsonKey() final  double weeklyNewWordsRate;
- final  List<LearningInsightDTO> _learningInsights;
-@override@JsonKey() List<LearningInsightDTO> get learningInsights {
+ final  List<LearningInsightRespone> _learningInsights;
+@override@JsonKey() List<LearningInsightRespone> get learningInsights {
   if (_learningInsights is EqualUnmodifiableListView) return _learningInsights;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_learningInsights);
@@ -180,7 +180,7 @@ abstract mixin class _$LearningStatsDTOCopyWith<$Res> implements $LearningStatsD
   factory _$LearningStatsDTOCopyWith(_LearningStatsDTO value, $Res Function(_LearningStatsDTO) _then) = __$LearningStatsDTOCopyWithImpl;
 @override @useResult
 $Res call({
- int totalModules, Map<String, int> cycleStats, int dueToday, int dueThisWeek, int dueThisMonth, int wordsDueToday, int wordsDueThisWeek, int wordsDueThisMonth, int completedToday, int completedThisWeek, int completedThisMonth, int wordsCompletedToday, int wordsCompletedThisWeek, int wordsCompletedThisMonth, int streakDays, int streakWeeks, int longestStreakDays, int totalWords, int totalCompletedModules, int totalInProgressModules, int learnedWords, int pendingWords, double vocabularyCompletionRate, double weeklyNewWordsRate, List<LearningInsightDTO> learningInsights, DateTime? lastUpdated
+ int totalModules, Map<String, int> cycleStats, int dueToday, int dueThisWeek, int dueThisMonth, int wordsDueToday, int wordsDueThisWeek, int wordsDueThisMonth, int completedToday, int completedThisWeek, int completedThisMonth, int wordsCompletedToday, int wordsCompletedThisWeek, int wordsCompletedThisMonth, int streakDays, int streakWeeks, int longestStreakDays, int totalWords, int totalCompletedModules, int totalInProgressModules, int learnedWords, int pendingWords, double vocabularyCompletionRate, double weeklyNewWordsRate, List<LearningInsightRespone> learningInsights, DateTime? lastUpdated
 });
 
 
@@ -224,7 +224,7 @@ as int,pendingWords: null == pendingWords ? _self.pendingWords : pendingWords //
 as int,vocabularyCompletionRate: null == vocabularyCompletionRate ? _self.vocabularyCompletionRate : vocabularyCompletionRate // ignore: cast_nullable_to_non_nullable
 as double,weeklyNewWordsRate: null == weeklyNewWordsRate ? _self.weeklyNewWordsRate : weeklyNewWordsRate // ignore: cast_nullable_to_non_nullable
 as double,learningInsights: null == learningInsights ? _self._learningInsights : learningInsights // ignore: cast_nullable_to_non_nullable
-as List<LearningInsightDTO>,lastUpdated: freezed == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
+as List<LearningInsightRespone>,lastUpdated: freezed == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
