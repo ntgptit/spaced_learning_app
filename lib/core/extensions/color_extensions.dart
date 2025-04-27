@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import '../theme/app_color_scheme.dart';
 
 extension ColorExtensions on Color {
-  /// Tạo biến thể của màu với độ trong suốt tùy chỉnh
+  /// Creates a variant of the color with custom transparency
   Color withValues({int? red, int? green, int? blue, double? alpha}) {
     return Color.fromRGBO(
-      red ?? (this.red * 255.0).round() & 0xff,
-      green ?? (this.green * 255.0).round() & 0xff,
-      blue ?? (this.blue * 255.0).round() & 0xff,
-      alpha ?? opacity,
+      red ?? (r * 255.0).round() & 0xff,
+      green ?? (g * 255.0).round() & 0xff,
+      blue ?? (b * 255.0).round() & 0xff,
+      alpha ?? a,
     );
   }
 
-  /// Tạo màu sáng hơn
+  /// Creates a lighter version of the color
   Color lighten([double amount = 0.1]) {
     assert(amount >= 0 && amount <= 1);
 
@@ -23,7 +23,7 @@ extension ColorExtensions on Color {
     return hsl.withLightness(lightness).toColor();
   }
 
-  /// Tạo màu tối hơn
+  /// Creates a darker version of the color
   Color darken([double amount = 0.1]) {
     assert(amount >= 0 && amount <= 1);
 
@@ -33,7 +33,7 @@ extension ColorExtensions on Color {
     return hsl.withLightness(lightness).toColor();
   }
 
-  /// Tạo biến thể màu với độ bão hòa khác
+  /// Creates a color variant with a different saturation level
   Color withSaturation(double saturation) {
     assert(saturation >= 0 && saturation <= 1);
 
@@ -41,7 +41,7 @@ extension ColorExtensions on Color {
     return hsl.withSaturation(saturation).toColor();
   }
 
-  /// Tăng độ bão hòa của màu
+  /// Increases the saturation of the color
   Color saturate([double amount = 0.1]) {
     assert(amount >= 0 && amount <= 1);
 
@@ -51,7 +51,7 @@ extension ColorExtensions on Color {
     return hsl.withSaturation(saturation).toColor();
   }
 
-  /// Giảm độ bão hòa của màu
+  /// Decreases the saturation of the color
   Color desaturate([double amount = 0.1]) {
     assert(amount >= 0 && amount <= 1);
 
@@ -63,39 +63,44 @@ extension ColorExtensions on Color {
 }
 
 extension CustomColorScheme on ColorScheme {
-  /// Màu thành công (success) - Sử dụng màu xanh lá của Google
-  Color get success => GeminiColors.successGreen;
+  /// Success color - Uses Google's green shade
+  Color get success => successGreen; // Defined in app_color_scheme.dart
 
-  /// Màu chữ trên nền success
+  /// Text/icon color on success background
   Color get onSuccess => Colors.white;
 
-  /// Màu container cho success
-  Color get successContainer => const Color(0xFFE0F2E3);
+  /// Container color for success
+  Color get successContainer =>
+      const Color(0xFFE0F2E3); // Light green container
 
-  /// Màu chữ trên nền successContainer
-  Color get onSuccessContainer => const Color(0xFF00472A);
+  /// Text/icon color on success container
+  Color get onSuccessContainer => const Color(0xFF00472A); // Dark green text
 
-  /// Màu cảnh báo (warning) - Sử dụng màu vàng/cam của Google
-  Color get warning => GeminiColors.warningOrange;
+  /// Warning color - Uses Google's yellow/orange shade
+  Color get warning => warningOrange; // Defined in app_color_scheme.dart
 
-  /// Màu chữ trên nền warning
+  /// Text/icon color on warning background
   Color get onWarning => Colors.black;
 
-  /// Màu container cho warning
-  Color get warningContainer => const Color(0xFFFFF0D3);
+  /// Container color for warning
+  Color get warningContainer =>
+      const Color(0xFFFFF0D3); // Light orange container
 
-  /// Màu chữ trên nền warningContainer
-  Color get onWarningContainer => const Color(0xFF3D2900);
+  /// Text/icon color on warning container
+  Color get onWarningContainer => const Color(0xFF3D2900); // Dark orange text
 
-  /// Màu thông tin (info) - Sử dụng màu xanh dương của Google
-  Color get info => GeminiColors.infoBlue;
+  /// Info color - Uses blue shade from geminiLightColorScheme
+  Color get info =>
+      geminiLightColorScheme.primary; // 0xff65558f (light primary)
 
-  /// Màu chữ trên nền info
+  /// Text/icon color on info background
   Color get onInfo => Colors.white;
 
-  /// Màu container cho info
-  Color get infoContainer => GeminiColors.paleBlue;
+  /// Container color for info
+  Color get infoContainer =>
+      geminiLightColorScheme.primaryContainer; // 0xffe9ddff
 
-  /// Màu chữ trên nền infoContainer
-  Color get onInfoContainer => const Color(0xFF002D56);
+  /// Text/icon color on info container
+  Color get onInfoContainer =>
+      geminiLightColorScheme.onPrimaryContainer; // 0xff4d3d75
 }

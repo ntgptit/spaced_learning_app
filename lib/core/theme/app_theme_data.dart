@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/di/providers.dart';
+import 'package:spaced_learning_app/core/theme/app_color_scheme.dart';
 
 part 'app_theme_data.g.dart';
 
 abstract final class AppTheme {
   static ThemeData light = FlexThemeData.light(
-    scheme: FlexScheme.aquaBlue,
+    colorScheme: geminiLightColorScheme,
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
       tintedDisabledControls: true,
@@ -29,7 +30,7 @@ abstract final class AppTheme {
   );
 
   static ThemeData dark = FlexThemeData.dark(
-    scheme: FlexScheme.aquaBlue,
+    colorScheme: geminiDarkColorScheme,
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
       tintedDisabledControls: true,
@@ -67,7 +68,6 @@ class ThemeModeState extends _$ThemeModeState {
   Future<void> toggleTheme() async {
     final storageService = ref.read(storageServiceProvider);
     final current = state;
-
     if (current == ThemeMode.dark) {
       await storageService.saveDarkMode(false);
       state = ThemeMode.light;
@@ -80,6 +80,7 @@ class ThemeModeState extends _$ThemeModeState {
 
 @riverpod
 class IsDarkMode extends _$IsDarkMode {
+  @override
   Future<bool> build() {
     final storageService = ref.watch(storageServiceProvider);
     return storageService.isDarkMode();
