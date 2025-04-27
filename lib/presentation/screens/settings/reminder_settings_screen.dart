@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:spaced_learning_app/core/di/service_locator.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/reminder_settings_viewmodel.dart';
@@ -15,41 +14,45 @@ class ReminderConfig {
   static const String endOfDayTime = '11:30 PM';
 }
 
-class ReminderSettingsScreen extends StatelessWidget {
+class ReminderSettingsScreen extends ConsumerWidget {
   const ReminderSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ReminderSettingsViewModel>.value(
-      value: serviceLocator<ReminderSettingsViewModel>(),
-      child: const _ReminderSettingsView(),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    return const _ReminderSettingsView();
   }
 }
 
-class _ReminderSettingsView extends StatefulWidget {
+class _ReminderSettingsView extends ConsumerStatefulWidget {
   const _ReminderSettingsView();
 
   @override
-  State<_ReminderSettingsView> createState() => _ReminderSettingsViewState();
+  ConsumerState<_ReminderSettingsView> createState() =>
+      _ReminderSettingsViewState();
 }
 
-class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
+class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = context.read<ReminderSettingsViewModel>();
-      if (!viewModel.isInitialized) {
-        viewModel.refreshSettings();
-      }
+      _loadInitialData();
     });
+  }
+
+  Future<void> _loadInitialData() async {
+    // Chỉ gọi refreshSettings() nếu dữ liệu chưa được tải
+    final settingsState = ref.read(reminderSettingsStateProvider);
+    if (settingsState.value == null || !settingsState.hasValue) {
+      await ref.read(reminderSettingsStateProvider.notifier).refreshSettings();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<ReminderSettingsViewModel>();
     final theme = Theme.of(context);
+    final settingsAsync = ref.watch(reminderSettingsStateProvider);
+    final permissionsAsync = ref.watch(devicePermissionsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -57,65 +60,90 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: viewModel.refreshSettings,
+            onPressed: () => ref
+                .read(reminderSettingsStateProvider.notifier)
+                .refreshSettings(),
             tooltip: 'Refresh settings',
           ),
         ],
       ),
-      body: _buildBody(context, viewModel, theme),
+      body: _buildBody(settingsAsync, permissionsAsync, theme),
     );
   }
 
   Widget _buildBody(
-    BuildContext context,
-    ReminderSettingsViewModel viewModel,
+    AsyncValue<Map<String, bool>> settingsAsync,
+    AsyncValue<Map<String, dynamic>> permissionsAsync,
     ThemeData theme,
   ) {
-    if (viewModel.isLoading && !viewModel.isInitialized) {
-      return const Center(child: AppLoadingIndicator());
-    }
+    return settingsAsync.when(
+      data: (settingsData) {
+        final isLoading = settingsAsync.isLoading;
+        final isInitialized = settingsData.isNotEmpty;
 
-    if (viewModel.errorMessage != null && !viewModel.isInitialized) {
-      return Center(
-        child: ErrorDisplay(
-          message: viewModel.errorMessage!,
-          onRetry: viewModel.refreshSettings,
-        ),
-      );
-    }
+        if (isLoading && !isInitialized) {
+          return const Center(child: AppLoadingIndicator());
+        }
 
-    return Stack(
-      children: [
-        RefreshIndicator(
-          onRefresh: () => viewModel.refreshSettings(),
-          child: ListView(
-            padding: const EdgeInsets.all(AppDimens.paddingL),
-            children: [
-              _buildInfoCard(theme),
-              const SizedBox(height: AppDimens.spaceL),
-              _buildMasterSwitch(context, viewModel, theme),
-              const Divider(height: AppDimens.spaceXL),
-              _buildReminderSwitches(context, viewModel, theme),
-              const SizedBox(height: AppDimens.spaceXL),
-              _buildExplanationsCard(theme),
-              const SizedBox(height: AppDimens.spaceL),
-              _buildDevicePermissionsCard(context, viewModel, theme),
-              const SizedBox(height: AppDimens.spaceL * 2),
-            ],
-          ),
-        ),
-        if (viewModel.isLoading && viewModel.isInitialized)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.3),
-              child: const Center(child: CircularProgressIndicator()),
+        return permissionsAsync.when(
+          data: (permissionsData) {
+            return Stack(
+              children: [
+                RefreshIndicator(
+                  onRefresh: () => ref
+                      .read(reminderSettingsStateProvider.notifier)
+                      .refreshSettings(),
+                  child: ListView(
+                    padding: const EdgeInsets.all(AppDimens.paddingL),
+                    children: [
+                      _buildInfoCard(theme),
+                      const SizedBox(height: AppDimens.spaceL),
+                      _buildMasterSwitch(settingsData, theme),
+                      const Divider(height: AppDimens.spaceXL),
+                      _buildReminderSwitches(settingsData, theme),
+                      const SizedBox(height: AppDimens.spaceXL),
+                      _buildExplanationsCard(theme),
+                      const SizedBox(height: AppDimens.spaceL),
+                      _buildDevicePermissionsCard(permissionsData, theme),
+                      const SizedBox(height: AppDimens.spaceL * 2),
+                    ],
+                  ),
+                ),
+                if (isLoading && isInitialized)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const Center(child: AppLoadingIndicator()),
+          error: (error, stackTrace) => Center(
+            child: ErrorDisplay(
+              message: 'Failed to load device permissions: $error',
+              onRetry: () =>
+                  ref.read(devicePermissionsProvider.notifier).build(),
             ),
           ),
-      ],
+        );
+      },
+      loading: () => const Center(child: AppLoadingIndicator()),
+      error: (error, stackTrace) => Center(
+        child: ErrorDisplay(
+          message: 'Failed to load reminder settings: $error',
+          onRetry: () => ref
+              .read(reminderSettingsStateProvider.notifier)
+              .refreshSettings(),
+        ),
+      ),
     );
   }
 
   Widget _buildInfoCard(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -125,7 +153,7 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
           children: [
             Row(
               children: [
-                Icon(Icons.alarm, color: theme.colorScheme.primary),
+                Icon(Icons.alarm, color: colorScheme.primary),
                 const SizedBox(width: AppDimens.spaceM),
                 Text(
                   'Smart Learning Reminders',
@@ -145,45 +173,46 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
     );
   }
 
-  Widget _buildMasterSwitch(
-    BuildContext context,
-    ReminderSettingsViewModel viewModel,
-    ThemeData theme,
-  ) {
-    return Consumer<ReminderSettingsViewModel>(
-      builder:
-          (context, viewModel, _) => SwitchListTile(
-            title: Text(
-              'Enable Learning Reminders',
-              style: theme.textTheme.titleMedium,
-            ),
-            subtitle: Text(
-              'Turn on/off all reminders',
-              style: theme.textTheme.bodySmall,
-            ),
-            value: viewModel.remindersEnabled,
-            onChanged:
-                (value) => _updateSetting(
-                  context,
-                  () => viewModel.setRemindersEnabled(value),
-                  'Reminders ${value ? 'enabled' : 'disabled'}',
-                ),
-            secondary: Icon(
-              Icons.notifications_active,
-              color:
-                  viewModel.remindersEnabled
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.outline,
-            ),
-          ),
+  Widget _buildMasterSwitch(Map<String, bool> settingsData, ThemeData theme) {
+    final remindersEnabled = settingsData['remindersEnabled'] ?? false;
+
+    return SwitchListTile(
+      title: Text(
+        'Enable Learning Reminders',
+        style: theme.textTheme.titleMedium,
+      ),
+      subtitle: Text(
+        'Turn on/off all reminders',
+        style: theme.textTheme.bodySmall,
+      ),
+      value: remindersEnabled,
+      onChanged: (value) => _updateSetting(
+        () => ref
+            .read(reminderSettingsStateProvider.notifier)
+            .setRemindersEnabled(value),
+        'Reminders ${value ? 'enabled' : 'disabled'}',
+      ),
+      secondary: Icon(
+        Icons.notifications_active,
+        color: remindersEnabled
+            ? theme.colorScheme.primary
+            : theme.colorScheme.outline,
+      ),
     );
   }
 
   Widget _buildReminderSwitches(
-    BuildContext context,
-    ReminderSettingsViewModel viewModel,
+    Map<String, bool> settingsData,
     ThemeData theme,
   ) {
+    final remindersEnabled = settingsData['remindersEnabled'] ?? false;
+    final noonEnabled = settingsData['noonReminderEnabled'] ?? false;
+    final eveningFirstEnabled =
+        settingsData['eveningFirstReminderEnabled'] ?? false;
+    final eveningSecondEnabled =
+        settingsData['eveningSecondReminderEnabled'] ?? false;
+    final endOfDayEnabled = settingsData['endOfDayReminderEnabled'] ?? false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -194,81 +223,72 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
           ),
           child: Text('Reminder Schedule', style: theme.textTheme.titleMedium),
         ),
-        Consumer<ReminderSettingsViewModel>(
-          builder:
-              (context, viewModel, _) => Column(
-                children: [
-                  _ReminderSwitch(
-                    title: 'Noon Reminder (${ReminderConfig.noonTime})',
-                    subtitle: 'Daily check of your learning schedule',
-                    value: viewModel.noonReminderEnabled,
-                    icon: Icons.wb_sunny,
-                    enabled: viewModel.remindersEnabled,
-                    theme: theme,
-                    onChanged:
-                        (value) => _updateSetting(
-                          context,
-                          () => viewModel.setNoonReminderEnabled(value),
-                          'Noon reminder ${value ? 'enabled' : 'disabled'}',
-                        ),
-                  ),
-                  _ReminderSwitch(
-                    title:
-                        'Evening Reminder (${ReminderConfig.eveningFirstTime})',
-                    subtitle: 'First reminder for unfinished tasks',
-                    value: viewModel.eveningFirstReminderEnabled,
-                    icon: Icons.nights_stay,
-                    enabled: viewModel.remindersEnabled,
-                    theme: theme,
-                    onChanged:
-                        (value) => _updateSetting(
-                          context,
-                          () => viewModel.setEveningFirstReminderEnabled(value),
-                          'Evening reminder ${value ? 'enabled' : 'disabled'}',
-                        ),
-                  ),
-                  _ReminderSwitch(
-                    title:
-                        'Late Evening Reminder (${ReminderConfig.eveningSecondTime})',
-                    subtitle: 'Second reminder for unfinished tasks',
-                    value: viewModel.eveningSecondReminderEnabled,
-                    icon: Icons.nightlight,
-                    enabled: viewModel.remindersEnabled,
-                    theme: theme,
-                    onChanged:
-                        (value) => _updateSetting(
-                          context,
-                          () =>
-                              viewModel.setEveningSecondReminderEnabled(value),
-                          'Late evening reminder ${value ? 'enabled' : 'disabled'}',
-                        ),
-                  ),
-                  _ReminderSwitch(
-                    title:
-                        'End-of-Day Reminder (${ReminderConfig.endOfDayTime})',
-                    subtitle: 'Final reminder with alarm-style notification',
-                    value: viewModel.endOfDayReminderEnabled,
-                    icon: Icons.bedtime,
-                    enabled: viewModel.remindersEnabled,
-                    theme: theme,
-                    onChanged:
-                        (value) => _updateSetting(
-                          context,
-                          () => viewModel.setEndOfDayReminderEnabled(value),
-                          'End-of-day reminder ${value ? 'enabled' : 'disabled'}',
-                        ),
-                  ),
-                ],
-              ),
+        _ReminderSwitch(
+          title: 'Noon Reminder (${ReminderConfig.noonTime})',
+          subtitle: 'Daily check of your learning schedule',
+          value: noonEnabled,
+          icon: Icons.wb_sunny,
+          enabled: remindersEnabled,
+          theme: theme,
+          onChanged: (value) => _updateSetting(
+            () => ref
+                .read(reminderSettingsStateProvider.notifier)
+                .setNoonReminderEnabled(value),
+            'Noon reminder ${value ? 'enabled' : 'disabled'}',
+          ),
+        ),
+        _ReminderSwitch(
+          title: 'Evening Reminder (${ReminderConfig.eveningFirstTime})',
+          subtitle: 'First reminder for unfinished tasks',
+          value: eveningFirstEnabled,
+          icon: Icons.nights_stay,
+          enabled: remindersEnabled,
+          theme: theme,
+          onChanged: (value) => _updateSetting(
+            () => ref
+                .read(reminderSettingsStateProvider.notifier)
+                .setEveningFirstReminderEnabled(value),
+            'Evening reminder ${value ? 'enabled' : 'disabled'}',
+          ),
+        ),
+        _ReminderSwitch(
+          title: 'Late Evening Reminder (${ReminderConfig.eveningSecondTime})',
+          subtitle: 'Second reminder for unfinished tasks',
+          value: eveningSecondEnabled,
+          icon: Icons.nightlight,
+          enabled: remindersEnabled,
+          theme: theme,
+          onChanged: (value) => _updateSetting(
+            () => ref
+                .read(reminderSettingsStateProvider.notifier)
+                .setEveningSecondReminderEnabled(value),
+            'Late evening reminder ${value ? 'enabled' : 'disabled'}',
+          ),
+        ),
+        _ReminderSwitch(
+          title: 'End-of-Day Reminder (${ReminderConfig.endOfDayTime})',
+          subtitle: 'Final reminder with alarm-style notification',
+          value: endOfDayEnabled,
+          icon: Icons.bedtime,
+          enabled: remindersEnabled,
+          theme: theme,
+          onChanged: (value) => _updateSetting(
+            () => ref
+                .read(reminderSettingsStateProvider.notifier)
+                .setEndOfDayReminderEnabled(value),
+            'End-of-day reminder ${value ? 'enabled' : 'disabled'}',
+          ),
         ),
       ],
     );
   }
 
   Widget _buildExplanationsCard(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Card(
       margin: EdgeInsets.zero,
-      color: theme.colorScheme.surfaceContainerLow,
+      color: colorScheme.surfaceContainerLow,
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
@@ -294,19 +314,19 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingM),
               decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer,
+                color: colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.battery_alert, color: theme.colorScheme.error),
+                  Icon(Icons.battery_alert, color: colorScheme.error),
                   const SizedBox(width: AppDimens.spaceM),
                   Expanded(
                     child: Text(
                       'Some devices may limit notifications. Please make sure to '
                       'disable battery optimization for this app in your device settings.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
+                        color: colorScheme.onErrorContainer,
                       ),
                     ),
                   ),
@@ -320,10 +340,17 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
   }
 
   Widget _buildDevicePermissionsCard(
-    BuildContext context,
-    ReminderSettingsViewModel viewModel,
+    Map<String, dynamic> permissionsData,
     ThemeData theme,
   ) {
+    final isIgnoringBatteryOptimizations =
+        permissionsData['isIgnoringBatteryOptimizations'] ?? false;
+    final hasExactAlarmPermission =
+        permissionsData['hasExactAlarmPermission'] ?? false;
+    final deviceInfo =
+        permissionsData['deviceInfo'] as Map<String, dynamic>? ?? {};
+    final sdkVersion = deviceInfo['sdkVersion'] as int? ?? 0;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -333,57 +360,49 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
             Text('Device Permissions', style: theme.textTheme.titleMedium),
             const SizedBox(height: AppDimens.spaceM),
 
-            Consumer<ReminderSettingsViewModel>(
-              builder:
-                  (context, viewModel, _) => Column(
-                    children: [
-                      _buildPermissionItem(
-                        context,
-                        'Battery Optimization',
-                        viewModel.isIgnoringBatteryOptimizations,
-                        Icons.battery_charging_full,
-                        'Allows reminders to work reliably when the app is in background',
-                        onRequestPermission:
-                            () => _requestPermission(
-                              context,
-                              viewModel.requestBatteryOptimization,
-                              'Battery optimization settings requested',
-                            ),
-                      ),
+            _buildPermissionItem(
+              context,
+              'Battery Optimization',
+              isIgnoringBatteryOptimizations,
+              Icons.battery_charging_full,
+              'Allows reminders to work reliably when the app is in background',
+              onRequestPermission: () => _requestPermission(
+                () => ref
+                    .read(devicePermissionsProvider.notifier)
+                    .requestBatteryOptimization(),
+                'Battery optimization settings requested',
+              ),
+            ),
 
-                      const SizedBox(height: AppDimens.spaceM),
+            const SizedBox(height: AppDimens.spaceM),
 
-                      if (viewModel.deviceInfo['sdkVersion'] != null &&
-                          viewModel.deviceInfo['sdkVersion'] >= 31)
-                        _buildPermissionItem(
-                          context,
-                          'Exact Alarm Permission',
-                          viewModel.hasExactAlarmPermission,
-                          Icons.alarm,
-                          'Allows scheduling reminders at precise times (required for Android 12+)',
-                          onRequestPermission:
-                              () => _requestPermission(
-                                context,
-                                viewModel.requestExactAlarmPermission,
-                                'Exact alarm permission requested',
-                              ),
-                        ),
+            if (sdkVersion >= 31)
+              _buildPermissionItem(
+                context,
+                'Exact Alarm Permission',
+                hasExactAlarmPermission,
+                Icons.alarm,
+                'Allows scheduling reminders at precise times (required for Android 12+)',
+                onRequestPermission: () => _requestPermission(
+                  () => ref
+                      .read(devicePermissionsProvider.notifier)
+                      .requestExactAlarmPermission(),
+                  'Exact alarm permission requested',
+                ),
+              ),
 
-                      const SizedBox(height: AppDimens.spaceL),
+            const SizedBox(height: AppDimens.spaceL),
 
-                      AppButton(
-                        text: 'Disable Device Sleeping Apps',
-                        type: AppButtonType.outline,
-                        prefixIcon: Icons.settings,
-                        onPressed:
-                            () => _requestPermission(
-                              context,
-                              viewModel.disableSleepingApps,
-                              'Opening device-specific settings',
-                            ),
-                      ),
-                    ],
-                  ),
+            AppButton(
+              text: 'Disable Device Sleeping Apps',
+              type: AppButtonType.outline,
+              prefixIcon: Icons.settings,
+              onPressed: () => _requestPermission(
+                () => ref
+                    .read(devicePermissionsProvider.notifier)
+                    .disableSleepingApps(),
+                'Opening device-specific settings',
+              ),
             ),
           ],
         ),
@@ -427,19 +446,17 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
                         vertical: AppDimens.paddingXXS,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            isGranted
-                                ? colorScheme.primaryContainer
-                                : colorScheme.errorContainer,
+                        color: isGranted
+                            ? colorScheme.primaryContainer
+                            : colorScheme.errorContainer,
                         borderRadius: BorderRadius.circular(AppDimens.radiusXS),
                       ),
                       child: Text(
                         isGranted ? 'Granted' : 'Required',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color:
-                              isGranted
-                                  ? colorScheme.onPrimaryContainer
-                                  : colorScheme.onErrorContainer,
+                          color: isGranted
+                              ? colorScheme.onPrimaryContainer
+                              : colorScheme.onErrorContainer,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -466,13 +483,12 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
   }
 
   Future<void> _updateSetting(
-    BuildContext context,
     Future<bool> Function() updateFunc,
     String successMessage,
   ) async {
     try {
       final success = await updateFunc();
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       if (success) {
         SnackBarUtils.show(context, successMessage);
@@ -485,7 +501,7 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
         backgroundColor: Theme.of(context).colorScheme.errorContainer,
       );
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       SnackBarUtils.show(
         context,
@@ -496,19 +512,18 @@ class _ReminderSettingsViewState extends State<_ReminderSettingsView> {
   }
 
   Future<void> _requestPermission(
-    BuildContext context,
     Future<bool> Function() requestFunc,
     String successMessage,
   ) async {
     try {
       final success = await requestFunc();
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       if (success) {
         SnackBarUtils.show(context, successMessage);
       }
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       SnackBarUtils.show(
         context,
@@ -547,10 +562,9 @@ class _ReminderSwitch extends StatelessWidget {
       onChanged: enabled ? onChanged : null,
       secondary: Icon(
         icon,
-        color:
-            (value && enabled)
-                ? theme.colorScheme.primary
-                : theme.colorScheme.outline,
+        color: (value && enabled)
+            ? theme.colorScheme.primary
+            : theme.colorScheme.outline,
       ),
     );
   }

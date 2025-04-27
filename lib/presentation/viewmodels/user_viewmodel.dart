@@ -47,6 +47,16 @@ class UserState extends _$UserState {
       return false;
     }
   }
+
+  // Thêm phương thức clearError để xử lý lỗi
+  void clearError() {
+    // Nếu state hiện tại đang có lỗi, chuyển về trạng thái loading
+    // và sau đó gọi lại loadCurrentUser để refresh
+    if (state.hasError) {
+      state = const AsyncValue.loading();
+      loadCurrentUser();
+    }
+  }
 }
 
 @riverpod

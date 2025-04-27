@@ -1,6 +1,6 @@
 // lib/presentation/screens/report/daily_task_report_screen.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/daily_task_report_viewmodel.dart';
@@ -11,14 +11,15 @@ import 'package:spaced_learning_app/presentation/widgets/report/last_check_card_
 import 'package:spaced_learning_app/presentation/widgets/report/log_card_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/report/status_card_widget.dart';
 
-class DailyTaskReportScreen extends StatefulWidget {
+class DailyTaskReportScreen extends ConsumerStatefulWidget {
   const DailyTaskReportScreen({super.key});
 
   @override
-  State<DailyTaskReportScreen> createState() => _DailyTaskReportScreenState();
+  ConsumerState<DailyTaskReportScreen> createState() =>
+      _DailyTaskReportScreenState();
 }
 
-class _DailyTaskReportScreenState extends State<DailyTaskReportScreen> {
+class _DailyTaskReportScreenState extends ConsumerState<DailyTaskReportScreen> {
   @override
   void initState() {
     super.initState();
@@ -28,15 +29,14 @@ class _DailyTaskReportScreenState extends State<DailyTaskReportScreen> {
   }
 
   Future<void> _loadInitialData() async {
-    final viewModel = context.read<DailyTaskReportViewModel>();
-    await viewModel.loadReportData();
+    await ref.read(dailyTaskReportStateProvider.notifier).loadReportData();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final viewModel = context.watch<DailyTaskReportViewModel>();
+    final viewModelState = ref.watch(dailyTaskReportStateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -44,15 +44,17 @@ class _DailyTaskReportScreenState extends State<DailyTaskReportScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: viewModel.loadReportData,
+            onPressed: () => ref
+                .read(dailyTaskReportStateProvider.notifier)
+                .loadReportData(),
             tooltip: 'Refresh data',
           ),
         ],
       ),
-      body: _buildBody(theme, colorScheme, viewModel),
+      body: _buildBody(theme, colorScheme, viewModelState),
       bottomNavigationBar: BottomBarWidget(
         onPerformManualCheck: _handleManualCheck,
-        isManualCheckInProgress: viewModel.isManualCheckInProgress,
+        isManualCheckInProgress: ref.watch(isManualCheckInProgressProvider),
       ),
     );
   }
@@ -60,50 +62,85 @@ class _DailyTaskReportScreenState extends State<DailyTaskReportScreen> {
   Widget _buildBody(
     ThemeData theme,
     ColorScheme colorScheme,
-    DailyTaskReportViewModel viewModel,
+    AsyncValue<Map<String, dynamic>> viewModelState,
   ) {
-    if (viewModel.isLoading) {
-      return const Center(child: AppLoadingIndicator());
-    }
+    return viewModelState.when(
+      data: (data) {
+        final bool isLoading = data['isManualCheckInProgress'] == true;
 
-    if (viewModel.errorMessage != null) {
-      return Center(
+        if (isLoading && !data.containsKey('isCheckerActive')) {
+          return const Center(child: AppLoadingIndicator());
+        }
+
+        final errorMessage = data['errorMessage'];
+        if (errorMessage != null && !data.containsKey('isCheckerActive')) {
+          return Center(
+            child: ErrorDisplay(
+              message: errorMessage,
+              onRetry: () => ref
+                  .read(dailyTaskReportStateProvider.notifier)
+                  .loadReportData(),
+            ),
+          );
+        }
+
+        return Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: () => ref
+                  .read(dailyTaskReportStateProvider.notifier)
+                  .loadReportData(),
+              child: ListView(
+                padding: const EdgeInsets.all(AppDimens.paddingL),
+                children: [
+                  StatusCardWidget(
+                    isActive: data['isCheckerActive'] ?? false,
+                    onToggle: (value) => ref
+                        .read(dailyTaskReportStateProvider.notifier)
+                        .toggleChecker(value),
+                  ),
+                  const SizedBox(height: AppDimens.spaceXL),
+                  LastCheckCardWidget(
+                    lastCheckTime: data['lastCheckTime'],
+                    lastCheckResult: data['lastCheckResult'] ?? false,
+                    lastCheckTaskCount: data['lastCheckTaskCount'] ?? 0,
+                    lastCheckError: data['lastCheckError'],
+                  ),
+                  const SizedBox(height: AppDimens.spaceXL),
+                  LogCardWidget(
+                    logEntries: data['logEntries'] ?? [],
+                    onClearLogs: () => ref
+                        .read(dailyTaskReportStateProvider.notifier)
+                        .clearLogs(),
+                  ),
+                ],
+              ),
+            ),
+            if (isLoading && data.containsKey('isCheckerActive'))
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => const Center(child: AppLoadingIndicator()),
+      error: (error, stackTrace) => Center(
         child: ErrorDisplay(
-          message: viewModel.errorMessage!,
-          onRetry: viewModel.loadReportData,
+          message: error.toString(),
+          onRetry: () =>
+              ref.read(dailyTaskReportStateProvider.notifier).loadReportData(),
         ),
-      );
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimens.paddingL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          StatusCardWidget(
-            isActive: viewModel.isCheckerActive,
-            onToggle: viewModel.toggleChecker,
-          ),
-          const SizedBox(height: AppDimens.spaceXL),
-          LastCheckCardWidget(
-            lastCheckTime: viewModel.lastCheckTime,
-            lastCheckResult: viewModel.lastCheckResult,
-            lastCheckTaskCount: viewModel.lastCheckTaskCount,
-            lastCheckError: viewModel.lastCheckError,
-          ),
-          const SizedBox(height: AppDimens.spaceXL),
-          LogCardWidget(
-            logEntries: viewModel.logEntries,
-            onClearLogs: viewModel.clearLogs,
-          ),
-        ],
       ),
     );
   }
 
   Future<void> _handleManualCheck() async {
-    final viewModel = context.read<DailyTaskReportViewModel>();
-    final result = await viewModel.performManualCheck();
+    final result = await ref
+        .read(dailyTaskReportStateProvider.notifier)
+        .performManualCheck();
 
     if (!mounted) return;
 
@@ -115,10 +152,11 @@ class _DailyTaskReportScreenState extends State<DailyTaskReportScreen> {
             : 'No tasks due today',
       );
     } else {
+      final currentTheme = Theme.of(context);
       SnackBarUtils.show(
         context,
         'Check failed: ${result.errorMessage ?? "Unknown error"}',
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+        backgroundColor: currentTheme.colorScheme.errorContainer,
       );
     }
   }
