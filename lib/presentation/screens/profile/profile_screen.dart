@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
@@ -11,6 +10,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
+import '../../../core/theme/app_theme_data.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -173,7 +173,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.all(AppDimens.paddingL),
                 child: Consumer(
                   builder: (context, ref, _) {
-                    final isDarkMode = ref.watch(isDarkModeProvider);
+                    // Sử dụng themeMode từ themeModeStateProvider
+                    final themeMode = ref.watch(themeModeStateProvider);
+                    final isDarkMode = themeMode == ThemeMode.dark;
+
                     return Row(
                       children: [
                         Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
@@ -183,8 +186,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         Switch(
                           value: isDarkMode,
                           onChanged: (value) => ref
-                              .read(themeStateProvider.notifier)
-                              .setDarkMode(value),
+                              .read(themeModeStateProvider.notifier)
+                              .toggleTheme(),
                         ),
                       ],
                     );

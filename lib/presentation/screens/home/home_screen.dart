@@ -14,7 +14,6 @@ import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart'
 import 'package:spaced_learning_app/presentation/viewmodels/home_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/dashboard_section.dart';
@@ -23,6 +22,8 @@ import 'package:spaced_learning_app/presentation/widgets/home/home_skeleton_scre
 import 'package:spaced_learning_app/presentation/widgets/home/quick_actions_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/welcome_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_insights_card.dart';
+
+import '../../../core/theme/app_theme_data.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -106,7 +107,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(isDarkModeProvider);
+    // Thay đổi cách theo dõi isDarkMode, sử dụng themeModeStateProvider
+    final themeMode = ref.watch(themeModeStateProvider);
+    final isDarkMode = themeMode == ThemeMode.dark;
+
     final user = ref.watch(currentUserProvider);
     final homeState = ref.watch(homeViewModelProvider);
     final theme = Theme.of(context);
@@ -117,7 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       appBar: HomeAppBar(
         isDarkMode: isDarkMode,
         onThemeToggle: () =>
-            ref.read(themeStateProvider.notifier).toggleTheme(),
+            ref.read(themeModeStateProvider.notifier).toggleTheme(),
         onMenuPressed: () => Scaffold.of(context).openDrawer(),
       ),
       body: Builder(

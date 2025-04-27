@@ -61,7 +61,9 @@ ThemeData darkTheme(Ref ref) => AppTheme.dark;
 class ThemeModeState extends _$ThemeModeState {
   @override
   ThemeMode build() {
-    final isDarkMode = ref.watch(isDarkModeProvider).valueOrNull ?? false;
+    final isDarkMode = ref
+        .watch(isDarkModeProvider)
+        .valueOrNull ?? false;
     return isDarkMode ? ThemeMode.dark : ThemeMode.light;
   }
 
@@ -71,9 +73,13 @@ class ThemeModeState extends _$ThemeModeState {
     if (current == ThemeMode.dark) {
       await storageService.saveDarkMode(false);
       state = ThemeMode.light;
+      // Invalidate isDarkModeProvider để cập nhật giá trị mới
+      ref.invalidate(isDarkModeProvider);
     } else {
       await storageService.saveDarkMode(true);
       state = ThemeMode.dark;
+      // Invalidate isDarkModeProvider để cập nhật giá trị mới
+      ref.invalidate(isDarkModeProvider);
     }
   }
 }
