@@ -63,13 +63,6 @@ class _RepetitionCardState extends State<RepetitionCard>
     _controller.reverse();
   }
 
-  Color _getRepetitionColor(int orderIndex, ColorScheme colorScheme) {
-    return Theme.of(context).getRepetitionColor(
-      widget.repetition.repetitionOrder.index,
-      isHistory: widget.isHistory,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -83,13 +76,13 @@ class _RepetitionCardState extends State<RepetitionCard>
         widget.repetition.reviewDate != null &&
         widget.repetition.reviewDate!.isBefore(DateTime.now());
 
-    // Gán các giá trị màu mặc định
-    Color cardColor = colorScheme.surface;
+    // Sử dụng color scheme từ Material 3
+    Color cardColor = colorScheme.surfaceContainerLowest;
     Color borderColor = colorScheme.outlineVariant;
     Color textColor = colorScheme.onSurface;
     Color iconColor = colorScheme.primary;
 
-    // Ghi đè các màu dựa vào điều kiện
+    // Áp dụng màu sắc dựa trên trạng thái và phù hợp với Material 3
     if (isOverdue) {
       cardColor = colorScheme.errorContainer.withValues(alpha: 0.15);
       borderColor = colorScheme.error.withValues(alpha: 0.7);
@@ -116,9 +109,10 @@ class _RepetitionCardState extends State<RepetitionCard>
       statusIcon = Icons.warning_amber;
     }
 
-    final repetitionColor = _getRepetitionColor(
+    // Sử dụng theme extension để đảm bảo nhất quán màu sắc
+    final repetitionColor = theme.getRepetitionColor(
       widget.repetition.repetitionOrder.index,
-      colorScheme,
+      isHistory: widget.isHistory,
     );
 
     final reviewDateText = widget.repetition.reviewDate != null
@@ -148,7 +142,9 @@ class _RepetitionCardState extends State<RepetitionCard>
               boxShadow: _isHovering
                   ? [
                       BoxShadow(
-                        color: colorScheme.shadow.withValues(alpha: 0.15),
+                        color: colorScheme.shadow.withValues(
+                          alpha: AppDimens.opacityLight,
+                        ),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -177,7 +173,9 @@ class _RepetitionCardState extends State<RepetitionCard>
                             width: AppDimens.iconL,
                             height: AppDimens.iconL,
                             decoration: BoxDecoration(
-                              color: repetitionColor.withValues(alpha: 0.15),
+                              color: repetitionColor.withValues(
+                                alpha: AppDimens.opacityLight,
+                              ),
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: repetitionColor,

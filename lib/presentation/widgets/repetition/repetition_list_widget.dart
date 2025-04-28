@@ -1,3 +1,4 @@
+// lib/presentation/widgets/repetition/repetition_list_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -261,11 +262,9 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
       });
     }
 
-    // Sử dụng màu sắc tinh tế và thống nhất cho cả hai loại section
+    // Sử dụng màu từ color scheme theo Material 3
     final titleIconColor = isHistory
-        ? colorScheme.primary.withValues(
-            alpha: 0.9,
-          ) // Dùng primary thay vì success
+        ? colorScheme.primary.withValues(alpha: AppDimens.opacityVeryHigh)
         : textColor;
 
     return Padding(
@@ -283,7 +282,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
                     color: containerColor,
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
                     border: Border.all(
-                      color: textColor.withValues(alpha: 0.3),
+                      color: textColor.withValues(alpha: AppDimens.opacitySemi),
                       width: 1.5,
                     ),
                   ),
@@ -299,7 +298,9 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: isHistory
-                        ? colorScheme.primary.withValues(alpha: 0.9)
+                        ? colorScheme.primary.withValues(
+                            alpha: AppDimens.opacityVeryHigh,
+                          )
                         : textColor,
                   ),
                 ),
@@ -330,17 +331,15 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
         ? widget.currentCycleStudied
         : _mapNumberToCycleStudied(cycleNumber);
 
-    // Lấy màu cơ bản từ CycleFormatter để đảm bảo nhất quán
+    // Sử dụng màu từ CycleFormatter để đảm bảo nhất quán
     final baseCycleColor = CycleFormatter.getColor(cycleName, context);
 
-    // Tùy chỉnh màu dựa trên trạng thái history và current - thống nhất giữa các loại
+    // Tùy chỉnh màu dựa trên trạng thái, theo Material 3
     final cycleColor = isHistory
-        ? baseCycleColor.withValues(
-            alpha: 0.7,
-          ) // tăng opacity để tương đồng với active
+        ? baseCycleColor.withValues(alpha: AppDimens.opacityVeryHigh)
         : isCurrentCycle
         ? baseCycleColor
-        : baseCycleColor.withValues(alpha: 0.8);
+        : baseCycleColor.withValues(alpha: AppDimens.opacityVeryHigh);
 
     if (!isHistory) {
       repetitions.sort(
@@ -348,28 +347,30 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
       );
     }
 
-    // Thống nhất màu viền và nền cho cả hai loại
+    // Sử dụng màu theo Material 3
     final borderColor = isHistory
-        ? cycleColor.withValues(
-            alpha: 0.3,
-          ) // Dùng màu cycle nhất quán cho cả history
+        ? cycleColor.withValues(alpha: AppDimens.opacitySemi)
         : isCurrentCycle
         ? cycleColor
-        : cycleColor.withValues(alpha: 0.3);
+        : cycleColor.withValues(alpha: AppDimens.opacitySemi);
 
     final backgroundColor = isHistory
         ? colorScheme.surfaceContainerLowest.withValues(
-            alpha: 0.8,
-          ) // Làm nhẹ hơn một chút
+            alpha: AppDimens.opacityVeryHigh,
+          )
         : isCurrentCycle
-        ? cycleColor.withValues(alpha: 0.07)
+        ? cycleColor.withValues(alpha: AppDimens.opacityLight)
         : colorScheme.surfaceContainerLowest;
 
-    // Hiệu ứng shadow tinh tế và thống nhất cho cả hai loại
+    // Shadow theo Material 3
     final boxShadow = isCurrentCycle || isHistory
         ? [
             BoxShadow(
-              color: cycleColor.withValues(alpha: isHistory ? 0.1 : 0.2),
+              color: cycleColor.withValues(
+                alpha: isHistory
+                    ? AppDimens.opacityLight
+                    : AppDimens.opacitySemi,
+              ),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -378,7 +379,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
-      elevation: isCurrentCycle ? 1.0 : 0.5,
+      elevation: isCurrentCycle ? AppDimens.elevationS : AppDimens.elevationXS,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         side: BorderSide(color: borderColor, width: isCurrentCycle ? 1.5 : 1.0),
@@ -426,7 +427,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
     );
   }
 
-  // Tách riêng phần header để tăng tính mô-đun - đồng bộ kiểu hiển thị
+  // Header nhất quán theo Material 3
   Widget _buildCycleHeader(
     ThemeData theme,
     bool isHistory,
@@ -440,20 +441,19 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
         Icon(
           _getCycleIcon(cycleName),
           size: AppDimens.iconS,
-          color: cycleColor, // Sử dụng cùng màu cho cả history và non-history
+          color: cycleColor,
         ),
         const SizedBox(width: AppDimens.spaceXS),
         Text(
           CycleFormatter.format(cycleName),
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: isCurrentCycle ? FontWeight.bold : FontWeight.w500,
-            color: cycleColor, // Sử dụng cùng màu cho cả history và non-history
+            color: cycleColor,
           ),
         ),
         const SizedBox(width: AppDimens.spaceS),
         if (isCurrentCycle) _buildCurrentCycleBadge(theme, colorScheme),
-        if (isHistory)
-          _buildCompletedBadge(theme, colorScheme), // Thêm badge cho completed
+        if (isHistory) _buildCompletedBadge(theme, colorScheme),
       ],
     );
   }
@@ -473,7 +473,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
         borderRadius: BorderRadius.circular(AppDimens.radiusXS),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.1),
+            color: colorScheme.shadow.withValues(alpha: AppDimens.opacityLight),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -490,7 +490,6 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
     );
   }
 
-  // Badge mới cho trạng thái đã hoàn thành, dùng thiết kế tương tự Current badge
   Widget _buildCompletedBadge(ThemeData theme, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -501,7 +500,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
         gradient: LinearGradient(
           colors: [
             colorScheme.primaryContainer,
-            colorScheme.primary.withValues(alpha: 0.2),
+            colorScheme.primary.withValues(alpha: AppDimens.opacitySemi),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -509,7 +508,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
         borderRadius: BorderRadius.circular(AppDimens.radiusXS),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.1),
+            color: colorScheme.shadow.withValues(alpha: AppDimens.opacityLight),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -547,7 +546,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
     }
   }
 
-  // Chọn icon thích hợp cho từng cycle
+  // Chọn icon thích hợp theo Material 3 cho từng cycle
   IconData _getCycleIcon(CycleStudied cycle) {
     switch (cycle) {
       case CycleStudied.firstTime:
