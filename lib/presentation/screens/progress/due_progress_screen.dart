@@ -11,6 +11,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
+import '../../../core/utils/date_utils.dart';
 
 class DueProgressScreen extends ConsumerStatefulWidget {
   const DueProgressScreen({super.key});
@@ -472,7 +473,7 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
             Text(
               _selectedDate == null
                   ? 'No modules due for review today!'
-                  : 'No modules due for review by ${_dateFormat.format(_selectedDate!)}',
+                  : 'No modules due for review by ${AppDateUtils.formatDate(_selectedDate!)}',
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
