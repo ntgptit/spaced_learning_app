@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
 
 class ScoreInputDialogContent extends ConsumerStatefulWidget {
   final ValueNotifier<double> scoreNotifier;
@@ -113,7 +114,7 @@ class _ScoreInputDialogContentState
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final scoreColor = _getScoreColor(colorScheme, _currentScore);
+    final scoreColor = Theme.of(context).getScoreColor(_currentScore);
     final scoreTextStyle = textTheme.displaySmall?.copyWith(
       fontWeight: FontWeight.bold,
       color: scoreColor,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 
 class RepetitionCard extends StatefulWidget {
@@ -63,23 +64,10 @@ class _RepetitionCardState extends State<RepetitionCard>
   }
 
   Color _getRepetitionColor(int orderIndex, ColorScheme colorScheme) {
-    final List<Color> repetitionColors = [
-      Color(0xFF4CAF50).withValues(alpha: 0.9), // Green nhạt hơn
-      Color(0xFF2196F3).withValues(alpha: 0.9), // Blue nhạt hơn
-      Color(0xFFF57C00).withValues(alpha: 0.85), // Orange nhẹ hơn
-      Color(0xFF9C27B0).withValues(alpha: 0.85), // Purple nhẹ hơn
-      Color(0xFFE53935).withValues(alpha: 0.8), // Red nhẹ hơn
-    ];
-
-    final baseColor =
-        repetitionColors[(orderIndex - 1) % repetitionColors.length];
-
-    // Dùng độ sáng/bão hòa khác nhau dựa trên trạng thái
-    if (widget.isHistory) {
-      return baseColor.withValues(alpha: 0.7);
-    }
-
-    return baseColor;
+    return Theme.of(context).getRepetitionColor(
+      widget.repetition.repetitionOrder.index,
+      isHistory: widget.isHistory,
+    );
   }
 
   @override

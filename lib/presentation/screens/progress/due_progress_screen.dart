@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
@@ -780,20 +781,12 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
   }
 
   Color _getProgressColor(double percent, ColorScheme colorScheme) {
-    if (percent >= 90) return colorScheme.tertiary;
-    if (percent >= 60) return colorScheme.primary;
-    if (percent >= 30) return colorScheme.secondary;
-    return colorScheme.error;
+    return Theme.of(context).getProgressColor(percent);
   }
 
-  Color _getCycleColor(CycleStudied cycle, ColorScheme colorScheme) =>
-      switch (cycle) {
-        CycleStudied.firstTime => colorScheme.primary,
-        CycleStudied.firstReview => colorScheme.secondary,
-        CycleStudied.secondReview => colorScheme.tertiary,
-        CycleStudied.thirdReview => Colors.orange,
-        CycleStudied.moreThanThreeReviews => Colors.purple,
-      };
+  Color _getCycleColor(CycleStudied cycle, ColorScheme colorScheme) {
+    return Theme.of(context).getCycleColor(cycle);
+  }
 
   Widget _buildStatItem(
     ThemeData theme,

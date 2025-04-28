@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
+import 'package:spaced_learning_app/domain/models/progress.dart';
 
-class ThemeHelpers {
-  /// Lấy màu score dựa trên giá trị điểm và theme hiện tại
-  static Color getScoreColor(double score, ColorScheme colorScheme) {
+/// Extension providing semantic color utilities for theming
+extension SemanticColorExtension on ThemeData {
+  // Colors based on score value
+  Color getScoreColor(double score) {
+    final colorScheme = this.colorScheme;
+
+    // Increased contrast by using stronger colors
     if (score >= 90) return Colors.green.shade700;
     if (score >= 75) return colorScheme.primary;
     if (score >= 60) return colorScheme.secondary;
@@ -11,27 +16,78 @@ class ThemeHelpers {
     return colorScheme.error;
   }
 
-  /// Lấy màu text có độ tương phản tốt với màu nền đã cho
-  static Color getContrastTextColor(Color backgroundColor) {
-    // Tính độ sáng của màu
-    final brightness = backgroundColor.computeLuminance();
-    // Nếu màu nền tối, trả về màu text sáng và ngược lại
-    return brightness > 0.5 ? Colors.black : Colors.white;
+  // Colors for repetition order
+  Color getRepetitionColor(int orderIndex, {bool isHistory = false}) {
+    final List<Color> repetitionColors = [
+      const Color(0xFF4CAF50).withValues(alpha: 0.9), // Lighter green
+      const Color(0xFF2196F3).withValues(alpha: 0.9), // Lighter blue
+      const Color(0xFFF57C00).withValues(alpha: 0.85), // Lighter orange
+      const Color(0xFF9C27B0).withValues(alpha: 0.85), // Lighter purple
+      const Color(0xFFE53935).withValues(alpha: 0.8), // Lighter red
+    ];
+
+    final baseColor =
+        repetitionColors[(orderIndex - 1) % repetitionColors.length];
+
+    // Use different opacity based on state
+    return isHistory ? baseColor.withValues(alpha: 0.7) : baseColor;
   }
 
-  /// Tạo background màu nhạt dựa trên màu chính
-  static Color getLightBackgroundColor(Color color, {double alpha = 0.2}) {
-    return color.withValues(alpha: alpha);
+  // Colors based on completion percentage
+  Color getProgressColor(double percent) {
+    final colorScheme = this.colorScheme;
+
+    if (percent >= 90) return colorScheme.tertiary;
+    if (percent >= 60) return colorScheme.primary;
+    if (percent >= 30) return colorScheme.secondary;
+    return colorScheme.error;
   }
 
-  /// Lấy màu dựa trên trạng thái hoàn thành
-  static Color getCompletionColor(
-    bool isCompleted,
-    bool isOverdue,
-    ColorScheme colorScheme,
-  ) {
-    if (isOverdue) return colorScheme.error;
-    if (isCompleted) return colorScheme.success;
-    return colorScheme.primary;
+  // Colors for CycleStudied
+  Color getCycleColor(CycleStudied cycle) {
+    final colorScheme = this.colorScheme;
+
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return colorScheme.primary;
+      case CycleStudied.firstReview:
+        return colorScheme.secondary;
+      case CycleStudied.secondReview:
+        return colorScheme.tertiary;
+      case CycleStudied.thirdReview:
+        return Colors.orange;
+      case CycleStudied.moreThanThreeReviews:
+        return Colors.purple;
+    }
+  }
+}
+
+/// Extension for semantic colors on ColorScheme
+extension SemanticColorSchemeExtension on ColorScheme {
+  // Get semantic color for a stat type
+  Color getStatColor(String statType) {
+    switch (statType) {
+      case 'success':
+        return success;
+      case 'warning':
+        return warning;
+      case 'error':
+        return error;
+      case 'info':
+        return info;
+      case 'primary':
+        return primary;
+      case 'secondary':
+        return secondary;
+      case 'tertiary':
+        return tertiary;
+      default:
+        return onSurfaceVariant.withValues(alpha: 0.6);
+    }
+  }
+
+  // Get background color for a stat with appropriate opacity
+  Color getStatBackgroundColor(String statType, {double opacity = 0.1}) {
+    return getStatColor(statType).withValues(alpha: opacity);
   }
 }

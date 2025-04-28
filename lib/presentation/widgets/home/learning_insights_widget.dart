@@ -1,6 +1,7 @@
 // lib/presentation/widgets/home/learning_insights_widget.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
 
 class LearningInsightsWidget extends StatelessWidget {
   final double vocabularyRate;
@@ -51,7 +52,7 @@ class LearningInsightsWidget extends StatelessWidget {
       children: [
         Icon(
           Icons.insights_outlined,
-          color: colorScheme.tertiary,
+          color: colorScheme.getStatColor('tertiary'),
           size: AppDimens.iconM,
         ),
         const SizedBox(width: AppDimens.spaceS),
@@ -71,11 +72,6 @@ class LearningInsightsWidget extends StatelessWidget {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
-    final Color rateColor = colorScheme.secondary;
-    final Color streakColor = colorScheme.tertiary;
-    final Color pendingColor = colorScheme.primaryContainer;
-    final Color dueColor = colorScheme.primary;
-
     return Column(
       children: [
         _buildInsightItem(
@@ -84,7 +80,7 @@ class LearningInsightsWidget extends StatelessWidget {
           colorScheme,
           'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
           Icons.trending_up,
-          rateColor,
+          'secondary',
         ),
         _buildInsightItem(
           context,
@@ -92,7 +88,7 @@ class LearningInsightsWidget extends StatelessWidget {
           colorScheme,
           'Your current streak is $streakDays days - keep going!',
           Icons.local_fire_department_outlined,
-          streakColor,
+          'tertiary',
         ),
         _buildInsightItem(
           context,
@@ -100,7 +96,7 @@ class LearningInsightsWidget extends StatelessWidget {
           colorScheme,
           'You have $pendingWords words pending to learn',
           Icons.hourglass_empty_outlined,
-          pendingColor,
+          'primary',
         ),
         _buildInsightItem(
           context,
@@ -108,7 +104,7 @@ class LearningInsightsWidget extends StatelessWidget {
           colorScheme,
           'Complete today\'s $dueToday sessions to maintain your streak',
           Icons.today_outlined,
-          dueColor,
+          'warning',
         ),
       ],
     );
@@ -120,8 +116,10 @@ class LearningInsightsWidget extends StatelessWidget {
     ColorScheme colorScheme,
     String message,
     IconData icon,
-    Color color,
+    String colorType,
   ) {
+    final color = colorScheme.getStatColor(colorType);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
       child: Row(
