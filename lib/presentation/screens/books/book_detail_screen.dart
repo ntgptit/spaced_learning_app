@@ -131,9 +131,9 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                               .loadModulesByBookId(widget.bookId),
                         ),
                         loading: () =>
-                            const Center(child: AppLoadingIndicator()),
+                            const Center(child: SLLoadingIndicator()),
                         error: (error, stack) => Center(
-                          child: ErrorDisplay(
+                          child: SLErrorView(
                             message: error.toString(),
                             onRetry: () => ref
                                 .read(modulesStateProvider.notifier)
@@ -151,12 +151,12 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       },
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('Book Details')),
-        body: const Center(child: AppLoadingIndicator()),
+        body: const Center(child: SLLoadingIndicator()),
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Book Details')),
         body: Center(
-          child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
+          child: SLErrorView(message: error.toString(), onRetry: _loadData),
         ),
       ),
     );

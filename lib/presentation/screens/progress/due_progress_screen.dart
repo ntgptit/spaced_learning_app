@@ -418,9 +418,9 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
           ),
         );
       },
-      loading: () => const Center(child: AppLoadingIndicator()),
+      loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, _) => Center(
-        child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
+        child: SLErrorView(message: error.toString(), onRetry: _loadData),
       ),
     );
   }
@@ -505,12 +505,12 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     return progressAsync.when(
       data: (progressRecords) {
         if (progressRecords.isEmpty && progressAsync.isLoading) {
-          return const Center(child: AppLoadingIndicator());
+          return const Center(child: SLLoadingIndicator());
         }
 
         if (progressAsync.hasError) {
           return Center(
-            child: ErrorDisplay(
+            child: SLErrorView(
               message: progressAsync.error.toString(),
               onRetry: _loadData,
             ),
@@ -522,7 +522,7 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                AppLoadingIndicator(),
+                SLLoadingIndicator(),
                 SizedBox(height: 16),
                 Text('Loading module information...'),
               ],
@@ -606,9 +606,9 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
           ),
         );
       },
-      loading: () => const Center(child: AppLoadingIndicator()),
+      loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, _) => Center(
-        child: ErrorDisplay(message: error.toString(), onRetry: _loadData),
+        child: SLErrorView(message: error.toString(), onRetry: _loadData),
       ),
     );
   }

@@ -135,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // Kiểm tra trạng thái lỗi
           if (ref.read(homeViewModelProvider.notifier).hasError) {
             return Center(
-              child: ErrorDisplay(
+              child: SLErrorView(
                 message: 'Failed to load data: ${homeState.errorMessage}',
                 onRetry: _refreshData,
               ),
@@ -179,7 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         statsAsync.hasError || insightsAsync.hasError || progressAsync.hasError;
     if (hasError) {
       return Center(
-        child: ErrorDisplay(
+        child: SLErrorView(
           message: 'Failed to load content. Please try again.',
           onRetry: _refreshData,
         ),
@@ -238,9 +238,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
                 const SizedBox(height: AppDimens.spaceM),
-                AppButton(
+                SLButton(
                   text: 'Load Statistics',
-                  type: AppButtonType.primary,
+                  type: SLButtonType.primary,
                   onPressed: _refreshData,
                 ),
               ],
@@ -365,9 +365,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                       ),
                 const SizedBox(height: AppDimens.spaceL),
-                AppButton(
+                SLButton(
                   text: 'View Due Tasks',
-                  type: AppButtonType.primary,
+                  type: SLButtonType.primary,
                   prefixIcon: Icons.play_arrow,
                   onPressed: () => GoRouter.of(context).go('/due-progress'),
                 ),

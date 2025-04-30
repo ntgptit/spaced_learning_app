@@ -156,7 +156,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeader(theme),
-                    _buildErrorDisplay(authError, theme),
+                    _buildSLErrorView(authError, theme),
                     _buildNameFields(),
                     const SizedBox(height: 16),
                     _buildAuthFields(theme),
@@ -195,11 +195,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildErrorDisplay(String? errorMessage, ThemeData theme) {
+  Widget _buildSLErrorView(String? errorMessage, ThemeData theme) {
     return errorMessage != null
         ? Column(
             children: [
-              ErrorDisplay(
+              SLErrorView(
                 message: errorMessage,
                 compact: true,
                 onRetry: () =>
@@ -214,7 +214,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget _buildNameFields() {
     return Column(
       children: [
-        AppTextField(
+        SLTextField(
           label: 'First Name',
           hint: 'Enter your first name',
           controller: _firstNameController,
@@ -225,7 +225,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onEditingComplete: _validateFirstName,
         ),
         const SizedBox(height: 16),
-        AppTextField(
+        SLTextField(
           label: 'Last Name',
           hint: 'Enter your last name',
           controller: _lastNameController,
@@ -242,7 +242,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget _buildAuthFields(ThemeData theme) {
     return Column(
       children: [
-        AppTextField(
+        SLTextField(
           label: 'Username',
           hint: 'Enter your username',
           controller: _usernameController,
@@ -253,7 +253,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onEditingComplete: _validateUsername,
         ),
         const SizedBox(height: 16),
-        AppTextField(
+        SLTextField(
           label: 'Email',
           hint: 'Enter your email',
           controller: _emailController,
@@ -264,7 +264,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onEditingComplete: _validateEmail,
         ),
         const SizedBox(height: 16),
-        AppPasswordField(
+        SLPasswordField(
           label: 'Password',
           hint: 'Enter your password',
           controller: _passwordController,
@@ -280,7 +280,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onEditingComplete: _validatePassword,
         ),
         const SizedBox(height: 16),
-        AppPasswordField(
+        SLPasswordField(
           label: 'Confirm Password',
           hint: 'Confirm your password',
           controller: _confirmPasswordController,
@@ -297,7 +297,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Column(
       children: [
         const SizedBox(height: 24),
-        AppButton(
+        SLButton(
           text: 'Register',
           onPressed: _register,
           isLoading: isLoading,

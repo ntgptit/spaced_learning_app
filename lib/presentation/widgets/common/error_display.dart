@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
-class ErrorDisplay extends StatelessWidget {
+class SLErrorView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
   final IconData? icon;
   final bool compact;
   final ThemeData? theme;
 
-  const ErrorDisplay({
+  const SLErrorView({
     super.key,
     required this.message,
     this.onRetry,
@@ -52,9 +52,9 @@ class ErrorDisplay extends StatelessWidget {
             if (onRetry != null)
               Padding(
                 padding: const EdgeInsets.only(left: AppDimens.paddingM),
-                child: AppButton(
+                child: SLButton(
                   text: 'Retry',
-                  type: AppButtonType.text,
+                  type: SLButtonType.text,
                   onPressed: onRetry,
                 ),
               ),
@@ -87,9 +87,9 @@ class ErrorDisplay extends StatelessWidget {
             if (onRetry != null)
               Padding(
                 padding: const EdgeInsets.only(top: AppDimens.paddingXL),
-                child: AppButton(
+                child: SLButton(
                   text: 'Try Again',
-                  type: AppButtonType.outline,
+                  type: SLButtonType.outline,
                   prefixIcon: Icons.refresh,
                   onPressed: onRetry,
                 ),

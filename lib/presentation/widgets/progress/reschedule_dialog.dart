@@ -68,7 +68,6 @@ class _RescheduleDialogContentState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -202,18 +201,18 @@ class _RescheduleDialogContentState
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        AppButton(
+        SLButton(
           text: 'Cancel',
-          type: AppButtonType.text,
-          size: AppButtonSize.small,
+          type: SLButtonType.text,
+          size: SLButtonSize.small,
           onPressed: widget.onCancel,
         ),
         const SizedBox(width: AppDimens.spaceM),
-        AppButton(
+        SLButton(
           text: 'Reschedule',
-          type: AppButtonType.primary,
+          type: SLButtonType.primary,
           prefixIcon: Icons.calendar_today,
-          size: AppButtonSize.small,
+          size: SLButtonSize.small,
           onPressed: widget.onReschedule,
         ),
       ],

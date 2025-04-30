@@ -82,7 +82,7 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
         final isInitialized = settingsData.isNotEmpty;
 
         if (isLoading && !isInitialized) {
-          return const Center(child: AppLoadingIndicator());
+          return const Center(child: SLLoadingIndicator());
         }
 
         return permissionsAsync.when(
@@ -119,9 +119,9 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
               ],
             );
           },
-          loading: () => const Center(child: AppLoadingIndicator()),
+          loading: () => const Center(child: SLLoadingIndicator()),
           error: (error, stackTrace) => Center(
-            child: ErrorDisplay(
+            child: SLErrorView(
               message: 'Failed to load device permissions: $error',
               onRetry: () =>
                   ref.read(devicePermissionsProvider.notifier).build(),
@@ -129,9 +129,9 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
           ),
         );
       },
-      loading: () => const Center(child: AppLoadingIndicator()),
+      loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, stackTrace) => Center(
-        child: ErrorDisplay(
+        child: SLErrorView(
           message: 'Failed to load reminder settings: $error',
           onRetry: () => ref
               .read(reminderSettingsStateProvider.notifier)
@@ -393,9 +393,9 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
 
             const SizedBox(height: AppDimens.spaceL),
 
-            AppButton(
+            SLButton(
               text: 'Disable Device Sleeping Apps',
-              type: AppButtonType.outline,
+              type: SLButtonType.outline,
               prefixIcon: Icons.settings,
               onPressed: () => _requestPermission(
                 () => ref
@@ -467,10 +467,10 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
                 Text(description, style: theme.textTheme.bodySmall),
                 if (!isGranted) ...[
                   const SizedBox(height: AppDimens.spaceS),
-                  AppButton(
+                  SLButton(
                     text: 'Request Permission',
-                    type: AppButtonType.primary,
-                    size: AppButtonSize.small,
+                    type: SLButtonType.primary,
+                    size: SLButtonSize.small,
                     onPressed: onRequestPermission,
                   ),
                 ],

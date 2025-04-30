@@ -69,13 +69,13 @@ class _DailyTaskReportScreenState extends ConsumerState<DailyTaskReportScreen> {
         final bool isLoading = data['isManualCheckInProgress'] == true;
 
         if (isLoading && !data.containsKey('isCheckerActive')) {
-          return const Center(child: AppLoadingIndicator());
+          return const Center(child: SLLoadingIndicator());
         }
 
         final errorMessage = data['errorMessage'];
         if (errorMessage != null && !data.containsKey('isCheckerActive')) {
           return Center(
-            child: ErrorDisplay(
+            child: SLErrorView(
               message: errorMessage,
               onRetry: () => ref
                   .read(dailyTaskReportStateProvider.notifier)
@@ -126,9 +126,9 @@ class _DailyTaskReportScreenState extends ConsumerState<DailyTaskReportScreen> {
           ],
         );
       },
-      loading: () => const Center(child: AppLoadingIndicator()),
+      loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, stackTrace) => Center(
-        child: ErrorDisplay(
+        child: SLErrorView(
           message: error.toString(),
           onRetry: () =>
               ref.read(dailyTaskReportStateProvider.notifier).loadReportData(),

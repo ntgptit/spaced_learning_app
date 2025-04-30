@@ -3,7 +3,7 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 enum ProgressType { linear, circular }
 
-class AppProgressIndicator extends StatefulWidget {
+class SLProgressIndicator extends StatefulWidget {
   final ProgressType type;
   final double? value;
   final double size;
@@ -18,7 +18,7 @@ class AppProgressIndicator extends StatefulWidget {
   final bool animate;
   final Duration animationDuration;
 
-  const AppProgressIndicator({
+  const SLProgressIndicator({
     super.key,
     this.type = ProgressType.circular,
     this.value,
@@ -36,10 +36,10 @@ class AppProgressIndicator extends StatefulWidget {
   });
 
   @override
-  State<AppProgressIndicator> createState() => _AppProgressIndicatorState();
+  State<SLProgressIndicator> createState() => _SLProgressIndicatorState();
 }
 
-class _AppProgressIndicatorState extends State<AppProgressIndicator>
+class _SLProgressIndicatorState extends State<SLProgressIndicator>
     with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   late Animation<double> _fadeAnimation;
@@ -52,7 +52,7 @@ class _AppProgressIndicatorState extends State<AppProgressIndicator>
   }
 
   @override
-  void didUpdateWidget(AppProgressIndicator oldWidget) {
+  void didUpdateWidget(SLProgressIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.animate != widget.animate) {
       _teardownAnimation();

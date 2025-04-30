@@ -92,7 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeader(theme),
-                    _buildErrorDisplay(authError, theme),
+                    _buildSLErrorView(authError, theme),
                     _buildFormFields(theme),
                     _buildActions(authState.isLoading, theme),
                   ],
@@ -129,11 +129,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildErrorDisplay(String? errorMessage, ThemeData theme) {
+  Widget _buildSLErrorView(String? errorMessage, ThemeData theme) {
     return errorMessage != null
         ? Column(
             children: [
-              ErrorDisplay(
+              SLErrorView(
                 message: errorMessage,
                 compact: true,
                 onRetry: () =>
@@ -148,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget _buildFormFields(ThemeData theme) {
     return Column(
       children: [
-        AppTextField(
+        SLTextField(
           label: 'Username or Email',
           hint: 'Enter your username or email',
           controller: _usernameOrEmailController,
@@ -159,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onEditingComplete: _validateUsernameOrEmail,
         ),
         const SizedBox(height: 16),
-        AppPasswordField(
+        SLPasswordField(
           label: 'Password',
           hint: 'Enter your password',
           controller: _passwordController,
@@ -176,7 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       children: [
         const SizedBox(height: 24),
-        AppButton(
+        SLButton(
           text: 'Login',
           onPressed: _login,
           isLoading: isLoading,

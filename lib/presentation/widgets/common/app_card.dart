@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class AppCard extends StatelessWidget {
+class SLCard extends StatelessWidget {
   final Widget? title;
   final Widget? subtitle;
   final Widget? leading;
@@ -22,7 +22,7 @@ class AppCard extends StatelessWidget {
   final LinearGradient? customGradient;
   final bool applyOuterShadow;
 
-  const AppCard({
+  const SLCard({
     super.key,
     this.title,
     this.subtitle,

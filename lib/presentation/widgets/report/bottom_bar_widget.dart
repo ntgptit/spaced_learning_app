@@ -21,10 +21,10 @@ class BottomBarWidget extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: AppButton(
+              child: SLButton(
                 text: 'Check Now',
                 prefixIcon: Icons.refresh,
-                type: AppButtonType.primary,
+                type: SLButtonType.primary,
                 isLoading: isManualCheckInProgress,
                 onPressed: onPerformManualCheck,
               ),

@@ -67,7 +67,7 @@ class _ScaffoldWithBottomBarState extends ConsumerState<ScaffoldWithBottomBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const SLDrawer(),
       body: widget.child,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );

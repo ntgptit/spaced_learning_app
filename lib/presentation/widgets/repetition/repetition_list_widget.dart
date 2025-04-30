@@ -147,7 +147,7 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
         );
       },
       loading: () => _buildLoadingState(theme, colorScheme),
-      error: (error, stackTrace) => ErrorDisplay(
+      error: (error, stackTrace) => SLErrorView(
         message: error.toString(),
         onRetry: () => ref
             .read(repetitionStateProvider.notifier)
@@ -223,9 +223,9 @@ class _RepetitionListWidgetState extends ConsumerState<RepetitionListWidget>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimens.spaceXL),
-            AppButton(
+            SLButton(
               text: 'Create Review Schedule',
-              type: AppButtonType.primary,
+              type: SLButtonType.primary,
               prefixIcon: Icons.add_circle_outline,
               onPressed: () async {
                 await ref

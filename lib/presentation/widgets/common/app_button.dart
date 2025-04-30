@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-enum AppButtonType {
+enum SLButtonType {
   primary,
   secondary,
   outline,
@@ -14,13 +14,13 @@ enum AppButtonType {
   gradient,
 }
 
-enum AppButtonSize { tiny, small, medium, large, xlarge }
+enum SLButtonSize { tiny, small, medium, large, xlarge }
 
-class AppButton extends StatelessWidget {
+class SLButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
-  final AppButtonType type;
-  final AppButtonSize size;
+  final SLButtonType type;
+  final SLButtonSize size;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
   final Widget? prefixWidget;
@@ -37,12 +37,12 @@ class AppButton extends StatelessWidget {
   final BorderRadius? customBorderRadius;
   final LinearGradient? customGradient;
 
-  const AppButton({
+  const SLButton({
     super.key,
     required this.text,
     this.onPressed,
-    this.type = AppButtonType.primary,
-    this.size = AppButtonSize.medium,
+    this.type = SLButtonType.primary,
+    this.size = SLButtonSize.medium,
     this.prefixIcon,
     this.suffixIcon,
     this.prefixWidget,
@@ -73,7 +73,7 @@ class AppButton extends StatelessWidget {
 
     // Configure size parameters
     switch (size) {
-      case AppButtonSize.tiny:
+      case SLButtonSize.tiny:
         padding = const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingS,
           vertical: AppDimens.paddingXS,
@@ -86,7 +86,7 @@ class AppButton extends StatelessWidget {
           letterSpacing: 0.25,
         );
         break;
-      case AppButtonSize.small:
+      case SLButtonSize.small:
         padding = const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
           vertical: AppDimens.paddingS,
@@ -99,7 +99,7 @@ class AppButton extends StatelessWidget {
           letterSpacing: 0.5,
         );
         break;
-      case AppButtonSize.medium:
+      case SLButtonSize.medium:
         padding = const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingL + 4,
           vertical: AppDimens.paddingM,
@@ -112,7 +112,7 @@ class AppButton extends StatelessWidget {
           letterSpacing: 0.5,
         );
         break;
-      case AppButtonSize.large:
+      case SLButtonSize.large:
         padding = const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingXL,
           vertical: AppDimens.paddingL,
@@ -125,7 +125,7 @@ class AppButton extends StatelessWidget {
           letterSpacing: 0.5,
         );
         break;
-      case AppButtonSize.xlarge:
+      case SLButtonSize.xlarge:
         padding = const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingXXL,
           vertical: AppDimens.paddingL + 4,
@@ -148,31 +148,31 @@ class AppButton extends StatelessWidget {
     LinearGradient? defaultGradient;
 
     switch (type) {
-      case AppButtonType.primary:
+      case SLButtonType.primary:
         defaultBackgroundColor = colorScheme.primary;
         defaultTextColor = colorScheme.onPrimary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
-      case AppButtonType.secondary:
+      case SLButtonType.secondary:
         defaultBackgroundColor = colorScheme.secondary;
         defaultTextColor = colorScheme.onSecondary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
-      case AppButtonType.outline:
+      case SLButtonType.outline:
         defaultBackgroundColor = Colors.transparent;
         defaultTextColor = colorScheme.primary;
         defaultBorderColor = colorScheme.outline;
         defaultElevation = 0;
         break;
-      case AppButtonType.text:
+      case SLButtonType.text:
         defaultBackgroundColor = Colors.transparent;
         defaultTextColor = colorScheme.primary;
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
         break;
-      case AppButtonType.ghost:
+      case SLButtonType.ghost:
         defaultBackgroundColor = colorScheme.primary.withValues(
           alpha: AppDimens.opacityLight,
         );
@@ -180,25 +180,25 @@ class AppButton extends StatelessWidget {
         defaultBorderColor = Colors.transparent;
         defaultElevation = 0;
         break;
-      case AppButtonType.error:
+      case SLButtonType.error:
         defaultBackgroundColor = colorScheme.error;
         defaultTextColor = colorScheme.onError;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
-      case AppButtonType.success:
+      case SLButtonType.success:
         defaultBackgroundColor = colorScheme.success;
         defaultTextColor = colorScheme.onSuccess;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
-      case AppButtonType.warning:
+      case SLButtonType.warning:
         defaultBackgroundColor = colorScheme.warning;
         defaultTextColor = colorScheme.onWarning;
         defaultBorderColor = Colors.transparent;
         defaultElevation = AppDimens.elevationS;
         break;
-      case AppButtonType.gradient:
+      case SLButtonType.gradient:
         defaultBackgroundColor = Colors.transparent;
         defaultTextColor = Colors.white;
         defaultBorderColor = Colors.transparent;
@@ -221,7 +221,7 @@ class AppButton extends StatelessWidget {
         customBorderRadius ?? BorderRadius.circular(borderRadius);
 
     // Build gradient button if type is gradient
-    if (type == AppButtonType.gradient) {
+    if (type == SLButtonType.gradient) {
       return SizedBox(
         width: width ?? (isFullWidth ? double.infinity : null),
         height: height,
@@ -268,12 +268,12 @@ class AppButton extends StatelessWidget {
     // Build regular button based on type
     Widget button;
     switch (type) {
-      case AppButtonType.primary:
-      case AppButtonType.secondary:
-      case AppButtonType.error:
-      case AppButtonType.success:
-      case AppButtonType.warning:
-      case AppButtonType.ghost:
+      case SLButtonType.primary:
+      case SLButtonType.secondary:
+      case SLButtonType.error:
+      case SLButtonType.success:
+      case SLButtonType.warning:
+      case SLButtonType.ghost:
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
@@ -292,9 +292,7 @@ class AppButton extends StatelessWidget {
             disabledForegroundColor: colorScheme.onSurface.withValues(
               alpha: AppDimens.opacityDisabled,
             ),
-            shadowColor: type == AppButtonType.ghost
-                ? Colors.transparent
-                : null,
+            shadowColor: type == SLButtonType.ghost ? Colors.transparent : null,
           ),
           child: _buildContent(
             effectiveTextColor,
@@ -306,7 +304,7 @@ class AppButton extends StatelessWidget {
         );
         break;
 
-      case AppButtonType.outline:
+      case SLButtonType.outline:
         button = OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
@@ -333,7 +331,7 @@ class AppButton extends StatelessWidget {
         );
         break;
 
-      case AppButtonType.text:
+      case SLButtonType.text:
         button = TextButton(
           onPressed: isLoading ? null : onPressed,
           style: TextButton.styleFrom(
@@ -356,7 +354,7 @@ class AppButton extends StatelessWidget {
         );
         break;
 
-      case AppButtonType.gradient:
+      case SLButtonType.gradient:
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
@@ -397,14 +395,14 @@ class AppButton extends StatelessWidget {
     // Show loading indicator when in loading state
     if (isLoading) {
       return SizedBox(
-        width: size == AppButtonSize.tiny || size == AppButtonSize.small
+        width: size == SLButtonSize.tiny || size == SLButtonSize.small
             ? AppDimens.iconS
             : AppDimens.iconM,
-        height: size == AppButtonSize.tiny || size == AppButtonSize.small
+        height: size == SLButtonSize.tiny || size == SLButtonSize.small
             ? AppDimens.iconS
             : AppDimens.iconM,
         child: CircularProgressIndicator(
-          strokeWidth: size == AppButtonSize.tiny || size == AppButtonSize.small
+          strokeWidth: size == SLButtonSize.tiny || size == SLButtonSize.small
               ? AppDimens.lineProgressHeight / 2
               : AppDimens.lineProgressHeight * 0.625,
           valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
@@ -419,7 +417,7 @@ class AppButton extends StatelessWidget {
       children.add(prefixWidget!);
       children.add(
         SizedBox(
-          width: size == AppButtonSize.tiny
+          width: size == SLButtonSize.tiny
               ? AppDimens.spaceXS
               : AppDimens.spaceS,
         ),
@@ -428,7 +426,7 @@ class AppButton extends StatelessWidget {
       children.add(Icon(prefixIcon, size: iconSize, color: iconColor));
       children.add(
         SizedBox(
-          width: size == AppButtonSize.tiny
+          width: size == SLButtonSize.tiny
               ? AppDimens.spaceXS
               : AppDimens.spaceS,
         ),
@@ -440,7 +438,7 @@ class AppButton extends StatelessWidget {
     if (suffixWidget != null) {
       children.add(
         SizedBox(
-          width: size == AppButtonSize.tiny
+          width: size == SLButtonSize.tiny
               ? AppDimens.spaceXS
               : AppDimens.spaceS,
         ),
@@ -449,7 +447,7 @@ class AppButton extends StatelessWidget {
     } else if (suffixIcon != null) {
       children.add(
         SizedBox(
-          width: size == AppButtonSize.tiny
+          width: size == SLButtonSize.tiny
               ? AppDimens.spaceXS
               : AppDimens.spaceS,
         ),

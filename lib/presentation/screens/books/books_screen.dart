@@ -220,12 +220,12 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                       _isSearching ? 'Search results' : 'Books Library',
                     ),
                     error: (error, stackTrace) => Center(
-                      child: ErrorDisplay(
+                      child: SLErrorView(
                         message: error.toString(),
                         onRetry: () => _loadData(forceRefresh: true),
                       ),
                     ),
-                    loading: () => const Center(child: AppLoadingIndicator()),
+                    loading: () => const Center(child: SLLoadingIndicator()),
                   );
                 },
               ),
@@ -489,7 +489,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
   }
 
   Widget _buildEmptyState(ThemeData theme) {
-    return AppEmptyState(
+    return SLEmptyState(
       icon: _isSearching ? Icons.search_off : Icons.book_outlined,
       title: _isSearching ? 'No books found' : 'No books available',
       message: _isSearching

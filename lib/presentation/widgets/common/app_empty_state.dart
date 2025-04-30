@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
-class AppEmptyState extends StatelessWidget {
+class SLEmptyState extends StatelessWidget {
   final IconData? icon;
   final String title;
   final String? message;
@@ -10,7 +10,7 @@ class AppEmptyState extends StatelessWidget {
   final VoidCallback? onButtonPressed;
   final double? iconSize;
 
-  const AppEmptyState({
+  const SLEmptyState({
     super.key,
     this.icon = Icons.inbox_outlined,
     required this.title,
@@ -63,10 +63,10 @@ class AppEmptyState extends StatelessWidget {
             ],
             if (buttonText != null && onButtonPressed != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              AppButton(
+              SLButton(
                 text: buttonText!,
                 onPressed: onButtonPressed,
-                type: AppButtonType.primary,
+                type: SLButtonType.primary,
                 prefixIcon: Icons.refresh,
               ),
             ],

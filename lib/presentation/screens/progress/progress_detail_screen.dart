@@ -314,12 +314,12 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting &&
               _isFirstLoad) {
-            return const Center(child: AppLoadingIndicator());
+            return const Center(child: SLLoadingIndicator());
           }
 
           if (snapshot.hasError) {
             return Center(
-              child: ErrorDisplay(
+              child: SLErrorView(
                 message: 'Failed to load data: ${snapshot.error}',
                 onRetry: _reloadData,
               ),
@@ -398,9 +398,9 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
           ],
         );
       },
-      loading: () => const Center(child: AppLoadingIndicator()),
+      loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, stack) => Center(
-        child: ErrorDisplay(message: error.toString(), onRetry: _reloadData),
+        child: SLErrorView(message: error.toString(), onRetry: _reloadData),
       ),
     );
   }

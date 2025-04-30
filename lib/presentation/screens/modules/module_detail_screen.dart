@@ -182,12 +182,12 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
         builder: (context, snapshot) {
           if (_isInitialLoad &&
               snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: AppLoadingIndicator());
+            return const Center(child: SLLoadingIndicator());
           }
 
           if (snapshot.hasError) {
             return Center(
-              child: ErrorDisplay(
+              child: SLErrorView(
                 message: 'Error loading data: ${snapshot.error}',
                 onRetry: _refreshData,
               ),
@@ -239,12 +239,12 @@ class _BodyBuilder extends StatelessWidget {
 
   Widget _buildContent(BuildContext context) {
     if (isLoading) {
-      return const Center(child: AppLoadingIndicator());
+      return const Center(child: SLLoadingIndicator());
     }
 
     if (errorMessage != null) {
       return Center(
-        child: ErrorDisplay(message: errorMessage!, onRetry: onRefresh),
+        child: SLErrorView(message: errorMessage!, onRetry: onRefresh),
       );
     }
 
@@ -434,9 +434,9 @@ class _ProgressSection extends StatelessWidget {
         ),
         const SizedBox(height: AppDimens.spaceL),
         Center(
-          child: AppButton(
+          child: SLButton(
             text: 'View Detailed Progress',
-            type: AppButtonType.outline,
+            type: SLButtonType.outline,
             prefixIcon: Icons.visibility,
             onPressed: () => onTap(progress.id),
           ),

@@ -192,9 +192,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             const SizedBox(height: AppDimens.spaceXL),
 
-            AppButton(
+            SLButton(
               text: 'Logout',
-              type: AppButtonType.outline,
+              type: SLButtonType.outline,
               prefixIcon: Icons.logout,
               isFullWidth: true,
               onPressed: _logout,
@@ -202,8 +202,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         );
       },
-      loading: () => const Center(child: AppLoadingIndicator()),
-      error: (error, stack) => ErrorDisplay(
+      loading: () => const Center(child: SLLoadingIndicator()),
+      error: (error, stack) => SLErrorView(
         message: error.toString(),
         onRetry: () {
           ref.read(userStateProvider.notifier).clearError();
@@ -258,7 +258,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           key: _formKey,
           child: Column(
             children: [
-              AppTextField(
+              SLTextField(
                 label: 'Display Name',
                 hint: 'Enter display name',
                 controller: _displayNameController,
@@ -273,18 +273,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  AppButton(
+                  SLButton(
                     text: 'Cancel',
-                    type: AppButtonType.text,
+                    type: SLButtonType.text,
                     onPressed: _toggleEditing,
                   ),
                   const SizedBox(width: AppDimens.spaceM),
                   Consumer(
                     builder: (context, ref, _) {
                       final isLoading = ref.watch(userStateProvider).isLoading;
-                      return AppButton(
+                      return SLButton(
                         text: 'Save',
-                        type: AppButtonType.primary,
+                        type: SLButtonType.primary,
                         onPressed: _updateProfile,
                         isLoading: isLoading,
                       );

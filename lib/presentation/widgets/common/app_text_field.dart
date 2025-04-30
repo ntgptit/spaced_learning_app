@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class AppTextField extends StatefulWidget {
+class SLTextField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? errorText;
@@ -42,7 +42,7 @@ class AppTextField extends StatefulWidget {
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
 
-  const AppTextField({
+  const SLTextField({
     super.key,
     this.label,
     this.hint,
@@ -85,10 +85,10 @@ class AppTextField extends StatefulWidget {
   });
 
   @override
-  State<AppTextField> createState() => _AppTextFieldState();
+  State<SLTextField> createState() => _SLTextFieldState();
 }
 
-class _AppTextFieldState extends State<AppTextField> {
+class _SLTextFieldState extends State<SLTextField> {
   bool _passwordVisible = false;
 
   @override
@@ -233,7 +233,7 @@ class _AppTextFieldState extends State<AppTextField> {
   }
 }
 
-class AppPasswordField extends StatefulWidget {
+class SLPasswordField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? errorText;
@@ -251,7 +251,7 @@ class AppPasswordField extends StatefulWidget {
   final Color? focusedBorderColor;
   final Color? backgroundColor;
 
-  const AppPasswordField({
+  const SLPasswordField({
     super.key,
     this.label,
     this.hint,
@@ -272,13 +272,13 @@ class AppPasswordField extends StatefulWidget {
   });
 
   @override
-  State<AppPasswordField> createState() => _AppPasswordFieldState();
+  State<SLPasswordField> createState() => _SLPasswordFieldState();
 }
 
-class _AppPasswordFieldState extends State<AppPasswordField> {
+class _SLPasswordFieldState extends State<SLPasswordField> {
   @override
   Widget build(BuildContext context) {
-    return AppTextField(
+    return SLTextField(
       label: widget.label,
       hint: widget.hint,
       controller: widget.controller,

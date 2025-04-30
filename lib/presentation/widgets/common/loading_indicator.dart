@@ -11,12 +11,12 @@ enum LoadingIndicatorType {
   threeBounce,
 }
 
-class AppLoadingIndicator extends StatelessWidget {
+class SLLoadingIndicator extends StatelessWidget {
   final double size;
   final Color? color;
   final LoadingIndicatorType type;
 
-  const AppLoadingIndicator({
+  const SLLoadingIndicator({
     super.key,
     this.size = AppDimens.circularProgressSizeL,
     this.color,
@@ -73,7 +73,7 @@ class FullScreenLoading extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AppLoadingIndicator(
+            SLLoadingIndicator(
               color: indicatorColor,
               type: type,
               size: AppDimens.circularProgressSizeL,

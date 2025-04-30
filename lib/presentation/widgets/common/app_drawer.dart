@@ -8,8 +8,8 @@ import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart'
 
 import '../../../core/theme/app_theme_data.dart';
 
-class AppDrawer extends ConsumerWidget {
-  const AppDrawer({super.key});
+class SLDrawer extends ConsumerWidget {
+  const SLDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
