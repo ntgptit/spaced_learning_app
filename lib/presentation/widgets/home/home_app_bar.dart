@@ -1,6 +1,7 @@
 // lib/presentation/widgets/home/home_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isDarkMode;
@@ -72,14 +73,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   void _showNotificationsSnackBar(BuildContext context, ThemeData theme) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Notifications coming soon',
-          style: TextStyle(color: theme.colorScheme.onPrimary),
-        ),
-        backgroundColor: theme.colorScheme.primary,
-      ),
+    SnackBarUtils.show(
+      context,
+      'Notifications coming soon',
+      backgroundColor: theme.colorScheme.primary,
     );
   }
 

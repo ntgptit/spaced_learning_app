@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
+import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_filter_panel.dart';
@@ -90,16 +91,10 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
           ? e.message
           : 'An unexpected error occurred. Please try again.';
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            ),
-            margin: const EdgeInsets.all(AppDimens.paddingL),
-          ),
+        SnackBarUtils.show(
+          context,
+          errorMessage,
+          backgroundColor: Theme.of(context).colorScheme.error,
         );
       }
     }
@@ -469,9 +464,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                   onTap: () {
                     // Kiểm tra ID hợp lệ trước khi điều hướng
                     if (book.id.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Invalid book ID')),
-                      );
+                      SnackBarUtils.show(context, 'Invalid book ID');
                       return;
                     }
 

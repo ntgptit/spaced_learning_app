@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
+import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
@@ -105,16 +106,12 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
       if (newProgress != null && mounted) {
         _navigateToProgress(newProgress.id);
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create progress')),
-        );
+        SnackBarUtils.show(context, 'Failed to create progress');
       }
     } catch (error) {
       debugPrint('Error creating progress: $error');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${error.toString()}')));
+        SnackBarUtils.show(context, 'Error: ${error.toString()}');
       }
     }
   }
@@ -127,9 +124,7 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
 
   void _showLoginSnackBar() {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in to start learning')),
-      );
+      SnackBarUtils.show(context, 'Please log in to start learning');
     }
   }
 
@@ -151,9 +146,7 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     if (!mounted) return;
 
     if (progressId.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid progress ID')));
+      SnackBarUtils.show(context, 'Invalid progress ID');
       return;
     }
 

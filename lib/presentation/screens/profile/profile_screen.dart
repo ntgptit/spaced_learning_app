@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
+import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
@@ -90,13 +91,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   void _showSnackBar(String msg, Color color) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: color,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    SnackBarUtils.show(context, msg, backgroundColor: color);
   }
 
   @override
@@ -124,7 +119,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     final userStateAsync = ref.watch(userStateProvider);
-    final colorScheme = theme.colorScheme;
 
     return userStateAsync.when(
       data: (currentUser) {

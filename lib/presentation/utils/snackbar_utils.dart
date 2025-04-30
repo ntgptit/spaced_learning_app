@@ -1,3 +1,4 @@
+// lib/presentation/utils/snackbar_utils.dart
 import 'package:flutter/material.dart';
 
 class SnackBarUtils {
