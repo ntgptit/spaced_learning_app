@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
@@ -98,6 +99,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Profile'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            final router = GoRouter.of(context);
+            if (router.canPop()) {
+              router.pop();
+              return;
+            }
+            router.go('/');
+          },
+          tooltip: 'Back',
+        ),
+      ),
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: RefreshIndicator(

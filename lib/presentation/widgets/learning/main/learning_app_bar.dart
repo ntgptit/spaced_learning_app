@@ -1,6 +1,7 @@
 // lib/presentation/widgets/learning/main/learning_app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
 class LearningAppBar extends ConsumerWidget {
@@ -29,6 +30,18 @@ class LearningAppBar extends ConsumerWidget {
           ? colorScheme.surface
           : colorScheme.surface.withValues(alpha: AppDimens.opacityVeryHigh),
       foregroundColor: colorScheme.onSurface,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          final router = GoRouter.of(context);
+          if (router.canPop()) {
+            router.pop();
+            return;
+          }
+          router.go('/');
+        },
+        tooltip: 'Back',
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh),

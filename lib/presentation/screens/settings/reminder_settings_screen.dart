@@ -1,6 +1,7 @@
 // lib/presentation/screens/settings/reminder_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/reminder_settings_viewmodel.dart';
@@ -59,6 +60,19 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reminder Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            final router = GoRouter.of(context);
+            if (router.canPop()) {
+              router.pop();
+              return;
+            }
+            // Nếu không thể pop, tự động điều hướng về trang chủ
+            router.go('/');
+          },
+          tooltip: 'Back',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

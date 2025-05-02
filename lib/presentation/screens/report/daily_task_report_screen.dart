@@ -45,7 +45,17 @@ class _DailyTaskReportScreenState extends ConsumerState<DailyTaskReportScreen> {
         // Thêm nút back
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => GoRouter.of(context).pop(),
+          onPressed: () {
+            final router = GoRouter.of(context);
+            if (router.canPop()) {
+              router.pop();
+              return;
+            }
+
+            // Nếu không thể pop, tự động điều hướng về trang chủ
+            router.go('/');
+          },
+          tooltip: 'Back',
         ),
         actions: [
           IconButton(

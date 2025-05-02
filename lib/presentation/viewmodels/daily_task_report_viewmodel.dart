@@ -270,8 +270,9 @@ class DailyTaskReportState extends _$DailyTaskReportState {
   Future<void> clearLogs() async {
     try {
       final storageService = ref.read(storageServiceProvider);
+      // Đặt danh sách logs về mảng trống và không thêm log mới
       await storageService.setString(_logEntriesKey, '[]');
-      await _addLogEntry(message: 'Logs cleared', isSuccess: true);
+      // Tải lại dữ liệu mà không thêm log mới
       state = await AsyncValue.guard(() => loadReportData());
     } catch (e) {
       throw Exception('Error clearing logs: $e');

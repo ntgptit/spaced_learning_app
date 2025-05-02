@@ -1,6 +1,7 @@
 // lib/presentation/screens/progress/due_progress_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
@@ -195,10 +196,37 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     }
 
     return Scaffold(
+      // appBar: AppBar(
+      //   title: const Text('User Profile'),
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back),
+      //     onPressed: () {
+      //       final router = GoRouter.of(context);
+      //       if (router.canPop()) {
+      //         router.pop();
+      //         return;
+      //       }
+      //       router.go('/');
+      //     },
+      //     tooltip: 'Back',
+      //   ),
+      // ),
       body: NestedScrollView(
         controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                final router = GoRouter.of(context);
+                if (router.canPop()) {
+                  router.pop();
+                  return;
+                }
+                router.go('/');
+              },
+              tooltip: 'Back',
+            ),
             title: Text(
               _selectedDate == null
                   ? 'Due Today'
