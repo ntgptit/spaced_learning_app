@@ -299,7 +299,15 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
       forceElevated: _isScrolled || innerBoxIsScrolled,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => GoRouter.of(context).pop(),
+        onPressed: () {
+          final router = GoRouter.of(context);
+          if (router.canPop()) {
+            router.pop();
+            return;
+          }
+          router.go('/');
+        },
+        tooltip: 'Back',
       ),
       actions: [
         IconButton(

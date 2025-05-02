@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
@@ -13,7 +14,21 @@ class SpacedRepetitionInfoScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Spaced Repetition')),
+      appBar: AppBar(
+        title: const Text('Spaced Repetition'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            final router = GoRouter.of(context);
+            if (router.canPop()) {
+              router.pop();
+              return;
+            }
+            router.go('/');
+          },
+          tooltip: 'Back',
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: Column(
