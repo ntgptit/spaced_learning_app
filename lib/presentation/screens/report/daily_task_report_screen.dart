@@ -1,6 +1,7 @@
 // lib/presentation/screens/report/daily_task_report_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/daily_task_report_viewmodel.dart';
@@ -41,6 +42,11 @@ class _DailyTaskReportScreenState extends ConsumerState<DailyTaskReportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daily Task Report'),
+        // Thêm nút back
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => GoRouter.of(context).pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -109,9 +115,24 @@ class _DailyTaskReportScreenState extends ConsumerState<DailyTaskReportScreen> {
                   const SizedBox(height: AppDimens.spaceXL),
                   LogCardWidget(
                     logEntries: data['logEntries'] ?? [],
-                    onClearLogs: () => ref
-                        .read(dailyTaskReportStateProvider.notifier)
-                        .clearLogs(),
+                    onClearLogs: () {
+                      // Sửa chức năng clear logs
+                      ref
+                          .read(dailyTaskReportStateProvider.notifier)
+                          .clearLogs()
+                          .then((_) {
+                            // Hiển thị thông báo xóa thành công
+                            SnackBarUtils.show(
+                              context,
+                              'Logs cleared successfully',
+                              backgroundColor: colorScheme.primary,
+                            );
+                            // Tải lại dữ liệu sau khi xóa logs
+                            return ref
+                                .read(dailyTaskReportStateProvider.notifier)
+                                .loadReportData();
+                          });
+                    },
                   ),
                 ],
               ),
