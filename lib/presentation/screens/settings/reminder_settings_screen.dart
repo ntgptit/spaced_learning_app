@@ -1,3 +1,4 @@
+// lib/presentation/screens/settings/reminder_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -6,6 +7,7 @@ import 'package:spaced_learning_app/presentation/viewmodels/reminder_settings_vi
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/sl_toggle_switch.dart';
 
 class ReminderConfig {
   static const String noonTime = '12:30 PM';
@@ -176,15 +178,9 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
   Widget _buildMasterSwitch(Map<String, bool> settingsData, ThemeData theme) {
     final remindersEnabled = settingsData['remindersEnabled'] ?? false;
 
-    return SwitchListTile(
-      title: Text(
-        'Enable Learning Reminders',
-        style: theme.textTheme.titleMedium,
-      ),
-      subtitle: Text(
-        'Turn on/off all reminders',
-        style: theme.textTheme.bodySmall,
-      ),
+    return SLToggleSwitch(
+      title: 'Enable Learning Reminders',
+      subtitle: 'Turn on/off all reminders',
       value: remindersEnabled,
       onChanged: (value) => _updateSetting(
         () => ref
@@ -192,12 +188,9 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
             .setRemindersEnabled(value),
         'Reminders ${value ? 'enabled' : 'disabled'}',
       ),
-      secondary: Icon(
-        Icons.notifications_active,
-        color: remindersEnabled
-            ? theme.colorScheme.primary
-            : theme.colorScheme.outline,
-      ),
+      icon: Icons.notifications_active,
+      size: SLToggleSwitchSize.large,
+      type: SLToggleSwitchType.standard,
     );
   }
 
@@ -223,61 +216,61 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
           ),
           child: Text('Reminder Schedule', style: theme.textTheme.titleMedium),
         ),
-        _ReminderSwitch(
+        SLToggleSwitch(
           title: 'Noon Reminder (${ReminderConfig.noonTime})',
           subtitle: 'Daily check of your learning schedule',
           value: noonEnabled,
           icon: Icons.wb_sunny,
           enabled: remindersEnabled,
-          theme: theme,
           onChanged: (value) => _updateSetting(
             () => ref
                 .read(reminderSettingsStateProvider.notifier)
                 .setNoonReminderEnabled(value),
             'Noon reminder ${value ? 'enabled' : 'disabled'}',
           ),
+          type: SLToggleSwitchType.standard,
         ),
-        _ReminderSwitch(
+        SLToggleSwitch(
           title: 'Evening Reminder (${ReminderConfig.eveningFirstTime})',
           subtitle: 'First reminder for unfinished tasks',
           value: eveningFirstEnabled,
           icon: Icons.nights_stay,
           enabled: remindersEnabled,
-          theme: theme,
           onChanged: (value) => _updateSetting(
             () => ref
                 .read(reminderSettingsStateProvider.notifier)
                 .setEveningFirstReminderEnabled(value),
             'Evening reminder ${value ? 'enabled' : 'disabled'}',
           ),
+          type: SLToggleSwitchType.standard,
         ),
-        _ReminderSwitch(
+        SLToggleSwitch(
           title: 'Late Evening Reminder (${ReminderConfig.eveningSecondTime})',
           subtitle: 'Second reminder for unfinished tasks',
           value: eveningSecondEnabled,
           icon: Icons.nightlight,
           enabled: remindersEnabled,
-          theme: theme,
           onChanged: (value) => _updateSetting(
             () => ref
                 .read(reminderSettingsStateProvider.notifier)
                 .setEveningSecondReminderEnabled(value),
             'Late evening reminder ${value ? 'enabled' : 'disabled'}',
           ),
+          type: SLToggleSwitchType.standard,
         ),
-        _ReminderSwitch(
+        SLToggleSwitch(
           title: 'End-of-Day Reminder (${ReminderConfig.endOfDayTime})',
           subtitle: 'Final reminder with alarm-style notification',
           value: endOfDayEnabled,
           icon: Icons.bedtime,
           enabled: remindersEnabled,
-          theme: theme,
           onChanged: (value) => _updateSetting(
             () => ref
                 .read(reminderSettingsStateProvider.notifier)
                 .setEndOfDayReminderEnabled(value),
             'End-of-day reminder ${value ? 'enabled' : 'disabled'}',
           ),
+          type: SLToggleSwitchType.standard,
         ),
       ],
     );
@@ -421,64 +414,25 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            color: isGranted ? colorScheme.primary : colorScheme.error,
-            size: AppDimens.iconM,
-          ),
-          const SizedBox(width: AppDimens.spaceM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(title, style: theme.textTheme.titleSmall),
-                    const SizedBox(width: AppDimens.spaceS),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimens.paddingXS,
-                        vertical: AppDimens.paddingXXS,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isGranted
-                            ? colorScheme.primaryContainer
-                            : colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
-                      ),
-                      child: Text(
-                        isGranted ? 'Granted' : 'Required',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: isGranted
-                              ? colorScheme.onPrimaryContainer
-                              : colorScheme.onErrorContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppDimens.spaceXS),
-                Text(description, style: theme.textTheme.bodySmall),
-                if (!isGranted) ...[
-                  const SizedBox(height: AppDimens.spaceS),
-                  SLButton(
-                    text: 'Request Permission',
-                    type: SLButtonType.primary,
-                    size: SLButtonSize.small,
-                    onPressed: onRequestPermission,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+    return SLToggleSwitch(
+      title: title,
+      subtitle: description,
+      value: isGranted,
+      icon: icon,
+      // Toggle is disabled because we can't directly toggle permissions
+      onChanged: (_) {},
+      enabled: false,
+      type: SLToggleSwitchType.outlined,
+      trailing: !isGranted
+          ? SLButton(
+              text: 'Request Permission',
+              type: SLButtonType.primary,
+              size: SLButtonSize.small,
+              onPressed: onRequestPermission,
+            )
+          : null,
+      activeColor: colorScheme.primary,
+      inactiveThumbColor: colorScheme.error,
     );
   }
 
@@ -531,41 +485,5 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
         backgroundColor: Theme.of(context).colorScheme.errorContainer,
       );
     }
-  }
-}
-
-class _ReminderSwitch extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final bool value;
-  final IconData icon;
-  final bool enabled;
-  final ThemeData theme;
-  final ValueChanged<bool> onChanged;
-
-  const _ReminderSwitch({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.icon,
-    required this.enabled,
-    required this.theme,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SwitchListTile(
-      title: Text(title),
-      subtitle: Text(subtitle),
-      value: value && enabled,
-      onChanged: enabled ? onChanged : null,
-      secondary: Icon(
-        icon,
-        color: (value && enabled)
-            ? theme.colorScheme.primary
-            : theme.colorScheme.outline,
-      ),
-    );
   }
 }
