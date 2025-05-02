@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/sl_toggle_switch.dart';
 
 class RescheduleDialog {
   static Future<Map<String, dynamic>?> show(
@@ -11,7 +12,8 @@ class RescheduleDialog {
     required String title,
   }) async {
     DateTime selectedDate = initialDate;
-    bool rescheduleFollowing = false;
+    // Mặc định rescheduleFollowing luôn là true
+    bool rescheduleFollowing = true;
 
     return showDialog<Map<String, dynamic>>(
       context: context,
@@ -57,17 +59,22 @@ class _RescheduleDialogContent extends ConsumerStatefulWidget {
 class _RescheduleDialogContentState
     extends ConsumerState<_RescheduleDialogContent> {
   late DateTime _selectedDate;
-  bool _rescheduleFollowing = false;
+
+  // Khởi tạo giá trị mặc định là true
+  bool _rescheduleFollowing = true;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.initialDate;
+    // Thông báo cho parent widget về giá trị mặc định
+    widget.onRescheduleFollowingChanged(_rescheduleFollowing);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -162,33 +169,25 @@ class _RescheduleDialogContentState
     bool rescheduleFollowing,
     Function(bool) onChanged,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(
             alpha: AppDimens.opacityMediumHigh,
           ),
         ),
       ),
-      child: SwitchListTile(
-        title: Text(
-          'Reschedule following repetitions',
-          style: theme.textTheme.titleSmall,
-        ),
-        subtitle: Text(
-          'Adjust all future repetitions based on this new date',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
+      child: SLToggleSwitch(
+        title: 'Reschedule following repetitions',
+        subtitle: 'Adjust all future repetitions based on this new date',
         value: rescheduleFollowing,
         onChanged: onChanged,
-        activeColor: colorScheme.primary,
+        type: SLToggleSwitchType.standard,
+        size: SLToggleSwitchSize.medium,
+        icon: Icons.repeat,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
           vertical: AppDimens.paddingXS,

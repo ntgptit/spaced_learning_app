@@ -83,7 +83,7 @@ class SLDrawer extends ConsumerWidget {
             _buildSettingTile(
               context,
               'Dark Mode',
-              isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              Icons.dark_mode,
               Switch(
                 value: isDarkMode,
                 // Sử dụng themeModeStateProvider.notifier.toggleTheme
@@ -101,6 +101,12 @@ class SLDrawer extends ConsumerWidget {
                 onPressed: () => GoRouter.of(context).go('/settings/reminders'),
               ),
               colorScheme,
+              onTap: () {
+                Navigator.of(
+                  context,
+                ).pop(); // Đóng drawer trước khi chuyển hướng
+                GoRouter.of(context).go('/settings/reminders');
+              },
             ),
             _buildSettingTile(
               context,
@@ -111,6 +117,12 @@ class SLDrawer extends ConsumerWidget {
                 onPressed: () => GoRouter.of(context).go('/task-report'),
               ),
               colorScheme,
+              onTap: () {
+                Navigator.of(
+                  context,
+                ).pop(); // Đóng drawer trước khi chuyển hướng
+                GoRouter.of(context).go('/task-report');
+              },
             ),
           ], colorScheme),
           _buildSettingsItem(context, 'Help & Support', [
@@ -124,6 +136,12 @@ class SLDrawer extends ConsumerWidget {
                     GoRouter.of(context).go('/help/spaced-repetition'),
               ),
               colorScheme,
+              onTap: () {
+                Navigator.of(
+                  context,
+                ).pop(); // Đóng drawer trước khi chuyển hướng
+                GoRouter.of(context).go('/help/spaced-repetition');
+              },
             ),
             _buildSettingTile(
               context,
@@ -218,8 +236,9 @@ class SLDrawer extends ConsumerWidget {
     String title,
     IconData icon,
     Widget trailing,
-    ColorScheme colorScheme,
-  ) {
+    ColorScheme colorScheme, {
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
@@ -228,6 +247,7 @@ class SLDrawer extends ConsumerWidget {
       title: Text(title),
       trailing: trailing,
       dense: true,
+      onTap: onTap,
     );
   }
 }

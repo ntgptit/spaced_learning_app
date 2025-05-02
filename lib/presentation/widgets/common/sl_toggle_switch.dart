@@ -83,26 +83,30 @@ class SLToggleSwitch extends StatelessWidget {
     // Build switch based on type
     switch (type) {
       case SLToggleSwitchType.standard:
-        return SwitchListTile(
-          title: title != null
-              ? Text(title!, style: _getTitleStyle(theme))
-              : null,
-          subtitle: subtitle != null
-              ? Text(subtitle!, style: _getSubtitleStyle(theme, colorScheme))
-              : null,
-          value: value && enabled,
-          onChanged: enabled ? onChanged : null,
-          secondary: effectiveLeading,
-          activeColor: effectiveActiveColor,
-          activeTrackColor: effectiveActiveTrackColor,
-          inactiveThumbColor: effectiveInactiveThumbColor,
-          inactiveTrackColor: effectiveInactiveTrackColor,
-          contentPadding: effectivePadding,
-          dense: size == SLToggleSwitchSize.small,
+        return Container(
+          width: double.infinity,
+          child: SwitchListTile(
+            title: title != null
+                ? Text(title!, style: _getTitleStyle(theme))
+                : null,
+            subtitle: subtitle != null
+                ? Text(subtitle!, style: _getSubtitleStyle(theme, colorScheme))
+                : null,
+            value: value && enabled,
+            onChanged: enabled ? onChanged : null,
+            secondary: effectiveLeading,
+            activeColor: effectiveActiveColor,
+            activeTrackColor: effectiveActiveTrackColor,
+            inactiveThumbColor: effectiveInactiveThumbColor,
+            inactiveTrackColor: effectiveInactiveTrackColor,
+            contentPadding: effectivePadding,
+            dense: size == SLToggleSwitchSize.small,
+          ),
         );
 
       case SLToggleSwitchType.outlined:
         return Container(
+          width: double.infinity,
           decoration: BoxDecoration(
             border: Border.all(
               color: value && enabled
@@ -135,36 +139,42 @@ class SLToggleSwitch extends StatelessWidget {
         );
 
       case SLToggleSwitchType.card:
-        return Card(
-          elevation: AppDimens.elevationS,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            side: BorderSide(
-              color: value && enabled
-                  ? effectiveActiveColor.withValues(
-                      alpha: AppDimens.opacitySemi,
-                    )
-                  : Colors.transparent,
-              width: 1.5,
+        return Container(
+          width: double.infinity,
+          child: Card(
+            elevation: AppDimens.elevationS,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              side: BorderSide(
+                color: value && enabled
+                    ? effectiveActiveColor.withValues(
+                        alpha: AppDimens.opacitySemi,
+                      )
+                    : Colors.transparent,
+                width: 1.5,
+              ),
             ),
-          ),
-          color: colorScheme.surfaceContainerLowest,
-          child: SwitchListTile(
-            title: title != null
-                ? Text(title!, style: _getTitleStyle(theme))
-                : null,
-            subtitle: subtitle != null
-                ? Text(subtitle!, style: _getSubtitleStyle(theme, colorScheme))
-                : null,
-            value: value && enabled,
-            onChanged: enabled ? onChanged : null,
-            secondary: effectiveLeading,
-            activeColor: effectiveActiveColor,
-            activeTrackColor: effectiveActiveTrackColor,
-            inactiveThumbColor: effectiveInactiveThumbColor,
-            inactiveTrackColor: effectiveInactiveTrackColor,
-            contentPadding: effectivePadding,
-            dense: size == SLToggleSwitchSize.small,
+            color: colorScheme.surfaceContainerLowest,
+            child: SwitchListTile(
+              title: title != null
+                  ? Text(title!, style: _getTitleStyle(theme))
+                  : null,
+              subtitle: subtitle != null
+                  ? Text(
+                      subtitle!,
+                      style: _getSubtitleStyle(theme, colorScheme),
+                    )
+                  : null,
+              value: value && enabled,
+              onChanged: enabled ? onChanged : null,
+              secondary: effectiveLeading,
+              activeColor: effectiveActiveColor,
+              activeTrackColor: effectiveActiveTrackColor,
+              inactiveThumbColor: effectiveInactiveThumbColor,
+              inactiveTrackColor: effectiveInactiveTrackColor,
+              contentPadding: effectivePadding,
+              dense: size == SLToggleSwitchSize.small,
+            ),
           ),
         );
     }

@@ -1,7 +1,6 @@
 // lib/presentation/widgets/report/status_card_widget.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/sl_toggle_switch.dart';
 
 class StatusCardWidget extends StatelessWidget {
   final bool isActive;
@@ -57,12 +56,13 @@ class StatusCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                SLToggleSwitch(
-                  value: isActive,
-                  onChanged: onToggle,
-                  size: SLToggleSwitchSize.medium,
-                  type: SLToggleSwitchType.standard,
-                  activeColor: colorScheme.primary,
+                SizedBox(
+                  width: 70, // Fixed width for the switch
+                  child: Switch(
+                    value: isActive,
+                    onChanged: onToggle,
+                    activeColor: colorScheme.primary,
+                  ),
                 ),
               ],
             ),
