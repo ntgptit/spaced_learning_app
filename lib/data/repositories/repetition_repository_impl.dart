@@ -62,39 +62,82 @@ class RepetitionRepositoryImpl implements RepetitionRepository {
     double? percentComplete,
   }) async {
     try {
-      final data = <String, dynamic>{
-        'rescheduleFollowing': rescheduleFollowing,
-      };
-
-      if (status != null) {
-        data['status'] = status.toString().split('.').last.toUpperCase();
-      }
-
-      if (reviewDate != null) {
-        data['reviewDate'] = _formatDate(reviewDate);
-      }
-
-      if (percentComplete != null) {
-        data['percentComplete'] = percentComplete;
-      }
-
-      final response = await _apiClient.put(
-        '${ApiEndpoints.repetitions}/$id',
-        data: data,
-      );
-
-      if (response['success'] != true || response['data'] == null) {
+      // Kiểm tra đầu vào
+      if (status == null && reviewDate == null) {
         throw BadRequestException(
-          'Failed to update repetition: ${response['message']}',
+          'Either status or reviewDate must be provided',
         );
       }
 
-      return Repetition.fromJson(response['data']);
+      // Gọi API cập nhật trạng thái hoàn thành nếu có status
+      if (status != null) {
+        return await _updateCompletionStatus(id, status, percentComplete);
+      }
+
+      // Mặc định gọi API lập lịch lại nếu không cập nhật trạng thái
+      return await _rescheduleRepetition(id, reviewDate!, rescheduleFollowing);
     } on AppException {
       rethrow;
     } catch (e) {
       throw UnexpectedException('Failed to update repetition: $e');
     }
+  }
+
+  /// Cập nhật trạng thái hoàn thành của một repetition
+  Future<Repetition> _updateCompletionStatus(
+    String id,
+    RepetitionStatus status,
+    double? percentComplete,
+  ) async {
+    final data = <String, dynamic>{
+      'status': status.toString().split('.').last.toUpperCase(),
+    };
+
+    if (percentComplete != null) {
+      data['score'] = percentComplete;
+    }
+
+    final response = await _apiClient.put(
+      '${ApiEndpoints.repetitions}/$id/complete',
+      data: data,
+    );
+
+    final bool isSuccessful =
+        response['success'] == true && response['data'] != null;
+    if (!isSuccessful) {
+      throw BadRequestException(
+        'Failed to update repetition status: ${response['message']}',
+      );
+    }
+
+    return Repetition.fromJson(response['data']);
+  }
+
+  /// Lập lịch lại một repetition
+  Future<Repetition> _rescheduleRepetition(
+    String id,
+    DateTime reviewDate,
+    bool rescheduleFollowing,
+  ) async {
+    final data = <String, dynamic>{
+      'reviewDate': _formatDate(reviewDate),
+      'rescheduleFollowing': rescheduleFollowing,
+    };
+
+    final response = await _apiClient.put(
+      '${ApiEndpoints.repetitions}/$id/reschedule',
+      data: data,
+    );
+
+    final bool isSuccessful =
+        response['success'] == true && response['data'] != null;
+    if (!isSuccessful) {
+      throw BadRequestException(
+        'Failed to reschedule repetition: ${response['message']}',
+      );
+    }
+
+    return Repetition.fromJson(response['data']);
   }
 
   @override
