@@ -7,7 +7,7 @@ part of 'progress_viewmodel.dart';
 // **************************************************************************
 
 String _$isUpdatingProgressHash() =>
-    r'7a40b52e4c99fb3823efd48d99cef5f3b9d941b2';
+    r'05c10f5bb50043d10d1fa94ef06d598c5e5c20b2';
 
 /// See also [isUpdatingProgress].
 @ProviderFor(isUpdatingProgress)
@@ -25,7 +25,7 @@ final isUpdatingProgressProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsUpdatingProgressRef = AutoDisposeProviderRef<bool>;
-String _$progressStateHash() => r'95f3fb0e603d3ca755e418383661a6a8c1922cba';
+String _$progressStateHash() => r'071613f883bd5359065565af2fd64d31fb2cbc57';
 
 /// See also [ProgressState].
 @ProviderFor(ProgressState)
@@ -44,7 +44,7 @@ final progressStateProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$ProgressState = AutoDisposeAsyncNotifier<List<ProgressSummary>>;
-String _$selectedProgressHash() => r'4d5a8963d1b1857cde25050731b2a9b0204b301a';
+String _$selectedProgressHash() => r'97b3285aa2bea9821e4639402e684704afc23782';
 
 /// See also [SelectedProgress].
 @ProviderFor(SelectedProgress)

@@ -26,7 +26,7 @@ final isManualCheckInProgressProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsManualCheckInProgressRef = AutoDisposeProviderRef<bool>;
 String _$dailyTaskReportStateHash() =>
-    r'f02818eac560083d379eadd900e73636913f83bd';
+    r'c7a264debd9437b27720f799ec8c6fedcf528b2e';
 
 /// See also [DailyTaskReportState].
 @ProviderFor(DailyTaskReportState)

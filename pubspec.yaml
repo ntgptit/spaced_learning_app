@@ -91,11 +91,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   build_runner: ^2.4.15
-  json_serializable: ^6.9.4
-  freezed: ^3.0.4
+  json_serializable: ^6.9.5
+  freezed: ^3.0.6
 
   # Code generation
-  riverpod_generator: ^2.3.9
+  riverpod_generator: ^2.6.5
   custom_lint: ^0.7.5
   riverpod_lint: ^2.3.7
 

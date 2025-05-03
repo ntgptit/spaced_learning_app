@@ -7,7 +7,7 @@ part of 'screen_refresh_manager.dart';
 // **************************************************************************
 
 String _$screenRefreshManagerHash() =>
-    r'df924e15ac9588796f1700914f7f7aa696cdd604';
+    r'a422f6d8a3c20310137909c05dbe80c762b73584';
 
 /// See also [screenRefreshManager].
 @ProviderFor(screenRefreshManager)

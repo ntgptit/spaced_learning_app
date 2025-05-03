@@ -38,7 +38,7 @@ final darkThemeProvider = AutoDisposeProvider<ThemeData>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DarkThemeRef = AutoDisposeProviderRef<ThemeData>;
-String _$themeModeStateHash() => r'9fbadc6ea4d11bcf24188fdbcad18c64ed98e648';
+String _$themeModeStateHash() => r'5f60e0c3fe7bb6c541dcb76b65854430bc210baa';
 
 /// See also [ThemeModeState].
 @ProviderFor(ThemeModeState)
@@ -55,7 +55,7 @@ final themeModeStateProvider =
     );
 
 typedef _$ThemeModeState = AutoDisposeNotifier<ThemeMode>;
-String _$isDarkModeHash() => r'f5f49952d8bbbc59f171ee5c25740323554d92a8';
+String _$isDarkModeHash() => r'd496ea14620316fad03e5ced39c1ebf74503c1a5';
 
 /// See also [IsDarkMode].
 @ProviderFor(IsDarkMode)

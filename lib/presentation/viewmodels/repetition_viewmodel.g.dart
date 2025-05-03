@@ -145,7 +145,7 @@ class _GetCycleInfoProviderElement extends AutoDisposeProviderElement<String>
   CycleStudied get cycle => (origin as GetCycleInfoProvider).cycle;
 }
 
-String _$repetitionStateHash() => r'bd03b5bc20941184fa7214b490e787cc75eff23a';
+String _$repetitionStateHash() => r'01ca993b9995ea78f6f7e234305c54e8a1f862ea';
 
 /// See also [RepetitionState].
 @ProviderFor(RepetitionState)
