@@ -540,7 +540,7 @@ class NotificationStatus extends _$NotificationStatus {
       notificationServiceProvider.future,
     );
     state = await AsyncValue.guard(() async {
-      return await notificationService.initialize();
+      return notificationService.initialize();
     });
   }
 
@@ -550,13 +550,13 @@ class NotificationStatus extends _$NotificationStatus {
     );
     switch (type) {
       case ReminderType.noon:
-        return await notificationService.scheduleNoonReminder();
+        return notificationService.scheduleNoonReminder();
       case ReminderType.eveningFirst:
-        return await notificationService.scheduleEveningFirstReminder();
+        return notificationService.scheduleEveningFirstReminder();
       case ReminderType.eveningSecond:
-        return await notificationService.scheduleEveningSecondReminder();
+        return notificationService.scheduleEveningSecondReminder();
       case ReminderType.endOfDay:
-        return await notificationService.scheduleEndOfDayReminder();
+        return notificationService.scheduleEndOfDayReminder();
     }
   }
 
@@ -564,14 +564,14 @@ class NotificationStatus extends _$NotificationStatus {
     final notificationService = await ref.read(
       notificationServiceProvider.future,
     );
-    return await notificationService.cancelNotification(id);
+    return notificationService.cancelNotification(id);
   }
 
   Future<bool> cancelAllReminders() async {
     final notificationService = await ref.read(
       notificationServiceProvider.future,
     );
-    return await notificationService.cancelAllNotifications();
+    return notificationService.cancelAllNotifications();
   }
 }
 

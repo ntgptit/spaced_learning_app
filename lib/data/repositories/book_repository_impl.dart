@@ -18,7 +18,7 @@ class BookRepositoryImpl implements BookRepository {
       );
 
       final content = response['content'];
-      if (content == null || !(content is List)) {
+      if (content == null || content is! List) {
         return [];
       }
 

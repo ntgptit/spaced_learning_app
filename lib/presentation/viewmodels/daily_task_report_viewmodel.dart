@@ -64,7 +64,7 @@ class DailyTaskReportState extends _$DailyTaskReportState {
 
   @override
   Future<Map<String, dynamic>> build() async {
-    return await loadReportData();
+    return loadReportData();
   }
 
   Future<Map<String, dynamic>> loadReportData() async {

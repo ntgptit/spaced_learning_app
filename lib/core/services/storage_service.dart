@@ -21,11 +21,11 @@ class StorageService {
   }
 
   Future<String?> getToken() async {
-    return await _secureStorage.read(key: AppConstants.tokenKey);
+    return _secureStorage.read(key: AppConstants.tokenKey);
   }
 
   Future<String?> getRefreshToken() async {
-    return await _secureStorage.read(key: AppConstants.refreshTokenKey);
+    return _secureStorage.read(key: AppConstants.refreshTokenKey);
   }
 
   Future<Map<String, dynamic>?> getUserData() async {

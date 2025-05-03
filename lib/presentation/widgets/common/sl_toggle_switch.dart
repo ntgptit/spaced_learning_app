@@ -83,7 +83,7 @@ class SLToggleSwitch extends StatelessWidget {
     // Build switch based on type
     switch (type) {
       case SLToggleSwitchType.standard:
-        return Container(
+        return SizedBox(
           width: double.infinity,
           child: SwitchListTile(
             title: title != null
@@ -139,7 +139,7 @@ class SLToggleSwitch extends StatelessWidget {
         );
 
       case SLToggleSwitchType.card:
-        return Container(
+        return SizedBox(
           width: double.infinity,
           child: Card(
             elevation: AppDimens.elevationS,

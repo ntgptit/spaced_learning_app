@@ -55,7 +55,7 @@ class HomeContent extends ConsumerWidget {
               const SizedBox(height: AppDimens.spaceXL),
 
               // Due tasks section
-              DueTasksSectionWidget(),
+              const DueTasksSectionWidget(),
               const SizedBox(height: AppDimens.spaceXL),
 
               // Quick actions

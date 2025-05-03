@@ -123,8 +123,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
         '[ProgressRepositoryImpl] Raw API response for getDueProgress: $response',
       );
 
-      if (!(response is Map<String, dynamic>) ||
-          !(response['content'] is List)) {
+      if (response is! Map<String, dynamic> || response['content'] is! List) {
         debugPrint(
           '[ProgressRepositoryImpl] Response is not a valid Map or does not contain a "content" list.',
         );
@@ -142,7 +141,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
       try {
         final parsedList = progressList
             .map((item) {
-              if (!(item is Map<String, dynamic>)) {
+              if (item is! Map<String, dynamic>) {
                 debugPrint(
                   '[ProgressRepositoryImpl] Invalid item format found in content list: $item',
                 );

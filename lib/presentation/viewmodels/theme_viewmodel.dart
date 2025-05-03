@@ -1,5 +1,6 @@
 // lib/presentation/viewmodels/theme_viewmodel.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/di/providers.dart';
@@ -46,7 +47,7 @@ class ThemeState extends _$ThemeState {
 }
 
 @riverpod
-bool isDarkMode(IsDarkModeRef ref) {
+bool isDarkMode(Ref ref) {
   final themeMode = ref.watch(themeStateProvider);
   return themeMode == ThemeMode.dark;
 }

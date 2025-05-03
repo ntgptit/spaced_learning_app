@@ -7,12 +7,13 @@ import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import 'package:spaced_learning_app/presentation/widgets/progress/progress_card.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
+import '../../widgets/modules/module_content_section.dart';
+import '../../widgets/modules/module_header.dart';
+import '../../widgets/modules/module_progress_section.dart';
 
 class ModuleDetailScreen extends ConsumerStatefulWidget {
   final String moduleId;
@@ -117,8 +118,8 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
   }
 
   bool _isAuthenticated() {
-    final isLoggedIn = ref.read(authStateProvider).valueOrNull ?? false;
-    final currentUser = ref.read(currentUserProvider);
+    final isLoggedIn = ref.watch(authStateProvider).valueOrNull ?? false;
+    final currentUser = ref.watch(currentUserProvider);
     return isLoggedIn && currentUser != null;
   }
 
@@ -194,13 +195,13 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
             );
           }
 
-          return _BodyBuilder(
-            module: module,
-            isLoading: moduleAsync.isLoading,
-            errorMessage: moduleAsync.error?.toString(),
-            userProgress: progressAsync.valueOrNull,
-            onRefresh: _refreshData,
-            onProgressTap: _navigateToProgress,
+          return _buildBody(
+            module,
+            moduleAsync.isLoading,
+            moduleAsync.error?.toString(),
+            progressAsync.valueOrNull,
+            _refreshData,
+            _navigateToProgress,
           );
         },
       ),
@@ -213,38 +214,22 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
           : null,
     );
   }
-}
 
-class _BodyBuilder extends StatelessWidget {
-  final ModuleDetail? module;
-  final bool isLoading;
-  final String? errorMessage;
-  final ProgressDetail? userProgress;
-  final Future<void> Function() onRefresh;
-  final void Function(String) onProgressTap;
-
-  const _BodyBuilder({
-    required this.module,
-    required this.isLoading,
-    required this.errorMessage,
-    required this.userProgress,
-    required this.onRefresh,
-    required this.onProgressTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _buildContent(context);
-  }
-
-  Widget _buildContent(BuildContext context) {
+  Widget _buildBody(
+    ModuleDetail? module,
+    bool isLoading,
+    String? errorMessage,
+    ProgressDetail? userProgress,
+    Future<void> Function() onRefresh,
+    void Function(String) onProgressTap,
+  ) {
     if (isLoading) {
       return const Center(child: SLLoadingIndicator());
     }
 
     if (errorMessage != null) {
       return Center(
-        child: SLErrorView(message: errorMessage!, onRetry: onRefresh),
+        child: SLErrorView(message: errorMessage, onRetry: onRefresh),
       );
     }
 
@@ -252,279 +237,39 @@ class _BodyBuilder extends StatelessWidget {
       return const Center(child: Text('Module not found'));
     }
 
-    return _buildModuleView(context, module!);
+    return _buildModuleView(
+      context,
+      module,
+      userProgress,
+      onRefresh,
+      onProgressTap,
+    );
   }
 
-  Widget _buildModuleView(BuildContext context, ModuleDetail module) {
+  Widget _buildModuleView(
+    BuildContext context,
+    ModuleDetail module,
+    ProgressDetail? userProgress,
+    Future<void> Function() onRefresh,
+    void Function(String) onProgressTap,
+  ) {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         children: [
-          _ModuleHeader(module: module),
+          ModuleHeader(module: module),
           const SizedBox(height: AppDimens.spaceXXL),
           if (userProgress != null) ...[
-            _ProgressSection(
-              progress: userProgress!,
+            ModuleProgressSection(
+              progress: userProgress,
               moduleTitle: module.title,
               onTap: onProgressTap,
             ),
             const SizedBox(height: AppDimens.spaceXXL),
           ],
-          _ContentSection(module: module),
+          ModuleContentSection(module: module),
           const SizedBox(height: 80),
-        ],
-      ),
-    );
-  }
-}
-
-class _ModuleHeader extends StatelessWidget {
-  final ModuleDetail module;
-
-  const _ModuleHeader({required this.module});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(module.title, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: AppDimens.spaceM),
-        Row(
-          children: [
-            _buildModuleTag(context),
-            const SizedBox(width: AppDimens.spaceL),
-            Expanded(
-              child: Text(
-                'Book: ${module.bookName ?? "Unknown"}',
-                style: theme.textTheme.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppDimens.spaceL),
-        _buildStatsCard(context),
-      ],
-    );
-  }
-
-  Widget _buildModuleTag(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingL,
-        vertical: AppDimens.paddingS,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXL),
-      ),
-      child: Text(
-        'Module ${module.moduleNo}',
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onPrimary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildStatItem(
-              context,
-              module.progress.length.toString(),
-              'Students',
-            ),
-            _buildDivider(context),
-            _buildStatItem(
-              context,
-              module.wordCount?.toString() ?? 'N/A',
-              'Words',
-            ),
-            _buildDivider(context),
-            _buildStatItem(
-              context,
-              _estimateReadingTime(module.wordCount),
-              'Reading Time',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(BuildContext context, String value, String label) {
-    final theme = Theme.of(context);
-
-    return Column(
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-        Text(label, style: theme.textTheme.bodySmall),
-      ],
-    );
-  }
-
-  Widget _buildDivider(BuildContext context) {
-    final theme = Theme.of(context);
-    final dividerColor = theme.colorScheme.outline.withValues(alpha: 0.5);
-
-    return Container(height: 40, width: 1, color: dividerColor);
-  }
-
-  String _estimateReadingTime(int? wordCount) {
-    if (wordCount == null || wordCount <= 0) return 'N/A';
-    final readingTimeMinutes = (wordCount / 200).ceil();
-    if (readingTimeMinutes < 1) return '<1 min';
-    return readingTimeMinutes == 1 ? '1 min' : '$readingTimeMinutes mins';
-  }
-}
-
-class _ProgressSection extends StatelessWidget {
-  final ProgressDetail progress;
-  final String moduleTitle;
-  final void Function(String) onTap;
-
-  const _ProgressSection({
-    required this.progress,
-    required this.moduleTitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Your Progress', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceM),
-        ProgressCard(
-          progress: ProgressSummary(
-            id: progress.id,
-            moduleId: progress.moduleId,
-            firstLearningDate: progress.firstLearningDate,
-            cyclesStudied: progress.cyclesStudied,
-            nextStudyDate: progress.nextStudyDate,
-            percentComplete: progress.percentComplete,
-            createdAt: progress.createdAt,
-            updatedAt: progress.updatedAt,
-            repetitionCount: progress.repetitions.length,
-          ),
-          moduleTitle: moduleTitle,
-          onTap: () => onTap(progress.id),
-        ),
-        const SizedBox(height: AppDimens.spaceL),
-        Center(
-          child: SLButton(
-            text: 'View Detailed Progress',
-            type: SLButtonType.outline,
-            prefixIcon: Icons.visibility,
-            onPressed: () => onTap(progress.id),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ContentSection extends StatelessWidget {
-  final ModuleDetail module;
-
-  const _ContentSection({required this.module});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Content Overview', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppDimens.spaceM),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimens.paddingL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (module.wordCount != null && module.wordCount! > 0) ...[
-                  Row(
-                    children: [
-                      const Icon(Icons.format_size),
-                      const SizedBox(width: AppDimens.spaceM),
-                      Text(
-                        'Word Count: ${module.wordCount}',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimens.spaceM),
-                ],
-                const Text(
-                  'This is where the module content would be displayed. '
-                  'In a complete application, this would include text, '
-                  'images, videos, and other learning materials.',
-                ),
-                const SizedBox(height: AppDimens.spaceL),
-                _buildStudyTips(context),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStudyTips(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(AppDimens.paddingM),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.lightbulb, color: theme.colorScheme.primary),
-              const SizedBox(width: AppDimens.spaceM),
-              Text(
-                'Study Tips',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimens.spaceM),
-          const Text(
-            '• Review this module regularly using the spaced repetition schedule\n'
-            '• Take notes while studying\n'
-            '• Try to recall the material before checking your answers\n'
-            '• Connect new information to things you already know',
-          ),
         ],
       ),
     );

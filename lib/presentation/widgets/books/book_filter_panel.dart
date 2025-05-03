@@ -88,9 +88,7 @@ class BookFilterPanel extends StatelessWidget {
                     ),
                   if (selectedDifficulty != null)
                     FilterChipWidget(
-                      label: BookFormatter.formatDifficulty(
-                        selectedDifficulty!,
-                      ),
+                      label: BookFormatter.formatDifficulty(selectedDifficulty),
                       color: colorScheme.secondary,
                       onDeleted: () {
                         if (onDifficultySelected != null) {
