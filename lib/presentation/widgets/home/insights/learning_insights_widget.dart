@@ -1,7 +1,8 @@
-// lib/presentation/widgets/home/learning_insights_widget.dart
+// lib/presentation/widgets/home/insights/learning_insights_widget.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
+import 'package:spaced_learning_app/presentation/widgets/home/insights/insight_item.dart';
 
 class LearningInsightsWidget extends StatelessWidget {
   final double vocabularyRate;
@@ -72,71 +73,41 @@ class LearningInsightsWidget extends StatelessWidget {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
-        _buildInsightItem(
-          context,
-          textTheme,
-          colorScheme,
-          'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
-          Icons.trending_up,
-          'secondary',
+        InsightItem(
+          message:
+              'You learn ${vocabularyRate.toStringAsFixed(1)}% new vocabulary each week',
+          icon: Icons.trending_up,
+          colorType: 'secondary',
+          theme: theme,
+          colorScheme: colorScheme,
         ),
-        _buildInsightItem(
-          context,
-          textTheme,
-          colorScheme,
-          'Your current streak is $streakDays days - keep going!',
-          Icons.local_fire_department_outlined,
-          'tertiary',
+        InsightItem(
+          message: 'Your current streak is $streakDays days - keep going!',
+          icon: Icons.local_fire_department_outlined,
+          colorType: 'tertiary',
+          theme: theme,
+          colorScheme: colorScheme,
         ),
-        _buildInsightItem(
-          context,
-          textTheme,
-          colorScheme,
-          'You have $pendingWords words pending to learn',
-          Icons.hourglass_empty_outlined,
-          'primary',
+        InsightItem(
+          message: 'You have $pendingWords words pending to learn',
+          icon: Icons.hourglass_empty_outlined,
+          colorType: 'primary',
+          theme: theme,
+          colorScheme: colorScheme,
         ),
-        _buildInsightItem(
-          context,
-          textTheme,
-          colorScheme,
-          'Complete today\'s $dueToday sessions to maintain your streak',
-          Icons.today_outlined,
-          'warning',
+        InsightItem(
+          message:
+              'Complete today\'s $dueToday sessions to maintain your streak',
+          icon: Icons.today_outlined,
+          colorType: 'warning',
+          theme: theme,
+          colorScheme: colorScheme,
         ),
       ],
-    );
-  }
-
-  Widget _buildInsightItem(
-    BuildContext context,
-    TextTheme textTheme,
-    ColorScheme colorScheme,
-    String message,
-    IconData icon,
-    String colorType,
-  ) {
-    final color = colorScheme.getStatColor(colorType);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: AppDimens.iconM, color: color),
-          const SizedBox(width: AppDimens.spaceM),
-          Expanded(
-            child: Text(
-              message,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
