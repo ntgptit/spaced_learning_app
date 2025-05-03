@@ -11,24 +11,10 @@ class RescheduleDialog {
     required DateTime initialDate,
     required String title,
   }) async {
-    DateTime selectedDate = initialDate;
-    // Mặc định rescheduleFollowing luôn là true
-    bool rescheduleFollowing = true;
-
     return showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) => ProviderScope(
-        child: _RescheduleDialogContent(
-          initialDate: initialDate,
-          title: title,
-          onDateSelected: (date) => selectedDate = date,
-          onRescheduleFollowingChanged: (value) => rescheduleFollowing = value,
-          onCancel: () => Navigator.pop(dialogContext),
-          onReschedule: () => Navigator.pop(dialogContext, {
-            'date': selectedDate,
-            'rescheduleFollowing': rescheduleFollowing,
-          }),
-        ),
+        child: _RescheduleDialogContent(initialDate: initialDate, title: title),
       ),
     );
   }
@@ -37,18 +23,10 @@ class RescheduleDialog {
 class _RescheduleDialogContent extends ConsumerStatefulWidget {
   final DateTime initialDate;
   final String title;
-  final ValueChanged<DateTime> onDateSelected;
-  final ValueChanged<bool> onRescheduleFollowingChanged;
-  final VoidCallback onCancel;
-  final VoidCallback onReschedule;
 
   const _RescheduleDialogContent({
     required this.initialDate,
     required this.title,
-    required this.onDateSelected,
-    required this.onRescheduleFollowingChanged,
-    required this.onCancel,
-    required this.onReschedule,
   });
 
   @override
@@ -59,16 +37,12 @@ class _RescheduleDialogContent extends ConsumerStatefulWidget {
 class _RescheduleDialogContentState
     extends ConsumerState<_RescheduleDialogContent> {
   late DateTime _selectedDate;
-
-  // Khởi tạo giá trị mặc định là true
   bool _rescheduleFollowing = true;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.initialDate;
-    // Thông báo cho parent widget về giá trị mặc định
-    widget.onRescheduleFollowingChanged(_rescheduleFollowing);
   }
 
   @override
@@ -89,17 +63,9 @@ class _RescheduleDialogContentState
           children: [
             _buildHeader(context, widget.title),
             const SizedBox(height: AppDimens.spaceM),
-            _buildDatePicker(context, _selectedDate, (date) {
-              setState(() => _selectedDate = date);
-              widget.onDateSelected(date);
-            }),
+            _buildDatePicker(context),
             const SizedBox(height: AppDimens.spaceM),
-            _buildRescheduleSwitchOption(context, _rescheduleFollowing, (
-              value,
-            ) {
-              setState(() => _rescheduleFollowing = value);
-              widget.onRescheduleFollowingChanged(value);
-            }),
+            _buildRescheduleSwitchOption(context),
             const SizedBox(height: AppDimens.spaceL),
             _buildActionButtons(context),
           ],
@@ -121,11 +87,7 @@ class _RescheduleDialogContentState
     );
   }
 
-  Widget _buildDatePicker(
-    BuildContext context,
-    DateTime selectedDate,
-    Function(DateTime) onDateChanged,
-  ) {
+  Widget _buildDatePicker(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -152,10 +114,10 @@ class _RescheduleDialogContentState
                 ),
               ),
               child: CalendarDatePicker(
-                initialDate: selectedDate,
+                initialDate: _selectedDate,
                 firstDate: DateTime.now().subtract(const Duration(days: 7)),
                 lastDate: DateTime.now().add(const Duration(days: 365)),
-                onDateChanged: onDateChanged,
+                onDateChanged: (date) => setState(() => _selectedDate = date),
               ),
             ),
           ),
@@ -164,11 +126,7 @@ class _RescheduleDialogContentState
     );
   }
 
-  Widget _buildRescheduleSwitchOption(
-    BuildContext context,
-    bool rescheduleFollowing,
-    Function(bool) onChanged,
-  ) {
+  Widget _buildRescheduleSwitchOption(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -183,8 +141,8 @@ class _RescheduleDialogContentState
       child: SLToggleSwitch(
         title: 'Reschedule following repetitions',
         subtitle: 'Adjust all future repetitions based on this new date',
-        value: rescheduleFollowing,
-        onChanged: onChanged,
+        value: _rescheduleFollowing,
+        onChanged: (value) => setState(() => _rescheduleFollowing = value),
         type: SLToggleSwitchType.standard,
         size: SLToggleSwitchSize.medium,
         icon: Icons.repeat,
@@ -204,7 +162,7 @@ class _RescheduleDialogContentState
           text: 'Cancel',
           type: SLButtonType.text,
           size: SLButtonSize.small,
-          onPressed: widget.onCancel,
+          onPressed: () => Navigator.pop(context),
         ),
         const SizedBox(width: AppDimens.spaceM),
         SLButton(
@@ -212,7 +170,10 @@ class _RescheduleDialogContentState
           type: SLButtonType.primary,
           prefixIcon: Icons.calendar_today,
           size: SLButtonSize.small,
-          onPressed: widget.onReschedule,
+          onPressed: () => Navigator.pop(context, {
+            'date': _selectedDate,
+            'rescheduleFollowing': _rescheduleFollowing,
+          }),
         ),
       ],
     );

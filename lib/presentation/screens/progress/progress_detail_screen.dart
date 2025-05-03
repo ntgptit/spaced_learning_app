@@ -3,16 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/cycle_completion_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_header_widget.dart';
-import 'package:spaced_learning_app/presentation/widgets/progress/reschedule_dialog.dart';
-import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog_content.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_list_widget.dart';
+
+import '../../widgets/progress/reschedule_dialog.dart';
 
 @pragma('vm:entry-point')
 class ProgressDetailScreen extends ConsumerStatefulWidget {
@@ -105,7 +109,7 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
   }
 
   Future<void> _markRepetitionCompleted(String repetitionId) async {
-    final score = await _showScoreInputDialog();
+    final score = await ScoreInputDialog.show(context);
 
     if (score == null) {
       debugPrint('Score input cancelled.');
@@ -145,101 +149,7 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
     DateTime currentDate,
     bool rescheduleFollowing,
   ) async {
-    await _showRescheduleDialog(repetitionId, currentDate);
-  }
-
-  void _showSnackBar(String message, {Color? backgroundColor}) {
-    SnackBarUtils.show(context, message, backgroundColor: backgroundColor);
-  }
-
-  void _showCompletionSnackBar(double score) =>
-      _showSnackBar('Test score saved: ${score.toInt()}%');
-
-  void _showCycleCompletionSnackBar() {
-    if (!mounted) return;
-    final theme = Theme.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Congratulations! You have completed this learning cycle.',
-        ),
-        backgroundColor: theme.colorScheme.tertiary,
-        duration: const Duration(seconds: 5),
-        action: SnackBarAction(
-          label: 'Details',
-          onPressed: _showCycleCompletionDialog,
-        ),
-      ),
-    );
-  }
-
-  void _showCycleCompletionDialog() {
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Learning Cycle Completed!'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('You have completed all repetitions in this cycle.'),
-            SizedBox(height: 16),
-            Text(
-              'The system has automatically scheduled a new review cycle with adjusted intervals based on your learning performance.',
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Keep up with regular reviews to maximize your learning efficiency.',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<double?> _showScoreInputDialog() async {
-    final scoreNotifier = ValueNotifier<double>(80.0);
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Enter Test Score'),
-        content: ScoreInputDialogContent(scoreNotifier: scoreNotifier),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      final finalScore = scoreNotifier.value;
-      scoreNotifier.dispose();
-      return finalScore;
-    } else {
-      scoreNotifier.dispose();
-      return null;
-    }
-  }
-
-  Future<void> _showRescheduleDialog(
-    String repetitionId,
-    DateTime currentDate,
-  ) async {
+    // Sử dụng RescheduleDialog từ widget riêng biệt (reschedule_dialog.dart)
     final repetitions = ref.read(repetitionStateProvider).valueOrNull ?? [];
     final currentRepetition = repetitions.firstWhere(
       (r) => r.id == repetitionId,
@@ -265,7 +175,8 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
           );
 
       if (mounted && updatedRepetition != null) {
-        _showSnackBar(
+        SnackBarUtils.show(
+          context,
           'Repetition rescheduled to ${DateFormat('dd MMM').format(newDate)}',
         );
 
@@ -280,6 +191,35 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
 
   void _handleSingleCompletion(double score) {
     _showCompletionSnackBar(score);
+  }
+
+  void _showCompletionSnackBar(double score) =>
+      SnackBarUtils.show(context, 'Test score saved: ${score.toInt()}%');
+
+  void _showCycleCompletionSnackBar() {
+    if (!mounted) return;
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Congratulations! You have completed this learning cycle.',
+        ),
+        backgroundColor: theme.colorScheme.tertiary,
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Details',
+          onPressed: _showCycleCompletionDialog,
+        ),
+      ),
+    );
+  }
+
+  void _showCycleCompletionDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => const CycleCompletionDialog(),
+    );
   }
 
   @override
@@ -326,11 +266,78 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: _reloadData,
-            child: _buildScreenContent(progressAsync),
-          );
+          return _buildContent(progressAsync);
         },
+      ),
+    );
+  }
+
+  Widget _buildContent(AsyncValue<ProgressDetail?> progressAsync) {
+    return progressAsync.when(
+      data: (progress) {
+        if (progress == null) {
+          return _buildProgressNotFoundView();
+        }
+        return _buildProgressView(progress);
+      },
+      loading: () => const Center(child: SLLoadingIndicator()),
+      error: (error, stack) => Center(
+        child: SLErrorView(message: error.toString(), onRetry: _reloadData),
+      ),
+    );
+  }
+
+  Widget _buildProgressNotFoundView() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.warning_amber, size: 48, color: Colors.orange),
+          const SizedBox(height: 16),
+          Text(
+            'Progress with ID ${widget.progressId} not found',
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _reloadData,
+            child: const Text('Try Again'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => context.go('/due-progress'),
+            child: const Text('Go Back'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressView(ProgressDetail progress) {
+    return RefreshIndicator(
+      onRefresh: _reloadData,
+      child: ListView(
+        padding: const EdgeInsets.all(AppDimens.paddingL),
+        children: [
+          ProgressHeaderWidget(
+            progress: progress,
+            onCycleCompleteDialogRequested: _showCycleCompletionDialog,
+          ),
+          const SizedBox(height: AppDimens.spaceXXL),
+          Text(
+            'Review Schedule',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: AppDimens.spaceL),
+          RepetitionListWidget(
+            progressId: widget.progressId,
+            currentCycleStudied: progress.cyclesStudied,
+            onMarkCompleted: _markRepetitionCompleted,
+            onReschedule: _rescheduleRepetition,
+            onReload: _reloadData,
+          ),
+        ],
       ),
     );
   }
@@ -345,63 +352,4 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
       ),
     ],
   );
-
-  Widget _buildScreenContent(AsyncValue progressAsync) {
-    final theme = Theme.of(context);
-
-    return progressAsync.when(
-      data: (progress) {
-        if (progress == null) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.warning_amber, size: 48, color: Colors.orange),
-                const SizedBox(height: 16),
-                Text(
-                  'Progress with ID ${widget.progressId} not found',
-                  style: theme.textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _reloadData,
-                  child: const Text('Try Again'),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => context.go('/due-progress'),
-                  child: const Text('Go Back'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            ProgressHeaderWidget(
-              progress: progress,
-              onCycleCompleteDialogRequested: _showCycleCompletionDialog,
-            ),
-            const SizedBox(height: 32),
-            Text('Review Schedule', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 16),
-            RepetitionListWidget(
-              progressId: widget.progressId,
-              currentCycleStudied: progress.cyclesStudied,
-              onMarkCompleted: _markRepetitionCompleted,
-              onReschedule: _rescheduleRepetition,
-              onReload: _reloadData,
-            ),
-          ],
-        );
-      },
-      loading: () => const Center(child: SLLoadingIndicator()),
-      error: (error, stack) => Center(
-        child: SLErrorView(message: error.toString(), onRetry: _reloadData),
-      ),
-    );
-  }
 }

@@ -2,18 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
-import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_filter_card.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_list.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_login_prompt.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_summary.dart';
 
-import '../../../core/navigation/navigation_helper.dart';
-import '../../../core/utils/date_utils.dart';
+import '../../../domain/models/progress.dart';
+import '../../viewmodels/module_viewmodel.dart';
 
 class DueProgressScreen extends ConsumerStatefulWidget {
   const DueProgressScreen({super.key});
@@ -28,11 +26,10 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
   late Animation<double> _fadeAnimation;
 
   DateTime? _selectedDate;
-  final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
-  final Map<String, String> _moduleTitles = {};
-  bool _isLoadingModules = false;
+  bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
+  final Map<String, String> _moduleTitles = {};
 
   @override
   void initState() {
@@ -54,8 +51,9 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
 
   void _onScroll() {
     final isScrolled = _scrollController.offset > 10;
-    if (isScrolled == _isScrolled) return;
-    setState(() => _isScrolled = isScrolled);
+    if (isScrolled != _isScrolled) {
+      setState(() => _isScrolled = isScrolled);
+    }
   }
 
   @override
@@ -90,7 +88,7 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
   }
 
   Future<void> _loadModuleTitles(List<ProgressSummary> progressList) async {
-    setState(() => _isLoadingModules = true);
+    setState(() => _isLoading = true);
 
     final moduleIds = progressList
         .map((progress) => progress.moduleId)
@@ -116,7 +114,7 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
       }
     }
 
-    setState(() => _isLoadingModules = false);
+    setState(() => _isLoading = false);
   }
 
   Future<void> _selectDate() async {
@@ -153,64 +151,17 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     _loadData();
   }
 
-  String _formatCycleStudied(CycleStudied cycle) => switch (cycle) {
-    CycleStudied.firstTime => 'First Cycle',
-    CycleStudied.firstReview => 'First Review',
-    CycleStudied.secondReview => 'Second Review',
-    CycleStudied.thirdReview => 'Third Review',
-    CycleStudied.moreThanThreeReviews => 'Advanced Review',
-  };
-
-  bool _isDue(ProgressSummary progress) {
-    if (progress.nextStudyDate == null) return false;
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final nextDate = DateTime(
-      progress.nextStudyDate!.year,
-      progress.nextStudyDate!.month,
-      progress.nextStudyDate!.day,
-    );
-    final targetDate =
-        _selectedDate?.copyWith(
-          hour: 0,
-          minute: 0,
-          second: 0,
-          millisecond: 0,
-          microsecond: 0,
-        ) ??
-        today;
-
-    return nextDate.compareTo(targetDate) <= 0;
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final isAuthorized = authState.valueOrNull ?? false;
     final currentUser = ref.watch(currentUserProvider);
-    final theme = Theme.of(context);
 
     if (!isAuthorized || currentUser == null) {
-      return _buildLoginPrompt(theme);
+      return const DueProgressLoginPrompt();
     }
 
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('User Profile'),
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back),
-      //     onPressed: () {
-      //       final router = GoRouter.of(context);
-      //       if (router.canPop()) {
-      //         router.pop();
-      //         return;
-      //       }
-      //       router.go('/');
-      //     },
-      //     tooltip: 'Back',
-      //   ),
-      // ),
       body: NestedScrollView(
         controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -227,11 +178,11 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
               },
               tooltip: 'Back',
             ),
-            title: Text(
-              _selectedDate == null
-                  ? 'Due Today'
-                  : 'Due by ${_dateFormat.format(_selectedDate!)}',
-            ),
+            // title: Text(
+            //   _selectedDate == null
+            //       ? 'Due Today'
+            //       : 'Due by ${DateFormat.format(_selectedDate!)}',
+            // ),
             pinned: true,
             floating: true,
             elevation: _isScrolled ? 2.0 : 0.0,
@@ -245,64 +196,10 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(80),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                color: theme.scaffoldBackgroundColor,
-                child: Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainerLow,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withValues(
-                        alpha: 0.5,
-                      ),
-                      width: 1,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 20,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _selectedDate == null
-                                ? 'Due Today'
-                                : 'Due by ${_dateFormat.format(_selectedDate!)}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                        if (_selectedDate != null)
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: _clearDateFilter,
-                            tooltip: 'Clear date filter',
-                            iconSize: 20,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_month),
-                          onPressed: _selectDate,
-                          tooltip: 'Select date',
-                          iconSize: 20,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              child: DueProgressFilterCard(
+                selectedDate: _selectedDate,
+                onSelectDate: _selectDate,
+                onClearDate: _clearDateFilter,
               ),
             ),
           ),
@@ -312,538 +209,21 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     );
   }
 
-  Widget _buildLoginPrompt(ThemeData theme) => Scaffold(
-    appBar: AppBar(title: const Text('Due Progress')),
-    body: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.lock_outline,
-                size: 64,
-                color: theme.colorScheme.primary.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Please sign in',
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You need to be signed in to view your due progress',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              icon: const Icon(Icons.login),
-              label: const Text('Sign in'),
-              onPressed: () =>
-                  NavigationHelper.clearStackAndGo(context, '/login'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-
   Widget _buildBody() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        _buildSummarySection(),
-        Expanded(child: _buildProgressList()),
-      ],
-    ),
-  );
-
-  Widget _buildSummarySection() {
-    final progressAsync = ref.watch(progressStateProvider);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return progressAsync.when(
-      data: (progressRecords) {
-        if (progressRecords.isEmpty && progressAsync.isLoading) {
-          return const SizedBox.shrink();
-        }
-
-        if (progressAsync.hasError) {
-          return const SizedBox.shrink();
-        }
-
-        final totalCount = progressRecords.length;
-        final dueCount = progressRecords.where(_isDue).length;
-        final completedPercent = totalCount == 0
-            ? 0
-            : ((totalCount - dueCount) / totalCount * 100).toInt();
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: Card(
-            elevation: 0,
-            color: colorScheme.surfaceContainerLowest,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                width: 1,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  _buildStatItem(
-                    theme,
-                    'Total',
-                    totalCount.toString(),
-                    Icons.book,
-                    colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatItem(
-                    theme,
-                    'Due',
-                    dueCount.toString(),
-                    Icons.event_available,
-                    dueCount > 0
-                        ? colorScheme.error
-                        : colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatItem(
-                    theme,
-                    'Completed',
-                    '$completedPercent%',
-                    Icons.task_alt,
-                    colorScheme.tertiary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      loading: () => const Center(child: SLLoadingIndicator()),
-      error: (error, _) => Center(
-        child: SLErrorView(message: error.toString(), onRetry: _loadData),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(
-    ThemeData theme,
-    String title,
-    IconData icon,
-    Color color,
-  ) => Padding(
-    padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
-    child: Row(
-      children: [
-        Icon(icon, size: 20, color: color),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildEmptyState() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.check_circle_outline,
-                size: 64,
-                color: colorScheme.tertiary.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              _selectedDate == null
-                  ? 'No modules due for review today!'
-                  : 'No modules due for review by ${AppDateUtils.formatDate(_selectedDate!)}',
-              style: theme.textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Great job keeping up with your studies!',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
-              onPressed: _loadData,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressList() {
-    final progressAsync = ref.watch(progressStateProvider);
-    final theme = Theme.of(context);
-
-    return progressAsync.when(
-      data: (progressRecords) {
-        if (progressRecords.isEmpty && progressAsync.isLoading) {
-          return const Center(child: SLLoadingIndicator());
-        }
-
-        if (progressAsync.hasError) {
-          return Center(
-            child: SLErrorView(
-              message: progressAsync.error.toString(),
-              onRetry: _loadData,
-            ),
-          );
-        }
-
-        if (_isLoadingModules) {
-          return const Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SLLoadingIndicator(),
-                SizedBox(height: 16),
-                Text('Loading module information...'),
-              ],
-            ),
-          );
-        }
-
-        if (progressRecords.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        final today = DateTime.now();
-        final todayProgressRecords = <ProgressSummary>[];
-        final overdueProgressRecords = <ProgressSummary>[];
-        final upcomingProgressRecords = <ProgressSummary>[];
-
-        for (final progress in progressRecords) {
-          if (progress.nextStudyDate == null) continue;
-
-          final progressDate = DateTime(
-            progress.nextStudyDate!.year,
-            progress.nextStudyDate!.month,
-            progress.nextStudyDate!.day,
-          );
-          final nowDate = DateTime(today.year, today.month, today.day);
-
-          if (progressDate.isAtSameMomentAs(nowDate)) {
-            todayProgressRecords.add(progress);
-            continue;
-          }
-          if (progressDate.isBefore(nowDate)) {
-            overdueProgressRecords.add(progress);
-            continue;
-          }
-          upcomingProgressRecords.add(progress);
-        }
-
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: RefreshIndicator(
+        DueProgressSummary(onRefresh: _loadData),
+        Expanded(
+          child: DueProgressList(
+            moduleTitles: _moduleTitles,
+            selectedDate: _selectedDate,
+            isLoading: _isLoading,
+            animationController: _animationController,
+            fadeAnimation: _fadeAnimation,
             onRefresh: _loadData,
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 80),
-              children: [
-                if (overdueProgressRecords.isNotEmpty) ...[
-                  _buildSectionHeader(
-                    theme,
-                    'Overdue',
-                    Icons.warning_amber,
-                    theme.colorScheme.error,
-                  ),
-                  ...overdueProgressRecords.map(_buildProgressItem),
-                  const SizedBox(height: 24),
-                ],
-                if (todayProgressRecords.isNotEmpty) ...[
-                  _buildSectionHeader(
-                    theme,
-                    'Due Today',
-                    Icons.today,
-                    theme.colorScheme.tertiary,
-                  ),
-                  ...todayProgressRecords.map(_buildProgressItem),
-                  const SizedBox(height: 24),
-                ],
-                if (upcomingProgressRecords.isNotEmpty &&
-                    _selectedDate != null) ...[
-                  _buildSectionHeader(
-                    theme,
-                    'Upcoming',
-                    Icons.event,
-                    theme.colorScheme.primary,
-                  ),
-                  ...upcomingProgressRecords.map(_buildProgressItem),
-                ],
-                if (todayProgressRecords.isEmpty &&
-                    overdueProgressRecords.isEmpty &&
-                    upcomingProgressRecords.isEmpty)
-                  _buildEmptyState(),
-              ],
-            ),
-          ),
-        );
-      },
-      loading: () => const Center(child: SLLoadingIndicator()),
-      error: (error, _) => Center(
-        child: SLErrorView(message: error.toString(), onRetry: _loadData),
-      ),
-    );
-  }
-
-  Widget _buildProgressItem(ProgressSummary progress) {
-    final moduleTitle = _moduleTitles[progress.moduleId] ?? 'Loading...';
-    final cycleText = _formatCycleStudied(progress.cyclesStudied);
-    final isItemDue = _isDue(progress);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
-      child: _buildTaskItem(
-        progress,
-        colorScheme,
-        theme,
-        moduleTitle,
-        cycleText,
-        isItemDue,
-      ),
-    );
-  }
-
-  Widget _buildTaskItem(
-    ProgressSummary progress,
-    ColorScheme colorScheme,
-    ThemeData theme,
-    String moduleTitle,
-    String cycleText,
-    bool isItemDue,
-  ) {
-    return InkWell(
-      onTap: () {
-        final String progressId = progress.id;
-        debugPrint('Navigating to progress with ID: $progressId');
-        debugPrint('Progress object data: ${progress.toString()}');
-
-        if (progressId.isEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Invalid progress ID')));
-          return;
-        }
-
-        // Use NavigationHelper.pushWithResult to get result and refresh
-        NavigationHelper.pushWithResult(
-          context,
-          '/progress/$progressId',
-        ).then((_) => _loadData()); // Auto-refresh when returning
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        value: progress.percentComplete / 100,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          _getProgressColor(
-                            progress.percentComplete,
-                            colorScheme,
-                          ),
-                        ),
-                        strokeWidth: 4,
-                      ),
-                      Text(
-                        '${progress.percentComplete.toInt()}%',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        moduleTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Cycle: $cycleText',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: _getCycleColor(
-                            progress.cyclesStudied,
-                            colorScheme,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            isItemDue ? Icons.event_available : Icons.event,
-                            size: 16,
-                            color: isItemDue
-                                ? colorScheme.error
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            progress.nextStudyDate != null
-                                ? _dateFormat.format(progress.nextStudyDate!)
-                                : 'Not scheduled',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isItemDue
-                                  ? colorScheme.error
-                                  : colorScheme.onSurfaceVariant,
-                              fontWeight: isItemDue ? FontWeight.bold : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (isItemDue)
-                  Icon(
-                    Icons.notifications_active,
-                    color: colorScheme.error,
-                    size: 20,
-                  ),
-              ],
-            ),
-            if (progress.repetitionCount > 0) ...[
-              const SizedBox(height: 8),
-              Chip(
-                label: Text('${progress.repetitionCount} repetitions'),
-                backgroundColor: colorScheme.surfaceContainerHigh,
-                side: BorderSide.none,
-                labelStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getProgressColor(double percent, ColorScheme colorScheme) {
-    return Theme.of(context).getProgressColor(percent);
-  }
-
-  Color _getCycleColor(CycleStudied cycle, ColorScheme colorScheme) {
-    return Theme.of(context).getCycleColor(cycle);
-  }
-
-  Widget _buildStatItem(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) => Expanded(
-    child: Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
           ),
         ),
       ],
