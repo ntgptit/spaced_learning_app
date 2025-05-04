@@ -178,11 +178,7 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
               },
               tooltip: 'Back',
             ),
-            // title: Text(
-            //   _selectedDate == null
-            //       ? 'Due Today'
-            //       : 'Due by ${DateFormat.format(_selectedDate!)}',
-            // ),
+            title: const Text('Due Today'),
             pinned: true,
             floating: true,
             elevation: _isScrolled ? 2.0 : 0.0,
