@@ -278,6 +278,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
             width: AppDimens.dividerThickness,
             color: colorScheme.outlineVariant,
           ),
+          const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: _buildInfoItem(
               theme,
