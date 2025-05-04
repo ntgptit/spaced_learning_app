@@ -14,8 +14,8 @@ import 'package:spaced_learning_app/presentation/widgets/common/loading_indicato
 import 'package:spaced_learning_app/presentation/widgets/progress/cycle_completion_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_header_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog.dart';
-import 'package:spaced_learning_app/presentation/widgets/repetition/repetition_list_widget.dart';
 
+import '../../widgets/progress/progress_repetition_list.dart';
 import '../../widgets/progress/reschedule_dialog.dart';
 
 @pragma('vm:entry-point')
@@ -325,12 +325,8 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
             onCycleCompleteDialogRequested: _showCycleCompletionDialog,
           ),
           const SizedBox(height: AppDimens.spaceXXL),
-          Text(
-            'Review Schedule',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: AppDimens.spaceL),
-          RepetitionListWidget(
+          // Utiliser notre nouveau widget intégré ici
+          ProgressRepetitionList(
             progressId: widget.progressId,
             currentCycleStudied: progress.cyclesStudied,
             onMarkCompleted: _markRepetitionCompleted,
