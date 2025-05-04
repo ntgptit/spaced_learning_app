@@ -1,3 +1,5 @@
+// lib/presentation/viewmodels/auth_viewmodel.dart
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/auth_response.dart';
 import 'package:spaced_learning_app/domain/models/user.dart';
@@ -14,30 +16,38 @@ class AuthState extends _$AuthState {
   }
 
   Future<bool> _checkAuthentication() async {
-    final token = await ref.read(storageServiceProvider).getToken();
-    if (token == null || token.isEmpty) {
-      return false;
-    }
-
     try {
-      final isValid = await ref
-          .read(authRepositoryProvider)
-          .validateToken(token);
-
-      if (isValid) {
-        final userData = await ref.read(storageServiceProvider).getUserData();
-        if (userData != null) {
-          ref
-              .read(currentUserProvider.notifier)
-              .updateUser(User.fromJson(userData));
-        }
-        return true;
+      final token = await ref.read(storageServiceProvider).getToken();
+      if (token == null || token.isEmpty) {
+        return false;
       }
 
-      await ref.read(storageServiceProvider).clearTokens();
-      return false;
+      try {
+        final isValid = await ref
+            .read(authRepositoryProvider)
+            .validateToken(token);
+
+        if (isValid) {
+          final userData = await ref.read(storageServiceProvider).getUserData();
+          if (userData != null) {
+            ref
+                .read(currentUserProvider.notifier)
+                .updateUser(User.fromJson(userData));
+          }
+          return true;
+        }
+
+        await ref.read(storageServiceProvider).clearTokens();
+        return false;
+      } catch (e) {
+        debugPrint('Token validation error: $e');
+        await ref.read(storageServiceProvider).clearTokens();
+        return false;
+      }
     } catch (e) {
-      await ref.read(storageServiceProvider).clearTokens();
+      debugPrint('Critical authentication check error: $e');
+      // Handle secure storage errors by resetting storage
+      await ref.read(storageServiceProvider).resetSecureStorage();
       return false;
     }
   }
@@ -52,6 +62,7 @@ class AuthState extends _$AuthState {
       state = const AsyncValue.data(true);
       return true;
     } catch (e) {
+      debugPrint('Login error: $e');
       state = AsyncValue.error(e, StackTrace.current);
       return false;
     }
@@ -73,6 +84,7 @@ class AuthState extends _$AuthState {
       state = const AsyncValue.data(true);
       return true;
     } catch (e) {
+      debugPrint('Registration error: $e');
       state = AsyncValue.error(e, StackTrace.current);
       return false;
     }
@@ -86,19 +98,31 @@ class AuthState extends _$AuthState {
       ref.read(currentUserProvider.notifier).updateUser(null);
       state = const AsyncValue.data(false);
     } catch (e) {
+      debugPrint('Logout error: $e');
+      // Even if there's an error, we still want to clear the user state
+      ref.read(currentUserProvider.notifier).updateUser(null);
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
 
   Future<void> _handleAuthResponse(AuthResponse response) async {
-    await ref.read(storageServiceProvider).saveToken(response.token);
-    if (response.refreshToken != null) {
+    try {
+      await ref.read(storageServiceProvider).saveToken(response.token);
+      if (response.refreshToken != null) {
+        await ref
+            .read(storageServiceProvider)
+            .saveRefreshToken(response.refreshToken!);
+      }
       await ref
           .read(storageServiceProvider)
-          .saveRefreshToken(response.refreshToken!);
+          .saveUserData(response.user.toJson());
+      ref.read(currentUserProvider.notifier).updateUser(response.user);
+    } catch (e) {
+      debugPrint('Error handling auth response: $e');
+      // If we can't save the auth data, ensure user state is consistent
+      ref.read(currentUserProvider.notifier).updateUser(response.user);
+      rethrow;
     }
-    await ref.read(storageServiceProvider).saveUserData(response.user.toJson());
-    ref.read(currentUserProvider.notifier).updateUser(response.user);
   }
 }
 
