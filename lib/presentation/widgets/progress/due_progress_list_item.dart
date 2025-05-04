@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/theme_extensions.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
+import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
 
@@ -99,7 +100,7 @@ class DueProgressListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Cycle: ${_formatCycleStudied(progress.cyclesStudied)}',
+                          'Cycle: ${CycleFormatter.getDisplayName(progress.cyclesStudied)}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.getCycleColor(progress.cyclesStudied),
                           ),
@@ -157,20 +158,5 @@ class DueProgressListItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatCycleStudied(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'First Cycle';
-      case CycleStudied.firstReview:
-        return 'First Review Cycle';
-      case CycleStudied.secondReview:
-        return 'Second Review Cycle';
-      case CycleStudied.thirdReview:
-        return 'Third Review Cycle';
-      case CycleStudied.moreThanThreeReviews:
-        return 'Advanced Review Cycle';
-    }
   }
 }

@@ -1,4 +1,3 @@
-// lib/presentation/widgets/progress/progress_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +5,7 @@ import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
+import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 
 class ProgressHeaderWidget extends ConsumerWidget {
@@ -52,7 +52,13 @@ class ProgressHeaderWidget extends ConsumerWidget {
             const SizedBox(height: AppDimens.spaceL),
             _buildOverallProgress(theme),
             const SizedBox(height: AppDimens.spaceL),
-            _buildCycleProgress(theme, cycleInfo, completedCount, totalCount),
+            _buildCycleProgress(
+              theme,
+              cycleInfo,
+              completedCount,
+              totalCount,
+              context,
+            ),
             const SizedBox(height: AppDimens.spaceL),
             _buildMetadata(theme, startDateText, nextDateText),
           ],
@@ -134,9 +140,10 @@ class ProgressHeaderWidget extends ConsumerWidget {
     String cycleInfo,
     int completed,
     int total,
+    BuildContext context,
   ) {
     final progressValue = total > 0 ? completed / total : 0.0;
-    final cycleColor = _getCycleColor(progress.cyclesStudied);
+    final cycleColor = CycleFormatter.getColor(progress.cyclesStudied, context);
     final colorScheme = theme.colorScheme;
 
     return Column(
@@ -145,13 +152,13 @@ class ProgressHeaderWidget extends ConsumerWidget {
         Row(
           children: [
             Icon(
-              _getCycleIcon(progress.cyclesStudied),
+              CycleFormatter.getIcon(progress.cyclesStudied),
               color: cycleColor,
               size: AppDimens.iconM,
             ),
             const SizedBox(width: AppDimens.spaceS),
             Text(
-              'Study Cycle: ${_formatCycleStudied(progress.cyclesStudied)}',
+              'Study Cycle: ${CycleFormatter.getDisplayName(progress.cyclesStudied)}',
               style: theme.textTheme.titleMedium?.copyWith(color: cycleColor),
             ),
           ],
@@ -350,57 +357,5 @@ class ProgressHeaderWidget extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  IconData _getCycleIcon(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return Icons.looks_one;
-      case CycleStudied.firstReview:
-        return Icons.looks_two;
-      case CycleStudied.secondReview:
-        return Icons.looks_3;
-      case CycleStudied.thirdReview:
-        return Icons.looks_4;
-      case CycleStudied.moreThanThreeReviews:
-        return Icons.looks_5;
-    }
-  }
-
-  Color _getCycleColor(CycleStudied cycle) {
-    const List<Color> cycleColors = [
-      Color(0xFF4CAF50), // Green 500 (First Time)
-      Color(0xFF2196F3), // Blue 500 (First Review)
-      Color(0xFFF4511E), // Deep Orange 600 (Second Review)
-      Color(0xFFAB47BC), // Purple 400 (Third Review)
-      Color(0xFFEF5350), // Red 400 (More Than Three Reviews)
-    ];
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return cycleColors[0];
-      case CycleStudied.firstReview:
-        return cycleColors[1];
-      case CycleStudied.secondReview:
-        return cycleColors[2];
-      case CycleStudied.thirdReview:
-        return cycleColors[3];
-      case CycleStudied.moreThanThreeReviews:
-        return cycleColors[4];
-    }
-  }
-
-  String _formatCycleStudied(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'First Cycle';
-      case CycleStudied.firstReview:
-        return 'First Review Cycle';
-      case CycleStudied.secondReview:
-        return 'Second Review Cycle';
-      case CycleStudied.thirdReview:
-        return 'Third Review Cycle';
-      case CycleStudied.moreThanThreeReviews:
-        return 'Advanced Review Cycle';
-    }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 
 class RepetitionUtils {
@@ -5,12 +6,13 @@ class RepetitionUtils {
     List<Repetition> repetitions,
   ) {
     final groupedByCycle = <String, List<Repetition>>{};
-    final sortedRepetitions = List<Repetition>.from(repetitions)..sort((a, b) {
-      if (a.createdAt == null && b.createdAt == null) return 0;
-      if (a.createdAt == null) return 1;
-      if (b.createdAt == null) return -1;
-      return a.createdAt!.compareTo(b.createdAt!);
-    });
+    final sortedRepetitions = List<Repetition>.from(repetitions)
+      ..sort((a, b) {
+        if (a.createdAt == null && b.createdAt == null) return 0;
+        if (a.createdAt == null) return 1;
+        if (b.createdAt == null) return -1;
+        return a.createdAt!.compareTo(b.createdAt!);
+      });
 
     int cycleIndex = 1;
     int currentGroupCount = 0;
@@ -40,5 +42,23 @@ class RepetitionUtils {
     }
 
     return groupedByCycle;
+  }
+
+  static bool isCurrentCycle(
+    List<Repetition> repetitions,
+    CycleStudied currentCycleStudied,
+  ) {
+    if (repetitions.isEmpty) return false;
+    return repetitions.any((r) => r.status == RepetitionStatus.notStarted) &&
+        currentCycleStudied != CycleStudied.firstTime;
+  }
+
+  static int compareReviewDates(Repetition a, Repetition b) {
+    if (a.reviewDate == null && b.reviewDate == null) {
+      return a.repetitionOrder.index.compareTo(b.repetitionOrder.index);
+    }
+    if (a.reviewDate == null) return 1;
+    if (b.reviewDate == null) return -1;
+    return b.reviewDate!.compareTo(a.reviewDate!);
   }
 }

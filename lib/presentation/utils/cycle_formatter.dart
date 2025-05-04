@@ -67,4 +67,51 @@ class CycleFormatter {
         return colorScheme.tertiaryContainer;
     }
   }
+
+  static IconData getIcon(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return Icons.looks_one;
+      case CycleStudied.firstReview:
+        return Icons.looks_two;
+      case CycleStudied.secondReview:
+        return Icons.looks_3;
+      case CycleStudied.thirdReview:
+        return Icons.looks_4;
+      case CycleStudied.moreThanThreeReviews:
+        return Icons.looks_5;
+    }
+  }
+
+  // Thêm phương thức mới để lấy cycle name dạng hiển thị
+  static String getDisplayName(CycleStudied cycle) {
+    switch (cycle) {
+      case CycleStudied.firstTime:
+        return 'First Cycle';
+      case CycleStudied.firstReview:
+        return 'First Review Cycle';
+      case CycleStudied.secondReview:
+        return 'Second Review Cycle';
+      case CycleStudied.thirdReview:
+        return 'Third Review Cycle';
+      case CycleStudied.moreThanThreeReviews:
+        return 'Advanced Review Cycle';
+    }
+  }
+
+  // Map số cycle sang enum CycleStudied
+  static CycleStudied mapNumberToCycleStudied(int number) {
+    switch (number) {
+      case 1:
+        return CycleStudied.firstTime;
+      case 2:
+        return CycleStudied.firstReview;
+      case 3:
+        return CycleStudied.secondReview;
+      case 4:
+        return CycleStudied.thirdReview;
+      default:
+        return CycleStudied.moreThanThreeReviews;
+    }
+  }
 }
