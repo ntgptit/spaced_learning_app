@@ -224,7 +224,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
               'Current Cycle: ${CycleFormatter.getDisplayName(progress.cyclesStudied)}',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: cycleColor,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const Spacer(),
