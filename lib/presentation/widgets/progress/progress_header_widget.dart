@@ -18,6 +18,8 @@ class ProgressHeaderWidget extends ConsumerWidget {
     required this.onCycleCompleteDialogRequested,
   });
 
+  static const double kProgressShadowAlpha = 0.8;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -26,7 +28,6 @@ class ProgressHeaderWidget extends ConsumerWidget {
     final startDateText = progress.firstLearningDate != null
         ? dateFormat.format(progress.firstLearningDate!)
         : 'Not started';
-
     final nextDateText = progress.nextStudyDate != null
         ? dateFormat.format(progress.nextStudyDate!)
         : 'Not scheduled';
@@ -35,7 +36,6 @@ class ProgressHeaderWidget extends ConsumerWidget {
         .where((r) => r.status == RepetitionStatus.completed)
         .length;
     final totalCount = progress.repetitions.length;
-
     final cycleInfo = ref.watch(getCycleInfoProvider(progress.cyclesStudied));
 
     return Card(
@@ -91,46 +91,18 @@ class ProgressHeaderWidget extends ConsumerWidget {
   }
 
   Widget _buildOverallProgress(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+    final progressColor = theme.colorScheme.success.withValues(alpha: 1.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(
+        _buildSectionHeaderWithTrailing(
           theme,
           'Overall Progress',
           '${progress.percentComplete.toInt()}%',
+          progressColor,
         ),
         const SizedBox(height: AppDimens.spaceS),
-        Stack(
-          children: [
-            Container(
-              height: AppDimens.lineProgressHeightL,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppDimens.radiusS),
-              ),
-            ),
-            FractionallySizedBox(
-              widthFactor: progress.percentComplete / 100,
-              child: Container(
-                height: AppDimens.lineProgressHeightL,
-                decoration: BoxDecoration(
-                  color: colorScheme.success,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.success.withValues(
-                        alpha: AppDimens.opacitySemi,
-                      ),
-                      blurRadius: AppDimens.shadowRadiusS,
-                      offset: const Offset(0, AppDimens.shadowOffsetS),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        _buildProgressBar(theme, progress.percentComplete / 100, progressColor),
       ],
     );
   }
@@ -143,8 +115,10 @@ class ProgressHeaderWidget extends ConsumerWidget {
     BuildContext context,
   ) {
     final progressValue = total > 0 ? completed / total : 0.0;
-    final cycleColor = CycleFormatter.getColor(progress.cyclesStudied, context);
-    final colorScheme = theme.colorScheme;
+    final cycleColor = CycleFormatter.getColor(
+      progress.cyclesStudied,
+      context,
+    ).saturate(0.2).withValues(alpha: 1.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,45 +133,18 @@ class ProgressHeaderWidget extends ConsumerWidget {
             const SizedBox(width: AppDimens.spaceS),
             Text(
               'Study Cycle: ${CycleFormatter.getDisplayName(progress.cyclesStudied)}',
-              style: theme.textTheme.titleMedium?.copyWith(color: cycleColor),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: cycleColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
         const SizedBox(height: AppDimens.spaceS),
-        Stack(
-          children: [
-            Container(
-              height: AppDimens.lineProgressHeightL,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppDimens.radiusS),
-              ),
-            ),
-            FractionallySizedBox(
-              widthFactor: progressValue,
-              child: Container(
-                height: AppDimens.lineProgressHeightL,
-                decoration: BoxDecoration(
-                  color: cycleColor,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
-                  boxShadow: [
-                    BoxShadow(
-                      color: cycleColor.withValues(
-                        alpha: AppDimens.opacitySemi,
-                      ),
-                      blurRadius: AppDimens.shadowRadiusS,
-                      offset: const Offset(0, AppDimens.shadowOffsetS),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        _buildProgressBar(theme, progressValue, cycleColor),
         const SizedBox(height: AppDimens.spaceXS),
-        RichText(
-          text: TextSpan(
-            style: theme.textTheme.bodySmall,
+        Text.rich(
+          TextSpan(
             children: [
               TextSpan(
                 text: '$completed',
@@ -208,9 +155,13 @@ class ProgressHeaderWidget extends ConsumerWidget {
               ),
               TextSpan(
                 text: '/$total repetitions completed in this cycle',
-                style: TextStyle(color: colorScheme.onSurface),
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
+            style: theme.textTheme.bodySmall,
           ),
         ),
         const SizedBox(height: AppDimens.spaceS),
@@ -219,21 +170,50 @@ class ProgressHeaderWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildCycleInfoCard(ThemeData theme, String infoText) {
-    final colorScheme = theme.colorScheme;
+  Widget _buildProgressBar(ThemeData theme, double value, Color progressColor) {
+    return Stack(
+      children: [
+        Container(
+          height: AppDimens.lineProgressHeightL,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(AppDimens.radiusS),
+          ),
+        ),
+        FractionallySizedBox(
+          widthFactor: value,
+          child: Container(
+            height: AppDimens.lineProgressHeightL,
+            decoration: BoxDecoration(
+              color: progressColor,
+              borderRadius: BorderRadius.circular(AppDimens.radiusS),
+              boxShadow: [
+                BoxShadow(
+                  color: progressColor.withValues(alpha: kProgressShadowAlpha),
+                  blurRadius: AppDimens.shadowRadiusS,
+                  offset: const Offset(0, AppDimens.shadowOffsetS),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
+  Widget _buildCycleInfoCard(ThemeData theme, String infoText) {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        border: Border.all(color: colorScheme.outlineVariant, width: 1),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.5),
       ),
       child: Row(
         children: [
           Icon(
             Icons.lightbulb,
-            color: colorScheme.primary,
+            color: theme.colorScheme.primary,
             size: AppDimens.iconM,
           ),
           const SizedBox(width: AppDimens.spaceS),
@@ -242,6 +222,8 @@ class ProgressHeaderWidget extends ConsumerWidget {
               infoText,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
@@ -255,13 +237,12 @@ class ProgressHeaderWidget extends ConsumerWidget {
     String startDateText,
     String nextDateText,
   ) {
-    final colorScheme = theme.colorScheme;
-
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
       ),
       child: Row(
         children: [
@@ -276,9 +257,8 @@ class ProgressHeaderWidget extends ConsumerWidget {
           Container(
             height: AppDimens.iconXL,
             width: AppDimens.dividerThickness,
-            color: colorScheme.outlineVariant,
+            color: theme.colorScheme.outlineVariant,
           ),
-          const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: _buildInfoItem(
               theme,
@@ -298,12 +278,10 @@ class ProgressHeaderWidget extends ConsumerWidget {
     String value,
     IconData icon,
   ) {
-    final colorScheme = theme.colorScheme;
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: AppDimens.iconS, color: colorScheme.primary),
+        Icon(icon, size: AppDimens.iconS, color: theme.colorScheme.primary),
         const SizedBox(width: AppDimens.spaceS),
         Expanded(
           child: Column(
@@ -312,13 +290,15 @@ class ProgressHeaderWidget extends ConsumerWidget {
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 value,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -330,28 +310,34 @@ class ProgressHeaderWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(ThemeData theme, String title, String trailing) {
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildSectionHeaderWithTrailing(
+    ThemeData theme,
+    String title,
+    String trailing,
+    Color highlightColor,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: theme.textTheme.titleMedium),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimens.paddingS,
             vertical: AppDimens.paddingXXS,
           ),
           decoration: BoxDecoration(
-            color: colorScheme.success.withValues(
-              alpha: AppDimens.opacityVeryHigh,
-            ),
+            color: highlightColor,
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
           ),
           child: Text(
             trailing,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSuccess,
+              color: theme.colorScheme.onSuccess,
               fontWeight: FontWeight.bold,
             ),
           ),
