@@ -39,10 +39,10 @@ class CycleGroupCard extends StatelessWidget {
         ? currentCycleStudied
         : CycleFormatter.mapNumberToCycleStudied(cycleNumber);
 
-    // Sử dụng màu từ CycleFormatter để đảm bảo nhất quán
+    // Get cycle color from formatter
     final baseCycleColor = CycleFormatter.getColor(cycleName, context);
 
-    // Tùy chỉnh màu dựa trên trạng thái
+    // Adjust color based on status
     final cycleColor = isHistory
         ? baseCycleColor.withValues(alpha: AppDimens.opacityVeryHigh)
         : isCurrentCycle
@@ -55,7 +55,7 @@ class CycleGroupCard extends StatelessWidget {
       );
     }
 
-    // Thiết lập border và background
+    // Setup border and background colors for Material 3
     final borderColor = isHistory
         ? cycleColor.withValues(alpha: AppDimens.opacitySemi)
         : isCurrentCycle
@@ -63,40 +63,23 @@ class CycleGroupCard extends StatelessWidget {
         : cycleColor.withValues(alpha: AppDimens.opacitySemi);
 
     final backgroundColor = isHistory
-        ? colorScheme.surfaceContainerLowest.withValues(
-            alpha: AppDimens.opacityVeryHigh,
-          )
+        ? colorScheme.surfaceContainerLowest
         : isCurrentCycle
-        ? cycleColor.withValues(alpha: AppDimens.opacityLight)
+        ? cycleColor.withValues(alpha: 0.05)
         : colorScheme.surfaceContainerLowest;
 
-    // Shadow theo Material 3
-    final boxShadow = isCurrentCycle || isHistory
-        ? [
-            BoxShadow(
-              color: cycleColor.withValues(
-                alpha: isHistory
-                    ? AppDimens.opacityLight
-                    : AppDimens.opacitySemi,
-              ),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ]
-        : null;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppDimens.spaceM),
-      elevation: isCurrentCycle ? AppDimens.elevationS : AppDimens.elevationXS,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: borderColor, width: isCurrentCycle ? 1.5 : 1.0),
-      ),
-      color: backgroundColor,
-      child: Container(
-        decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          boxShadow: boxShadow,
+          side: BorderSide(
+            color: borderColor,
+            width: isCurrentCycle ? 1.5 : 1.0,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.paddingM),
@@ -111,7 +94,11 @@ class CycleGroupCard extends StatelessWidget {
                 cycleName,
                 colorScheme,
               ),
-              const Divider(height: AppDimens.spaceL),
+              Divider(
+                height: AppDimens.spaceL,
+                thickness: 1,
+                color: borderColor.withValues(alpha: 0.3),
+              ),
               ...repetitions.map(
                 (repetition) => RepetitionCard(
                   repetition: repetition,
@@ -145,20 +132,27 @@ class CycleGroupCard extends StatelessWidget {
   ) {
     return Row(
       children: [
-        Icon(
-          CycleFormatter.getIcon(cycleName),
-          size: AppDimens.iconS,
-          color: cycleColor,
-        ),
-        const SizedBox(width: AppDimens.spaceXS),
-        Text(
-          CycleFormatter.format(cycleName),
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: isCurrentCycle ? FontWeight.bold : FontWeight.w500,
+        Container(
+          padding: const EdgeInsets.all(AppDimens.paddingXS),
+          decoration: BoxDecoration(
+            color: cycleColor.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            CycleFormatter.getIcon(cycleName),
+            size: AppDimens.iconM,
             color: cycleColor,
           ),
         ),
         const SizedBox(width: AppDimens.spaceS),
+        Text(
+          CycleFormatter.format(cycleName),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: isCurrentCycle ? FontWeight.bold : FontWeight.w500,
+            color: cycleColor,
+          ),
+        ),
+        const SizedBox(width: AppDimens.spaceM),
         if (isCurrentCycle) _buildCurrentCycleBadge(colorScheme),
         if (isHistory) _buildCompletedBadge(colorScheme),
       ],
@@ -168,15 +162,15 @@ class CycleGroupCard extends StatelessWidget {
   Widget _buildCurrentCycleBadge(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS,
+        horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingXXS,
       ),
       decoration: BoxDecoration(
         color: Colors.amber,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXL),
       ),
       child: const Text(
-        'Current',
+        'CURRENT',
         style: TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.bold,
@@ -189,15 +183,15 @@ class CycleGroupCard extends StatelessWidget {
   Widget _buildCompletedBadge(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS,
+        horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingXXS,
       ),
       decoration: BoxDecoration(
         color: colorScheme.success,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+        borderRadius: BorderRadius.circular(AppDimens.radiusXL),
       ),
       child: Text(
-        'Completed',
+        'COMPLETED',
         style: TextStyle(
           color: colorScheme.onSuccess,
           fontWeight: FontWeight.bold,

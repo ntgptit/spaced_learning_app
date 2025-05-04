@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/utils/repetition_utils.dart';
@@ -7,6 +8,8 @@ import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/status_section.dart';
+
+import '../../../core/theme/app_dimens.dart';
 
 class CompactRepetitionList extends ConsumerWidget {
   final String progressId;
@@ -54,7 +57,7 @@ class CompactRepetitionList extends ConsumerWidget {
     List<Repetition> repetitions,
     ColorScheme colorScheme,
   ) {
-    // Phân loại repetitions theo trạng thái
+    // Categorize repetitions by status
     final notStarted =
         repetitions
             .where((r) => r.status == RepetitionStatus.notStarted)
@@ -70,7 +73,7 @@ class CompactRepetitionList extends ConsumerWidget {
             .toList()
           ..sort(RepetitionUtils.compareReviewDates);
 
-    // Nhóm theo chu kỳ
+    // Group by cycle
     final notStartedByCycle = RepetitionUtils.groupByCycle(notStarted);
     final completedByCycle = RepetitionUtils.groupByCycle(completed);
 
@@ -80,9 +83,9 @@ class CompactRepetitionList extends ConsumerWidget {
         if (notStarted.isNotEmpty)
           StatusSection(
             title: 'Pending Tasks',
-            icon: Icons.pending_actions,
-            containerColor: colorScheme.primaryContainer,
-            textColor: colorScheme.onPrimaryContainer,
+            icon: Icons.assignment_outlined,
+            containerColor: colorScheme.primary,
+            textColor: colorScheme.primary,
             cycleGroups: notStartedByCycle,
             isHistory: false,
             currentCycleStudied: currentCycleStudied,
@@ -94,8 +97,8 @@ class CompactRepetitionList extends ConsumerWidget {
           StatusSection(
             title: 'Completed Tasks',
             icon: Icons.check_circle_outline,
-            containerColor: colorScheme.primaryContainer,
-            textColor: colorScheme.onPrimaryContainer,
+            containerColor: colorScheme.success,
+            textColor: colorScheme.success,
             cycleGroups: completedByCycle,
             isHistory: true,
             currentCycleStudied: currentCycleStudied,
@@ -107,8 +110,12 @@ class CompactRepetitionList extends ConsumerWidget {
   }
 
   Widget _buildLoadingState(ThemeData theme, ColorScheme colorScheme) {
-    return SizedBox(
+    return Container(
       height: 160,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -135,38 +142,45 @@ class CompactRepetitionList extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppDimens.paddingXL),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
         border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.event_note,
-            size: 48,
-            color: colorScheme.primary.withOpacity(0.5),
+          Container(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.schedule,
+              size: 64,
+              color: colorScheme.primary.withValues(alpha: 0.7),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDimens.spaceL),
           Text(
-            'No review schedule found for this module',
-            style: theme.textTheme.titleMedium?.copyWith(
+            'No Review Schedule Yet',
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppDimens.spaceM),
           Text(
             'Create a review schedule to start the spaced repetition learning process',
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: theme.textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppDimens.spaceXL),
           SLButton(
             text: 'Create Review Schedule',
             type: SLButtonType.primary,

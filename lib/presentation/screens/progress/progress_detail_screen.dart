@@ -13,10 +13,9 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/cycle_completion_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_header_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/progress_repetition_list.dart';
+import 'package:spaced_learning_app/presentation/widgets/progress/reschedule_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog.dart';
-
-import '../../widgets/progress/progress_repetition_list.dart';
-import '../../widgets/progress/reschedule_dialog.dart';
 
 @pragma('vm:entry-point')
 class ProgressDetailScreen extends ConsumerStatefulWidget {
@@ -149,7 +148,6 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
     DateTime currentDate,
     bool rescheduleFollowing,
   ) async {
-    // Sử dụng RescheduleDialog từ widget riêng biệt (reschedule_dialog.dart)
     final repetitions = ref.read(repetitionStateProvider).valueOrNull ?? [];
     final currentRepetition = repetitions.firstWhere(
       (r) => r.id == repetitionId,
@@ -225,19 +223,24 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final progressAsync = ref.watch(selectedProgressProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (widget.progressId.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Progress Details')),
+        appBar: AppBar(
+          title: const Text('Progress Details'),
+          backgroundColor: colorScheme.surfaceContainerHigh,
+        ),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              const Text('Invalid progress ID'),
+              Text('Invalid progress ID', style: theme.textTheme.titleLarge),
               const SizedBox(height: 24),
-              ElevatedButton(
+              FilledButton.tonal(
                 onPressed: () => context.pop(),
                 child: const Text('Go Back'),
               ),
@@ -249,30 +252,41 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
 
     return Scaffold(
       appBar: _buildAppBar(progressAsync.valueOrNull?.moduleTitle),
-      body: FutureBuilder(
-        future: _dataLoadingFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              _isFirstLoad) {
-            return const Center(child: SLLoadingIndicator());
-          }
+      body: SafeArea(
+        child: FutureBuilder(
+          future: _dataLoadingFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                _isFirstLoad) {
+              return Center(
+                child: SLLoadingIndicator(
+                  type: LoadingIndicatorType.circle,
+                  color: colorScheme.primary,
+                ),
+              );
+            }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: SLErrorView(
-                message: 'Failed to load data: ${snapshot.error}',
-                onRetry: _reloadData,
-              ),
-            );
-          }
+            if (snapshot.hasError) {
+              return Center(
+                child: SLErrorView(
+                  message: 'Failed to load data: ${snapshot.error}',
+                  onRetry: _reloadData,
+                  icon: Icons.sync_problem,
+                ),
+              );
+            }
 
-          return _buildContent(progressAsync);
-        },
+            return _buildContent(progressAsync);
+          },
+        ),
       ),
     );
   }
 
   Widget _buildContent(AsyncValue<ProgressDetail?> progressAsync) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return progressAsync.when(
       data: (progress) {
         if (progress == null) {
@@ -280,36 +294,77 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
         }
         return _buildProgressView(progress);
       },
-      loading: () => const Center(child: SLLoadingIndicator()),
+      loading: () => Center(
+        child: SLLoadingIndicator(
+          type: LoadingIndicatorType.fadingCircle,
+          color: colorScheme.primary,
+        ),
+      ),
       error: (error, stack) => Center(
-        child: SLErrorView(message: error.toString(), onRetry: _reloadData),
+        child: SLErrorView(
+          message: error.toString(),
+          onRetry: _reloadData,
+          icon: Icons.error_outline,
+        ),
       ),
     );
   }
 
   Widget _buildProgressNotFoundView() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.warning_amber, size: 48, color: Colors.orange),
-          const SizedBox(height: 16),
-          Text(
-            'Progress with ID ${widget.progressId} not found',
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _reloadData,
-            child: const Text('Try Again'),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => context.go('/due-progress'),
-            child: const Text('Go Back'),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(AppDimens.paddingXL),
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppDimens.paddingL),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.warning_amber_rounded,
+                size: 64,
+                color: colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: AppDimens.spaceL),
+            Text(
+              'Progress Not Found',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: AppDimens.spaceM),
+            Text(
+              'The progress with ID ${widget.progressId} could not be found or may have been deleted.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppDimens.spaceXL),
+            FilledButton.icon(
+              onPressed: _reloadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+              style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
+            ),
+            const SizedBox(height: AppDimens.spaceM),
+            OutlinedButton.icon(
+              onPressed: () => context.go('/due-progress'),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Go Back'),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(200, 50)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -325,7 +380,6 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
             onCycleCompleteDialogRequested: _showCycleCompletionDialog,
           ),
           const SizedBox(height: AppDimens.spaceXXL),
-          // Utiliser notre nouveau widget intégré ici
           ProgressRepetitionList(
             progressId: widget.progressId,
             currentCycleStudied: progress.cyclesStudied,
@@ -333,19 +387,39 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
             onReschedule: _rescheduleRepetition,
             onReload: _reloadData,
           ),
+          const SizedBox(height: 100), // Extra space at bottom
         ],
       ),
     );
   }
 
-  AppBar _buildAppBar(String? moduleTitle) => AppBar(
-    title: Text(moduleTitle ?? 'Module Progress'),
-    actions: [
-      IconButton(
-        icon: const Icon(Icons.help_outline),
-        tooltip: 'Learn about repetition cycles',
-        onPressed: () => context.push('/help/spaced-repetition'),
+  AppBar _buildAppBar(String? moduleTitle) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AppBar(
+      title: Text(
+        moduleTitle ?? 'Module Progress',
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    ],
-  );
+      centerTitle: true,
+      backgroundColor: colorScheme.surfaceContainerHigh,
+      elevation: 0,
+      scrolledUnderElevation: 4,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.help_outline),
+          tooltip: 'Learn about repetition cycles',
+          onPressed: () => context.push('/help/spaced-repetition'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Refresh data',
+          onPressed: _reloadData,
+        ),
+      ],
+    );
+  }
 }

@@ -1,3 +1,4 @@
+// lib/presentation/widgets/progress/progress_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -18,11 +19,10 @@ class ProgressHeaderWidget extends ConsumerWidget {
     required this.onCycleCompleteDialogRequested,
   });
 
-  static const double kProgressShadowAlpha = 0.8;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('MMM dd, yyyy');
 
     final startDateText = progress.firstLearningDate != null
@@ -39,191 +39,280 @@ class ProgressHeaderWidget extends ConsumerWidget {
     final cycleInfo = ref.watch(getCycleInfoProvider(progress.cyclesStudied));
 
     return Card(
-      elevation: AppDimens.elevationS,
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTitle(theme),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildOverallProgress(theme),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildCycleProgress(
-              theme,
-              cycleInfo,
-              completedCount,
-              totalCount,
-              context,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeaderSection(theme, colorScheme),
+          Divider(color: colorScheme.outlineVariant),
+          Padding(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildOverallProgress(theme, colorScheme),
+                const SizedBox(height: AppDimens.spaceL),
+                _buildCycleProgress(
+                  theme,
+                  colorScheme,
+                  cycleInfo,
+                  completedCount,
+                  totalCount,
+                  context,
+                ),
+                const SizedBox(height: AppDimens.spaceL),
+                _buildMetadataSection(
+                  theme,
+                  colorScheme,
+                  startDateText,
+                  nextDateText,
+                ),
+              ],
             ),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildMetadata(theme, startDateText, nextDateText),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTitle(ThemeData theme) {
-    return Row(
-      children: [
-        Icon(
-          Icons.book_outlined,
-          color: theme.colorScheme.primary,
-          size: AppDimens.iconL,
-        ),
-        const SizedBox(width: AppDimens.spaceM),
-        Expanded(
-          child: Text(
-            progress.moduleTitle ?? 'Module',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildOverallProgress(ThemeData theme) {
-    final progressColor = theme.colorScheme.success.withValues(alpha: 1.0);
+  Widget _buildHeaderSection(ThemeData theme, ColorScheme colorScheme) {
+    final textStyle = theme.textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: colorScheme.onPrimaryContainer,
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.8),
+      ),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
+      child: Row(
+        children: [
+          Container(
+            width: AppDimens.iconXL,
+            height: AppDimens.iconXL,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.menu_book_rounded,
+              color: colorScheme.primary,
+              size: AppDimens.iconL,
+            ),
+          ),
+          const SizedBox(width: AppDimens.spaceM),
+          Expanded(
+            child: Text(
+              progress.moduleTitle ?? 'Module',
+              style: textStyle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverallProgress(ThemeData theme, ColorScheme colorScheme) {
+    final progressValue = progress.percentComplete / 100;
+    final progressColor = _getProgressColor(progressValue, colorScheme);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeaderWithTrailing(
-          theme,
-          'Overall Progress',
-          '${progress.percentComplete.toInt()}%',
-          progressColor,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Overall Progress',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+                vertical: AppDimens.paddingXXS,
+              ),
+              decoration: BoxDecoration(
+                color: progressColor,
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+              ),
+              child: Text(
+                '${progress.percentComplete.toInt()}%',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: AppDimens.spaceS),
-        _buildProgressBar(theme, progress.percentComplete / 100, progressColor),
+        Stack(
+          children: [
+            // Background track
+            Container(
+              height: AppDimens.lineProgressHeightL,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+              ),
+            ),
+            // Progress bar
+            FractionallySizedBox(
+              widthFactor: progressValue,
+              child: Container(
+                height: AppDimens.lineProgressHeightL,
+                decoration: BoxDecoration(
+                  color: progressColor,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                  boxShadow: [
+                    BoxShadow(
+                      color: progressColor.withValues(alpha: 0.4),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
   Widget _buildCycleProgress(
     ThemeData theme,
+    ColorScheme colorScheme,
     String cycleInfo,
     int completed,
     int total,
     BuildContext context,
   ) {
+    final cycleColor = CycleFormatter.getColor(progress.cyclesStudied, context);
     final progressValue = total > 0 ? completed / total : 0.0;
-    final cycleColor = CycleFormatter.getColor(
-      progress.cyclesStudied,
-      context,
-    ).saturate(0.2).withValues(alpha: 1.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(
-              CycleFormatter.getIcon(progress.cyclesStudied),
-              color: cycleColor,
-              size: AppDimens.iconM,
+            Container(
+              padding: const EdgeInsets.all(AppDimens.paddingXS),
+              decoration: BoxDecoration(
+                color: cycleColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                CycleFormatter.getIcon(progress.cyclesStudied),
+                color: cycleColor,
+                size: AppDimens.iconM,
+              ),
             ),
             const SizedBox(width: AppDimens.spaceS),
             Text(
-              'Study Cycle: ${CycleFormatter.getDisplayName(progress.cyclesStudied)}',
+              'Current Cycle: ${CycleFormatter.getDisplayName(progress.cyclesStudied)}',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: cycleColor,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+                vertical: AppDimens.paddingXXS,
+              ),
+              decoration: BoxDecoration(
+                color: cycleColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppDimens.radiusXL),
+                border: Border.all(color: cycleColor, width: 1),
+              ),
+              child: Text(
+                '$completed/$total',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: cycleColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: AppDimens.spaceS),
-        _buildProgressBar(theme, progressValue, cycleColor),
-        const SizedBox(height: AppDimens.spaceXS),
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: '$completed',
-                style: TextStyle(
-                  color: cycleColor,
-                  fontWeight: FontWeight.bold,
-                ),
+        Stack(
+          children: [
+            Container(
+              height: AppDimens.lineProgressHeightL,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
               ),
-              TextSpan(
-                text: '/$total repetitions completed in this cycle',
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-            style: theme.textTheme.bodySmall,
-          ),
-        ),
-        const SizedBox(height: AppDimens.spaceS),
-        _buildCycleInfoCard(theme, cycleInfo),
-      ],
-    );
-  }
-
-  Widget _buildProgressBar(ThemeData theme, double value, Color progressColor) {
-    return Stack(
-      children: [
-        Container(
-          height: AppDimens.lineProgressHeightL,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(AppDimens.radiusS),
-          ),
-        ),
-        FractionallySizedBox(
-          widthFactor: value,
-          child: Container(
-            height: AppDimens.lineProgressHeightL,
-            decoration: BoxDecoration(
-              color: progressColor,
-              borderRadius: BorderRadius.circular(AppDimens.radiusS),
-              boxShadow: [
-                BoxShadow(
-                  color: progressColor.withValues(alpha: kProgressShadowAlpha),
-                  blurRadius: AppDimens.shadowRadiusS,
-                  offset: const Offset(0, AppDimens.shadowOffsetS),
-                ),
-              ],
             ),
-          ),
+            FractionallySizedBox(
+              widthFactor: progressValue,
+              child: Container(
+                height: AppDimens.lineProgressHeightL,
+                decoration: BoxDecoration(
+                  color: cycleColor,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cycleColor.withValues(alpha: 0.4),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: AppDimens.spaceM),
+        _buildCycleInfoCard(theme, colorScheme, cycleInfo, cycleColor),
       ],
     );
   }
 
-  Widget _buildCycleInfoCard(ThemeData theme, String infoText) {
+  Widget _buildCycleInfoCard(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String infoText,
+    Color cycleColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: cycleColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.5),
+        border: Border.all(color: cycleColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.lightbulb,
-            color: theme.colorScheme.primary,
-            size: AppDimens.iconM,
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.info_outline,
+              color: cycleColor,
+              size: AppDimens.iconM,
+            ),
           ),
           const SizedBox(width: AppDimens.spaceS),
           Expanded(
             child: Text(
               infoText,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w500,
-                color: theme.colorScheme.onSurface,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
               ),
             ),
           ),
@@ -232,117 +321,105 @@ class ProgressHeaderWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetadata(
+  Widget _buildMetadataSection(
     ThemeData theme,
+    ColorScheme colorScheme,
     String startDateText,
     String nextDateText,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimens.paddingM),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.0),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildInfoItem(
-              theme,
-              'Start Date',
-              startDateText,
-              Icons.play_circle_outline,
-            ),
-          ),
-          Container(
-            height: AppDimens.iconXL,
-            width: AppDimens.dividerThickness,
-            color: theme.colorScheme.outlineVariant,
-          ),
-          Expanded(
-            child: _buildInfoItem(
-              theme,
-              'Next Review',
-              nextDateText,
-              Icons.event,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final isOverdue =
+        progress.nextStudyDate != null &&
+        progress.nextStudyDate!.isBefore(DateTime.now());
 
-  Widget _buildInfoItem(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: AppDimens.iconS, color: theme.colorScheme.primary),
-        const SizedBox(width: AppDimens.spaceS),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      color: colorScheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.paddingM),
+        child: IntrinsicHeight(
+          child: Row(
             children: [
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: _buildDateItem(
+                  theme,
+                  colorScheme,
+                  'Start Date',
+                  startDateText,
+                  Icons.calendar_today_outlined,
+                  colorScheme.primary,
                 ),
               ),
-              Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
+              VerticalDivider(
+                width: AppDimens.spaceL,
+                thickness: 1,
+                color: colorScheme.outlineVariant,
+              ),
+              Expanded(
+                child: _buildDateItem(
+                  theme,
+                  colorScheme,
+                  'Next Review',
+                  nextDateText,
+                  Icons.event_note,
+                  isOverdue ? colorScheme.error : colorScheme.secondary,
+                  isHighlighted: isOverdue,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDateItem(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor, {
+    bool isHighlighted = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: AppDimens.iconS, color: iconColor),
+            const SizedBox(width: AppDimens.spaceXS),
+            Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppDimens.spaceXS),
+        Text(
+          value,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isHighlighted ? colorScheme.error : colorScheme.onSurface,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
 
-  Widget _buildSectionHeaderWithTrailing(
-    ThemeData theme,
-    String title,
-    String trailing,
-    Color highlightColor,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingS,
-            vertical: AppDimens.paddingXXS,
-          ),
-          decoration: BoxDecoration(
-            color: highlightColor,
-            borderRadius: BorderRadius.circular(AppDimens.radiusS),
-          ),
-          child: Text(
-            trailing,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSuccess,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
+  Color _getProgressColor(double progress, ColorScheme colorScheme) {
+    if (progress >= 0.9) return colorScheme.success;
+    if (progress >= 0.7) return colorScheme.tertiary;
+    if (progress >= 0.4) return colorScheme.primary;
+    if (progress >= 0.2) return colorScheme.secondary;
+    return colorScheme.error;
   }
 }

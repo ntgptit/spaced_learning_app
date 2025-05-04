@@ -40,11 +40,11 @@ class StatusSection extends StatelessWidget {
       sortedKeys.sort((a, b) {
         final cycleNumA = int.tryParse(a.replaceAll('Cycle ', '')) ?? 0;
         final cycleNumB = int.tryParse(b.replaceAll('Cycle ', '')) ?? 0;
-        return cycleNumB.compareTo(cycleNumA); // Descending order
+        return cycleNumB.compareTo(cycleNumA); // Descending order for history
       });
     }
 
-    // Sử dụng màu từ color scheme theo Material 3
+    // Get color based on history status
     final titleIconColor = isHistory
         ? colorScheme.primary.withValues(alpha: AppDimens.opacityVeryHigh)
         : textColor;
@@ -54,41 +54,8 @@ class StatusSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppDimens.spaceM),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppDimens.paddingS),
-                  decoration: BoxDecoration(
-                    color: containerColor,
-                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                    border: Border.all(
-                      color: textColor.withValues(alpha: AppDimens.opacitySemi),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: titleIconColor,
-                    size: AppDimens.iconM,
-                  ),
-                ),
-                const SizedBox(width: AppDimens.spaceM),
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isHistory
-                        ? colorScheme.primary.withValues(
-                            alpha: AppDimens.opacityVeryHigh,
-                          )
-                        : textColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _buildSectionHeader(theme, colorScheme, titleIconColor),
+          const SizedBox(height: AppDimens.spaceM),
           ...sortedKeys.map(
             (key) => CycleGroupCard(
               cycleKey: key,
@@ -102,5 +69,63 @@ class StatusSection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildSectionHeader(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Color iconColor,
+  ) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppDimens.paddingM),
+          decoration: BoxDecoration(
+            color: containerColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          ),
+          child: Icon(icon, color: iconColor, size: AppDimens.iconM),
+        ),
+        const SizedBox(width: AppDimens.spaceM),
+        Text(
+          title,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isHistory
+                ? colorScheme.onSurface.withValues(
+                    alpha: AppDimens.opacityVeryHigh,
+                  )
+                : textColor,
+          ),
+        ),
+        const SizedBox(width: AppDimens.spaceS),
+        if (!isHistory)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.paddingS,
+              vertical: AppDimens.paddingXXS,
+            ),
+            decoration: BoxDecoration(
+              color: textColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppDimens.radiusS),
+            ),
+            child: Text(
+              '${_getTotalRepetitions(cycleGroups)} tasks',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  int _getTotalRepetitions(Map<String, List<Repetition>> cycleGroups) {
+    int total = 0;
+    for (var repetitions in cycleGroups.values) {
+      total += repetitions.length;
+    }
+    return total;
   }
 }
