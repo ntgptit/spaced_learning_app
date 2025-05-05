@@ -10,8 +10,8 @@ import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_l
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_login_prompt.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_summary.dart';
 
+import '../../../core/di/providers.dart';
 import '../../../domain/models/progress.dart';
-import '../../viewmodels/module_viewmodel.dart';
 
 class DueProgressScreen extends ConsumerStatefulWidget {
   const DueProgressScreen({super.key});
@@ -96,25 +96,33 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
         .toSet()
         .toList();
 
-    for (final moduleId in moduleIds) {
-      try {
-        await ref
-            .read(selectedModuleProvider.notifier)
-            .loadModuleDetails(moduleId);
-        final moduleDetail = ref.read(selectedModuleProvider).valueOrNull;
-
-        if (moduleDetail == null) {
-          _moduleTitles[moduleId] = 'Module $moduleId';
-          continue;
-        }
-
-        _moduleTitles[moduleId] = moduleDetail.title;
-      } catch (e) {
-        _moduleTitles[moduleId] = 'Module $moduleId';
-      }
+    if (moduleIds.isEmpty) {
+      setState(() => _isLoading = false);
+      return;
     }
 
-    setState(() => _isLoading = false);
+    try {
+      // Load module titles in parallel for better performance
+      await Future.wait(
+        moduleIds.map((moduleId) async {
+          try {
+            final moduleDetail = await ref
+                .read(moduleRepositoryProvider)
+                .getModuleById(moduleId);
+            _moduleTitles[moduleId] = moduleDetail.title;
+          } catch (e) {
+            debugPrint('Error loading module details for $moduleId: $e');
+            _moduleTitles[moduleId] = 'Module $moduleId';
+          }
+        }),
+      );
+    } catch (e) {
+      debugPrint('Error in parallel module loading: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _selectDate() async {

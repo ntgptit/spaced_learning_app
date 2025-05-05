@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
+import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 
 class DueTasksSection extends ConsumerWidget {
   final List<ProgressSummary> tasks;
@@ -22,6 +23,15 @@ class DueTasksSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Sử dụng todayDueTasks provider để lấy danh sách task đến hạn
+    final dueTasks = ref.watch(todayDueTasksProvider);
+
+    // Hiển thị danh sách task từ provider hoặc từ tasks được truyền vào
+    final tasksToDisplay = dueTasks.isNotEmpty ? dueTasks : tasks;
+
+    // Lấy số lượng task đến hạn ngày hôm nay
+    final todayDueCount = tasksToDisplay.length;
 
     return Container(
       decoration: BoxDecoration(
@@ -41,7 +51,7 @@ class DueTasksSection extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(AppDimens.paddingL),
             decoration: BoxDecoration(
-              color: tasks.isEmpty
+              color: todayDueCount <= 0
                   ? colorScheme.surfaceContainerHighest
                   : colorScheme.secondaryContainer,
               borderRadius: const BorderRadius.only(
@@ -52,10 +62,10 @@ class DueTasksSection extends ConsumerWidget {
             child: Row(
               children: [
                 Icon(
-                  tasks.isEmpty
+                  todayDueCount <= 0
                       ? Icons.check_circle_outline
                       : Icons.assignment_outlined,
-                  color: tasks.isEmpty
+                  color: todayDueCount <= 0
                       ? colorScheme.onSurfaceVariant
                       : colorScheme.onSecondaryContainer,
                   size: AppDimens.iconM,
@@ -65,13 +75,13 @@ class DueTasksSection extends ConsumerWidget {
                   'Due Today',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: tasks.isEmpty
+                    color: todayDueCount <= 0
                         ? colorScheme.onSurfaceVariant
                         : colorScheme.onSecondaryContainer,
                   ),
                 ),
                 const Spacer(),
-                if (tasks.isNotEmpty)
+                if (todayDueCount > 0)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppDimens.paddingM,
@@ -84,7 +94,7 @@ class DueTasksSection extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(AppDimens.radiusXL),
                     ),
                     child: Text(
-                      '${tasks.length}',
+                      '$todayDueCount',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSecondaryContainer,
@@ -96,19 +106,46 @@ class DueTasksSection extends ConsumerWidget {
           ),
 
           // Content
-          if (tasks.isEmpty)
-            _buildEmptyState(context)
+          if (ref.watch(progressStateProvider).isLoading)
+            _buildLoadingState(theme, colorScheme)
+          else if (todayDueCount <= 0)
+            _buildEmptyState(context, theme, colorScheme)
           else
-            _buildTaskList(context),
+            _buildTaskList(context, theme, colorScheme, tasksToDisplay),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget _buildLoadingState(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppDimens.paddingXXL,
+        horizontal: AppDimens.paddingL,
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: colorScheme.primary),
+            const SizedBox(height: AppDimens.spaceM),
+            Text(
+              'Loading due tasks...',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildEmptyState(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(AppDimens.paddingXL),
       child: Column(
@@ -166,10 +203,12 @@ class DueTasksSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildTaskList(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildTaskList(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    List<ProgressSummary> tasks,
+  ) {
     return Column(
       children: [
         // Show first 3 tasks with fade-in animation
@@ -186,7 +225,7 @@ class DueTasksSection extends ConsumerWidget {
                 ),
               );
             },
-            child: _buildTaskItem(context, tasks[i], i),
+            child: _buildTaskItem(context, theme, colorScheme, tasks[i], i),
           ),
 
         // View all button
@@ -221,10 +260,13 @@ class DueTasksSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildTaskItem(BuildContext context, ProgressSummary task, int index) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildTaskItem(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ProgressSummary task,
+    int index,
+  ) {
     // Get cycle info
     final cycleText = CycleFormatter.format(task.cyclesStudied);
     final cycleColor = CycleFormatter.getColor(task.cyclesStudied, context);
@@ -268,7 +310,7 @@ class DueTasksSection extends ConsumerWidget {
                 children: [
                   // Module title with compact design
                   Text(
-                    task.moduleId,
+                    'Module ${task.moduleId}',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,

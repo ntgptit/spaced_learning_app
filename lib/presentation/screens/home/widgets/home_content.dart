@@ -109,6 +109,8 @@ class DueTasksSectionWidget extends ConsumerWidget {
 
     return progressAsync.when(
       data: (progressRecords) {
+        // Truyền toàn bộ progressRecords vào DueTasksSection
+        // và để DueTasksSection tự lọc ra task đến hạn
         return DueTasksSection(
           tasks: progressRecords,
           onViewAllTasks: () => _navigateTo(context, '/due-progress'),

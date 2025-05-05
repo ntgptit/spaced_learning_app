@@ -25,6 +25,44 @@ final isUpdatingProgressProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsUpdatingProgressRef = AutoDisposeProviderRef<bool>;
+String _$todayDueTasksHash() => r'c37b7809f172873645715b1189cbc96d52f94db8';
+
+/// See also [todayDueTasks].
+@ProviderFor(todayDueTasks)
+final todayDueTasksProvider =
+    AutoDisposeProvider<List<ProgressSummary>>.internal(
+      todayDueTasks,
+      name: r'todayDueTasksProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$todayDueTasksHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TodayDueTasksRef = AutoDisposeProviderRef<List<ProgressSummary>>;
+String _$todayDueTasksCountHash() =>
+    r'03c0091906db433b7e6352024c542f18d411ce21';
+
+/// See also [todayDueTasksCount].
+@ProviderFor(todayDueTasksCount)
+final todayDueTasksCountProvider = AutoDisposeProvider<int>.internal(
+  todayDueTasksCount,
+  name: r'todayDueTasksCountProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$todayDueTasksCountHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TodayDueTasksCountRef = AutoDisposeProviderRef<int>;
 String _$progressStateHash() => r'071613f883bd5359065565af2fd64d31fb2cbc57';
 
 /// See also [ProgressState].
