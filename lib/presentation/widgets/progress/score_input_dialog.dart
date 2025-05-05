@@ -1,4 +1,3 @@
-// lib/presentation/widgets/progress/score_input_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -13,8 +12,27 @@ class ScoreInputDialog {
       barrierDismissible: false,
       builder: (dialogContext) => ProviderScope(
         child: AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          ),
           title: const Text('Enter Test Score'),
-          content: ScoreInputDialogContent(scoreNotifier: scoreNotifier),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 320, maxWidth: 440),
+            child: ScoreInputDialogContent(scoreNotifier: scoreNotifier),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -65,8 +83,9 @@ class _ScoreInputDialogContentState
       duration: const Duration(milliseconds: AppDimens.durationM),
     );
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
     );
 
     _animationController.forward();
@@ -80,58 +99,6 @@ class _ScoreInputDialogContentState
     super.dispose();
   }
 
-  void _updateScore(double newScore) {
-    final clampedScore = newScore.clamp(0.0, 100.0);
-    if (_currentScore != clampedScore) {
-      setState(() {
-        _currentScore = clampedScore;
-        widget.scoreNotifier.value = _currentScore;
-
-        final scoreInt = clampedScore.toInt();
-        final textValue = scoreInt.toString();
-        if (_controller.text != textValue) {
-          // Save current selection position
-          final currentSelection = _controller.selection;
-
-          // Update text
-          _controller.text = textValue;
-
-          // Handle selection safely
-          if (currentSelection.isValid && textValue.isNotEmpty) {
-            try {
-              final newBaseOffset = currentSelection.baseOffset.clamp(
-                0,
-                textValue.length,
-              );
-              final newExtentOffset = currentSelection.extentOffset.clamp(
-                0,
-                textValue.length,
-              );
-
-              _controller.selection = TextSelection(
-                baseOffset: newBaseOffset,
-                extentOffset: newExtentOffset,
-              );
-            } catch (e) {
-              // Log error for debugging instead of skipping
-              debugPrint('Error updating text selection: $e');
-
-              // Reset selection to end of text
-              _controller.selection = TextSelection.collapsed(
-                offset: textValue.length,
-              );
-            }
-          } else {
-            // If selection is invalid, reset selection to end of text
-            _controller.selection = TextSelection.collapsed(
-              offset: textValue.length,
-            );
-          }
-        }
-      });
-    }
-  }
-
   void _onTextChanged() {
     final value = double.tryParse(_controller.text);
     if (value != null && value != _currentScore) {
@@ -139,120 +106,44 @@ class _ScoreInputDialogContentState
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+  void _updateScore(double newScore) {
+    final clampedScore = newScore.clamp(0.0, 100.0);
+    if (_currentScore != clampedScore) {
+      setState(() {
+        _currentScore = clampedScore;
+        widget.scoreNotifier.value = _currentScore;
 
-    final scoreColor = theme.getScoreColor(_currentScore);
-    final scoreTextStyle = textTheme.displaySmall?.copyWith(
-      fontWeight: FontWeight.bold,
-      color: scoreColor,
-    );
+        final scoreText = clampedScore.toInt().toString();
+        if (_controller.text != scoreText) {
+          final selection = _controller.selection;
+          _controller.text = scoreText;
 
-    return FadeTransition(
-      opacity: _animation,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(theme, colorScheme),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildScoreDisplay(scoreTextStyle, scoreColor),
-            const SizedBox(height: AppDimens.spaceS),
-            _buildSlider(colorScheme),
-            _buildExactScore(theme, colorScheme),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildQuickOptions(colorScheme, textTheme),
-          ],
-        ),
-      ),
-    );
+          if (selection.isValid) {
+            try {
+              final newOffset = selection.baseOffset.clamp(0, scoreText.length);
+              _controller.selection = TextSelection.collapsed(
+                offset: newOffset,
+              );
+            } catch (_) {
+              _controller.selection = TextSelection.collapsed(
+                offset: scoreText.length,
+              );
+            }
+          }
+        }
+      });
+    }
   }
 
-  Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimens.paddingM),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.info_outline,
-            color: colorScheme.primary,
-            size: AppDimens.iconM,
-          ),
-          const SizedBox(width: AppDimens.spaceM),
-          Expanded(
-            child: Text(
-              'Enter the score from your test on Quizlet or another tool:',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Color _getContrastTextColor(Color bg) =>
+      bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
-  Widget _buildScoreDisplay(TextStyle? scoreTextStyle, Color scoreColor) {
-    return Container(
-      height: AppDimens.iconXXL * 2,
-      decoration: BoxDecoration(
-        color: scoreColor.withValues(alpha: AppDimens.opacitySemi),
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        border: Border.all(
-          color: scoreColor.withValues(alpha: AppDimens.opacityHigh),
-          width: 1.5,
-        ),
-      ),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '${_currentScore.toInt()}',
-              style: scoreTextStyle?.copyWith(
-                color: _getBetterContrastTextColor(scoreColor),
-                fontSize: 48,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 2,
-                    offset: const Offset(1, 1),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              '%',
-              style: scoreTextStyle?.copyWith(
-                color: _getBetterContrastTextColor(scoreColor),
-                fontSize: 36,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 2,
-                    offset: const Offset(1, 1),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getBetterContrastTextColor(Color backgroundColor) {
-    final brightness = backgroundColor.computeLuminance();
-    return brightness > 0.5 ? Colors.black : Colors.white;
+  Color _getScoreColor(ColorScheme scheme, double score) {
+    if (score >= 90) return Colors.green.shade700;
+    if (score >= 75) return scheme.primary;
+    if (score >= 60) return scheme.secondary;
+    if (score >= 40) return Colors.orange.shade700;
+    return scheme.error;
   }
 
   Widget _buildSlider(ColorScheme colorScheme) {
@@ -262,10 +153,10 @@ class _ScoreInputDialogContentState
       data: SliderThemeData(
         activeTrackColor: sliderColor,
         thumbColor: sliderColor,
+        overlayColor: sliderColor.withOpacity(AppDimens.opacityMedium),
+        trackHeight: 8,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
-        overlayColor: sliderColor.withValues(alpha: AppDimens.opacityMedium),
-        trackHeight: 8,
         inactiveTrackColor: colorScheme.surfaceContainerHighest,
       ),
       child: Slider(
@@ -279,11 +170,38 @@ class _ScoreInputDialogContentState
     );
   }
 
-  Widget _buildExactScore(ThemeData theme, ColorScheme colorScheme) {
-    final scoreColor = _getScoreColor(colorScheme, _currentScore);
-    final backgroundColor = scoreColor.computeLuminance() > 0.5
-        ? scoreColor.withValues(alpha: 0.2)
-        : scoreColor.withValues(alpha: 0.1);
+  Widget _buildScoreDisplay(TextStyle? style, Color color) {
+    final textColor = _getContrastTextColor(color);
+    return Container(
+      height: AppDimens.iconXXL * 2,
+      decoration: BoxDecoration(
+        color: color.withOpacity(AppDimens.opacitySemi),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        border: Border.all(
+          color: color.withOpacity(AppDimens.opacityHigh),
+          width: 1.5,
+        ),
+      ),
+      child: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '${_currentScore.toInt()}',
+              style: style?.copyWith(color: textColor, fontSize: 48),
+            ),
+            Text('%', style: style?.copyWith(color: textColor, fontSize: 36)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExactScore(ThemeData theme, ColorScheme scheme) {
+    final scoreColor = _getScoreColor(scheme, _currentScore);
+    final bgColor = scoreColor.withOpacity(
+      scoreColor.computeLuminance() > 0.5 ? 0.2 : 0.1,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -291,12 +209,11 @@ class _ScoreInputDialogContentState
         vertical: AppDimens.paddingM,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'Exact score: ',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurface,
+              color: scheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -307,16 +224,9 @@ class _ScoreInputDialogContentState
                 horizontal: AppDimens.paddingS,
               ),
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: bgColor,
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 border: Border.all(color: scoreColor, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
               ),
               child: IntrinsicWidth(
                 child: TextField(
@@ -331,14 +241,10 @@ class _ScoreInputDialogContentState
                     fillColor: Colors.transparent,
                     suffixText: '%',
                     counterText: '',
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: AppDimens.paddingM,
-                    ),
                     border: InputBorder.none,
                     suffixStyle: TextStyle(
                       color: scoreColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                   style: TextStyle(
@@ -355,30 +261,77 @@ class _ScoreInputDialogContentState
     );
   }
 
-  Widget _buildQuickOptions(ColorScheme colorScheme, TextTheme textTheme) {
-    final scoreOptions = [0, 25, 50, 75, 100];
-
+  Widget _buildQuickOptions(ColorScheme scheme, TextTheme textTheme) {
+    final options = [0, 25, 50, 75, 100];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: scoreOptions.map((score) {
-        final isSelected = _currentScore.round() == score;
+      children: options.map((score) {
+        final selected = _currentScore.round() == score;
         return _ScoreButton(
           score: score,
-          isSelected: isSelected,
+          isSelected: selected,
           onTap: () => _updateScore(score.toDouble()),
-          colorScheme: colorScheme,
+          colorScheme: scheme,
           textTheme: textTheme,
         );
       }).toList(),
     );
   }
 
-  Color _getScoreColor(ColorScheme colorScheme, double score) {
-    if (score >= 90) return Colors.green.shade700;
-    if (score >= 75) return colorScheme.primary;
-    if (score >= 60) return colorScheme.secondary;
-    if (score >= 40) return Colors.orange.shade700;
-    return colorScheme.error;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final scoreColor = theme.getScoreColor(_currentScore);
+
+    return FadeTransition(
+      opacity: _animation,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(theme, scheme),
+            const SizedBox(height: AppDimens.spaceL),
+            _buildScoreDisplay(
+              theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              scoreColor,
+            ),
+            const SizedBox(height: AppDimens.spaceS),
+            _buildSlider(scheme),
+            _buildExactScore(theme, scheme),
+            const SizedBox(height: AppDimens.spaceL),
+            _buildQuickOptions(scheme, theme.textTheme),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(ThemeData theme, ColorScheme scheme) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimens.paddingM),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: scheme.primary),
+          const SizedBox(width: AppDimens.spaceM),
+          Expanded(
+            child: Text(
+              'Enter the score from your test on Quizlet or another tool:',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -397,13 +350,21 @@ class _ScoreButton extends StatelessWidget {
     required this.textTheme,
   });
 
+  Color get _color {
+    if (score >= 90) return Colors.green.shade700;
+    if (score >= 75) return colorScheme.primary;
+    if (score >= 60) return colorScheme.secondary;
+    if (score >= 40) return Colors.orange.shade700;
+    return colorScheme.error;
+  }
+
+  Color _getContrastTextColor(Color color) =>
+      color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
   @override
   Widget build(BuildContext context) {
-    final color = _getScoreColor(score);
-    final bgColor = isSelected ? color : colorScheme.surfaceContainerHighest;
-    final fgColor = isSelected ? _getContrastTextColor(color) : color;
-
-    final border = isSelected ? null : Border.all(color: color, width: 2.0);
+    final bgColor = isSelected ? _color : colorScheme.surfaceContainerHighest;
+    final fgColor = _getContrastTextColor(bgColor);
 
     return Material(
       color: Colors.transparent,
@@ -416,14 +377,13 @@ class _ScoreButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            border: border,
+            border: isSelected ? null : Border.all(color: _color, width: 2),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: color.withValues(alpha: AppDimens.opacityHigh),
+                      color: _color.withOpacity(AppDimens.opacityHigh),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
-                      spreadRadius: 1,
                     ),
                   ]
                 : null,
@@ -431,29 +391,14 @@ class _ScoreButton extends StatelessWidget {
           child: Center(
             child: Text(
               '$score%',
-              textAlign: TextAlign.center,
               style: textTheme.labelLarge?.copyWith(
                 color: fgColor,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                fontSize: 16,
               ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  Color _getScoreColor(int score) {
-    if (score >= 90) return Colors.green.shade700;
-    if (score >= 75) return colorScheme.primary;
-    if (score >= 60) return colorScheme.secondary;
-    if (score >= 40) return Colors.orange.shade700;
-    return colorScheme.error;
-  }
-
-  Color _getContrastTextColor(Color backgroundColor) {
-    final brightness = backgroundColor.computeLuminance();
-    return brightness > 0.5 ? Colors.black : Colors.white;
   }
 }

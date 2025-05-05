@@ -33,6 +33,16 @@ class DueTasksSection extends ConsumerWidget {
     // Lấy số lượng task đến hạn ngày hôm nay
     final todayDueCount = tasksToDisplay.length;
 
+    // Tải module titles từ repository
+    if (tasksToDisplay.isNotEmpty) {
+      // Sử dụng addPostFrameCallback để không block quá trình rendering
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(moduleTitlesStateProvider.notifier)
+            .loadModuleTitles(tasksToDisplay);
+      });
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -111,7 +121,7 @@ class DueTasksSection extends ConsumerWidget {
           else if (todayDueCount <= 0)
             _buildEmptyState(context, theme, colorScheme)
           else
-            _buildTaskList(context, theme, colorScheme, tasksToDisplay),
+            _buildTaskList(context, ref, theme, colorScheme, tasksToDisplay),
         ],
       ),
     );
@@ -205,6 +215,7 @@ class DueTasksSection extends ConsumerWidget {
 
   Widget _buildTaskList(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     ColorScheme colorScheme,
     List<ProgressSummary> tasks,
@@ -225,7 +236,14 @@ class DueTasksSection extends ConsumerWidget {
                 ),
               );
             },
-            child: _buildTaskItem(context, theme, colorScheme, tasks[i], i),
+            child: _buildTaskItem(
+              context,
+              ref,
+              theme,
+              colorScheme,
+              tasks[i],
+              i,
+            ),
           ),
 
         // View all button
@@ -262,6 +280,7 @@ class DueTasksSection extends ConsumerWidget {
 
   Widget _buildTaskItem(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     ColorScheme colorScheme,
     ProgressSummary task,
@@ -270,6 +289,11 @@ class DueTasksSection extends ConsumerWidget {
     // Get cycle info
     final cycleText = CycleFormatter.format(task.cyclesStudied);
     final cycleColor = CycleFormatter.getColor(task.cyclesStudied, context);
+
+    // Lấy module title từ provider, không dùng ID nữa
+    final moduleTitle = ref
+        .watch(moduleTitlesStateProvider.notifier)
+        .getModuleTitle(task.moduleId);
 
     // Calculate progress
     final progress = task.percentComplete / 100;
@@ -308,9 +332,9 @@ class DueTasksSection extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Module title with compact design
+                  // Module title với tên thật thay vì ID
                   Text(
-                    'Module ${task.moduleId}',
+                    moduleTitle,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,

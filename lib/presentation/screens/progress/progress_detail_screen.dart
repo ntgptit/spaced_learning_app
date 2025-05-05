@@ -1,4 +1,3 @@
-// lib/presentation/screens/progress/progress_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +16,6 @@ import 'package:spaced_learning_app/presentation/widgets/progress/progress_repet
 import 'package:spaced_learning_app/presentation/widgets/progress/reschedule_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog.dart';
 
-@pragma('vm:entry-point')
 class ProgressDetailScreen extends ConsumerStatefulWidget {
   final String progressId;
 
@@ -30,93 +28,35 @@ class ProgressDetailScreen extends ConsumerStatefulWidget {
 
 class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
   late Future<void> _dataLoadingFuture;
-  bool _isFirstLoad = true;
 
   @override
   void initState() {
     super.initState();
-    if (widget.progressId.isEmpty) {
-      debugPrint('WARNING: Empty progressId passed to ProgressDetailScreen!');
-    }
-    _dataLoadingFuture = Future.value();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_isFirstLoad) {
-      _isFirstLoad = false;
-      _dataLoadingFuture = Future(() async {
-        await Future.microtask(() async {
-          await _loadInitialData();
-        });
-      });
-    }
+    _dataLoadingFuture = _loadInitialData();
   }
 
   Future<void> _loadInitialData() async {
     try {
-      debugPrint(
-        'Starting initial data load for progressId: ${widget.progressId}',
-      );
-      await _fetchProgressAndRepetitions();
+      await ref
+          .read(selectedProgressProvider.notifier)
+          .loadProgressDetails(widget.progressId);
+      await ref
+          .read(repetitionStateProvider.notifier)
+          .loadRepetitionsByProgressId(widget.progressId);
     } catch (e) {
       debugPrint('Error loading initial data: $e');
-      rethrow;
     }
   }
 
   Future<void> _reloadData() async {
-    if (mounted) {
-      debugPrint('Reloading data for progressId: ${widget.progressId}');
-      setState(() {
-        _dataLoadingFuture = _fetchProgressAndRepetitions();
-      });
-    }
-  }
-
-  Future<void> _fetchProgressAndRepetitions() async {
-    if (widget.progressId.isEmpty) {
-      throw Exception('Invalid progress ID: Empty ID provided');
-    }
-
-    debugPrint('Fetching data for progressId: ${widget.progressId}');
-
-    // Clear previous states
-    ref.read(selectedProgressProvider.notifier).clearSelectedProgress();
-    ref.read(repetitionStateProvider.notifier).clearRepetitions();
-
-    // Load progress details
-    await ref
-        .read(selectedProgressProvider.notifier)
-        .loadProgressDetails(widget.progressId);
-    if (!mounted) return;
-
-    debugPrint(
-      'Progress details loaded: ${ref.read(selectedProgressProvider).valueOrNull?.id}',
-    );
-
-    // Load repetitions for this progress
-    await ref
-        .read(repetitionStateProvider.notifier)
-        .loadRepetitionsByProgressId(widget.progressId);
-    if (!mounted) return;
-
-    debugPrint(
-      'Repetitions loaded: ${ref.read(repetitionStateProvider).valueOrNull?.length}',
-    );
+    setState(() {
+      _dataLoadingFuture = _loadInitialData();
+    });
   }
 
   Future<void> _markRepetitionCompleted(String repetitionId) async {
     final score = await ScoreInputDialog.show(context);
-
-    if (score == null) {
-      debugPrint('Score input cancelled.');
-      return;
-    }
-    if (!mounted) return;
-
-    debugPrint('Score received from dialog: $score');
+    if (score == null) return;
 
     final updatedRepetition = await ref
         .read(repetitionStateProvider.notifier)
@@ -126,18 +66,16 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
           percentComplete: score,
         );
 
-    if (!mounted || updatedRepetition == null) return;
+    if (updatedRepetition == null) return;
 
     final allCompleted = await ref
         .read(repetitionStateProvider.notifier)
         .areAllRepetitionsCompleted(updatedRepetition.moduleProgressId);
 
-    if (!mounted) return;
-
     if (allCompleted) {
-      _handleCycleCompletion();
+      _showCycleCompletionSnackBar();
     } else {
-      _handleSingleCompletion(score);
+      _showCompletionSnackBar(score);
     }
 
     await _reloadData();
@@ -160,7 +98,7 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
       title: 'Reschedule Repetition #${currentRepetition.formatOrder()}',
     );
 
-    if (result != null && mounted) {
+    if (result != null) {
       final newDate = result['date'] as DateTime;
       final rescheduleFollowing = result['rescheduleFollowing'] as bool;
 
@@ -172,7 +110,7 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
             rescheduleFollowing: rescheduleFollowing,
           );
 
-      if (mounted && updatedRepetition != null) {
+      if (updatedRepetition != null) {
         SnackBarUtils.show(
           context,
           'Repetition rescheduled to ${DateFormat('dd MMM').format(newDate)}',
@@ -183,19 +121,11 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
     }
   }
 
-  void _handleCycleCompletion() {
-    _showCycleCompletionSnackBar();
+  void _showCompletionSnackBar(double score) {
+    SnackBarUtils.show(context, 'Test score saved: ${score.toInt()}%');
   }
-
-  void _handleSingleCompletion(double score) {
-    _showCompletionSnackBar(score);
-  }
-
-  void _showCompletionSnackBar(double score) =>
-      SnackBarUtils.show(context, 'Test score saved: ${score.toInt()}%');
 
   void _showCycleCompletionSnackBar() {
-    if (!mounted) return;
     final theme = Theme.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -213,7 +143,6 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
   }
 
   void _showCycleCompletionDialog() {
-    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => const CycleCompletionDialog(),
@@ -253,58 +182,23 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
     return Scaffold(
       appBar: _buildAppBar(progressAsync.valueOrNull?.moduleTitle),
       body: SafeArea(
-        child: FutureBuilder(
-          future: _dataLoadingFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting &&
-                _isFirstLoad) {
-              return Center(
-                child: SLLoadingIndicator(
-                  type: LoadingIndicatorType.circle,
-                  color: colorScheme.primary,
-                ),
-              );
+        child: progressAsync.when(
+          data: (progress) {
+            if (progress == null) {
+              return _buildProgressNotFoundView();
             }
-
-            if (snapshot.hasError) {
-              return Center(
-                child: SLErrorView(
-                  message: 'Failed to load data: ${snapshot.error}',
-                  onRetry: _reloadData,
-                  icon: Icons.sync_problem,
-                ),
-              );
-            }
-
-            return _buildContent(progressAsync);
+            return _buildProgressView(progress);
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent(AsyncValue<ProgressDetail?> progressAsync) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return progressAsync.when(
-      data: (progress) {
-        if (progress == null) {
-          return _buildProgressNotFoundView();
-        }
-        return _buildProgressView(progress);
-      },
-      loading: () => Center(
-        child: SLLoadingIndicator(
-          type: LoadingIndicatorType.fadingCircle,
-          color: colorScheme.primary,
-        ),
-      ),
-      error: (error, stack) => Center(
-        child: SLErrorView(
-          message: error.toString(),
-          onRetry: _reloadData,
-          icon: Icons.error_outline,
+          loading: () => const Center(
+            child: SLLoadingIndicator(type: LoadingIndicatorType.circle),
+          ),
+          error: (error, stack) => Center(
+            child: SLErrorView(
+              message: error.toString(),
+              onRetry: _reloadData,
+              icon: Icons.error_outline,
+            ),
+          ),
         ),
       ),
     );
@@ -373,13 +267,13 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
     return RefreshIndicator(
       onRefresh: _reloadData,
       child: ListView(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
+        padding: const EdgeInsets.all(AppDimens.paddingM),
         children: [
           ProgressHeaderWidget(
             progress: progress,
             onCycleCompleteDialogRequested: _showCycleCompletionDialog,
           ),
-          const SizedBox(height: AppDimens.spaceXXL),
+          const SizedBox(height: AppDimens.spaceXL),
           ProgressRepetitionList(
             progressId: widget.progressId,
             currentCycleStudied: progress.cyclesStudied,
@@ -387,7 +281,7 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
             onReschedule: _rescheduleRepetition,
             onReload: _reloadData,
           ),
-          const SizedBox(height: 100), // Extra space at bottom
+          const SizedBox(height: 100),
         ],
       ),
     );

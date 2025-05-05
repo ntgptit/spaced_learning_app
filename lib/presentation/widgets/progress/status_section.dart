@@ -35,18 +35,9 @@ class StatusSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final sortedKeys = cycleGroups.keys.toList();
-    if (isHistory) {
-      sortedKeys.sort((a, b) {
-        final cycleNumA = int.tryParse(a.replaceAll('Cycle ', '')) ?? 0;
-        final cycleNumB = int.tryParse(b.replaceAll('Cycle ', '')) ?? 0;
-        return cycleNumB.compareTo(cycleNumA); // Descending order for history
-      });
-    }
-
-    // Get color based on history status
+    final sortedKeys = _getSortedCycleKeys();
     final titleIconColor = isHistory
-        ? colorScheme.primary.withValues(alpha: AppDimens.opacityVeryHigh)
+        ? colorScheme.primary.withOpacity(AppDimens.opacityVeryHigh)
         : textColor;
 
     return Padding(
@@ -54,7 +45,7 @@ class StatusSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(theme, colorScheme, titleIconColor),
+          _buildSectionHeader(theme, titleIconColor),
           const SizedBox(height: AppDimens.spaceM),
           ...sortedKeys.map(
             (key) => CycleGroupCard(
@@ -71,17 +62,27 @@ class StatusSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    Color iconColor,
-  ) {
+  List<String> _getSortedCycleKeys() {
+    final keys = cycleGroups.keys.toList();
+    if (isHistory) {
+      keys.sort((a, b) {
+        final aNum = int.tryParse(a.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        final bNum = int.tryParse(b.replaceAll(RegExp(r'\D'), '')) ?? 0;
+        return bNum.compareTo(aNum);
+      });
+    }
+    return keys;
+  }
+
+  Widget _buildSectionHeader(ThemeData theme, Color iconColor) {
+    final totalTasks = _getTotalRepetitions();
+
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(AppDimens.paddingM),
           decoration: BoxDecoration(
-            color: containerColor.withValues(alpha: 0.1),
+            color: containerColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Icon(icon, color: iconColor, size: AppDimens.iconM),
@@ -92,8 +93,8 @@ class StatusSection extends StatelessWidget {
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: isHistory
-                ? colorScheme.onSurface.withValues(
-                    alpha: AppDimens.opacityVeryHigh,
+                ? theme.colorScheme.onSurface.withOpacity(
+                    AppDimens.opacityVeryHigh,
                   )
                 : textColor,
           ),
@@ -106,11 +107,11 @@ class StatusSection extends StatelessWidget {
               vertical: AppDimens.paddingXXS,
             ),
             decoration: BoxDecoration(
-              color: textColor.withValues(alpha: 0.1),
+              color: textColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppDimens.radiusS),
             ),
             child: Text(
-              '${_getTotalRepetitions(cycleGroups)} tasks',
+              '$totalTasks tasks',
               style: theme.textTheme.labelMedium?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.bold,
@@ -121,11 +122,6 @@ class StatusSection extends StatelessWidget {
     );
   }
 
-  int _getTotalRepetitions(Map<String, List<Repetition>> cycleGroups) {
-    int total = 0;
-    for (var repetitions in cycleGroups.values) {
-      total += repetitions.length;
-    }
-    return total;
-  }
+  int _getTotalRepetitions() =>
+      cycleGroups.values.fold(0, (sum, reps) => sum + reps.length);
 }

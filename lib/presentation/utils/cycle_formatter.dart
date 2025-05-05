@@ -2,58 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 class CycleFormatter {
+  static const Map<CycleStudied, String> _displayNames = {
+    CycleStudied.firstTime: 'First Cycle',
+    CycleStudied.firstReview: 'First Review Cycle',
+    CycleStudied.secondReview: 'Second Review Cycle',
+    CycleStudied.thirdReview: 'Third Review Cycle',
+    CycleStudied.moreThanThreeReviews: 'Advanced Review Cycle',
+  };
+
+  static const Map<CycleStudied, String> _shortFormats = {
+    CycleStudied.firstTime: 'First Time',
+    CycleStudied.firstReview: 'First Review',
+    CycleStudied.secondReview: 'Second Review',
+    CycleStudied.thirdReview: 'Third Review',
+    CycleStudied.moreThanThreeReviews: 'Advanced Review',
+  };
+
+  static const Map<CycleStudied, String> _descriptions = {
+    CycleStudied.firstTime:
+        'Initial learning phase. Complete all 5 repetitions to move to the next cycle.',
+    CycleStudied.firstReview:
+        'First review cycle. Reinforcing what you learned in the first cycle.',
+    CycleStudied.secondReview:
+        'Second review cycle. Consolidating knowledge with longer intervals.',
+    CycleStudied.thirdReview:
+        'Third review cycle. Material should be familiar at this stage.',
+    CycleStudied.moreThanThreeReviews:
+        'Advanced review cycle. Knowledge is well-established in long-term memory.',
+  };
+
   static CycleStudied parseCycle(String? cycleString) {
     if (cycleString == null) return CycleStudied.firstTime;
+    return CycleStudied.values.firstWhere(
+      (e) => e.name.toUpperCase() == cycleString.toUpperCase(),
+      orElse: () => CycleStudied.firstTime,
+    );
+  }
 
-    switch (cycleString.toUpperCase()) {
-      case 'FIRST_TIME':
+  static String format(CycleStudied cycle) => _shortFormats[cycle]!;
+
+  static String getDescription(CycleStudied cycle) => _descriptions[cycle]!;
+
+  static String getDisplayName(CycleStudied cycle) => _displayNames[cycle]!;
+
+  static CycleStudied mapNumberToCycleStudied(int number) {
+    switch (number) {
+      case 1:
         return CycleStudied.firstTime;
-      case 'FIRST_REVIEW':
+      case 2:
         return CycleStudied.firstReview;
-      case 'SECOND_REVIEW':
+      case 3:
         return CycleStudied.secondReview;
-      case 'THIRD_REVIEW':
+      case 4:
         return CycleStudied.thirdReview;
-      case 'MORE_THAN_THREE_REVIEWS':
-        return CycleStudied.moreThanThreeReviews;
       default:
-        return CycleStudied.firstTime; // Fallback to a default value
-    }
-  }
-
-  static String format(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'First Time';
-      case CycleStudied.firstReview:
-        return 'First Review';
-      case CycleStudied.secondReview:
-        return 'Second Review';
-      case CycleStudied.thirdReview:
-        return 'Third Review';
-      case CycleStudied.moreThanThreeReviews:
-        return 'Advanced Review';
-    }
-  }
-
-  static String getDescription(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'Initial learning phase. Complete all 5 repetitions to move to the next cycle.';
-      case CycleStudied.firstReview:
-        return 'First review cycle. Reinforcing what you learned in the first cycle.';
-      case CycleStudied.secondReview:
-        return 'Second review cycle. Consolidating knowledge with longer intervals.';
-      case CycleStudied.thirdReview:
-        return 'Third review cycle. Material should be familiar at this stage.';
-      case CycleStudied.moreThanThreeReviews:
-        return 'Advanced review cycle. Knowledge is well-established in long-term memory.';
+        return CycleStudied.moreThanThreeReviews;
     }
   }
 
   static Color getColor(CycleStudied cycle, BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
     switch (cycle) {
       case CycleStudied.firstTime:
         return colorScheme.primary;
@@ -62,9 +70,9 @@ class CycleFormatter {
       case CycleStudied.secondReview:
         return colorScheme.secondary;
       case CycleStudied.thirdReview:
-        return colorScheme.primaryContainer;
+        return colorScheme.primary;
       case CycleStudied.moreThanThreeReviews:
-        return colorScheme.tertiaryContainer;
+        return colorScheme.tertiary;
     }
   }
 
@@ -80,38 +88,6 @@ class CycleFormatter {
         return Icons.looks_4;
       case CycleStudied.moreThanThreeReviews:
         return Icons.looks_5;
-    }
-  }
-
-  // Thêm phương thức mới để lấy cycle name dạng hiển thị
-  static String getDisplayName(CycleStudied cycle) {
-    switch (cycle) {
-      case CycleStudied.firstTime:
-        return 'First Cycle';
-      case CycleStudied.firstReview:
-        return 'First Review Cycle';
-      case CycleStudied.secondReview:
-        return 'Second Review Cycle';
-      case CycleStudied.thirdReview:
-        return 'Third Review Cycle';
-      case CycleStudied.moreThanThreeReviews:
-        return 'Advanced Review Cycle';
-    }
-  }
-
-  // Map số cycle sang enum CycleStudied
-  static CycleStudied mapNumberToCycleStudied(int number) {
-    switch (number) {
-      case 1:
-        return CycleStudied.firstTime;
-      case 2:
-        return CycleStudied.firstReview;
-      case 3:
-        return CycleStudied.secondReview;
-      case 4:
-        return CycleStudied.thirdReview;
-      default:
-        return CycleStudied.moreThanThreeReviews;
     }
   }
 }

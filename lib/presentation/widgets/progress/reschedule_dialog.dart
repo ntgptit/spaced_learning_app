@@ -1,4 +1,3 @@
-// lib/presentation/widgets/progress/reschedule_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -13,8 +12,27 @@ class RescheduleDialog {
   }) async {
     return showDialog<Map<String, dynamic>>(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) => ProviderScope(
-        child: _RescheduleDialogContent(initialDate: initialDate, title: title),
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          ),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 320, maxWidth: 440),
+            child: Padding(
+              padding: const EdgeInsets.all(AppDimens.paddingM),
+              child: _RescheduleDialogContent(
+                initialDate: initialDate,
+                title: title,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -47,30 +65,18 @@ class _RescheduleDialogContentState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
-      ),
-      elevation: AppDimens.elevationM,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(context, widget.title),
-            const SizedBox(height: AppDimens.spaceM),
-            _buildDatePicker(context),
-            const SizedBox(height: AppDimens.spaceM),
-            _buildRescheduleSwitchOption(context),
-            const SizedBox(height: AppDimens.spaceL),
-            _buildActionButtons(context),
-          ],
-        ),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildHeader(context, widget.title),
+        const SizedBox(height: AppDimens.spaceM),
+        _buildDatePicker(context),
+        const SizedBox(height: AppDimens.spaceM),
+        _buildRescheduleSwitchOption(context),
+        const SizedBox(height: AppDimens.spaceL),
+        _buildActionButtons(context),
+      ],
     );
   }
 
@@ -82,7 +88,7 @@ class _RescheduleDialogContentState
       children: [
         Icon(Icons.event, color: colorScheme.primary, size: AppDimens.iconM),
         const SizedBox(width: AppDimens.spaceM),
-        Text(title, style: theme.textTheme.titleLarge),
+        Expanded(child: Text(title, style: theme.textTheme.titleLarge)),
       ],
     );
   }
@@ -96,7 +102,7 @@ class _RescheduleDialogContentState
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
-      height: 350,
+      height: 340,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -127,14 +133,15 @@ class _RescheduleDialogContentState
   }
 
   Widget _buildRescheduleSwitchOption(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      width: double.infinity,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(
-            alpha: AppDimens.opacityMediumHigh,
+          color: colorScheme.outlineVariant.withOpacity(
+            AppDimens.opacityMediumHigh,
           ),
         ),
       ),

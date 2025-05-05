@@ -9,7 +9,6 @@ import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_e
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_list_item.dart';
 
 class DueProgressList extends ConsumerWidget {
-  final Map<String, String> moduleTitles;
   final DateTime? selectedDate;
   final bool isLoading;
   final AnimationController animationController;
@@ -18,7 +17,6 @@ class DueProgressList extends ConsumerWidget {
 
   const DueProgressList({
     super.key,
-    required this.moduleTitles,
     required this.selectedDate,
     required this.isLoading,
     required this.animationController,
@@ -92,6 +90,13 @@ class DueProgressList extends ConsumerWidget {
           upcomingProgressRecords.add(progress);
         }
 
+        // Trigger loading module titles
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref
+              .read(moduleTitlesStateProvider.notifier)
+              .loadModuleTitles(progressRecords);
+        });
+
         return FadeTransition(
           opacity: fadeAnimation,
           child: RefreshIndicator(
@@ -109,8 +114,9 @@ class DueProgressList extends ConsumerWidget {
                   ...overdueProgressRecords.map(
                     (progress) => DueProgressListItem(
                       progress: progress,
-                      moduleTitle:
-                          moduleTitles[progress.moduleId] ?? 'Loading...',
+                      moduleTitle: ref
+                          .watch(moduleTitlesStateProvider.notifier)
+                          .getModuleTitle(progress.moduleId),
                       isItemDue: true,
                     ),
                   ),
@@ -126,8 +132,9 @@ class DueProgressList extends ConsumerWidget {
                   ...todayProgressRecords.map(
                     (progress) => DueProgressListItem(
                       progress: progress,
-                      moduleTitle:
-                          moduleTitles[progress.moduleId] ?? 'Loading...',
+                      moduleTitle: ref
+                          .watch(moduleTitlesStateProvider.notifier)
+                          .getModuleTitle(progress.moduleId),
                       isItemDue: true,
                     ),
                   ),
@@ -144,8 +151,9 @@ class DueProgressList extends ConsumerWidget {
                   ...upcomingProgressRecords.map(
                     (progress) => DueProgressListItem(
                       progress: progress,
-                      moduleTitle:
-                          moduleTitles[progress.moduleId] ?? 'Loading...',
+                      moduleTitle: ref
+                          .watch(moduleTitlesStateProvider.notifier)
+                          .getModuleTitle(progress.moduleId),
                       isItemDue: false,
                     ),
                   ),

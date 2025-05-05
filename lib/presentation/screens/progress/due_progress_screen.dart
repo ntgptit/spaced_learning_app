@@ -10,9 +10,6 @@ import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_l
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_login_prompt.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_summary.dart';
 
-import '../../../core/di/providers.dart';
-import '../../../domain/models/progress.dart';
-
 class DueProgressScreen extends ConsumerStatefulWidget {
   const DueProgressScreen({super.key});
 
@@ -84,45 +81,12 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     final progressList = ref.read(progressStateProvider).valueOrNull ?? [];
     if (progressList.isEmpty) return;
 
-    await _loadModuleTitles(progressList);
-  }
-
-  Future<void> _loadModuleTitles(List<ProgressSummary> progressList) async {
+    // Sử dụng provider chung để load module titles
     setState(() => _isLoading = true);
-
-    final moduleIds = progressList
-        .map((progress) => progress.moduleId)
-        .where((id) => !_moduleTitles.containsKey(id))
-        .toSet()
-        .toList();
-
-    if (moduleIds.isEmpty) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    try {
-      // Load module titles in parallel for better performance
-      await Future.wait(
-        moduleIds.map((moduleId) async {
-          try {
-            final moduleDetail = await ref
-                .read(moduleRepositoryProvider)
-                .getModuleById(moduleId);
-            _moduleTitles[moduleId] = moduleDetail.title;
-          } catch (e) {
-            debugPrint('Error loading module details for $moduleId: $e');
-            _moduleTitles[moduleId] = 'Module $moduleId';
-          }
-        }),
-      );
-    } catch (e) {
-      debugPrint('Error in parallel module loading: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    await ref
+        .read(moduleTitlesStateProvider.notifier)
+        .loadModuleTitles(progressList);
+    setState(() => _isLoading = false);
   }
 
   Future<void> _selectDate() async {
@@ -222,7 +186,6 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
         DueProgressSummary(onRefresh: _loadData),
         Expanded(
           child: DueProgressList(
-            moduleTitles: _moduleTitles,
             selectedDate: _selectedDate,
             isLoading: _isLoading,
             animationController: _animationController,

@@ -257,3 +257,55 @@ List<ProgressSummary> todayDueTasks(Ref ref) {
 int todayDueTasksCount(Ref ref) {
   return ref.watch(todayDueTasksProvider).length;
 }
+
+// lib/presentation/viewmodels/progress_viewmodel.dart
+// Thêm vào cuối file sau các provider hiện có
+
+@riverpod
+class ModuleTitlesState extends _$ModuleTitlesState {
+  @override
+  Map<String, String> build() {
+    return {};
+  }
+
+  Future<void> loadModuleTitles(List<ProgressSummary> progressList) async {
+    if (progressList.isEmpty) return;
+
+    final moduleIds = progressList
+        .map((progress) => progress.moduleId)
+        .where((id) => !state.containsKey(id))
+        .toSet()
+        .toList();
+
+    if (moduleIds.isEmpty) return;
+
+    try {
+      final results = await Future.wait(
+        moduleIds.map((moduleId) async {
+          try {
+            final moduleDetail = await ref
+                .read(moduleRepositoryProvider)
+                .getModuleById(moduleId);
+            return MapEntry(moduleId, moduleDetail.title);
+          } catch (e) {
+            debugPrint('Error loading module $moduleId: $e');
+            return MapEntry(moduleId, 'Module $moduleId');
+          }
+        }),
+      );
+
+      final newState = {...state};
+      for (final entry in results) {
+        newState[entry.key] = entry.value;
+      }
+
+      state = newState;
+    } catch (e) {
+      debugPrint('Error loading module titles: $e');
+    }
+  }
+
+  String getModuleTitle(String moduleId) {
+    return state[moduleId] ?? 'Module $moduleId';
+  }
+}
