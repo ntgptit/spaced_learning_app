@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/module_viewmodel.dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 
@@ -24,23 +23,19 @@ class ModulesState extends _$ModulesState {
     }
 
     state = const AsyncValue.loading();
-    try {
+    state = await AsyncValue.guard(() async {
       final modules = await ref
           .read(moduleRepositoryProvider)
           .getModulesByBookId(bookId, page: page, size: size);
-      state = AsyncValue.data(modules);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
+      return modules;
+    });
   }
 }
 
 @riverpod
 class SelectedModule extends _$SelectedModule {
   @override
-  Future<ModuleDetail?> build() async {
-    return null;
-  }
+  Future<ModuleDetail?> build() async => null;
 
   Future<void> loadModuleDetails(String id) async {
     if (id.isEmpty) {
@@ -49,11 +44,9 @@ class SelectedModule extends _$SelectedModule {
     }
 
     state = const AsyncValue.loading();
-    try {
+    state = await AsyncValue.guard(() async {
       final module = await ref.read(moduleRepositoryProvider).getModuleById(id);
-      state = AsyncValue.data(module);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
+      return module;
+    });
   }
 }

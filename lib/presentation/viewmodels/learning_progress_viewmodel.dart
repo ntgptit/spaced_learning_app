@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/learning_progress_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,28 +12,28 @@ part 'learning_progress_viewmodel.g.dart';
 class LearningProgressState extends _$LearningProgressState {
   @override
   Future<List<LearningModule>> build() async {
-    return loadData();
+    return _fetchModules();
   }
 
-  Future<List<LearningModule>> loadData() async {
-    state = const AsyncValue.loading();
+  Future<List<LearningModule>> _fetchModules() async {
     try {
       debugPrint('LearningProgressViewModel: Loading module data');
       final modules = await ref.read(learningDataServiceProvider).getModules();
-      state = AsyncValue.data(modules);
       debugPrint('LearningProgressViewModel: Loaded ${modules.length} modules');
       return modules;
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('Failed to load learning modules: $e');
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
+      throw AsyncError(e, st);
     }
   }
 
+  Future<void> loadData() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchModules());
+  }
+
   Future<void> refreshData() async {
-    debugPrint(
-      'LearningProgressViewModel: Refreshing data, explicitly resetting cache',
-    );
+    debugPrint('LearningProgressViewModel: Refreshing data, resetting cache');
     ref.read(learningDataServiceProvider).resetCache();
     await loadData();
   }
@@ -42,7 +41,7 @@ class LearningProgressState extends _$LearningProgressState {
   Future<bool> exportData() async {
     try {
       return await ref.read(learningDataServiceProvider).exportData();
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
@@ -55,7 +54,7 @@ class LearningProgressState extends _$LearningProgressState {
       return await ref
           .read(learningDataServiceProvider)
           .getDashboardStats(book: book, date: date);
-    } catch (e) {
+    } catch (_) {
       return {};
     }
   }
@@ -64,8 +63,7 @@ class LearningProgressState extends _$LearningProgressState {
     final modules = state.valueOrNull ?? [];
     if (modules.isEmpty) return ['All'];
 
-    final books = modules.map((module) => module.bookName).toSet().toList()
-      ..sort();
+    final books = modules.map((m) => m.bookName).toSet().toList()..sort();
     return ['All', ...books];
   }
 }
@@ -77,7 +75,6 @@ class FilteredModules extends _$FilteredModules {
     final modules = ref.watch(learningProgressStateProvider).valueOrNull ?? [];
     final selectedBook = ref.watch(selectedBookFilterProvider);
     final selectedDate = ref.watch(selectedDateFilterProvider);
-
     return _getFilteredModules(modules, selectedBook, selectedDate);
   }
 
@@ -104,9 +101,7 @@ class FilteredModules extends _$FilteredModules {
 @riverpod
 class SelectedBookFilter extends _$SelectedBookFilter {
   @override
-  String build() {
-    return 'All';
-  }
+  String build() => 'All';
 
   void setSelectedBook(String book) {
     state = book;
@@ -116,9 +111,7 @@ class SelectedBookFilter extends _$SelectedBookFilter {
 @riverpod
 class SelectedDateFilter extends _$SelectedDateFilter {
   @override
-  DateTime? build() {
-    return null;
-  }
+  DateTime? build() => null;
 
   void setSelectedDate(DateTime? date) {
     state = date;
@@ -136,9 +129,7 @@ int dueModulesCount(Ref ref) {
       .where(
         (m) =>
             m.progressNextStudyDate != null &&
-            m.progressNextStudyDate!.isBefore(
-              DateTime.now().add(const Duration(days: 7)),
-            ),
+            m.progressNextStudyDate!.isBefore(DateTime.now()),
       )
       .length;
 }

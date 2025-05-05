@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/book_viewmodel.dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 
@@ -9,43 +8,44 @@ part 'book_viewmodel.g.dart';
 @riverpod
 class BooksState extends _$BooksState {
   @override
-  Future<List<BookSummary>> build() async {
-    return loadBooks();
+  Future<List<BookSummary>> build() => _loadBooks();
+
+  Future<List<BookSummary>> _loadBooks({int page = 0, int size = 20}) async {
+    try {
+      final books = await ref
+          .read(bookRepositoryProvider)
+          .getAllBooks(page: page, size: size);
+      return books;
+    } catch (e, st) {
+      throw AsyncError(e, st);
+    }
   }
 
-  Future<List<BookSummary>> loadBooks({int page = 0, int size = 20}) async {
+  Future<void> loadBooks({int page = 0, int size = 20}) async {
     state = const AsyncValue.loading();
     try {
       final books = await ref
           .read(bookRepositoryProvider)
           .getAllBooks(page: page, size: size);
       state = AsyncValue.data(books);
-      return books;
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
-  Future<List<BookSummary>> searchBooks(
-    String query, {
-    int page = 0,
-    int size = 20,
-  }) async {
-    if (query.isEmpty) {
-      return loadBooks(page: page, size: size);
-    }
-
+  Future<void> searchBooks(String query, {int page = 0, int size = 20}) async {
     state = const AsyncValue.loading();
     try {
-      final books = await ref
-          .read(bookRepositoryProvider)
-          .searchBooks(query, page: page, size: size);
+      final books = query.isEmpty
+          ? await ref
+                .read(bookRepositoryProvider)
+                .getAllBooks(page: page, size: size)
+          : await ref
+                .read(bookRepositoryProvider)
+                .searchBooks(query, page: page, size: size);
       state = AsyncValue.data(books);
-      return books;
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
@@ -68,8 +68,8 @@ class BooksState extends _$BooksState {
             size: size,
           );
       state = AsyncValue.data(books);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
@@ -80,14 +80,13 @@ class BooksState extends _$BooksState {
       final books = state.valueOrNull ?? [];
       state = AsyncValue.data(books.where((book) => book.id != id).toList());
 
-      // If the selected book is being deleted, clear it
       final selectedBook = ref.read(selectedBookProvider).valueOrNull;
       if (selectedBook?.id == id) {
-        ref.read(selectedBookProvider.notifier)._clearSelectedBook();
+        ref.read(selectedBookProvider.notifier).clearSelectedBook();
       }
 
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
@@ -96,9 +95,7 @@ class BooksState extends _$BooksState {
 @riverpod
 class SelectedBook extends _$SelectedBook {
   @override
-  Future<BookDetail?> build() async {
-    return null;
-  }
+  Future<BookDetail?> build() async => null;
 
   Future<void> loadBookDetails(String id) async {
     if (id.isEmpty) {
@@ -110,34 +107,41 @@ class SelectedBook extends _$SelectedBook {
     try {
       final book = await ref.read(bookRepositoryProvider).getBookById(id);
       state = AsyncValue.data(book);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
-  void _clearSelectedBook() {
+  void clearSelectedBook() {
     state = const AsyncValue.data(null);
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class Categories extends _$Categories {
   @override
-  Future<List<String>> build() async {
-    return loadCategories();
+  Future<List<String>> build() => _loadCategories();
+
+  Future<List<String>> _loadCategories() async {
+    try {
+      final categories = await ref
+          .read(bookRepositoryProvider)
+          .getAllCategories();
+      return categories;
+    } catch (e, st) {
+      throw AsyncError(e, st);
+    }
   }
 
-  Future<List<String>> loadCategories() async {
+  Future<void> reloadCategories() async {
     state = const AsyncValue.loading();
     try {
       final categories = await ref
           .read(bookRepositoryProvider)
           .getAllCategories();
       state = AsyncValue.data(categories);
-      return categories;
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 }

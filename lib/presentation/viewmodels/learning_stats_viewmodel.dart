@@ -1,4 +1,3 @@
-// lib/presentation/viewmodels/learning_stats_viewmodel.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -14,23 +13,25 @@ part 'learning_stats_viewmodel.g.dart';
 class LearningStatsState extends _$LearningStatsState {
   @override
   Future<LearningStatsDTO?> build() async {
-    return loadDashboardStats();
+    return _loadStats();
   }
 
-  Future<LearningStatsDTO?> loadDashboardStats({
-    bool refreshCache = false,
-  }) async {
-    state = const AsyncValue.loading();
+  Future<LearningStatsDTO?> _loadStats({bool refreshCache = false}) async {
     try {
       final stats = await ref
           .read(learningStatsRepositoryProvider)
           .getDashboardStats(refreshCache: refreshCache);
-      state = AsyncValue.data(stats);
       return stats;
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return null;
+    } catch (e, st) {
+      throw AsyncError(e, st);
     }
+  }
+
+  Future<void> loadDashboardStats({bool refreshCache = false}) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => _loadStats(refreshCache: refreshCache),
+    );
   }
 }
 
@@ -38,41 +39,40 @@ class LearningStatsState extends _$LearningStatsState {
 class LearningInsights extends _$LearningInsights {
   @override
   Future<List<LearningInsightRespone>> build() async {
-    return loadLearningInsights();
+    return _loadInsights();
   }
 
-  Future<List<LearningInsightRespone>> loadLearningInsights() async {
-    state = const AsyncValue.loading();
+  Future<List<LearningInsightRespone>> _loadInsights() async {
     try {
       final insights = await ref
           .read(learningStatsRepositoryProvider)
           .getLearningInsights();
-      state = AsyncValue.data(insights);
       return insights;
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
+    } catch (e, st) {
+      throw AsyncError(e, st);
     }
+  }
+
+  Future<void> loadLearningInsights() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(_loadInsights);
   }
 }
 
-// Sửa lại provider này để không sử dụng state của Ref
 @riverpod
 Future<void> loadAllStats(
   Ref ref, {
   @Default(false) required bool refreshCache,
 }) async {
   try {
-    // Sử dụng repository trực tiếp thay vì gọi các provider khác
     final statsRepo = ref.read(learningStatsRepositoryProvider);
 
-    // Tải dữ liệu đồng thời
-    final results = await Future.wait([
+    await Future.wait([
       statsRepo.getDashboardStats(refreshCache: refreshCache),
       statsRepo.getLearningInsights(),
     ]);
 
-    // Sau khi tải xong, làm mới các provider thay vì cố gắng kiểm tra trạng thái
+    // Invalidate để trigger rebuild và gọi lại build()
     ref.invalidate(learningStatsStateProvider);
     ref.invalidate(learningInsightsProvider);
   } catch (e) {

@@ -6,7 +6,7 @@ part of 'book_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$booksStateHash() => r'0099d98c1d1dcff457f7348e2bea9202705cdbdc';
+String _$booksStateHash() => r'80b4a6a7b1cbf3c9793f5b8a7df90f40c289152d';
 
 /// See also [BooksState].
 @ProviderFor(BooksState)
@@ -23,7 +23,7 @@ final booksStateProvider =
     );
 
 typedef _$BooksState = AutoDisposeAsyncNotifier<List<BookSummary>>;
-String _$selectedBookHash() => r'75ee0f136ac9a7ad7f4a5c40a16e5e7bb0d92b06';
+String _$selectedBookHash() => r'290aab623ba44522f212b92695791672a39fc9f3';
 
 /// See also [SelectedBook].
 @ProviderFor(SelectedBook)
@@ -40,12 +40,12 @@ final selectedBookProvider =
     );
 
 typedef _$SelectedBook = AutoDisposeAsyncNotifier<BookDetail?>;
-String _$categoriesHash() => r'cb673f3b51faebed569b6ef88998a4a50c980568';
+String _$categoriesHash() => r'097cc0d66f819605e2dd00bf20f2fba4c3e3d0fd';
 
 /// See also [Categories].
 @ProviderFor(Categories)
 final categoriesProvider =
-    AutoDisposeAsyncNotifierProvider<Categories, List<String>>.internal(
+    AsyncNotifierProvider<Categories, List<String>>.internal(
       Categories.new,
       name: r'categoriesProvider',
       debugGetCreateSourceHash:
@@ -56,6 +56,6 @@ final categoriesProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$Categories = AutoDisposeAsyncNotifier<List<String>>;
+typedef _$Categories = AsyncNotifier<List<String>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

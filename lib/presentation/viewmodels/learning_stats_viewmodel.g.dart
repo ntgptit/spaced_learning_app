@@ -6,7 +6,7 @@ part of 'learning_stats_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$loadAllStatsHash() => r'61604458b6703c119a3a1fd5f606bed135b16102';
+String _$loadAllStatsHash() => r'8da8885d02554929b51259390efeaf1102fd9a9d';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -150,7 +150,7 @@ class _LoadAllStatsProviderElement
 }
 
 String _$learningStatsStateHash() =>
-    r'de561a7fd5152aa18225dc9bd91d804991b3723b';
+    r'ae1340cffeb691538039a109a01f5c989ef7f010';
 
 /// See also [LearningStatsState].
 @ProviderFor(LearningStatsState)
@@ -169,7 +169,7 @@ final learningStatsStateProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$LearningStatsState = AutoDisposeAsyncNotifier<LearningStatsDTO?>;
-String _$learningInsightsHash() => r'1db8e90c2ec6800cfa8c44480ada6546b357b561';
+String _$learningInsightsHash() => r'8e1bb6067d389c98b29bf3c87d9f61b1111c5103';
 
 /// See also [LearningInsights].
 @ProviderFor(LearningInsights)

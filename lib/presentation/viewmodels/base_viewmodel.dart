@@ -1,18 +1,12 @@
-// lib/presentation/viewmodels/base_viewmodel.dart
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// Base AsyncNotifier class that extends all common functionality
-// for viewmodels with async operations
-class BaseAsyncNotifier<T> extends AsyncNotifier<T> {
-  @override
-  Future<T> build() {
-    // TODO: implement build
-    throw UnimplementedError();
-  }
-
+abstract class BaseAsyncNotifier<T> extends AsyncNotifier<T> {
   DateTime? lastUpdated;
   bool _isRefreshing = false;
+
+  @override
+  Future<T> build(); // Để lớp con bắt buộc override
 
   Future<void> refresh() async {
     if (_isRefreshing) return;
@@ -60,7 +54,6 @@ class BaseAsyncNotifier<T> extends AsyncNotifier<T> {
   }
 }
 
-// Mixin for notifiers that need error handling
 mixin ErrorHandling {
   String? errorMessage;
 
@@ -75,11 +68,10 @@ mixin ErrorHandling {
   }
 
   void handleError(dynamic error, {String prefix = 'An error occurred'}) {
-    final errorMessage = error is Exception
+    final message = error is Exception
         ? '$prefix: ${error.toString()}'
         : '$prefix: ${error.toString()}';
-
-    debugPrint('Error in ${runtimeType.toString()}: $errorMessage');
-    setError(errorMessage);
+    debugPrint('Error in ${runtimeType.toString()}: $message');
+    setError(message);
   }
 }

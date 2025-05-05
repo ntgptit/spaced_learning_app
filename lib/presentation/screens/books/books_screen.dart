@@ -78,14 +78,14 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
 
     try {
       if (_categories.isEmpty || forceRefresh) {
-        await categoriesNotifier.loadCategories();
+        await categoriesNotifier.reloadCategories();
         if (mounted) {
           setState(() {
             _categories = ref.read(categoriesProvider).valueOrNull ?? [];
           });
         }
       }
-      await booksNotifier.loadBooks(); // This applies current filters if any
+      await booksNotifier.loadBooks();
     } catch (e) {
       final errorMessage = e is AppException
           ? e.message
@@ -171,13 +171,12 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
         body: Column(
           children: [
             _buildSearchAndFilterBar(theme, colorScheme),
-
             AnimatedBuilder(
               animation: _filterAnimation,
               builder: (context, child) {
                 return SizeTransition(
                   sizeFactor: _filterAnimation,
-                  axisAlignment: -1.0, // Ensures it expands downwards
+                  axisAlignment: -1.0,
                   child: child,
                 );
               },
@@ -207,7 +206,6 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                     )
                   : const SizedBox.shrink(),
             ),
-
             Expanded(
               child: Consumer(
                 builder: (context, ref, child) {
@@ -259,7 +257,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
             Icon(
               Icons.lock_outline,
               size: AppDimens.iconXXL,
-              color: theme.colorScheme.primary.withValues(alpha: 0.6),
+              color: theme.colorScheme.primary.withOpacity(0.6),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
@@ -295,7 +293,6 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
       title: const Text('Books'),
       floating: true,
       pinned: true,
-      snap: false,
       forceElevated: _isScrolled || innerBoxIsScrolled,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -332,7 +329,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
         boxShadow: _isScrolled || _isFilterExpanded
             ? [
                 BoxShadow(
-                  color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+                  color: theme.colorScheme.shadow.withOpacity(0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -377,9 +374,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimens.radiusL),
                     borderSide: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withValues(
-                        alpha: 0.5,
-                      ),
+                      color: theme.colorScheme.outlineVariant.withOpacity(0.5),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -395,7 +390,6 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.only(left: AppDimens.paddingM),
             child: Badge(
@@ -456,7 +450,6 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
               ),
             ),
           ),
-
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppDimens.paddingL,
@@ -470,18 +463,15 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                 return BookListCard(
                   book: book,
                   onTap: () {
-                    // Kiểm tra ID hợp lệ trước khi điều hướng
                     if (book.id.isEmpty) {
                       SnackBarUtils.show(context, 'Invalid book ID');
                       return;
                     }
 
-                    // Sử dụng NavigationHelper.pushWithResult để lấy kết quả
                     NavigationHelper.pushWithResult(
                       context,
                       '/books/${book.id}',
                     ).then((result) {
-                      // Nếu có kết quả (hoặc result là true), refresh dữ liệu
                       if (result == true) {
                         _loadData(forceRefresh: true);
                       }

@@ -6,7 +6,7 @@ part of 'learning_progress_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dueModulesCountHash() => r'6aaec3e0c6d140d561020fed34d225950dbbfdb8';
+String _$dueModulesCountHash() => r'2554924329ab074e73b5da3b32a42e9e64efbc53';
 
 /// See also [dueModulesCount].
 @ProviderFor(dueModulesCount)
@@ -44,7 +44,7 @@ final completedModulesCountProvider = AutoDisposeProvider<int>.internal(
 // ignore: unused_element
 typedef CompletedModulesCountRef = AutoDisposeProviderRef<int>;
 String _$learningProgressStateHash() =>
-    r'5a8cc7a1ebf5e0f29b2a5df939204e3fc04b17e2';
+    r'2d557ff213d70c1ca76617bf4f8baab678f1bfe0';
 
 /// See also [LearningProgressState].
 @ProviderFor(LearningProgressState)
@@ -82,7 +82,7 @@ final filteredModulesProvider =
 
 typedef _$FilteredModules = AutoDisposeNotifier<List<LearningModule>>;
 String _$selectedBookFilterHash() =>
-    r'ac503f9f7c0ee211a744bed9d2195a72818d77d3';
+    r'aae94d5ed54795c43704c56d4ecf0a622e99443b';
 
 /// See also [SelectedBookFilter].
 @ProviderFor(SelectedBookFilter)
@@ -100,7 +100,7 @@ final selectedBookFilterProvider =
 
 typedef _$SelectedBookFilter = AutoDisposeNotifier<String>;
 String _$selectedDateFilterHash() =>
-    r'3e50f01a271fb9211619ecca0b1bcd3b36220904';
+    r'cc96394ec4268553e5d7593f82ec35f3cee1ed6a';
 
 /// See also [SelectedDateFilter].
 @ProviderFor(SelectedDateFilter)

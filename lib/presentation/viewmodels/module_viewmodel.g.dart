@@ -6,7 +6,7 @@ part of 'module_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$modulesStateHash() => r'8281db5e27c2f009b6da77484cf8954c7d65af2a';
+String _$modulesStateHash() => r'4debe1e6105fc3b090eaad57c259eb87e33b038b';
 
 /// See also [ModulesState].
 @ProviderFor(ModulesState)
@@ -23,7 +23,7 @@ final modulesStateProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$ModulesState = AutoDisposeAsyncNotifier<List<ModuleSummary>>;
-String _$selectedModuleHash() => r'2c35baa4387cb6ed35cf43396069146591891383';
+String _$selectedModuleHash() => r'30f992ec1d0ca873596acb7431fb0478cb43b526';
 
 /// See also [SelectedModule].
 @ProviderFor(SelectedModule)
