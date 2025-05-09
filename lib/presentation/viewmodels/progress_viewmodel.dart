@@ -239,17 +239,11 @@ List<ProgressSummary> todayDueTasks(Ref ref) {
   final progressList = ref.watch(progressStateProvider).valueOrNull ?? [];
   if (progressList.isEmpty) return [];
 
-  final today = DateTime.now();
-  final todayDate = DateTime(today.year, today.month, today.day);
-
   return progressList.where((progress) {
     if (progress.nextStudyDate == null) return false;
-    final nextDate = DateTime(
-      progress.nextStudyDate!.year,
-      progress.nextStudyDate!.month,
-      progress.nextStudyDate!.day,
-    );
-    return nextDate.isAtSameMomentAs(todayDate) || nextDate.isBefore(todayDate);
+
+    return progress.nextStudyDate != null &&
+        progress.nextStudyDate!.isBefore(DateTime.now());
   }).toList();
 }
 

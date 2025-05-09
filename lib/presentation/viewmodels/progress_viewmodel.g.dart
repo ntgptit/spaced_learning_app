@@ -25,7 +25,7 @@ final isUpdatingProgressProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsUpdatingProgressRef = AutoDisposeProviderRef<bool>;
-String _$todayDueTasksHash() => r'c37b7809f172873645715b1189cbc96d52f94db8';
+String _$todayDueTasksHash() => r'b5b9abec00f29221e453401a2759611496c8064c';
 
 /// See also [todayDueTasks].
 @ProviderFor(todayDueTasks)
