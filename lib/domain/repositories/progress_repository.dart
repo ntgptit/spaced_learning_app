@@ -5,18 +5,15 @@ abstract class ProgressRepository {
 
   Future<ProgressDetail> getProgressById(String id);
 
-
   Future<List<ProgressSummary>> getProgressByModuleId(
     String moduleId, {
     int page = 0,
     int size = 20,
   });
 
-
-
   Future<ProgressDetail?> getCurrentUserProgressByModule(String moduleId);
 
-  Future<List<ProgressSummary>> getDueProgress(
+  Future<List<ProgressDetail>> getDueProgress(
     String userId, {
     DateTime? studyDate,
     int page = 0,
@@ -39,5 +36,4 @@ abstract class ProgressRepository {
     DateTime? nextStudyDate,
     double? percentComplete,
   });
-
 }

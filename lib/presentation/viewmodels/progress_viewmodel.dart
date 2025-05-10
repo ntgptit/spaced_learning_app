@@ -13,7 +13,7 @@ part 'progress_viewmodel.g.dart';
 @riverpod
 class ProgressState extends _$ProgressState {
   @override
-  Future<List<ProgressSummary>> build() async {
+  Future<List<ProgressDetail>> build() async {
     return [];
   }
 
@@ -38,7 +38,7 @@ class ProgressState extends _$ProgressState {
         '[ProgressViewModel] Starting loadDueProgress for userId: $sanitizedId, date: $studyDate',
       );
 
-      final List<ProgressSummary> result = await ref
+      final List<ProgressDetail> result = await ref
           .read(progressRepositoryProvider)
           .getDueProgress(
             sanitizedId,
@@ -235,15 +235,21 @@ bool isUpdatingProgress(Ref ref) {
 }
 
 @riverpod
-List<ProgressSummary> todayDueTasks(Ref ref) {
+List<ProgressDetail> todayDueTasks(Ref ref) {
   final progressList = ref.watch(progressStateProvider).valueOrNull ?? [];
   if (progressList.isEmpty) return [];
 
+  final today = DateTime.now();
+  final todayDate = DateTime(today.year, today.month, today.day);
+
   return progressList.where((progress) {
     if (progress.nextStudyDate == null) return false;
-
-    return progress.nextStudyDate != null &&
-        progress.nextStudyDate!.isBefore(DateTime.now());
+    final nextDate = DateTime(
+      progress.nextStudyDate!.year,
+      progress.nextStudyDate!.month,
+      progress.nextStudyDate!.day,
+    );
+    return nextDate.isAtSameMomentAs(todayDate) || nextDate.isBefore(todayDate);
   }).toList();
 }
 
@@ -252,54 +258,13 @@ int todayDueTasksCount(Ref ref) {
   return ref.watch(todayDueTasksProvider).length;
 }
 
-// lib/presentation/viewmodels/progress_viewmodel.dart
-// Thêm vào cuối file sau các provider hiện có
-
-@riverpod
-class ModuleTitlesState extends _$ModuleTitlesState {
-  @override
-  Map<String, String> build() {
-    return {};
-  }
-
-  Future<void> loadModuleTitles(List<ProgressSummary> progressList) async {
-    if (progressList.isEmpty) return;
-
-    final moduleIds = progressList
-        .map((progress) => progress.moduleId)
-        .where((id) => !state.containsKey(id))
-        .toSet()
-        .toList();
-
-    if (moduleIds.isEmpty) return;
-
-    try {
-      final results = await Future.wait(
-        moduleIds.map((moduleId) async {
-          try {
-            final moduleDetail = await ref
-                .read(moduleRepositoryProvider)
-                .getModuleById(moduleId);
-            return MapEntry(moduleId, moduleDetail.title);
-          } catch (e) {
-            debugPrint('Error loading module $moduleId: $e');
-            return MapEntry(moduleId, 'Module $moduleId');
-          }
-        }),
-      );
-
-      final newState = {...state};
-      for (final entry in results) {
-        newState[entry.key] = entry.value;
-      }
-
-      state = newState;
-    } catch (e) {
-      debugPrint('Error loading module titles: $e');
-    }
-  }
-
-  String getModuleTitle(String moduleId) {
-    return state[moduleId] ?? 'Module $moduleId';
-  }
-}
+// Không còn cần thiết vì ProgressDetail đã chứa moduleTitle
+// @riverpod
+// class ModuleTitlesState extends _$ModuleTitlesState {
+//   @override
+//   Map<String, String> build() {
+//     return {};
+//   }
+//
+//   // ...
+// }

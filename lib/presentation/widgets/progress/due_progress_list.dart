@@ -51,7 +51,7 @@ class DueProgressList extends ConsumerWidget {
               children: [
                 SLLoadingIndicator(),
                 SizedBox(height: 16),
-                Text('Loading module information...'),
+                Text('Loading progress information...'),
               ],
             ),
           );
@@ -65,9 +65,9 @@ class DueProgressList extends ConsumerWidget {
         }
 
         final today = DateTime.now();
-        final todayProgressRecords = <ProgressSummary>[];
-        final overdueProgressRecords = <ProgressSummary>[];
-        final upcomingProgressRecords = <ProgressSummary>[];
+        final todayProgressRecords = <ProgressDetail>[];
+        final overdueProgressRecords = <ProgressDetail>[];
+        final upcomingProgressRecords = <ProgressDetail>[];
 
         for (final progress in progressRecords) {
           if (progress.nextStudyDate == null) continue;
@@ -90,13 +90,6 @@ class DueProgressList extends ConsumerWidget {
           upcomingProgressRecords.add(progress);
         }
 
-        // Trigger loading module titles
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref
-              .read(moduleTitlesStateProvider.notifier)
-              .loadModuleTitles(progressRecords);
-        });
-
         return FadeTransition(
           opacity: fadeAnimation,
           child: RefreshIndicator(
@@ -114,9 +107,6 @@ class DueProgressList extends ConsumerWidget {
                   ...overdueProgressRecords.map(
                     (progress) => DueProgressListItem(
                       progress: progress,
-                      moduleTitle: ref
-                          .watch(moduleTitlesStateProvider.notifier)
-                          .getModuleTitle(progress.moduleId),
                       isItemDue: true,
                     ),
                   ),
@@ -132,9 +122,6 @@ class DueProgressList extends ConsumerWidget {
                   ...todayProgressRecords.map(
                     (progress) => DueProgressListItem(
                       progress: progress,
-                      moduleTitle: ref
-                          .watch(moduleTitlesStateProvider.notifier)
-                          .getModuleTitle(progress.moduleId),
                       isItemDue: true,
                     ),
                   ),
@@ -151,9 +138,6 @@ class DueProgressList extends ConsumerWidget {
                   ...upcomingProgressRecords.map(
                     (progress) => DueProgressListItem(
                       progress: progress,
-                      moduleTitle: ref
-                          .watch(moduleTitlesStateProvider.notifier)
-                          .getModuleTitle(progress.moduleId),
                       isItemDue: false,
                     ),
                   ),

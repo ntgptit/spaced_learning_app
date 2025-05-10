@@ -8,14 +8,12 @@ import 'package:spaced_learning_app/presentation/utils/cycle_formatter.dart';
 import '../../../core/navigation/navigation_helper.dart';
 
 class DueProgressListItem extends StatelessWidget {
-  final ProgressSummary progress;
-  final String moduleTitle;
+  final ProgressDetail progress;
   final bool isItemDue;
 
   const DueProgressListItem({
     super.key,
     required this.progress,
-    required this.moduleTitle,
     required this.isItemDue,
   });
 
@@ -91,7 +89,7 @@ class DueProgressListItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          moduleTitle,
+                          progress.moduleTitle ?? 'Module ${progress.moduleId}',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -140,10 +138,10 @@ class DueProgressListItem extends StatelessWidget {
                     ),
                 ],
               ),
-              if (progress.repetitionCount > 0) ...[
+              if (progress.repetitions.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Chip(
-                  label: Text('${progress.repetitionCount} repetitions'),
+                  label: Text('${progress.repetitions.length} repetitions'),
                   backgroundColor: colorScheme.surfaceContainerHigh,
                   side: BorderSide.none,
                   labelStyle: theme.textTheme.bodySmall?.copyWith(

@@ -84,7 +84,7 @@ class DueProgressSummary extends ConsumerWidget {
     );
   }
 
-  bool _isDue(ProgressSummary progress) {
+  bool _isDue(ProgressDetail progress) {
     if (progress.nextStudyDate == null) return false;
 
     final now = DateTime.now();

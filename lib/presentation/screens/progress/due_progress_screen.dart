@@ -26,7 +26,6 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
   bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
-  final Map<String, String> _moduleTitles = {};
 
   @override
   void initState() {
@@ -72,21 +71,15 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
       return;
     }
 
+    setState(() => _isLoading = true);
+
     await ref
         .read(progressStateProvider.notifier)
         .loadDueProgress(currentUser.id, studyDate: _selectedDate);
 
-    if (!mounted) return;
-
-    final progressList = ref.read(progressStateProvider).valueOrNull ?? [];
-    if (progressList.isEmpty) return;
-
-    // Sử dụng provider chung để load module titles
-    setState(() => _isLoading = true);
-    await ref
-        .read(moduleTitlesStateProvider.notifier)
-        .loadModuleTitles(progressList);
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _selectDate() async {

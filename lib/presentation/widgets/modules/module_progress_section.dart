@@ -26,18 +26,12 @@ class ModuleProgressSection extends StatelessWidget {
         Text('Your Progress', style: theme.textTheme.titleLarge),
         const SizedBox(height: AppDimens.spaceM),
         ProgressCard(
-          progress: ProgressSummary(
-            id: progress.id,
-            moduleId: progress.moduleId,
-            firstLearningDate: progress.firstLearningDate,
-            cyclesStudied: progress.cyclesStudied,
-            nextStudyDate: progress.nextStudyDate,
-            percentComplete: progress.percentComplete,
-            createdAt: progress.createdAt,
-            updatedAt: progress.updatedAt,
-            repetitionCount: progress.repetitions.length,
-          ),
-          moduleTitle: moduleTitle,
+          // Truyền trực tiếp ProgressDetail vào ProgressCard mà không cần chuyển đổi
+          progress: progress,
+          // Có thể tiếp tục sử dụng moduleTitle từ props nếu không muốn dùng
+          // progress.moduleTitle
+          subtitle: moduleTitle != progress.moduleTitle ? moduleTitle : null,
+          isDue: _isDue(progress),
           onTap: () => onTap(progress.id),
         ),
         const SizedBox(height: AppDimens.spaceL),
@@ -51,5 +45,19 @@ class ModuleProgressSection extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  bool _isDue(ProgressDetail progress) {
+    if (progress.nextStudyDate == null) return false;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final nextDate = DateTime(
+      progress.nextStudyDate!.year,
+      progress.nextStudyDate!.month,
+      progress.nextStudyDate!.day,
+    );
+
+    return nextDate.compareTo(today) <= 0;
   }
 }

@@ -102,7 +102,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
   }
 
   @override
-  Future<List<ProgressSummary>> getDueProgress(
+  Future<List<ProgressDetail>> getDueProgress(
     String userId, {
     DateTime? studyDate,
     int page = 0,
@@ -147,9 +147,9 @@ class ProgressRepositoryImpl implements ProgressRepository {
                 );
                 return null;
               }
-              return ProgressSummary.fromJson(item);
+              return ProgressDetail.fromJson(item);
             })
-            .whereType<ProgressSummary>()
+            .whereType<ProgressDetail>()
             .toList();
 
         debugPrint(

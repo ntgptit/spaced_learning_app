@@ -6,8 +6,7 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 class ProgressCard extends ConsumerWidget {
-  final ProgressSummary progress;
-  final String moduleTitle;
+  final ProgressDetail progress;
   final bool isDue;
   final String? subtitle;
   final VoidCallback? onTap;
@@ -15,7 +14,6 @@ class ProgressCard extends ConsumerWidget {
   const ProgressCard({
     super.key,
     required this.progress,
-    required this.moduleTitle,
     this.isDue = false,
     this.subtitle,
     this.onTap,
@@ -42,7 +40,7 @@ class ProgressCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeaderRow(colorScheme, textTheme),
-              if (progress.repetitionCount > 0) ...[
+              if (progress.repetitions.isNotEmpty) ...[
                 const SizedBox(height: AppDimens.spaceS),
                 _buildRepetitionCountBadge(colorScheme, textTheme),
               ],
@@ -98,7 +96,7 @@ class ProgressCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            moduleTitle,
+            progress.moduleTitle ?? 'Module ${progress.moduleId}',
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
@@ -158,7 +156,7 @@ class ProgressCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusXS),
       ),
       child: Text(
-        'Repetitions: ${progress.repetitionCount}',
+        'Repetitions: ${progress.repetitions.length}',
         style: textTheme.bodySmall?.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),

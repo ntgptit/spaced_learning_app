@@ -25,12 +25,12 @@ final isUpdatingProgressProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsUpdatingProgressRef = AutoDisposeProviderRef<bool>;
-String _$todayDueTasksHash() => r'b5b9abec00f29221e453401a2759611496c8064c';
+String _$todayDueTasksHash() => r'7fb56376b1c8db360d7ebcb640969e23c92ed0fd';
 
 /// See also [todayDueTasks].
 @ProviderFor(todayDueTasks)
 final todayDueTasksProvider =
-    AutoDisposeProvider<List<ProgressSummary>>.internal(
+    AutoDisposeProvider<List<ProgressDetail>>.internal(
       todayDueTasks,
       name: r'todayDueTasksProvider',
       debugGetCreateSourceHash:
@@ -43,7 +43,7 @@ final todayDueTasksProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef TodayDueTasksRef = AutoDisposeProviderRef<List<ProgressSummary>>;
+typedef TodayDueTasksRef = AutoDisposeProviderRef<List<ProgressDetail>>;
 String _$todayDueTasksCountHash() =>
     r'03c0091906db433b7e6352024c542f18d411ce21';
 
@@ -63,13 +63,13 @@ final todayDueTasksCountProvider = AutoDisposeProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodayDueTasksCountRef = AutoDisposeProviderRef<int>;
-String _$progressStateHash() => r'071613f883bd5359065565af2fd64d31fb2cbc57';
+String _$progressStateHash() => r'5fd759dce667b60915b9c0f9ae23ebe82e54f5af';
 
 /// See also [ProgressState].
 @ProviderFor(ProgressState)
 final progressStateProvider = AutoDisposeAsyncNotifierProvider<
   ProgressState,
-  List<ProgressSummary>
+  List<ProgressDetail>
 >.internal(
   ProgressState.new,
   name: r'progressStateProvider',
@@ -81,7 +81,7 @@ final progressStateProvider = AutoDisposeAsyncNotifierProvider<
   allTransitiveDependencies: null,
 );
 
-typedef _$ProgressState = AutoDisposeAsyncNotifier<List<ProgressSummary>>;
+typedef _$ProgressState = AutoDisposeAsyncNotifier<List<ProgressDetail>>;
 String _$selectedProgressHash() => r'97b3285aa2bea9821e4639402e684704afc23782';
 
 /// See also [SelectedProgress].
@@ -101,24 +101,5 @@ final selectedProgressProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$SelectedProgress = AutoDisposeAsyncNotifier<ProgressDetail?>;
-String _$moduleTitlesStateHash() => r'c4262dc1e20cdbb76466c65d895aa0f4bbe415c5';
-
-/// See also [ModuleTitlesState].
-@ProviderFor(ModuleTitlesState)
-final moduleTitlesStateProvider = AutoDisposeNotifierProvider<
-  ModuleTitlesState,
-  Map<String, String>
->.internal(
-  ModuleTitlesState.new,
-  name: r'moduleTitlesStateProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$moduleTitlesStateHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$ModuleTitlesState = AutoDisposeNotifier<Map<String, String>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
