@@ -37,7 +37,7 @@ class StatusSection extends StatelessWidget {
 
     final sortedKeys = _getSortedCycleKeys();
     final titleIconColor = isHistory
-        ? colorScheme.primary.withOpacity(AppDimens.opacityVeryHigh)
+        ? colorScheme.primary.withValues(alpha: AppDimens.opacityVeryHigh)
         : textColor;
 
     return Padding(
@@ -82,7 +82,7 @@ class StatusSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppDimens.paddingM),
           decoration: BoxDecoration(
-            color: containerColor.withOpacity(0.1),
+            color: containerColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
           ),
           child: Icon(icon, color: iconColor, size: AppDimens.iconM),
@@ -93,8 +93,8 @@ class StatusSection extends StatelessWidget {
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: isHistory
-                ? theme.colorScheme.onSurface.withOpacity(
-                    AppDimens.opacityVeryHigh,
+                ? theme.colorScheme.onSurface.withValues(
+                    alpha: AppDimens.opacityVeryHigh,
                   )
                 : textColor,
           ),
@@ -107,7 +107,7 @@ class StatusSection extends StatelessWidget {
               vertical: AppDimens.paddingXXS,
             ),
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.1),
+              color: textColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppDimens.radiusS),
             ),
             child: Text(

@@ -24,7 +24,7 @@ class LearningStatsCard extends StatelessWidget {
     final currentTheme = theme ?? Theme.of(context);
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < AppDimens.breakpointXS;
-    final colorScheme = currentTheme.colorScheme;
+    final _ = currentTheme.colorScheme;
 
     return Card(
       elevation: currentTheme.cardTheme.elevation ?? AppDimens.elevationS,

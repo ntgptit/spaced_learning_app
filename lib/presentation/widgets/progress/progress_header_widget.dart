@@ -157,7 +157,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: cycleColor.withOpacity(0.2),
+                color: cycleColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(8),
@@ -179,7 +179,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
             ),
             Card(
               elevation: 0,
-              color: colorScheme.surfaceVariant,
+              color: colorScheme.surfaceContainerHighest,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(color: cycleColor, width: 1.5),
@@ -200,7 +200,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
         const SizedBox(height: 8),
         Card(
           elevation: 0,
-          color: colorScheme.surfaceVariant,
+          color: colorScheme.surfaceContainerHighest,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -231,7 +231,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
 
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceVariant,
+      color: colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -287,7 +287,7 @@ class ProgressBar extends StatelessWidget {
     return Container(
       height: 12,
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       clipBehavior: Clip.antiAlias,
@@ -345,7 +345,7 @@ class DateInfoBlock extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
           padding: const EdgeInsets.all(4),

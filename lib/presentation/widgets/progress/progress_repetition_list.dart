@@ -71,7 +71,7 @@ class _ProgressRepetitionListState extends ConsumerState<ProgressRepetitionList>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final _ = theme.colorScheme;
     final repetitionsState = ref.watch(repetitionStateProvider);
 
     return Column(

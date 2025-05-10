@@ -56,7 +56,7 @@ class ModuleContentSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       child: Column(

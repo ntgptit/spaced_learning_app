@@ -138,7 +138,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
       } catch (e) {
         throw DataFormatException('Failed to parse progress data: $e');
       }
-    } on AppException catch (e) {
+    } on AppException {
       rethrow;
     } catch (e) {
       throw UnexpectedException('Failed to get due progress: $e');

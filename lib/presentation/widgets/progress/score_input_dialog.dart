@@ -153,7 +153,7 @@ class _ScoreInputDialogContentState
       data: SliderThemeData(
         activeTrackColor: sliderColor,
         thumbColor: sliderColor,
-        overlayColor: sliderColor.withOpacity(AppDimens.opacityMedium),
+        overlayColor: sliderColor.withValues(alpha: AppDimens.opacityMedium),
         trackHeight: 8,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
@@ -175,10 +175,10 @@ class _ScoreInputDialogContentState
     return Container(
       height: AppDimens.iconXXL * 2,
       decoration: BoxDecoration(
-        color: color.withOpacity(AppDimens.opacitySemi),
+        color: color.withValues(alpha: AppDimens.opacitySemi),
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
         border: Border.all(
-          color: color.withOpacity(AppDimens.opacityHigh),
+          color: color.withValues(alpha: AppDimens.opacityHigh),
           width: 1.5,
         ),
       ),
@@ -199,8 +199,8 @@ class _ScoreInputDialogContentState
 
   Widget _buildExactScore(ThemeData theme, ColorScheme scheme) {
     final scoreColor = _getScoreColor(scheme, _currentScore);
-    final bgColor = scoreColor.withOpacity(
-      scoreColor.computeLuminance() > 0.5 ? 0.2 : 0.1,
+    final bgColor = scoreColor.withValues(
+      alpha: scoreColor.computeLuminance() > 0.5 ? 0.2 : 0.1,
     );
 
     return Padding(
@@ -381,7 +381,7 @@ class _ScoreButton extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: _color.withOpacity(AppDimens.opacityHigh),
+                      color: _color.withValues(alpha: AppDimens.opacityHigh),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),

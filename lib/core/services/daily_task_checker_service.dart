@@ -23,12 +23,12 @@ class DailyTaskChecker {
   final ReminderService _reminderService;
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
 
-  static const int DAILY_CHECK_ALARM_ID = 1000;
-  static const String LAST_CHECK_TIME_KEY = 'last_daily_task_check_time';
-  static const String LAST_CHECK_RESULT_KEY = 'last_daily_task_check_result';
-  static const String LAST_CHECK_TASK_COUNT_KEY =
+  static const int dailyCheckAlarmId = 1000;
+  static const String lastCheckTimeKey = 'last_daily_task_check_time';
+  static const String lastCheckResultKey = 'last_daily_task_check_result';
+  static const String lastCheckTaskCountKey =
       'last_daily_task_check_task_count';
-  static const String LAST_CHECK_ERROR_KEY = 'last_daily_task_check_error';
+  static const String lastCheckErrorKey = 'last_daily_task_check_error';
 
   DailyTaskChecker({
     required ProgressRepository progressRepository,
@@ -62,7 +62,7 @@ class DailyTaskChecker {
 
       final scheduleResult = await AndroidAlarmManager.periodic(
         const Duration(days: 1),
-        DAILY_CHECK_ALARM_ID,
+        dailyCheckAlarmId,
         _dailyTaskCheckCallback,
         startAt: scheduledTime,
         exact: true,
@@ -102,10 +102,10 @@ class DailyTaskChecker {
 
       // Lưu thời gian kiểm tra
       final now = DateTime.now();
-      await prefs.setString(LAST_CHECK_TIME_KEY, now.toIso8601String());
+      await prefs.setString(lastCheckTimeKey, now.toIso8601String());
 
       // Tạm thời đánh dấu lỗi, sẽ cập nhật lại nếu thành công
-      await prefs.setBool(LAST_CHECK_RESULT_KEY, false);
+      await prefs.setBool(lastCheckResultKey, false);
 
       // Ở đây bạn sẽ cần kết nối với API để kiểm tra nhiệm vụ đến hạn
       // Đây chỉ là phần giả lập, bạn cần thay thế bằng kết nối API thật
@@ -115,8 +115,8 @@ class DailyTaskChecker {
       const taskCount = 2;
 
       // Lưu kết quả kiểm tra
-      await prefs.setBool(LAST_CHECK_RESULT_KEY, true);
-      await prefs.setInt(LAST_CHECK_TASK_COUNT_KEY, taskCount);
+      await prefs.setBool(lastCheckResultKey, true);
+      await prefs.setInt(lastCheckTaskCountKey, taskCount);
 
       // Hiển thị thông báo về kết quả kiểm tra
       await _showResultNotification(hasDueTasks, taskCount);
@@ -128,7 +128,7 @@ class DailyTaskChecker {
       debugPrint('Lỗi trong _dailyTaskCheckCallback: $e');
       // Lưu thông tin lỗi
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(LAST_CHECK_ERROR_KEY, e.toString());
+      await prefs.setString(lastCheckErrorKey, e.toString());
     }
   }
 
@@ -210,22 +210,22 @@ class DailyTaskChecker {
     int taskCount,
   ) async {
     await _storageService.setString(
-      LAST_CHECK_TIME_KEY,
+      lastCheckTimeKey,
       checkTime.toIso8601String(),
     );
-    await _storageService.setBool(LAST_CHECK_RESULT_KEY, success);
-    await _storageService.setInt(LAST_CHECK_TASK_COUNT_KEY, taskCount);
+    await _storageService.setBool(lastCheckResultKey, success);
+    await _storageService.setInt(lastCheckTaskCountKey, taskCount);
   }
 
   // Hàm mới để lưu kết quả lỗi
   Future<void> _saveErrorResult(DateTime checkTime, String errorMessage) async {
     await _storageService.setString(
-      LAST_CHECK_TIME_KEY,
+      lastCheckTimeKey,
       checkTime.toIso8601String(),
     );
-    await _storageService.setBool(LAST_CHECK_RESULT_KEY, false);
-    await _storageService.setInt(LAST_CHECK_TASK_COUNT_KEY, 0);
-    await _storageService.setString(LAST_CHECK_ERROR_KEY, errorMessage);
+    await _storageService.setBool(lastCheckResultKey, false);
+    await _storageService.setInt(lastCheckTaskCountKey, 0);
+    await _storageService.setString(lastCheckErrorKey, errorMessage);
   }
 
   Future<DailyTaskCheckEvent> manualCheck() async {
@@ -343,16 +343,12 @@ class DailyTaskChecker {
   // Lấy báo cáo kiểm tra gần nhất
   Future<Map<String, dynamic>> getLastCheckReport() async {
     try {
-      final lastCheckTime = await _storageService.getString(
-        LAST_CHECK_TIME_KEY,
-      );
+      final lastCheckTime = await _storageService.getString(lastCheckTimeKey);
       final lastCheckResult =
-          await _storageService.getBool(LAST_CHECK_RESULT_KEY) ?? false;
+          await _storageService.getBool(lastCheckResultKey) ?? false;
       final lastCheckTaskCount =
-          await _storageService.getInt(LAST_CHECK_TASK_COUNT_KEY) ?? 0;
-      final lastCheckError = await _storageService.getString(
-        LAST_CHECK_ERROR_KEY,
-      );
+          await _storageService.getInt(lastCheckTaskCountKey) ?? 0;
+      final lastCheckError = await _storageService.getString(lastCheckErrorKey);
 
       return {
         'lastCheckTime': lastCheckTime != null
@@ -395,7 +391,7 @@ class DailyTaskChecker {
   // Hủy lịch kiểm tra hàng ngày
   Future<bool> cancelDailyCheck() async {
     try {
-      final result = await AndroidAlarmManager.cancel(DAILY_CHECK_ALARM_ID);
+      final result = await AndroidAlarmManager.cancel(dailyCheckAlarmId);
       debugPrint('Hủy lịch kiểm tra task hàng ngày: $result');
       return result;
     } catch (e) {

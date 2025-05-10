@@ -140,8 +140,8 @@ class _RescheduleDialogContentState
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(
-            AppDimens.opacityMediumHigh,
+          color: colorScheme.outlineVariant.withValues(
+            alpha: AppDimens.opacityMediumHigh,
           ),
         ),
       ),

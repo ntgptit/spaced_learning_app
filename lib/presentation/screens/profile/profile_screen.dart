@@ -1,18 +1,22 @@
+// lib/presentation/screens/profile/profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spaced_learning_app/core/navigation/navigation_helper.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/user.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
-import '../../../core/navigation/navigation_helper.dart';
-import '../../../core/theme/app_theme_data.dart';
+import '../../widgets/profile/login_prompt.dart';
+import '../../widgets/profile/profile_edit_form.dart';
+import '../../widgets/profile/profile_header.dart';
+import '../../widgets/profile/profile_info_card.dart';
+import '../../widgets/profile/theme_toggle_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -98,11 +102,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('User Profile'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
+        title: Text(
+          'User Profile',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () {
             final router = GoRouter.of(context);
             if (router.canPop()) {
@@ -114,24 +129,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           tooltip: 'Back',
         ),
       ),
-      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadUserData,
-          child: _buildContent(theme),
+          child: _buildContent(),
         ),
       ),
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent() {
     final authState = ref.watch(authStateProvider);
     final user = authState.valueOrNull == true
         ? ref.watch(currentUserProvider)
         : null;
 
     if (user == null) {
-      return const Center(child: Text('Please log in to view your profile'));
+      return const ProfileLoginPrompt();
     }
 
     final userStateAsync = ref.watch(userStateProvider);
@@ -139,84 +153,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return userStateAsync.when(
       data: (currentUser) {
         final effectiveUser = currentUser ?? user;
-
-        return ListView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingL,
-            vertical: AppDimens.spaceL,
-          ),
-          children: [
-            // Avatar + Title
-            Center(
-              child: CircleAvatar(
-                radius: AppDimens.avatarSizeL,
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: Text(
-                  _getInitials(effectiveUser),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            Center(
-              child: Text(
-                _isEditing ? 'Edit Profile' : 'Profile',
-                style: theme.textTheme.titleLarge,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-
-            _isEditing
-                ? _buildEditForm(theme)
-                : _buildInfoCard(theme, effectiveUser),
-
-            const SizedBox(height: AppDimens.spaceXXL),
-
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimens.paddingL),
-                child: Consumer(
-                  builder: (context, ref, _) {
-                    // Sử dụng themeMode từ themeModeStateProvider
-                    final themeMode = ref.watch(themeModeStateProvider);
-                    final isDarkMode = themeMode == ThemeMode.dark;
-
-                    return Row(
-                      children: [
-                        Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
-                        const SizedBox(width: AppDimens.spaceL),
-                        Text('Dark Mode', style: theme.textTheme.bodyLarge),
-                        const Spacer(),
-                        Switch(
-                          value: isDarkMode,
-                          onChanged: (value) => ref
-                              .read(themeModeStateProvider.notifier)
-                              .toggleTheme(),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            const SizedBox(height: AppDimens.spaceXL),
-
-            SLButton(
-              text: 'Logout',
-              type: SLButtonType.outline,
-              prefixIcon: Icons.logout,
-              isFullWidth: true,
-              onPressed: _logout,
-            ),
-          ],
-        );
+        return _buildProfileContent(effectiveUser);
       },
       loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, stack) => SLErrorView(
@@ -230,117 +167,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoCard(ThemeData theme, User user) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Column(
-          children: [
-            _infoRow(
-              theme,
-              Icons.person,
-              'Display Name',
-              user.displayName ?? 'Not set',
-            ),
-            const Divider(),
-            _infoRow(theme, Icons.email, 'Email', user.email),
-            if (user.roles?.isNotEmpty ?? false) ...[
-              const Divider(),
-              _infoRow(theme, Icons.badge, 'Roles', user.roles!.join(', ')),
-            ],
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: _toggleEditing,
-                tooltip: 'Edit',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildProfileContent(user) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-  Widget _buildEditForm(ThemeData theme) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              SLTextField(
-                label: 'Display Name',
-                hint: 'Enter display name',
+    return ListView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.spaceL,
+      ),
+      children: [
+        ProfileHeader(user: user),
+        const SizedBox(height: AppDimens.spaceXL),
+
+        _isEditing
+            ? ProfileEditForm(
                 controller: _displayNameController,
-                prefixIcon: Icons.person,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Cannot be empty';
-                  if (v.length > 50) return 'Maximum 50 characters';
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppDimens.spaceL),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  SLButton(
-                    text: 'Cancel',
-                    type: SLButtonType.text,
-                    onPressed: _toggleEditing,
-                  ),
-                  const SizedBox(width: AppDimens.spaceM),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final isLoading = ref.watch(userStateProvider).isLoading;
-                      return SLButton(
-                        text: 'Save',
-                        type: SLButtonType.primary,
-                        onPressed: _updateProfile,
-                        isLoading: isLoading,
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
+                formKey: _formKey,
+                onCancel: _toggleEditing,
+                onSave: _updateProfile,
+              )
+            : ProfileInfoCard(user: user, onEditPressed: _toggleEditing),
+
+        const SizedBox(height: AppDimens.spaceXL),
+        const ThemeToggleCard(),
+        const SizedBox(height: AppDimens.spaceXL),
+
+        SLButton(
+          text: 'Logout',
+          type: SLButtonType.outline,
+          prefixIcon: Icons.logout,
+          isFullWidth: true,
+          backgroundColor: colorScheme.surfaceContainerHighest,
+          textColor: colorScheme.error,
+          borderColor: colorScheme.error.withValues(alpha: 0.3),
+          onPressed: _logout,
         ),
-      ),
-    );
-  }
 
-  Widget _infoRow(ThemeData theme, IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.spaceS),
-      child: Row(
-        children: [
-          Icon(icon, color: theme.colorScheme.primary),
-          const SizedBox(width: AppDimens.spaceM),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: theme.textTheme.bodySmall),
-              Text(value, style: theme.textTheme.bodyLarge),
-            ],
-          ),
-        ],
-      ),
+        const SizedBox(height: AppDimens.spaceXXL),
+      ],
     );
-  }
-
-  String _getInitials(User u) {
-    final name = u.displayName ?? u.email.split('@').first;
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return (parts.first[0] + parts.last[0]).toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : '';
   }
 
   void _runSafe(VoidCallback cb) {

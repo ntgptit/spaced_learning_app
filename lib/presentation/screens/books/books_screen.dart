@@ -257,7 +257,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
             Icon(
               Icons.lock_outline,
               size: AppDimens.iconXXL,
-              color: theme.colorScheme.primary.withOpacity(0.6),
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
             ),
             const SizedBox(height: AppDimens.spaceL),
             Text(
@@ -329,7 +329,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
         boxShadow: _isScrolled || _isFilterExpanded
             ? [
                 BoxShadow(
-                  color: theme.colorScheme.shadow.withOpacity(0.05),
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -374,7 +374,9 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimens.radiusL),
                     borderSide: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
