@@ -25,7 +25,7 @@ final isUpdatingProgressProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsUpdatingProgressRef = AutoDisposeProviderRef<bool>;
-String _$todayDueTasksHash() => r'7fb56376b1c8db360d7ebcb640969e23c92ed0fd';
+String _$todayDueTasksHash() => r'55fceddcabfeec2b926189173c607431435563d1';
 
 /// See also [todayDueTasks].
 @ProviderFor(todayDueTasks)
@@ -44,26 +44,28 @@ final todayDueTasksProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodayDueTasksRef = AutoDisposeProviderRef<List<ProgressDetail>>;
-String _$todayDueTasksCountHash() =>
-    r'03c0091906db433b7e6352024c542f18d411ce21';
+String _$trackedProgressStateHash() =>
+    r'7cf75a9be08d0401dd6f052fe37a70188e6f8bb1';
 
-/// See also [todayDueTasksCount].
-@ProviderFor(todayDueTasksCount)
-final todayDueTasksCountProvider = AutoDisposeProvider<int>.internal(
-  todayDueTasksCount,
-  name: r'todayDueTasksCountProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$todayDueTasksCountHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+/// See also [trackedProgressState].
+@ProviderFor(trackedProgressState)
+final trackedProgressStateProvider =
+    AutoDisposeFutureProvider<List<ProgressDetail>>.internal(
+      trackedProgressState,
+      name: r'trackedProgressStateProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$trackedProgressStateHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef TodayDueTasksCountRef = AutoDisposeProviderRef<int>;
-String _$progressStateHash() => r'5fd759dce667b60915b9c0f9ae23ebe82e54f5af';
+typedef TrackedProgressStateRef =
+    AutoDisposeFutureProviderRef<List<ProgressDetail>>;
+String _$progressStateHash() => r'00e6be3ce98fadd89703c6c0a6c43f04ea12d383';
 
 /// See also [ProgressState].
 @ProviderFor(ProgressState)

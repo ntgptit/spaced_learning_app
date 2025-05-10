@@ -1,4 +1,3 @@
-// lib/presentation/screens/home/widgets/home_content.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,19 +45,18 @@ class HomeContent extends ConsumerWidget {
               Center(child: HomeHeader(user: user)),
               const SizedBox(height: AppDimens.spaceXL),
 
-              // Dashboard section
               const DashboardSection(),
               const SizedBox(height: AppDimens.spaceXL),
 
-              // Insights section
               const LearningInsightsSection(),
               const SizedBox(height: AppDimens.spaceXL),
 
-              // Due tasks section
-              const DueTasksSectionWidget(),
+              // 👇 Bọc bằng Consumer để cô lập rebuild
+              Consumer(
+                builder: (context, ref, _) => const DueTasksSectionWidget(),
+              ),
               const SizedBox(height: AppDimens.spaceXL),
 
-              // Quick actions
               const HomeQuickActionsSection(),
               SizedBox(height: MediaQuery.of(context).size.height * 0.1),
             ],
@@ -108,15 +106,29 @@ class DueTasksSectionWidget extends ConsumerWidget {
     final progressAsync = ref.watch(progressStateProvider);
 
     return progressAsync.when(
-      data: (progressRecords) {
-        // Truyền trực tiếp progressRecords (ProgressDetail) vào DueTasksSection
+      data: (records) {
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+
+        final due = records.where((e) {
+          final d = e.nextStudyDate?.toLocal();
+          if (d == null) return false;
+          final n = DateTime(d.year, d.month, d.day);
+          return !n.isAfter(today);
+        }).toList();
+
+        debugPrint('[DueTasksSectionWidget] Filtered ${due.length} due tasks');
+
         return DueTasksSection(
-          tasks: progressRecords,
+          tasks: due,
           onViewAllTasks: () => _navigateTo(context, '/due-progress'),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (err, _) {
+        debugPrint('[DueTasksSectionWidget] Error: $err');
+        return const SizedBox.shrink();
+      },
     );
   }
 

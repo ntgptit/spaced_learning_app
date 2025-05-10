@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:spaced_learning_app/core/constants/api_endpoints.dart';
 import 'package:spaced_learning_app/core/exceptions/app_exceptions.dart';
 import 'package:spaced_learning_app/core/network/api_client.dart';
@@ -110,41 +109,24 @@ class ProgressRepositoryImpl implements ProgressRepository {
   }) async {
     try {
       final Map<String, dynamic> queryParams = {'page': page, 'size': size};
-      if (studyDate != null) {
-        queryParams['studyDate'] = _formatDate(studyDate);
-      }
+      studyDate ??= DateTime.now();
+      queryParams['studyDate'] = _formatDate(studyDate);
 
       final response = await _apiClient.get(
         ApiEndpoints.dueProgress(userId),
         queryParameters: queryParams,
       );
 
-      debugPrint(
-        '[ProgressRepositoryImpl] Raw API response for getDueProgress: $response',
-      );
-
       if (response is! Map<String, dynamic> || response['content'] is! List) {
-        debugPrint(
-          '[ProgressRepositoryImpl] Response is not a valid Map or does not contain a "content" list.',
-        );
-        debugPrint(
-          '[ProgressRepositoryImpl] Response type: ${response?.runtimeType}',
-        );
         return [];
       }
 
       final List<dynamic> progressList = response['content'];
-      debugPrint(
-        '[ProgressRepositoryImpl] Found ${progressList.length} due progress items before parsing.',
-      );
 
       try {
         final parsedList = progressList
             .map((item) {
               if (item is! Map<String, dynamic>) {
-                debugPrint(
-                  '[ProgressRepositoryImpl] Invalid item format found in content list: $item',
-                );
                 return null;
               }
               return ProgressDetail.fromJson(item);
@@ -152,23 +134,13 @@ class ProgressRepositoryImpl implements ProgressRepository {
             .whereType<ProgressDetail>()
             .toList();
 
-        debugPrint(
-          '[ProgressRepositoryImpl] Parsed ${parsedList.length} due progress items successfully.',
-        );
         return parsedList;
       } catch (e) {
-        debugPrint(
-          '[ProgressRepositoryImpl] Error parsing ProgressSummary: $e',
-        );
         throw DataFormatException('Failed to parse progress data: $e');
       }
     } on AppException catch (e) {
-      debugPrint('[ProgressRepositoryImpl] AppException in getDueProgress: $e');
       rethrow;
     } catch (e) {
-      debugPrint(
-        '[ProgressRepositoryImpl] Unexpected error in getDueProgress: $e',
-      );
       throw UnexpectedException('Failed to get due progress: $e');
     }
   }

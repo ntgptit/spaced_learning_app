@@ -7,6 +7,7 @@ import 'package:spaced_learning_app/core/utils/string_utils.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 
 import '../../core/di/providers.dart';
+import 'auth_viewmodel.dart';
 
 part 'progress_viewmodel.g.dart';
 
@@ -14,7 +15,13 @@ part 'progress_viewmodel.g.dart';
 class ProgressState extends _$ProgressState {
   @override
   Future<List<ProgressDetail>> build() async {
-    return [];
+    final user = ref.read(currentUserProvider);
+    if (user == null) return [];
+    final result = await ref
+        .read(progressRepositoryProvider)
+        .getDueProgress(user.id);
+    debugPrint('[ProgressState.build] Loaded ${result.length} items');
+    return result;
   }
 
   Future<void> loadDueProgress(
@@ -32,13 +39,8 @@ class ProgressState extends _$ProgressState {
     }
 
     state = const AsyncValue.loading();
-
     try {
-      debugPrint(
-        '[ProgressViewModel] Starting loadDueProgress for userId: $sanitizedId, date: $studyDate',
-      );
-
-      final List<ProgressDetail> result = await ref
+      final result = await ref
           .read(progressRepositoryProvider)
           .getDueProgress(
             sanitizedId,
@@ -46,31 +48,12 @@ class ProgressState extends _$ProgressState {
             page: page,
             size: size,
           );
-
       debugPrint(
         '[ProgressViewModel] Received ${result.length} records from repository for due progress.',
       );
-
-      if (result.isNotEmpty) {
-        final idList = result.take(3).map((p) => p.id).join(', ');
-        debugPrint(
-          'First few progress IDs: $idList${result.length > 3 ? '...' : ''}',
-        );
-      }
-
-      ref
-          .read(eventBusProvider)
-          .fire(
-            ProgressChangedEvent(
-              userId: sanitizedId,
-              hasDueTasks: result.isNotEmpty,
-            ),
-          );
-
       state = AsyncValue.data(result);
-    } catch (e) {
-      debugPrint('Error loading due progress: $e');
-      state = AsyncValue.error(e, StackTrace.current);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
@@ -239,32 +222,38 @@ List<ProgressDetail> todayDueTasks(Ref ref) {
   final progressList = ref.watch(progressStateProvider).valueOrNull ?? [];
   if (progressList.isEmpty) return [];
 
-  final today = DateTime.now();
-  final todayDate = DateTime(today.year, today.month, today.day);
+  final now = DateTime.now().toUtc();
+  final todayUtc = DateTime.utc(now.year, now.month, now.day);
 
-  return progressList.where((progress) {
-    if (progress.nextStudyDate == null) return false;
-    final nextDate = DateTime(
-      progress.nextStudyDate!.year,
-      progress.nextStudyDate!.month,
-      progress.nextStudyDate!.day,
+  final dueTasks = progressList.where((progress) {
+    final next = progress.nextStudyDate;
+    if (next == null) return false;
+
+    final normalized = DateTime.utc(next.year, next.month, next.day);
+    final isDue = !normalized.isAfter(todayUtc);
+
+    debugPrint(
+      '[todayDueTasksProvider] id=${progress.id} '
+      'nextStudyDate=$next normalized=$normalized today=$todayUtc => isDue=$isDue',
     );
-    return nextDate.isAtSameMomentAs(todayDate) || nextDate.isBefore(todayDate);
+
+    return isDue;
   }).toList();
+
+  debugPrint('[todayDueTasksProvider] Total due tasks: ${dueTasks.length}');
+  return dueTasks;
 }
+
+// @riverpod
+// int todayDueTasksCount(Ref ref) {
+//   return ref.watch(todayDueTasksProvider).length;
+// }
 
 @riverpod
-int todayDueTasksCount(Ref ref) {
-  return ref.watch(todayDueTasksProvider).length;
+Future<List<ProgressDetail>> trackedProgressState(Ref ref) {
+  debugPrint(
+    '[TrackedProgressState] >>> Triggered build() at ${DateTime.now()}',
+  );
+  // debugPrint(StackTrace.current.toString());
+  return ref.watch(progressStateProvider.future);
 }
-
-// Không còn cần thiết vì ProgressDetail đã chứa moduleTitle
-// @riverpod
-// class ModuleTitlesState extends _$ModuleTitlesState {
-//   @override
-//   Map<String, String> build() {
-//     return {};
-//   }
-//
-//   // ...
-// }

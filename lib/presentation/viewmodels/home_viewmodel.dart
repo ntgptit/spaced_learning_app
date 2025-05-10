@@ -33,28 +33,95 @@ class HomeViewModel extends _$HomeViewModel {
   }
 
   Future<void> loadInitialData() async {
-    if (state.status == HomeLoadingStatus.loading) return;
+    debugPrint('[HomeViewModel] loadInitialData - Starting...');
 
+    if (state.status == HomeLoadingStatus.loading) {
+      debugPrint('[HomeViewModel] loadInitialData - Already loading, skipping');
+      return;
+    }
+
+    debugPrint('[HomeViewModel] loadInitialData - Setting state to loading');
     state = state.copyWith(status: HomeLoadingStatus.loading);
 
     try {
       final user = ref.read(currentUserProvider);
+      debugPrint(
+        '[HomeViewModel] loadInitialData - Current user: ${user?.id ?? 'null'}',
+      );
 
       // Tải dữ liệu thống kê
+      debugPrint('[HomeViewModel] loadInitialData - Loading stats data');
       await ref.read(loadAllStatsProvider(refreshCache: false).future);
+      debugPrint(
+        '[HomeViewModel] loadInitialData - Stats data loaded successfully',
+      );
 
       // Tải dữ liệu tiến trình nếu người dùng đã đăng nhập
       if (user != null) {
-        await ref.read(progressStateProvider.notifier).loadDueProgress(user.id);
+        debugPrint(
+          '[HomeViewModel] loadInitialData - Loading progress data for user: ${user.id}',
+        );
+        final progressNotifier = ref.read(progressStateProvider.notifier);
+        debugPrint(
+          '[HomeViewModel] loadInitialData - Current progress state: ${ref.read(progressStateProvider).valueOrNull?.length ?? 0} items',
+        );
+
+        await progressNotifier.loadDueProgress(user.id);
+
+        final progressAfter = ref.read(progressStateProvider).valueOrNull;
+        debugPrint(
+          '[HomeViewModel] loadInitialData - Progress data loaded. Items count: ${progressAfter?.length ?? 0}',
+        );
+
+        if (progressAfter != null && progressAfter.isNotEmpty) {
+          debugPrint(
+            '[HomeViewModel] loadInitialData - First progress item: id=${progressAfter.first.id}, moduleTitle=${progressAfter.first.moduleTitle ?? "N/A"}',
+          );
+
+          // Debug for due tasks
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          final dueTasks = progressAfter.where((task) {
+            if (task.nextStudyDate == null) return false;
+            final dueDate = DateTime(
+              task.nextStudyDate!.year,
+              task.nextStudyDate!.month,
+              task.nextStudyDate!.day,
+            );
+            return !dueDate.isAfter(today);
+          }).toList();
+
+          debugPrint(
+            '[HomeViewModel] loadInitialData - Due tasks count: ${dueTasks.length}',
+          );
+          for (int i = 0; i < dueTasks.length && i < 3; i++) {
+            final task = dueTasks[i];
+            final dueDate = task.nextStudyDate != null
+                ? '${task.nextStudyDate!.year}-${task.nextStudyDate!.month}-${task.nextStudyDate!.day}'
+                : 'null';
+
+            debugPrint(
+              '[HomeViewModel] loadInitialData - Due task $i: id=${task.id}, moduleTitle=${task.moduleTitle ?? "N/A"}, dueDate=$dueDate',
+            );
+          }
+        }
+      } else {
+        debugPrint(
+          '[HomeViewModel] loadInitialData - No user logged in, skipping progress loading',
+        );
       }
 
+      debugPrint('[HomeViewModel] loadInitialData - Setting state to loaded');
       state = state.copyWith(status: HomeLoadingStatus.loaded);
-    } catch (e) {
-      debugPrint('Error loading initial data: $e');
+      debugPrint('[HomeViewModel] loadInitialData - Completed successfully');
+    } catch (e, stackTrace) {
+      debugPrint('[HomeViewModel] loadInitialData - Error: $e');
+      debugPrint('[HomeViewModel] loadInitialData - Stack trace: $stackTrace');
       state = state.copyWith(
         status: HomeLoadingStatus.error,
         errorMessage: e.toString(),
       );
+      debugPrint('[HomeViewModel] loadInitialData - Set error state');
     }
   }
 

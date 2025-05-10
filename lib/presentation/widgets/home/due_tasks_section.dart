@@ -21,8 +21,47 @@ class DueTasksSection extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Lọc ra các task đến hạn
-    final dueTasks = _filterDueTasks(tasks);
+    // Debug log: số lượng tasks nhận được từ parent
+    debugPrint('[DueTasksSection] Received ${tasks.length} tasks from parent');
+
+    // Lọc ra các task đến hạn và quá hạn
+    final dueTasks = _getDueAndOverdueTasks(tasks);
+
+    // Debug log: số lượng tasks sau khi lọc
+    debugPrint(
+      '[DueTasksSection] After filtering: ${dueTasks.length} due tasks',
+    );
+
+    // Debug thêm về ngày của các tasks
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    for (final task in tasks.take(3)) {
+      final dueDate = task.nextStudyDate != null
+          ? DateTime(
+              task.nextStudyDate!.year,
+              task.nextStudyDate!.month,
+              task.nextStudyDate!.day,
+            )
+          : null;
+      final isDue = dueDate != null && !dueDate.isAfter(today);
+      debugPrint(
+        '[DueTasksSection] Task ${task.id.substring(0, 8)}: dueDate=${dueDate?.toString() ?? 'null'}, isDue=$isDue',
+      );
+    }
+
+    // Sắp xếp tasks để ưu tiên những task quá hạn
+    dueTasks.sort((a, b) {
+      // Nếu cả hai đều có nextStudyDate
+      if (a.nextStudyDate != null && b.nextStudyDate != null) {
+        // Sắp xếp theo thứ tự ngày tăng dần (quá hạn nhất lên đầu)
+        return a.nextStudyDate!.compareTo(b.nextStudyDate!);
+      }
+      // Đưa task có nextStudyDate lên trước
+      if (a.nextStudyDate != null) return -1;
+      if (b.nextStudyDate != null) return 1;
+      return 0;
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,6 +105,10 @@ class DueTasksSection extends ConsumerWidget {
       );
     }
 
+    // Tính số task đã quá hạn
+    final overdueCount = _getOverdueTasksCount(dueTasks);
+    final todayCount = dueTasks.length - overdueCount;
+
     return SLCard(
       padding: EdgeInsets.zero,
       elevation: AppDimens.elevationXS,
@@ -82,21 +125,30 @@ class DueTasksSection extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(AppDimens.paddingXS),
                   decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
+                    color: overdueCount > 0
+                        ? colorScheme.errorContainer
+                        : colorScheme.primaryContainer,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.calendar_today,
+                    overdueCount > 0
+                        ? Icons.warning_amber
+                        : Icons.calendar_today,
                     size: AppDimens.iconS,
-                    color: colorScheme.primary,
+                    color: overdueCount > 0
+                        ? colorScheme.error
+                        : colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: AppDimens.spaceS),
                 Expanded(
                   child: Text(
-                    'You have ${dueTasks.length} task(s) due today',
+                    overdueCount > 0
+                        ? 'You have $overdueCount overdue and $todayCount due today'
+                        : 'You have ${dueTasks.length} task(s) due today',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: overdueCount > 0 ? colorScheme.error : null,
                     ),
                   ),
                 ),
@@ -116,7 +168,12 @@ class DueTasksSection extends ConsumerWidget {
                           horizontal: AppDimens.paddingL,
                           vertical: AppDimens.paddingM,
                         ),
-                        child: _buildProgressItem(progress, theme, colorScheme),
+                        child: _buildProgressItem(
+                          progress,
+                          theme,
+                          colorScheme,
+                          isOverdue: _isOverdue(progress),
+                        ),
                       ),
                     ),
                     if (progress != dueTasks.take(3).last)
@@ -162,11 +219,15 @@ class DueTasksSection extends ConsumerWidget {
   Widget _buildProgressItem(
     ProgressDetail progress,
     ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+    ColorScheme colorScheme, {
+    bool isOverdue = false,
+  }) {
+    // Sử dụng màu khác cho task quá hạn
+    final itemColor = isOverdue ? colorScheme.error : colorScheme.primary;
+
     return Row(
       children: [
-        _buildProgressIndicator(progress, colorScheme),
+        _buildProgressIndicator(progress, colorScheme, isOverdue: isOverdue),
         const SizedBox(width: AppDimens.spaceM),
         Expanded(
           child: Column(
@@ -176,10 +237,24 @@ class DueTasksSection extends ConsumerWidget {
                 progress.moduleTitle ?? 'Module ${progress.moduleId}',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: isOverdue ? colorScheme.error : null,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: AppDimens.spaceXXS),
+              if (progress.nextStudyDate != null)
+                Text(
+                  isOverdue
+                      ? 'Overdue: ${_formatDate(progress.nextStudyDate!)}'
+                      : 'Due: ${_formatDate(progress.nextStudyDate!)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isOverdue
+                        ? colorScheme.error
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: isOverdue ? FontWeight.bold : null,
+                  ),
+                ),
               const SizedBox(height: AppDimens.spaceXXS),
               Text(
                 '${progress.percentComplete.toInt()}% complete',
@@ -190,21 +265,24 @@ class DueTasksSection extends ConsumerWidget {
             ],
           ),
         ),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.primary,
-          size: AppDimens.iconM,
-        ),
+        Icon(Icons.chevron_right, color: itemColor, size: AppDimens.iconM),
       ],
     );
   }
 
   Widget _buildProgressIndicator(
     ProgressDetail progress,
-    ColorScheme colorScheme,
-  ) {
+    ColorScheme colorScheme, {
+    bool isOverdue = false,
+  }) {
     final progressPercent = progress.percentComplete / 100;
-    final color = _getProgressColor(progressPercent, colorScheme);
+    Color color;
+
+    if (isOverdue) {
+      color = colorScheme.error;
+    } else {
+      color = _getProgressColor(progressPercent, colorScheme);
+    }
 
     return SizedBox(
       width: AppDimens.iconL,
@@ -219,7 +297,7 @@ class DueTasksSection extends ConsumerWidget {
           ),
           Center(
             child: Icon(
-              Icons.notifications_active,
+              isOverdue ? Icons.warning_amber : Icons.notifications_active,
               size: AppDimens.iconS,
               color: color,
             ),
@@ -243,7 +321,8 @@ class DueTasksSection extends ConsumerWidget {
     context.push('/progress/${progress.id}');
   }
 
-  List<ProgressDetail> _filterDueTasks(List<ProgressDetail> allTasks) {
+  // Logic lọc task đến hạn và quá hạn
+  List<ProgressDetail> _getDueAndOverdueTasks(List<ProgressDetail> allTasks) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -256,7 +335,47 @@ class DueTasksSection extends ConsumerWidget {
         task.nextStudyDate!.day,
       );
 
+      // Lấy tất cả task có ngày <= ngày hôm nay (bao gồm cả quá hạn)
       return !dueDate.isAfter(today);
     }).toList();
+  }
+
+  // Kiểm tra task có phải là quá hạn không
+  bool _isOverdue(ProgressDetail task) {
+    if (task.nextStudyDate == null) return false;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueDate = DateTime(
+      task.nextStudyDate!.year,
+      task.nextStudyDate!.month,
+      task.nextStudyDate!.day,
+    );
+
+    // Task quá hạn nếu ngày đến hạn < ngày hôm nay
+    return dueDate.isBefore(today);
+  }
+
+  // Đếm số task quá hạn
+  int _getOverdueTasksCount(List<ProgressDetail> tasks) {
+    return tasks.where(_isOverdue).length;
+  }
+
+  // Format ngày tháng để hiển thị
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+
+    final dueDate = DateTime(date.year, date.month, date.day);
+
+    if (dueDate.isAtSameMomentAs(today)) {
+      return 'Today';
+    } else if (dueDate.isAtSameMomentAs(yesterday)) {
+      return 'Yesterday';
+    } else {
+      // Format ngày thành "dd/MM/yyyy"
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }
