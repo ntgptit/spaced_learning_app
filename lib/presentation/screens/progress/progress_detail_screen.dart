@@ -16,6 +16,8 @@ import 'package:spaced_learning_app/presentation/widgets/progress/progress_repet
 import 'package:spaced_learning_app/presentation/widgets/progress/reschedule_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/score_input_dialog.dart';
 
+import '../../viewmodels/module_viewmodel.dart';
+
 class ProgressDetailScreen extends ConsumerStatefulWidget {
   final String progressId;
 
@@ -28,6 +30,7 @@ class ProgressDetailScreen extends ConsumerStatefulWidget {
 
 class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
   late Future<void> _dataLoadingFuture;
+  String? _moduleUrl;
 
   @override
   void initState() {
@@ -40,6 +43,29 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
       await ref
           .read(selectedProgressProvider.notifier)
           .loadProgressDetails(widget.progressId);
+
+      // Lấy progress từ provider
+      final progress = ref.read(selectedProgressProvider).valueOrNull;
+
+      // Nếu có progress và có moduleId, tải thông tin module để lấy URL
+      if (progress != null && progress.moduleId.isNotEmpty) {
+        try {
+          await ref
+              .read(selectedModuleProvider.notifier)
+              .loadModuleDetails(progress.moduleId);
+
+          // Lấy module URL từ module details
+          final module = ref.read(selectedModuleProvider).valueOrNull;
+          if (module != null && module.url != null) {
+            setState(() {
+              _moduleUrl = module.url;
+            });
+          }
+        } catch (e) {
+          debugPrint('Error loading module details: $e');
+        }
+      }
+
       await ref
           .read(repetitionStateProvider.notifier)
           .loadRepetitionsByProgressId(widget.progressId);
@@ -272,6 +298,7 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
           ProgressHeaderWidget(
             progress: progress,
             onCycleCompleteDialogRequested: _showCycleCompletionDialog,
+            moduleUrl: _moduleUrl, // Truyền URL vào widget
           ),
           const SizedBox(height: AppDimens.spaceXL),
           ProgressRepetitionList(

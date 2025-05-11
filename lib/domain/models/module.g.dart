@@ -13,6 +13,7 @@ _ModuleSummary _$ModuleSummaryFromJson(Map<String, dynamic> json) =>
       moduleNo: (json['moduleNo'] as num).toInt(),
       title: json['title'] as String,
       wordCount: (json['wordCount'] as num?)?.toInt(),
+      url: json['url'] as String?,
       createdAt:
           json['createdAt'] == null
               ? null
@@ -30,6 +31,7 @@ Map<String, dynamic> _$ModuleSummaryToJson(_ModuleSummary instance) =>
       'moduleNo': instance.moduleNo,
       'title': instance.title,
       'wordCount': instance.wordCount,
+      'url': instance.url,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };
@@ -42,6 +44,7 @@ _ModuleDetail _$ModuleDetailFromJson(Map<String, dynamic> json) =>
       moduleNo: (json['moduleNo'] as num).toInt(),
       title: json['title'] as String,
       wordCount: (json['wordCount'] as num?)?.toInt(),
+      url: json['url'] as String?,
       createdAt:
           json['createdAt'] == null
               ? null
@@ -65,6 +68,7 @@ Map<String, dynamic> _$ModuleDetailToJson(_ModuleDetail instance) =>
       'moduleNo': instance.moduleNo,
       'title': instance.title,
       'wordCount': instance.wordCount,
+      'url': instance.url,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'progress': instance.progress,

@@ -12,6 +12,7 @@ abstract class ModuleSummary with _$ModuleSummary {
     required int moduleNo,
     required String title,
     int? wordCount,
+    String? url, // Thêm trường url
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ModuleSummary;
@@ -29,6 +30,7 @@ abstract class ModuleDetail with _$ModuleDetail {
     required int moduleNo,
     required String title,
     int? wordCount,
+    String? url, // Thêm trường url
     DateTime? createdAt,
     DateTime? updatedAt,
     @Default([]) List<ProgressSummary> progress,
