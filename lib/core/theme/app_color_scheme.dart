@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const ColorScheme geminiLightColorScheme = ColorScheme(
+const ColorScheme lightColorScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xff65558f),
   surfaceTint: Color(0xff65558f),
@@ -49,7 +49,7 @@ const ColorScheme geminiLightColorScheme = ColorScheme(
   surfaceContainerHighest: Color(0xffe6e0e9),
 );
 
-const ColorScheme geminiDarkColorScheme = ColorScheme(
+const ColorScheme darkColorScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color(0xffcfbdfe),
   surfaceTint: Color(0xffcfbdfe),

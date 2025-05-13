@@ -141,9 +141,9 @@ extension CustomColorScheme on ColorScheme {
 
   /// Info color - Uses blue shade from geminiLightColorScheme
   Color get info => brightness == Brightness.light
-      ? geminiLightColorScheme
+      ? lightColorScheme
             .primary // Light blue (from gemini)
-      : geminiDarkColorScheme.primary; // Dark blue (from gemini)
+      : darkColorScheme.primary; // Dark blue (from gemini)
 
   /// Text/icon color on info background
   Color get onInfo =>
@@ -151,13 +151,13 @@ extension CustomColorScheme on ColorScheme {
 
   /// Container color for info
   Color get infoContainer => brightness == Brightness.light
-      ? geminiLightColorScheme.primaryContainer
-      : geminiDarkColorScheme.primaryContainer;
+      ? lightColorScheme.primaryContainer
+      : darkColorScheme.primaryContainer;
 
   /// Text/icon color on info container
   Color get onInfoContainer => brightness == Brightness.light
-      ? geminiLightColorScheme.onPrimaryContainer
-      : geminiDarkColorScheme.onPrimaryContainer;
+      ? lightColorScheme.onPrimaryContainer
+      : darkColorScheme.onPrimaryContainer;
 
   /// Nâng cao: Định nghĩa thêm các màu hỗn hợp
   Color get primarySurface => brightness == Brightness.light

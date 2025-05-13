@@ -10,7 +10,7 @@ part 'app_theme_data.g.dart';
 
 abstract final class AppTheme {
   static ThemeData light = FlexThemeData.light(
-    colorScheme: geminiLightColorScheme,
+    colorScheme: lightColorScheme,
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
       tintedDisabledControls: true,
@@ -30,7 +30,7 @@ abstract final class AppTheme {
   );
 
   static ThemeData dark = FlexThemeData.dark(
-    colorScheme: geminiDarkColorScheme,
+    colorScheme: darkColorScheme,
     subThemesData: const FlexSubThemesData(
       interactionEffects: true,
       tintedDisabledControls: true,
@@ -61,9 +61,7 @@ ThemeData darkTheme(Ref ref) => AppTheme.dark;
 class ThemeModeState extends _$ThemeModeState {
   @override
   ThemeMode build() {
-    final isDarkMode = ref
-        .watch(isDarkModeProvider)
-        .valueOrNull ?? false;
+    final isDarkMode = ref.watch(isDarkModeProvider).valueOrNull ?? false;
     return isDarkMode ? ThemeMode.dark : ThemeMode.light;
   }
 
