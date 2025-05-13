@@ -59,6 +59,7 @@ _ProgressDetail _$ProgressDetailFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       moduleId: json['moduleId'] as String,
       moduleTitle: json['moduleTitle'] as String?,
+      moduleUrl: json['moduleUrl'] as String?,
       userName: json['userName'] as String?,
       firstLearningDate:
           json['firstLearningDate'] == null
@@ -92,6 +93,7 @@ Map<String, dynamic> _$ProgressDetailToJson(_ProgressDetail instance) =>
       'id': instance.id,
       'moduleId': instance.moduleId,
       'moduleTitle': instance.moduleTitle,
+      'moduleUrl': instance.moduleUrl,
       'userName': instance.userName,
       'firstLearningDate': instance.firstLearningDate?.toIso8601String(),
       'cyclesStudied': _$CycleStudiedEnumMap[instance.cyclesStudied]!,

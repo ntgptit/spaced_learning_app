@@ -173,7 +173,7 @@ as int,
 /// @nodoc
 mixin _$ProgressDetail {
 
- String get id; String get moduleId; String? get moduleTitle; String? get userName; DateTime? get firstLearningDate; CycleStudied get cyclesStudied; DateTime? get nextStudyDate; double get percentComplete; DateTime? get createdAt; DateTime? get updatedAt; List<Repetition> get repetitions;
+ String get id; String get moduleId; String? get moduleTitle; String? get moduleUrl; String? get userName; DateTime? get firstLearningDate; CycleStudied get cyclesStudied; DateTime? get nextStudyDate; double get percentComplete; DateTime? get createdAt; DateTime? get updatedAt; List<Repetition> get repetitions;
 /// Create a copy of ProgressDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -186,16 +186,16 @@ $ProgressDetailCopyWith<ProgressDetail> get copyWith => _$ProgressDetailCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProgressDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.moduleId, moduleId) || other.moduleId == moduleId)&&(identical(other.moduleTitle, moduleTitle) || other.moduleTitle == moduleTitle)&&(identical(other.userName, userName) || other.userName == userName)&&(identical(other.firstLearningDate, firstLearningDate) || other.firstLearningDate == firstLearningDate)&&(identical(other.cyclesStudied, cyclesStudied) || other.cyclesStudied == cyclesStudied)&&(identical(other.nextStudyDate, nextStudyDate) || other.nextStudyDate == nextStudyDate)&&(identical(other.percentComplete, percentComplete) || other.percentComplete == percentComplete)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.repetitions, repetitions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProgressDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.moduleId, moduleId) || other.moduleId == moduleId)&&(identical(other.moduleTitle, moduleTitle) || other.moduleTitle == moduleTitle)&&(identical(other.moduleUrl, moduleUrl) || other.moduleUrl == moduleUrl)&&(identical(other.userName, userName) || other.userName == userName)&&(identical(other.firstLearningDate, firstLearningDate) || other.firstLearningDate == firstLearningDate)&&(identical(other.cyclesStudied, cyclesStudied) || other.cyclesStudied == cyclesStudied)&&(identical(other.nextStudyDate, nextStudyDate) || other.nextStudyDate == nextStudyDate)&&(identical(other.percentComplete, percentComplete) || other.percentComplete == percentComplete)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.repetitions, repetitions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,moduleId,moduleTitle,userName,firstLearningDate,cyclesStudied,nextStudyDate,percentComplete,createdAt,updatedAt,const DeepCollectionEquality().hash(repetitions));
+int get hashCode => Object.hash(runtimeType,id,moduleId,moduleTitle,moduleUrl,userName,firstLearningDate,cyclesStudied,nextStudyDate,percentComplete,createdAt,updatedAt,const DeepCollectionEquality().hash(repetitions));
 
 @override
 String toString() {
-  return 'ProgressDetail(id: $id, moduleId: $moduleId, moduleTitle: $moduleTitle, userName: $userName, firstLearningDate: $firstLearningDate, cyclesStudied: $cyclesStudied, nextStudyDate: $nextStudyDate, percentComplete: $percentComplete, createdAt: $createdAt, updatedAt: $updatedAt, repetitions: $repetitions)';
+  return 'ProgressDetail(id: $id, moduleId: $moduleId, moduleTitle: $moduleTitle, moduleUrl: $moduleUrl, userName: $userName, firstLearningDate: $firstLearningDate, cyclesStudied: $cyclesStudied, nextStudyDate: $nextStudyDate, percentComplete: $percentComplete, createdAt: $createdAt, updatedAt: $updatedAt, repetitions: $repetitions)';
 }
 
 
@@ -206,7 +206,7 @@ abstract mixin class $ProgressDetailCopyWith<$Res>  {
   factory $ProgressDetailCopyWith(ProgressDetail value, $Res Function(ProgressDetail) _then) = _$ProgressDetailCopyWithImpl;
 @useResult
 $Res call({
- String id, String moduleId, String? moduleTitle, String? userName, DateTime? firstLearningDate, CycleStudied cyclesStudied, DateTime? nextStudyDate, double percentComplete, DateTime? createdAt, DateTime? updatedAt, List<Repetition> repetitions
+ String id, String moduleId, String? moduleTitle, String? moduleUrl, String? userName, DateTime? firstLearningDate, CycleStudied cyclesStudied, DateTime? nextStudyDate, double percentComplete, DateTime? createdAt, DateTime? updatedAt, List<Repetition> repetitions
 });
 
 
@@ -223,11 +223,12 @@ class _$ProgressDetailCopyWithImpl<$Res>
 
 /// Create a copy of ProgressDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? moduleId = null,Object? moduleTitle = freezed,Object? userName = freezed,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? moduleId = null,Object? moduleTitle = freezed,Object? moduleUrl = freezed,Object? userName = freezed,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitions = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,moduleId: null == moduleId ? _self.moduleId : moduleId // ignore: cast_nullable_to_non_nullable
 as String,moduleTitle: freezed == moduleTitle ? _self.moduleTitle : moduleTitle // ignore: cast_nullable_to_non_nullable
+as String?,moduleUrl: freezed == moduleUrl ? _self.moduleUrl : moduleUrl // ignore: cast_nullable_to_non_nullable
 as String?,userName: freezed == userName ? _self.userName : userName // ignore: cast_nullable_to_non_nullable
 as String?,firstLearningDate: freezed == firstLearningDate ? _self.firstLearningDate : firstLearningDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,cyclesStudied: null == cyclesStudied ? _self.cyclesStudied : cyclesStudied // ignore: cast_nullable_to_non_nullable
@@ -247,12 +248,13 @@ as List<Repetition>,
 @JsonSerializable()
 
 class _ProgressDetail implements ProgressDetail {
-  const _ProgressDetail({required this.id, required this.moduleId, this.moduleTitle, this.userName, this.firstLearningDate, this.cyclesStudied = CycleStudied.firstTime, this.nextStudyDate, this.percentComplete = 0, this.createdAt, this.updatedAt, final  List<Repetition> repetitions = const []}): _repetitions = repetitions;
+  const _ProgressDetail({required this.id, required this.moduleId, this.moduleTitle, this.moduleUrl, this.userName, this.firstLearningDate, this.cyclesStudied = CycleStudied.firstTime, this.nextStudyDate, this.percentComplete = 0, this.createdAt, this.updatedAt, final  List<Repetition> repetitions = const []}): _repetitions = repetitions;
   factory _ProgressDetail.fromJson(Map<String, dynamic> json) => _$ProgressDetailFromJson(json);
 
 @override final  String id;
 @override final  String moduleId;
 @override final  String? moduleTitle;
+@override final  String? moduleUrl;
 @override final  String? userName;
 @override final  DateTime? firstLearningDate;
 @override@JsonKey() final  CycleStudied cyclesStudied;
@@ -281,16 +283,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProgressDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.moduleId, moduleId) || other.moduleId == moduleId)&&(identical(other.moduleTitle, moduleTitle) || other.moduleTitle == moduleTitle)&&(identical(other.userName, userName) || other.userName == userName)&&(identical(other.firstLearningDate, firstLearningDate) || other.firstLearningDate == firstLearningDate)&&(identical(other.cyclesStudied, cyclesStudied) || other.cyclesStudied == cyclesStudied)&&(identical(other.nextStudyDate, nextStudyDate) || other.nextStudyDate == nextStudyDate)&&(identical(other.percentComplete, percentComplete) || other.percentComplete == percentComplete)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._repetitions, _repetitions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProgressDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.moduleId, moduleId) || other.moduleId == moduleId)&&(identical(other.moduleTitle, moduleTitle) || other.moduleTitle == moduleTitle)&&(identical(other.moduleUrl, moduleUrl) || other.moduleUrl == moduleUrl)&&(identical(other.userName, userName) || other.userName == userName)&&(identical(other.firstLearningDate, firstLearningDate) || other.firstLearningDate == firstLearningDate)&&(identical(other.cyclesStudied, cyclesStudied) || other.cyclesStudied == cyclesStudied)&&(identical(other.nextStudyDate, nextStudyDate) || other.nextStudyDate == nextStudyDate)&&(identical(other.percentComplete, percentComplete) || other.percentComplete == percentComplete)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._repetitions, _repetitions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,moduleId,moduleTitle,userName,firstLearningDate,cyclesStudied,nextStudyDate,percentComplete,createdAt,updatedAt,const DeepCollectionEquality().hash(_repetitions));
+int get hashCode => Object.hash(runtimeType,id,moduleId,moduleTitle,moduleUrl,userName,firstLearningDate,cyclesStudied,nextStudyDate,percentComplete,createdAt,updatedAt,const DeepCollectionEquality().hash(_repetitions));
 
 @override
 String toString() {
-  return 'ProgressDetail(id: $id, moduleId: $moduleId, moduleTitle: $moduleTitle, userName: $userName, firstLearningDate: $firstLearningDate, cyclesStudied: $cyclesStudied, nextStudyDate: $nextStudyDate, percentComplete: $percentComplete, createdAt: $createdAt, updatedAt: $updatedAt, repetitions: $repetitions)';
+  return 'ProgressDetail(id: $id, moduleId: $moduleId, moduleTitle: $moduleTitle, moduleUrl: $moduleUrl, userName: $userName, firstLearningDate: $firstLearningDate, cyclesStudied: $cyclesStudied, nextStudyDate: $nextStudyDate, percentComplete: $percentComplete, createdAt: $createdAt, updatedAt: $updatedAt, repetitions: $repetitions)';
 }
 
 
@@ -301,7 +303,7 @@ abstract mixin class _$ProgressDetailCopyWith<$Res> implements $ProgressDetailCo
   factory _$ProgressDetailCopyWith(_ProgressDetail value, $Res Function(_ProgressDetail) _then) = __$ProgressDetailCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String moduleId, String? moduleTitle, String? userName, DateTime? firstLearningDate, CycleStudied cyclesStudied, DateTime? nextStudyDate, double percentComplete, DateTime? createdAt, DateTime? updatedAt, List<Repetition> repetitions
+ String id, String moduleId, String? moduleTitle, String? moduleUrl, String? userName, DateTime? firstLearningDate, CycleStudied cyclesStudied, DateTime? nextStudyDate, double percentComplete, DateTime? createdAt, DateTime? updatedAt, List<Repetition> repetitions
 });
 
 
@@ -318,11 +320,12 @@ class __$ProgressDetailCopyWithImpl<$Res>
 
 /// Create a copy of ProgressDetail
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? moduleId = null,Object? moduleTitle = freezed,Object? userName = freezed,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? moduleId = null,Object? moduleTitle = freezed,Object? moduleUrl = freezed,Object? userName = freezed,Object? firstLearningDate = freezed,Object? cyclesStudied = null,Object? nextStudyDate = freezed,Object? percentComplete = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? repetitions = null,}) {
   return _then(_ProgressDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,moduleId: null == moduleId ? _self.moduleId : moduleId // ignore: cast_nullable_to_non_nullable
 as String,moduleTitle: freezed == moduleTitle ? _self.moduleTitle : moduleTitle // ignore: cast_nullable_to_non_nullable
+as String?,moduleUrl: freezed == moduleUrl ? _self.moduleUrl : moduleUrl // ignore: cast_nullable_to_non_nullable
 as String?,userName: freezed == userName ? _self.userName : userName // ignore: cast_nullable_to_non_nullable
 as String?,firstLearningDate: freezed == firstLearningDate ? _self.firstLearningDate : firstLearningDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,cyclesStudied: null == cyclesStudied ? _self.cyclesStudied : cyclesStudied // ignore: cast_nullable_to_non_nullable

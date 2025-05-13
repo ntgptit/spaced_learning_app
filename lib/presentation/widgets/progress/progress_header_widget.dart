@@ -29,23 +29,21 @@ extension ProgressDetailExtension on ProgressDetail {
       : 'Not scheduled';
 
   // Getter để lấy URL từ module
-  String? get moduleUrl {
-    // Đây là trường hợp URL có thể được truy cập từ một thuộc tính trong progress
-    // Thay đổi logic này nếu cần thiết theo cấu trúc dữ liệu thực tế của ứng dụng
-    return null; // Mặc định trả về null, cần điều chỉnh theo cấu trúc dữ liệu thực
-  }
+  // String? get moduleUrl {
+  //   // Đây là trường hợp URL có thể được truy cập từ một thuộc tính trong progress
+  //   // Thay đổi logic này nếu cần thiết theo cấu trúc dữ liệu thực tế của ứng dụng
+  //   return null; // Mặc định trả về null, cần điều chỉnh theo cấu trúc dữ liệu thực
+  // }
 }
 
 class ProgressHeaderWidget extends ConsumerWidget {
   final ProgressDetail progress;
   final VoidCallback onCycleCompleteDialogRequested;
-  final String? moduleUrl; // Thêm tham số URL
 
   const ProgressHeaderWidget({
     super.key,
     required this.progress,
     required this.onCycleCompleteDialogRequested,
-    this.moduleUrl, // Thêm tham số này
   });
 
   // Thêm hàm để mở URL - sửa lỗi use_build_context_synchronously
@@ -109,7 +107,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     // Kiểm tra URL từ module hoặc từ tham số
-    final String? url = moduleUrl ?? progress.moduleUrl;
+    final String? url = progress.moduleUrl;
     final bool hasUrl = url != null && url.isNotEmpty;
 
     return Row(

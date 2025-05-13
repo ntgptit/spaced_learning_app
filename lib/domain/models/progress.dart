@@ -41,6 +41,7 @@ abstract class ProgressDetail with _$ProgressDetail {
     required String id,
     required String moduleId,
     String? moduleTitle,
+    String? moduleUrl,
     String? userName,
     DateTime? firstLearningDate,
     @Default(CycleStudied.firstTime) CycleStudied cyclesStudied,

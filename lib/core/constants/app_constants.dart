@@ -3,7 +3,7 @@ class AppConstants {
   // API related constants
   static const String baseUrl =
       // 'http://192.168.1.9:8080'; // Docker local
-      'http://192.168.1.12:8088'; // Local
+      'http://localhost:8088'; // Local
   // 'http://18.142.53.156:8080'; // AWS EC2 instance
   // 'https://spaced-learning-api.onrender.com'; // For Android emulator
   static const String apiPrefix = '/api/v1';
