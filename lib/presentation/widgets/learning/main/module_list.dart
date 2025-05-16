@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_list_header.dart';
 
@@ -45,66 +46,20 @@ class ModuleList extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingXXL),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: AppDimens.avatarSizeXXL,
-              height: AppDimens.avatarSizeXXL,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.search_off_rounded,
-                size: AppDimens.iconXXL,
-                color: theme.colorScheme.primary.withValues(
-                  alpha: AppDimens.opacitySemi,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceXL),
-            Text(
-              'No modules found',
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppDimens.spaceS),
-            Text(
-              'Try adjusting your filters or check back later',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppDimens.spaceXXL),
-            FilledButton.icon(
-              onPressed: () {
-                if (scrollController != null) {
-                  scrollController!.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: AppDimens.durationM),
-                    curve: Curves.easeOut,
-                  );
-                }
-              },
-              icon: const Icon(Icons.filter_alt),
-              label: const Text('Change filters'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingXL,
-                  vertical: AppDimens.paddingM,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return SlEmptyStateWidget(
+      title: 'No Modules Available',
+      message: 'Try different filters or check back later',
+      icon: Icons.search_off_rounded,
+      buttonText: 'Change Filters',
+      onButtonPressed: () {
+        if (scrollController != null) {
+          scrollController!.animateTo(
+            0,
+            duration: const Duration(milliseconds: AppDimens.durationM),
+            curve: Curves.easeOut,
+          );
+        }
+      },
     );
   }
 }

@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/services/screen_refresh_manager.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_progress_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_filter_bar/learning_filter_bar.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/learning_help_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/learning_app_bar.dart';
-import 'package:spaced_learning_app/presentation/widgets/learning/main/learning_error_view.dart';
 import 'package:spaced_learning_app/presentation/widgets/learning/main/module_list.dart';
 
 class LearningProgressScreen extends ConsumerStatefulWidget {
@@ -151,25 +153,17 @@ class _LearningProgressScreenState extends ConsumerState<LearningProgressScreen>
           SliverFillRemaining(
             hasScrollBody: true,
             child: modulesAsync.when(
-              data: (modules) => Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingM,
-                ),
-                child: ModuleList(
-                  modules: ref.watch(filteredModulesProvider),
-                  scrollController: _moduleListScrollController,
-                  onRefresh: _refreshData,
-                ),
+              data: (modules) => _buildDataView(modules),
+              loading: () => const SlLoadingStateWidget(
+                message: 'Loading your learning modules...',
+                type: SlLoadingType.threeBounce,
+                size: SlLoadingSize.medium,
               ),
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppDimens.paddingL),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-              error: (error, stackTrace) => LearningErrorView(
-                errorMessage: error.toString(),
+              error: (error, stackTrace) => SlErrorStateWidget(
+                title: 'Could not load learning data',
+                message: error.toString(),
                 onRetry: _safeRefreshData,
+                retryText: 'Try Again',
               ),
             ),
           ),
@@ -193,11 +187,40 @@ class _LearningProgressScreenState extends ConsumerState<LearningProgressScreen>
     );
   }
 
+  Widget _buildDataView(List<dynamic> modules) {
+    final filteredModules = ref.watch(filteredModulesProvider);
+
+    if (filteredModules.isEmpty) {
+      return SlEmptyStateWidget(
+        title: 'No Modules Found',
+        message: 'Try adjusting your filters or check back later',
+        icon: Icons.search_off_rounded,
+        buttonText: 'Change Filters',
+        onButtonPressed: () {
+          if (_mainScrollController.hasClients) {
+            _mainScrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: AppDimens.durationM),
+              curve: Curves.easeOut,
+            );
+          }
+        },
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+      child: ModuleList(
+        modules: filteredModules,
+        scrollController: _moduleListScrollController,
+        onRefresh: _refreshData,
+      ),
+    );
+  }
+
   Widget _buildFilterBar() {
-    // Thay thế Selector bằng cách sử dụng Consumer Riverpod
     return Consumer(
       builder: (context, ref, _) {
-        // Lấy các giá trị cần thiết
         final filteredModules = ref.watch(filteredModulesProvider);
         final dueCount = ref.watch(dueModulesCountProvider);
         final completedCount = ref.watch(completedModulesCountProvider);
