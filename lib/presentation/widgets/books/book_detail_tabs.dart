@@ -199,34 +199,6 @@ class BookModulesTab extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (modules.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.menu_book_outlined,
-              size: AppDimens.iconXXL,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            Text(
-              'No modules available for this book',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
-            ),
-          ],
-        ),
-      );
-    }
-
     return ListView.builder(
       padding: const EdgeInsets.all(AppDimens.paddingL),
       itemCount: modules.length,

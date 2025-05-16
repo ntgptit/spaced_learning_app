@@ -1,4 +1,3 @@
-// lib/presentation/screens/books/book_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,8 +9,9 @@ import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dar
 import 'package:spaced_learning_app/presentation/widgets/books/book_cover.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_detail_tabs.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/info_chip.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
 
 class BookDetailScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -84,7 +84,17 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
         if (book == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Book Details')),
-            body: const Center(child: Text('Book not found')),
+            body: Center(
+              child: SlErrorStateWidget(
+                title: 'Book Not Found',
+                message: 'The book you are looking for could not be found.',
+                onRetry: _loadData,
+                customAction: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Go Back'),
+                ),
+              ),
+            ),
           );
         }
 
@@ -123,17 +133,30 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                     children: [
                       BookOverviewTab(book: book),
                       moduleState.when(
-                        data: (modules) => BookModulesTab(
-                          modules: modules,
-                          bookId: widget.bookId,
-                          onRetry: () => ref
-                              .read(modulesStateProvider.notifier)
-                              .loadModulesByBookId(widget.bookId),
+                        data: (modules) => modules.isEmpty
+                            ? SlEmptyStateWidget.noData(
+                                message: 'No modules available for this book.',
+                                buttonText: 'Refresh',
+                                onButtonPressed: () => ref
+                                    .read(modulesStateProvider.notifier)
+                                    .loadModulesByBookId(widget.bookId),
+                              )
+                            : BookModulesTab(
+                                modules: modules,
+                                bookId: widget.bookId,
+                                onRetry: () => ref
+                                    .read(modulesStateProvider.notifier)
+                                    .loadModulesByBookId(widget.bookId),
+                              ),
+                        loading: () => const Center(
+                          child: SlLoadingStateWidget(
+                            message: 'Loading modules...',
+                            type: SlLoadingType.wave,
+                          ),
                         ),
-                        loading: () =>
-                            const Center(child: SLLoadingIndicator()),
                         error: (error, stack) => Center(
-                          child: SLErrorView(
+                          child: SlErrorStateWidget(
+                            title: 'Cannot Load Modules',
                             message: error.toString(),
                             onRetry: () => ref
                                 .read(modulesStateProvider.notifier)
@@ -151,12 +174,26 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
       },
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('Book Details')),
-        body: const Center(child: SLLoadingIndicator()),
+        body: const Center(
+          child: SlLoadingStateWidget(
+            message: 'Loading book details...',
+            type: SlLoadingType.fadingCircle,
+            size: SlLoadingSize.large,
+          ),
+        ),
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Book Details')),
         body: Center(
-          child: SLErrorView(message: error.toString(), onRetry: _loadData),
+          child: SlErrorStateWidget(
+            title: 'Error Loading Book',
+            message: error.toString(),
+            onRetry: _loadData,
+            customAction: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Go Back'),
+            ),
+          ),
         ),
       ),
     );

@@ -9,9 +9,10 @@ import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart'
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_filter_panel.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_list_card.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_unauthorized_state_widget.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
 
@@ -115,6 +116,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
       _selectedCategory = null;
       _selectedStatus = null;
       _selectedDifficulty = null;
+      _searchController.clear();
     });
     ref.read(booksStateProvider.notifier).loadBooks();
     if (_isFilterExpanded) {
@@ -159,7 +161,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
     final currentUser = ref.watch(currentUserProvider);
 
     if (currentUser == null) {
-      return _buildLoginPrompt(theme);
+      return _buildUnauthorizedState(theme);
     }
 
     return Scaffold(
@@ -218,12 +220,19 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
                       _isSearching ? 'Search results' : 'Books Library',
                     ),
                     error: (error, stackTrace) => Center(
-                      child: SLErrorView(
+                      child: SlErrorStateWidget(
+                        title: 'Cannot Load Books',
                         message: error.toString(),
                         onRetry: () => _loadData(forceRefresh: true),
+                        icon: Icons.work_off_outlined,
                       ),
                     ),
-                    loading: () => const Center(child: SLLoadingIndicator()),
+                    loading: () => const Center(
+                      child: SlLoadingStateWidget(
+                        message: 'Loading books...',
+                        type: SlLoadingType.fadingCircle,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -241,7 +250,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
     );
   }
 
-  Widget _buildLoginPrompt(ThemeData theme) {
+  Widget _buildUnauthorizedState(ThemeData theme) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Books'),
@@ -250,36 +259,9 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
           onPressed: () => GoRouter.of(context).pop(),
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: AppDimens.iconXXL,
-              color: theme.colorScheme.primary.withValues(alpha: 0.6),
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            Text(
-              'Please log in to browse books',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceXL),
-            ElevatedButton.icon(
-              onPressed: () => GoRouter.of(context).go('/login'),
-              icon: const Icon(Icons.login),
-              label: const Text('Log In'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingXL,
-                  vertical: AppDimens.paddingM,
-                ),
-              ),
-            ),
-          ],
-        ),
+      body: SlUnauthorizedStateWidget.requiresLogin(
+        onLogin: () => GoRouter.of(context).go('/login'),
+        onGoBack: () => GoRouter.of(context).go('/'),
       ),
     );
   }

@@ -7,8 +7,9 @@ import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_unauthorized_state_widget.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
 import '../../widgets/modules/module_content_section.dart';
@@ -183,19 +184,27 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
         builder: (context, snapshot) {
           if (_isInitialLoad &&
               snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: SLLoadingIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: SLErrorView(
-                message: 'Error loading data: ${snapshot.error}',
-                onRetry: _refreshData,
+            return const Center(
+              child: SlLoadingStateWidget(
+                message: 'Loading module details...',
+                type: SlLoadingType.threeBounce,
+                size: SlLoadingSize.medium,
               ),
             );
           }
 
-          return _buildBody(
+          if (snapshot.hasError) {
+            return Center(
+              child: SlErrorStateWidget(
+                title: 'Error Loading Module',
+                message: 'Error loading data: ${snapshot.error}',
+                onRetry: _refreshData,
+                icon: Icons.error_outline,
+              ),
+            );
+          }
+
+          return _buildContentBody(
             module,
             moduleAsync.isLoading,
             moduleAsync.error?.toString(),
@@ -215,7 +224,7 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     );
   }
 
-  Widget _buildBody(
+  Widget _buildContentBody(
     ModuleDetail? module,
     bool isLoading,
     String? errorMessage,
@@ -224,17 +233,44 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     void Function(String) onProgressTap,
   ) {
     if (isLoading) {
-      return const Center(child: SLLoadingIndicator());
+      return const Center(
+        child: SlLoadingStateWidget(
+          message: 'Loading module...',
+          type: SlLoadingType.pulse,
+        ),
+      );
     }
 
     if (errorMessage != null) {
       return Center(
-        child: SLErrorView(message: errorMessage, onRetry: onRefresh),
+        child: SlErrorStateWidget(
+          title: 'Cannot Load Module',
+          message: errorMessage,
+          onRetry: onRefresh,
+          icon: Icons.menu_book_outlined,
+        ),
       );
     }
 
     if (module == null) {
-      return const Center(child: Text('Module not found'));
+      return Center(
+        child: SlErrorStateWidget(
+          title: 'Module Not Found',
+          message: 'The requested module could not be found',
+          onRetry: onRefresh,
+          customAction: TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Go Back'),
+          ),
+        ),
+      );
+    }
+
+    if (!_isAuthenticated() && module.progress.isEmpty) {
+      return SlUnauthorizedStateWidget.requiresLogin(
+        onLogin: () => NavigationHelper.clearStackAndGo(context, '/login'),
+        onGoBack: () => Navigator.of(context).pop(),
+      );
     }
 
     return _buildModuleView(
