@@ -9,9 +9,9 @@ import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart'
 import 'package:spaced_learning_app/presentation/viewmodels/book_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_filter_panel.dart';
 import 'package:spaced_learning_app/presentation/widgets/books/book_list_card.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_empty_state.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
 
@@ -489,7 +489,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen>
   }
 
   Widget _buildEmptyState(ThemeData theme) {
-    return SLEmptyState(
+    return SlEmptyStateWidget(
       icon: _isSearching ? Icons.search_off : Icons.book_outlined,
       title: _isSearching ? 'No books found' : 'No books available',
       message: _isSearching

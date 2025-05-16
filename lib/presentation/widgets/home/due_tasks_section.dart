@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_empty_state.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
 
 class DueTasksSection extends ConsumerWidget {
   final List<ProgressDetail> tasks;
@@ -96,7 +96,7 @@ class DueTasksSection extends ConsumerWidget {
     ThemeData theme,
   ) {
     if (dueTasks.isEmpty) {
-      return SLEmptyState(
+      return SlEmptyStateWidget(
         icon: Icons.check_circle_outline,
         title: 'No tasks due today',
         message: 'You\'re all caught up! Take a break or explore new modules.',
