@@ -1,3 +1,4 @@
+// lib/presentation/screens/progress/progress_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,8 +9,9 @@ import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/cycle_completion_dialog.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_header_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/progress_repetition_list.dart';
@@ -42,27 +44,8 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
           .read(selectedProgressProvider.notifier)
           .loadProgressDetails(widget.progressId);
 
-      // Lấy progress từ provider
+      // Load progress from provider
       final progress = ref.read(selectedProgressProvider).valueOrNull;
-
-      // Nếu có progress và có moduleId, tải thông tin module để lấy URL
-      // if (progress != null && progress.moduleId.isNotEmpty) {
-      //   try {
-      //     await ref
-      //         .read(selectedModuleProvider.notifier)
-      //         .loadModuleDetails(progress.moduleId);
-      //
-      //     // Lấy module URL từ module details
-      //     final module = ref.read(selectedModuleProvider).valueOrNull;
-      //     if (module != null && module.url != null) {
-      //       setState(() {
-      //         _moduleUrl = module.url;
-      //       });
-      //     }
-      //   } catch (e) {
-      //     debugPrint('Error loading module details: $e');
-      //   }
-      // }
 
       await ref
           .read(repetitionStateProvider.notifier)
@@ -185,20 +168,12 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
           title: const Text('Progress Details'),
           backgroundColor: colorScheme.surfaceContainerHigh,
         ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Invalid progress ID', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 24),
-              FilledButton.tonal(
-                onPressed: () => context.pop(),
-                child: const Text('Go Back'),
-              ),
-            ],
-          ),
+        body: SlErrorStateWidget.custom(
+          title: 'Invalid Progress ID',
+          message: 'Unable to load progress details due to an invalid ID.',
+          icon: Icons.error_outline,
+          onRetry: () => context.pop(),
+          accentColor: colorScheme.error,
         ),
       );
     }
@@ -209,79 +184,28 @@ class _ProgressDetailScreenState extends ConsumerState<ProgressDetailScreen> {
         child: progressAsync.when(
           data: (progress) {
             if (progress == null) {
-              return _buildProgressNotFoundView();
+              return SlEmptyStateWidget(
+                title: 'Progress Not Found',
+                message:
+                    'The progress details you\'re looking for could not be found or may have been deleted.',
+                icon: Icons.search_off,
+                buttonText: 'Try Again',
+                onButtonPressed: _reloadData,
+              );
             }
             return _buildProgressView(progress);
           },
-          loading: () => const Center(
-            child: SLLoadingIndicator(type: LoadingIndicatorType.circle),
+          loading: () => const SlLoadingStateWidget(
+            message: 'Loading progress details...',
+            type: SlLoadingType.fadingCircle,
+            size: SlLoadingSize.large,
           ),
-          error: (error, stack) => Center(
-            child: SLErrorView(
-              message: error.toString(),
-              onRetry: _reloadData,
-              icon: Icons.error_outline,
-            ),
+          error: (error, stack) => SlErrorStateWidget(
+            title: 'Failed to Load Progress',
+            message: error.toString(),
+            onRetry: _reloadData,
+            icon: Icons.error_outline,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressNotFoundView() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(AppDimens.paddingXL),
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppDimens.paddingL),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.warning_amber_rounded,
-                size: 64,
-                color: colorScheme.error,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceL),
-            Text(
-              'Progress Not Found',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.error,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceM),
-            Text(
-              'The progress with ID ${widget.progressId} could not be found or may have been deleted.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppDimens.spaceXL),
-            FilledButton.icon(
-              onPressed: _reloadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
-            ),
-            const SizedBox(height: AppDimens.spaceM),
-            OutlinedButton.icon(
-              onPressed: () => context.go('/due-progress'),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Go Back'),
-              style: OutlinedButton.styleFrom(minimumSize: const Size(200, 50)),
-            ),
-          ],
         ),
       ),
     );

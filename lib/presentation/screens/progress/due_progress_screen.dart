@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_unauthorized_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_filter_card.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_list.dart';
-import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_login_prompt.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_summary.dart';
 
 class DueProgressScreen extends ConsumerStatefulWidget {
@@ -122,8 +125,19 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     final isAuthorized = authState.valueOrNull ?? false;
     final currentUser = ref.watch(currentUserProvider);
 
+    if (authState.isLoading) {
+      return const SlLoadingStateWidget(
+        message: 'Checking authentication status...',
+        type: SlLoadingType.fadingCircle,
+        size: SlLoadingSize.medium,
+      );
+    }
+
     if (!isAuthorized || currentUser == null) {
-      return const DueProgressLoginPrompt();
+      return SlUnauthorizedStateWidget.requiresLogin(
+        onLogin: () => context.go('/login'),
+        onGoBack: () => context.go('/'),
+      );
     }
 
     return Scaffold(
@@ -170,23 +184,56 @@ class _DueProgressScreenState extends ConsumerState<DueProgressScreen>
     );
   }
 
-  Widget _buildBody() => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8),
-        DueProgressSummary(onRefresh: _loadData),
-        Expanded(
-          child: DueProgressList(
-            selectedDate: _selectedDate,
-            isLoading: _isLoading,
-            animationController: _animationController,
-            fadeAnimation: _fadeAnimation,
-            onRefresh: _loadData,
+  Widget _buildBody() {
+    final progressAsync = ref.watch(progressStateProvider);
+
+    if (progressAsync.isLoading || _isLoading) {
+      return const SlLoadingStateWidget(
+        message: 'Loading progress data...',
+        type: SlLoadingType.threeBounce,
+      );
+    }
+
+    if (progressAsync.hasError) {
+      return SlErrorStateWidget(
+        title: 'Failed to Load Progress',
+        message: progressAsync.error.toString(),
+        onRetry: _loadData,
+      );
+    }
+
+    final progressData = progressAsync.valueOrNull ?? [];
+
+    if (progressData.isEmpty && !_isLoading) {
+      return SlEmptyStateWidget(
+        title: 'No Progress Found',
+        message: _selectedDate == null
+            ? 'You don\'t have any due tasks today.'
+            : 'No tasks due by the selected date.',
+        icon: Icons.assignment_outlined,
+        buttonText: 'Refresh',
+        onButtonPressed: _loadData,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          DueProgressSummary(onRefresh: _loadData),
+          Expanded(
+            child: DueProgressList(
+              selectedDate: _selectedDate,
+              isLoading: _isLoading,
+              animationController: _animationController,
+              fadeAnimation: _fadeAnimation,
+              onRefresh: _loadData,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
