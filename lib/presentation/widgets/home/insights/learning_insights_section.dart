@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/insights/learning_insights_widget.dart';
 
 class LearningInsightsSection extends ConsumerWidget {
@@ -32,8 +34,13 @@ class LearningInsightsSection extends ConsumerWidget {
           theme: theme,
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () => Center(child: SlLoadingStateWidget.small()),
+      error: (_, __) => SlErrorStateWidget.custom(
+        title: 'Could not load learning insights',
+        message: 'Please try again later',
+        compact: true,
+        icon: Icons.insights_outlined,
+      ),
     );
   }
 }

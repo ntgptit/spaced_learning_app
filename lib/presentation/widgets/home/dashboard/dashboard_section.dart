@@ -8,7 +8,9 @@ import 'package:spaced_learning_app/domain/models/module_stats.dart';
 import 'package:spaced_learning_app/domain/models/streak_stats.dart';
 import 'package:spaced_learning_app/domain/models/vocabulary_stats.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/learning_stats_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_empty_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_loading_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/dashboard/stats_card.dart';
 
 class DashboardSection extends ConsumerWidget {
@@ -59,32 +61,26 @@ class DashboardSection extends ConsumerWidget {
           onViewProgress: () => _navigateToProgress(context),
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => _buildEmptyStatsCard(context, ref),
+      loading: () => const Center(
+        child: SlLoadingStateWidget(
+          message: "Loading statistics...",
+          type: SlLoadingType.threeBounce,
+        ),
+      ),
+      error: (error, stackTrace) => SlErrorStateWidget(
+        title: 'Could not load statistics',
+        message: error.toString(),
+        onRetry: () => _refreshStats(context, ref),
+        retryText: 'Try Again',
+      ),
     );
   }
 
   Widget _buildEmptyStatsCard(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Column(
-        children: [
-          Text(
-            'No statistics available',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SLButton(
-            text: 'Load Statistics',
-            type: SLButtonType.primary,
-            onPressed: () => _refreshStats(context, ref),
-          ),
-        ],
-      ),
+    return SlEmptyStateWidget.noData(
+      message: 'No statistics available yet.',
+      buttonText: 'Load Statistics',
+      onButtonPressed: () => _refreshStats(context, ref),
     );
   }
 

@@ -1,3 +1,4 @@
+// lib/presentation/widgets/home/due_tasks_section.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,18 +22,18 @@ class DueTasksSection extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Debug log: số lượng tasks nhận được từ parent
+    // Debug log: number of tasks received from parent
     debugPrint('[DueTasksSection] Received ${tasks.length} tasks from parent');
 
-    // Lọc ra các task đến hạn và quá hạn
+    // Filter due and overdue tasks
     final dueTasks = _getDueAndOverdueTasks(tasks);
 
-    // Debug log: số lượng tasks sau khi lọc
+    // Debug log: number of tasks after filtering
     debugPrint(
       '[DueTasksSection] After filtering: ${dueTasks.length} due tasks',
     );
 
-    // Debug thêm về ngày của các tasks
+    // Debug more about the dates of tasks
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -50,14 +51,14 @@ class DueTasksSection extends ConsumerWidget {
       );
     }
 
-    // Sắp xếp tasks để ưu tiên những task quá hạn
+    // Sort tasks to prioritize overdue ones
     dueTasks.sort((a, b) {
-      // Nếu cả hai đều có nextStudyDate
+      // If both have nextStudyDate
       if (a.nextStudyDate != null && b.nextStudyDate != null) {
-        // Sắp xếp theo thứ tự ngày tăng dần (quá hạn nhất lên đầu)
+        // Sort by ascending date (most overdue first)
         return a.nextStudyDate!.compareTo(b.nextStudyDate!);
       }
-      // Đưa task có nextStudyDate lên trước
+      // Bring task with nextStudyDate up
       if (a.nextStudyDate != null) return -1;
       if (b.nextStudyDate != null) return 1;
       return 0;
@@ -105,7 +106,7 @@ class DueTasksSection extends ConsumerWidget {
       );
     }
 
-    // Tính số task đã quá hạn
+    // Calculate overdue tasks
     final overdueCount = _getOverdueTasksCount(dueTasks);
     final todayCount = dueTasks.length - overdueCount;
 
@@ -222,7 +223,7 @@ class DueTasksSection extends ConsumerWidget {
     ColorScheme colorScheme, {
     bool isOverdue = false,
   }) {
-    // Sử dụng màu khác cho task quá hạn
+    // Use different color for overdue task
     final itemColor = isOverdue ? colorScheme.error : colorScheme.primary;
 
     return Row(
@@ -321,7 +322,7 @@ class DueTasksSection extends ConsumerWidget {
     context.push('/progress/${progress.id}');
   }
 
-  // Logic lọc task đến hạn và quá hạn
+  // Function to filter due and overdue tasks
   List<ProgressDetail> _getDueAndOverdueTasks(List<ProgressDetail> allTasks) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -335,12 +336,12 @@ class DueTasksSection extends ConsumerWidget {
         task.nextStudyDate!.day,
       );
 
-      // Lấy tất cả task có ngày <= ngày hôm nay (bao gồm cả quá hạn)
+      // Get all tasks where date <= today (including overdue)
       return !dueDate.isAfter(today);
     }).toList();
   }
 
-  // Kiểm tra task có phải là quá hạn không
+  // Check if the task is overdue
   bool _isOverdue(ProgressDetail task) {
     if (task.nextStudyDate == null) return false;
 
@@ -352,16 +353,16 @@ class DueTasksSection extends ConsumerWidget {
       task.nextStudyDate!.day,
     );
 
-    // Task quá hạn nếu ngày đến hạn < ngày hôm nay
+    // Task is overdue if due date < today
     return dueDate.isBefore(today);
   }
 
-  // Đếm số task quá hạn
+  // Count overdue tasks
   int _getOverdueTasksCount(List<ProgressDetail> tasks) {
     return tasks.where(_isOverdue).length;
   }
 
-  // Format ngày tháng để hiển thị
+  // Format date for display
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -374,7 +375,7 @@ class DueTasksSection extends ConsumerWidget {
     } else if (dueDate.isAtSameMomentAs(yesterday)) {
       return 'Yesterday';
     } else {
-      // Format ngày thành "dd/MM/yyyy"
+      // Format date as "dd/MM/yyyy"
       return '${date.day}/${date.month}/${date.year}';
     }
   }

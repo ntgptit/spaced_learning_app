@@ -1,14 +1,19 @@
+// lib/presentation/screens/home/widgets/home_content.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/screens/home/widgets/home_header.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_unauthorized_state_widget.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/dashboard/dashboard_section.dart';
-import 'package:spaced_learning_app/presentation/widgets/home/due_tasks_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/insights/learning_insights_section.dart';
 import 'package:spaced_learning_app/presentation/widgets/home/quick_actions_section.dart';
+
+import '../../../viewmodels/progress_viewmodel.dart';
+import '../../../widgets/common/state/sl_error_state_widget.dart';
+import '../../../widgets/common/state/sl_loading_state_widget.dart';
+import '../../../widgets/home/due_tasks_section.dart';
 
 class HomeContent extends ConsumerWidget {
   final Future<void> Function() onRefresh;
@@ -27,40 +32,38 @@ class HomeContent extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
 
     if (user == null) {
-      return const Center(child: Text('Please log in to view your content'));
+      return SlUnauthorizedStateWidget.requiresLogin(
+        onLogin: () => GoRouter.of(context).go('/login'),
+        onGoBack: () => GoRouter.of(context).go('/login'),
+      );
     }
 
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      color: Theme.of(context).colorScheme.primary,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: FadeTransition(
-          opacity: fadeAnimation,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: HomeHeader(user: user)),
-              const SizedBox(height: AppDimens.spaceXL),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppDimens.paddingL),
+      child: FadeTransition(
+        opacity: fadeAnimation,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: HomeHeader(user: user)),
+            const SizedBox(height: AppDimens.spaceXL),
 
-              const DashboardSection(),
-              const SizedBox(height: AppDimens.spaceXL),
+            const DashboardSection(),
+            const SizedBox(height: AppDimens.spaceXL),
 
-              const LearningInsightsSection(),
-              const SizedBox(height: AppDimens.spaceXL),
+            const LearningInsightsSection(),
+            const SizedBox(height: AppDimens.spaceXL),
 
-              // 👇 Bọc bằng Consumer để cô lập rebuild
-              Consumer(
-                builder: (context, ref, _) => const DueTasksSectionWidget(),
-              ),
-              const SizedBox(height: AppDimens.spaceXL),
+            // 👇 Wrap with Consumer to isolate rebuild
+            Consumer(
+              builder: (context, ref, _) => const DueTasksSectionWidget(),
+            ),
+            const SizedBox(height: AppDimens.spaceXL),
 
-              const HomeQuickActionsSection(),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-            ],
-          ),
+            const HomeQuickActionsSection(),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+          ],
         ),
       ),
     );
@@ -124,10 +127,16 @@ class DueTasksSectionWidget extends ConsumerWidget {
           onViewAllTasks: () => _navigateTo(context, '/due-progress'),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () =>
+          SlLoadingStateWidget.small(type: SlLoadingType.threeBounce),
       error: (err, _) {
         debugPrint('[DueTasksSectionWidget] Error: $err');
-        return const SizedBox.shrink();
+        return SlErrorStateWidget.custom(
+          title: 'Could not load daily tasks',
+          message: 'Please try again later.',
+          icon: Icons.warning_amber_rounded,
+          compact: true,
+        );
       },
     );
   }
