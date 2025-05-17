@@ -90,10 +90,11 @@ class SlLoadingStateWidget extends ConsumerWidget {
       case SlLoadingType.pulse:
         return SpinKitPulse(color: indicatorColor, size: indicatorSize);
       case SlLoadingType.threeBounce:
-        // ThreeBounce often looks better with a slightly smaller size relative to its container
-        return SpinKitThreeBounce(
-          color: indicatorColor,
-          size: indicatorSize * 0.7,
+        return FittedBox(
+          child: SpinKitThreeBounce(
+            color: indicatorColor,
+            size: indicatorSize * 0.7,
+          ),
         );
       case SlLoadingType.wave:
         return SpinKitWave(color: indicatorColor, size: indicatorSize * 0.8);

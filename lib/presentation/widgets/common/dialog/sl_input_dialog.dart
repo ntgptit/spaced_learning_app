@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
-import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart'; // Assuming SLTextField
+
+import '../input/sl_text_field.dart'; // Assuming SLTextField
 
 /// A dialog that allows the user to input text with various customization options.
 class SlInputDialog extends ConsumerStatefulWidget {

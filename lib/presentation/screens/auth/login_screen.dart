@@ -6,9 +6,11 @@ import 'package:spaced_learning_app/core/constants/app_constants.dart';
 import 'package:spaced_learning_app/presentation/screens/auth/register_screen.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart';
+
+import '../../widgets/common/input/sl_password_field.dart';
+import '../../widgets/common/input/sl_text_field.dart'; // Updated import
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});

@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
+
+import '../common/input/sl_text_field.dart';
 
 class ProfileEditForm extends ConsumerWidget {
   final TextEditingController controller;
