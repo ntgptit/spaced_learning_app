@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlSuccessStateWidget extends ConsumerWidget {
   final String title;
@@ -14,8 +14,6 @@ class SlSuccessStateWidget extends ConsumerWidget {
   final bool showIcon;
   final bool compactMode;
   final Duration? autoHideDuration;
-
-  // final bool showConfetti; // Confetti can be complex, removed for simplicity for now
   final IconData icon;
   final Color? accentColor;
 
@@ -30,7 +28,6 @@ class SlSuccessStateWidget extends ConsumerWidget {
     this.showIcon = true,
     this.compactMode = false,
     this.autoHideDuration,
-    // this.showConfetti = false,
     this.icon = Icons.check_circle_outline_rounded,
     this.accentColor,
   });
@@ -55,6 +52,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
     );
   }
 
+  // Continuing sl_success_state_widget.dart
   // Factory constructor for data saved successfully
   factory SlSuccessStateWidget.saved({
     required VoidCallback onContinue,
@@ -68,7 +66,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
       primaryButtonText: continueButtonText,
       onPrimaryButtonPressed: onContinue,
       icon: Icons.save_alt_rounded,
-      accentColor: Colors.green.shade700, // Example accent
+      accentColor: Colors.green.shade700,
     );
   }
 
@@ -84,7 +82,6 @@ class SlSuccessStateWidget extends ConsumerWidget {
       title: title,
       message: message,
       primaryButtonText: 'Dismiss',
-      // Or an empty string if no button needed
       onPrimaryButtonPressed: onDismiss,
       compactMode: true,
       autoHideDuration: autoDismissDuration,
@@ -94,9 +91,8 @@ class SlSuccessStateWidget extends ConsumerWidget {
 
   Color _getContrastColor(Color backgroundColor, ColorScheme colorScheme) {
     return backgroundColor.computeLuminance() > 0.5
-        ? colorScheme
-              .onSurface // Or a specific dark color
-        : colorScheme.surface; // Or a specific light color
+        ? colorScheme.onSurface
+        : colorScheme.surface;
   }
 
   Widget _buildFullSuccess(
@@ -109,8 +105,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
     if (autoHideDuration != null && context.mounted) {
       Future.delayed(autoHideDuration!, () {
         if (context.mounted) {
-          // Check again if mounted before popping
-          onPrimaryButtonPressed(); // Or Navigator.pop(context) if that's the desired action
+          onPrimaryButtonPressed();
         }
       });
     }
@@ -128,7 +123,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: successColor.withValues(alpha: 0.1),
+                  color: successColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, size: AppDimens.iconXL, color: successColor),
@@ -154,21 +149,20 @@ class SlSuccessStateWidget extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: AppDimens.spaceXXL),
-            SLButton(
+            SlButton(
               text: primaryButtonText,
               onPressed: onPrimaryButtonPressed,
-              type: SLButtonType.primary,
-              // Or a specific success button type
+              variant: SlButtonVariant.filled,
               backgroundColor: successColor,
-              textColor: _getContrastColor(successColor, colorScheme),
+              foregroundColor: _getContrastColor(successColor, colorScheme),
             ),
             if (secondaryButtonText != null &&
                 onSecondaryButtonPressed != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              SLButton(
+              SlButton(
                 text: secondaryButtonText!,
-                onPressed: onSecondaryButtonPressed,
-                type: SLButtonType.text, // Or outline
+                onPressed: onSecondaryButtonPressed!,
+                variant: SlButtonVariant.text,
               ),
             ],
           ],
@@ -187,13 +181,12 @@ class SlSuccessStateWidget extends ConsumerWidget {
     if (autoHideDuration != null && context.mounted) {
       Future.delayed(autoHideDuration!, () {
         if (context.mounted) {
-          // Check again if mounted before popping
-          onPrimaryButtonPressed(); // Or Navigator.pop(context) if that's the desired action
+          onPrimaryButtonPressed();
         }
       });
     }
     return Card(
-      color: successColor.withValues(alpha: 0.08),
+      color: successColor.withOpacity(0.08),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -201,7 +194,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: successColor.withValues(alpha: 0.4)),
+        side: BorderSide(color: successColor.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
@@ -235,8 +228,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
                 ],
               ),
             ),
-            if (primaryButtonText
-                .isNotEmpty) // Only show button if text is provided
+            if (primaryButtonText.isNotEmpty)
               TextButton(
                 onPressed: onPrimaryButtonPressed,
                 style: TextButton.styleFrom(
@@ -258,9 +250,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final successColor =
-        accentColor ??
-        colorScheme.primary; // Or a specific success color like Colors.green
+    final successColor = accentColor ?? colorScheme.primary;
 
     if (compactMode) {
       return _buildCompactSuccess(context, theme, colorScheme, successColor);

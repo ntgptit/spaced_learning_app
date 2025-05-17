@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlEmptyStateWidget extends ConsumerWidget {
   final String title;
@@ -68,7 +68,7 @@ class SlEmptyStateWidget extends ConsumerWidget {
     required String buttonText,
     required VoidCallback onButtonPressed,
     IconData icon = Icons.lightbulb_outline,
-    Color? iconColor, // Allow custom icon color
+    Color? iconColor,
   }) {
     return SlEmptyStateWidget(
       title: title,
@@ -77,8 +77,7 @@ class SlEmptyStateWidget extends ConsumerWidget {
       buttonText: buttonText,
       onButtonPressed: onButtonPressed,
       showGradientBackground: true,
-      // Often good for a welcome/first-use screen
-      iconColor: iconColor ?? Colors.amber, // Default to amber if not provided
+      iconColor: iconColor ?? Colors.amber,
     );
   }
 
@@ -98,20 +97,19 @@ class SlEmptyStateWidget extends ConsumerWidget {
           children: [
             if (customImage != null)
               customImage!
-            else if (icon !=
-                null) // Ensure icon is not null before creating Container
+            else if (icon != null)
               Container(
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
                   color: showGradientBackground
                       ? null
-                      : effectiveIconColor.withValues(alpha: 0.1),
+                      : effectiveIconColor.withOpacity(0.1),
                   gradient: showGradientBackground
                       ? LinearGradient(
                           colors: [
-                            effectiveIconColor.withValues(alpha: 0.05),
-                            effectiveIconColor.withValues(alpha: 0.15),
+                            effectiveIconColor.withOpacity(0.05),
+                            effectiveIconColor.withOpacity(0.15),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -122,7 +120,7 @@ class SlEmptyStateWidget extends ConsumerWidget {
                 child: Icon(
                   icon,
                   size: AppDimens.iconXL,
-                  color: effectiveIconColor.withValues(alpha: 0.8),
+                  color: effectiveIconColor.withOpacity(0.8),
                 ),
               ),
             const SizedBox(height: AppDimens.spaceXL),
@@ -151,12 +149,11 @@ class SlEmptyStateWidget extends ConsumerWidget {
             ],
             if (buttonText != null && onButtonPressed != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              SLButton(
+              SlButton(
                 text: buttonText!,
                 onPressed: onButtonPressed,
-                type: SLButtonType.primary, // Or tonal for a softer look
-                prefixIcon: Icons
-                    .add_circle_outline, // Example, make it dynamic if needed
+                variant: SlButtonVariant.filled,
+                prefixIcon: Icons.add_circle_outline,
               ),
             ],
           ],

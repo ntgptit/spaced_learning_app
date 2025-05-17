@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 /// A confirmation dialog with customizable title, content, and action buttons.
 class SlConfirmDialog extends ConsumerWidget {
@@ -10,14 +10,14 @@ class SlConfirmDialog extends ConsumerWidget {
   final String message;
   final String confirmText;
   final String cancelText;
-  final VoidCallback? onConfirm; // Made optional, default will pop true
-  final VoidCallback? onCancel; // Made optional, default will pop false
+  final VoidCallback? onConfirm;
+  final VoidCallback? onCancel;
   final bool isDanger;
   final bool barrierDismissible;
   final IconData? icon;
-  final Color? iconColor; // Added for icon color customization
-  final Color? confirmButtonColor; // Added for confirm button color
-  final Color? cancelButtonColor; // Added for cancel button text color
+  final Color? iconColor;
+  final Color? confirmButtonColor;
+  final Color? cancelButtonColor;
 
   const SlConfirmDialog({
     super.key,
@@ -95,11 +95,9 @@ class SlConfirmDialog extends ConsumerWidget {
       onConfirm: onConfirm,
       onCancel: onCancel,
       isDanger: false,
-      // Warnings are not necessarily "danger" like delete
       icon: Icons.warning_amber_rounded,
       iconColor: Colors.orange,
-      // Example specific color for warning
-      confirmButtonColor: Colors.orange, // Example specific color for warning
+      confirmButtonColor: Colors.orange,
     );
   }
 
@@ -122,22 +120,16 @@ class SlConfirmDialog extends ConsumerWidget {
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL), // M3 radius
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
       backgroundColor: colorScheme.surfaceContainerLowest,
-      // M3 surface color
       surfaceTintColor: colorScheme.surfaceTint,
-      // M3 surface tint
       iconPadding: const EdgeInsets.only(
         top: AppDimens.paddingL,
         bottom: AppDimens.paddingS,
       ),
       icon: icon != null
-          ? Icon(
-              icon,
-              color: effectiveIconColor,
-              size: AppDimens.iconL, // Consistent icon size
-            )
+          ? Icon(icon, color: effectiveIconColor, size: AppDimens.iconL)
           : null,
       titlePadding: const EdgeInsets.fromLTRB(
         AppDimens.paddingL,
@@ -153,11 +145,9 @@ class SlConfirmDialog extends ConsumerWidget {
       ),
       actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
       actionsAlignment: MainAxisAlignment.end,
-
       title: Text(
         title,
         style: theme.textTheme.headlineSmall?.copyWith(
-          // M3 headline
           fontWeight: FontWeight.w600,
           color: isDanger ? colorScheme.error : colorScheme.onSurface,
         ),
@@ -167,34 +157,34 @@ class SlConfirmDialog extends ConsumerWidget {
         message,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: colorScheme.onSurfaceVariant,
-        ), // M3 body
+        ),
         textAlign: icon != null ? TextAlign.center : TextAlign.start,
       ),
       actions: [
-        SLButton(
+        SlButton(
           text: cancelText,
           onPressed: () {
             if (onCancel != null) {
               onCancel!();
-            } else {
-              Navigator.of(context).pop(false); // Default cancel action
+              return;
             }
+            Navigator.of(context).pop(false);
           },
-          type: SLButtonType.text,
-          textColor: effectiveCancelButtonColor,
+          variant: SlButtonVariant.text,
+          foregroundColor: effectiveCancelButtonColor,
         ),
-        SLButton(
+        SlButton(
           text: confirmText,
           onPressed: () {
             if (onConfirm != null) {
               onConfirm!();
-            } else {
-              Navigator.of(context).pop(true); // Default confirm action
+              return;
             }
+            Navigator.of(context).pop(true);
           },
-          type: isDanger ? SLButtonType.error : SLButtonType.primary,
+          variant: isDanger ? SlButtonVariant.filled : SlButtonVariant.filled,
           backgroundColor: effectiveConfirmButtonColor,
-          textColor: effectiveConfirmButtonTextColor,
+          foregroundColor: effectiveConfirmButtonTextColor,
         ),
       ],
     );

@@ -1,3 +1,4 @@
+// lib/presentation/widgets/common/card/sl_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
@@ -85,7 +86,13 @@ class SlCard extends StatelessWidget {
         return Card(
           margin: margin,
           elevation: 0,
-          shape: effectiveShape,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+            side: BorderSide(
+              color: colorScheme.outline,
+              width: AppDimens.outlineButtonBorderWidth,
+            ),
+          ),
           color: effectiveBackgroundColor,
           shadowColor: shadowColor ?? colorScheme.outline,
           clipBehavior: clipBehavior,
@@ -188,8 +195,8 @@ class SlCard extends StatelessWidget {
                             DefaultTextStyle(
                               style: theme.textTheme.bodyMedium!.copyWith(
                                 color: foregroundColor != null
-                                    ? foregroundColor!.withValues(
-                                        alpha: AppDimens.opacityHigh,
+                                    ? foregroundColor!.withOpacity(
+                                        AppDimens.opacityHigh,
                                       )
                                     : colorScheme.onSurfaceVariant,
                               ),
@@ -249,6 +256,58 @@ class SlCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  // Factory for a simple card with title and content
+  factory SlCard.simple({
+    required String title,
+    required Widget content,
+    VoidCallback? onTap,
+    SlCardType type = SlCardType.elevated,
+    Color? backgroundColor,
+  }) {
+    return SlCard(
+      title: Text(title),
+      content: content,
+      onTap: onTap,
+      type: type,
+      backgroundColor: backgroundColor,
+    );
+  }
+
+  // Factory for a card with icon
+  factory SlCard.withIcon({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Widget? content,
+    VoidCallback? onTap,
+    SlCardType type = SlCardType.filled,
+    Color? iconColor,
+  }) {
+    return SlCard(
+      leading: Icon(icon, color: iconColor, size: AppDimens.iconL),
+      title: Text(title),
+      subtitle: subtitle != null ? Text(subtitle) : null,
+      content: content,
+      onTap: onTap,
+      type: type,
+    );
+  }
+
+  // Factory for a card with actions
+  factory SlCard.withActions({
+    required String title,
+    Widget? content,
+    required List<Widget> actions,
+    SlCardType type = SlCardType.elevated,
+  }) {
+    return SlCard(
+      title: Text(title),
+      content: content,
+      actions: actions,
+      type: type,
     );
   }
 }

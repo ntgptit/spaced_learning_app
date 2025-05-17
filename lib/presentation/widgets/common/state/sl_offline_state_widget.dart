@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlOfflineStateWidget extends ConsumerWidget {
   final String title;
@@ -83,7 +83,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withValues(alpha: 0.7),
+                  color: colorScheme.errorContainer.withOpacity(0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -114,19 +114,19 @@ class SlOfflineStateWidget extends ConsumerWidget {
             ],
             if (onRetry != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              SLButton(
+              SlButton(
                 text: retryButtonText ?? 'Try Again',
-                onPressed: onRetry,
-                type: SLButtonType.primary,
+                onPressed: onRetry!,
+                variant: SlButtonVariant.filled,
                 prefixIcon: Icons.refresh,
               ),
             ],
             if (secondaryButtonText != null && onSecondaryAction != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              SLButton(
+              SlButton(
                 text: secondaryButtonText!,
-                onPressed: onSecondaryAction,
-                type: SLButtonType.text, // Or outline
+                onPressed: onSecondaryAction!,
+                variant: SlButtonVariant.text,
               ),
             ],
           ],
@@ -141,7 +141,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
     ColorScheme colorScheme,
   ) {
     return Card(
-      color: colorScheme.errorContainer.withValues(alpha: 0.15),
+      color: colorScheme.errorContainer.withOpacity(0.15),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -149,7 +149,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: colorScheme.error.withValues(alpha: 0.3)),
+        side: BorderSide(color: colorScheme.error.withOpacity(0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
@@ -187,7 +187,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
               TextButton(
                 onPressed: onRetry,
                 style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.primary, // Or error color
+                  foregroundColor: colorScheme.primary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingS,
                   ),

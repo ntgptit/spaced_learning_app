@@ -75,11 +75,11 @@ class SlLoadingStateWidget extends ConsumerWidget {
   double _getSizeValue() {
     switch (size) {
       case SlLoadingSize.small:
-        return AppDimens.circularProgressSize; // e.g., 24.0
+        return AppDimens.circularProgressSize;
       case SlLoadingSize.medium:
-        return AppDimens.circularProgressSizeL; // e.g., 48.0
+        return AppDimens.circularProgressSizeL;
       case SlLoadingSize.large:
-        return AppDimens.iconXXL; // e.g., 64.0
+        return AppDimens.iconXXL;
     }
   }
 
@@ -144,9 +144,7 @@ class SlLoadingStateWidget extends ConsumerWidget {
       children: [
         backgroundWidget ??
             Container(
-              color: colorScheme.surface.withValues(
-                alpha: AppDimens.opacityHigh,
-              ),
+              color: colorScheme.surface.withOpacity(AppDimens.opacityHigh),
             ),
         Center(child: content),
         if (dismissible && onDismiss != null)

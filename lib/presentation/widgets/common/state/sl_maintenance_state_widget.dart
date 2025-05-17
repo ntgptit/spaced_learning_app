@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlMaintenanceStateWidget extends ConsumerWidget {
   final String title;
@@ -100,7 +100,6 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
   }
 
   static String _formatTime(DateTime time) {
-    // Consider using intl package for more robust date/time formatting
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} on ${time.day}/${time.month}/${time.year}';
   }
 
@@ -143,9 +142,7 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
                     width: AppDimens.iconXXL,
                     height: AppDimens.iconXXL,
                     decoration: BoxDecoration(
-                      color: colorScheme.secondaryContainer.withValues(
-                        alpha: 0.5,
-                      ),
+                      color: colorScheme.secondaryContainer.withOpacity(0.7),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -180,7 +177,7 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
                   vertical: AppDimens.paddingM,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.tertiaryContainer.withValues(alpha: 0.7),
+                  color: colorScheme.tertiaryContainer.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 ),
                 child: Text(
@@ -195,10 +192,10 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
             ],
             if (onRetryPressed != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              SLButton(
+              SlButton(
                 text: retryButtonText ?? 'Check Again',
-                onPressed: onRetryPressed,
-                type: SLButtonType.outline, // Or tonal for a softer look
+                onPressed: onRetryPressed!,
+                variant: SlButtonVariant.filled,
                 prefixIcon: Icons.refresh,
               ),
             ],

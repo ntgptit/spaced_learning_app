@@ -46,7 +46,10 @@ class SlButton extends StatelessWidget {
     this.borderRadius,
     this.padding,
     this.elevation,
-  });
+  }) : assert(
+         text != null || child != null,
+         'Either text or child must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -185,11 +188,11 @@ class SlButton extends StatelessWidget {
           ),
           elevation: elevation ?? AppDimens.elevationS,
           minimumSize: Size(0, height ?? _getHeight()),
-          disabledBackgroundColor: colorScheme.onSurface.withValues(
-            alpha: AppDimens.opacityMedium,
+          disabledBackgroundColor: colorScheme.onSurface.withOpacity(
+            AppDimens.opacityMedium,
           ),
-          disabledForegroundColor: colorScheme.onSurface.withValues(
-            alpha: AppDimens.opacityDisabled,
+          disabledForegroundColor: colorScheme.onSurface.withOpacity(
+            AppDimens.opacityDisabled,
           ),
         );
       case SlButtonVariant.tonal:
@@ -202,11 +205,11 @@ class SlButton extends StatelessWidget {
           ),
           elevation: elevation ?? AppDimens.elevationXS,
           minimumSize: Size(0, height ?? _getHeight()),
-          disabledBackgroundColor: colorScheme.onSurface.withValues(
-            alpha: AppDimens.opacityMedium,
+          disabledBackgroundColor: colorScheme.onSurface.withOpacity(
+            AppDimens.opacityMedium,
           ),
-          disabledForegroundColor: colorScheme.onSurface.withValues(
-            alpha: AppDimens.opacityDisabled,
+          disabledForegroundColor: colorScheme.onSurface.withOpacity(
+            AppDimens.opacityDisabled,
           ),
         );
       case SlButtonVariant.outlined:
@@ -221,8 +224,8 @@ class SlButton extends StatelessWidget {
             width: AppDimens.outlineButtonBorderWidth,
           ),
           minimumSize: Size(0, height ?? _getHeight()),
-          disabledForegroundColor: colorScheme.onSurface.withValues(
-            alpha: AppDimens.opacityDisabled,
+          disabledForegroundColor: colorScheme.onSurface.withOpacity(
+            AppDimens.opacityDisabled,
           ),
         );
       case SlButtonVariant.text:
@@ -233,8 +236,8 @@ class SlButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           minimumSize: Size(0, height ?? _getHeight()),
-          disabledForegroundColor: colorScheme.onSurface.withValues(
-            alpha: AppDimens.opacityDisabled,
+          disabledForegroundColor: colorScheme.onSurface.withOpacity(
+            AppDimens.opacityDisabled,
           ),
         );
     }
@@ -348,5 +351,101 @@ class SlButton extends StatelessWidget {
       case SlButtonVariant.text:
         return colorScheme.primary;
     }
+  }
+
+  // Factory constructor for primary button
+  factory SlButton.primary({
+    required String text,
+    VoidCallback? onPressed,
+    IconData? prefixIcon,
+    IconData? suffixIcon,
+    bool isLoading = false,
+    bool isFullWidth = false,
+    SlButtonSize size = SlButtonSize.medium,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    return SlButton(
+      text: text,
+      onPressed: onPressed,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      isLoading: isLoading,
+      isFullWidth: isFullWidth,
+      size: size,
+      variant: SlButtonVariant.filled,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+    );
+  }
+
+  // Factory constructor for secondary button
+  factory SlButton.secondary({
+    required String text,
+    VoidCallback? onPressed,
+    IconData? prefixIcon,
+    IconData? suffixIcon,
+    bool isLoading = false,
+    bool isFullWidth = false,
+    SlButtonSize size = SlButtonSize.medium,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    return SlButton(
+      text: text,
+      onPressed: onPressed,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      isLoading: isLoading,
+      isFullWidth: isFullWidth,
+      size: size,
+      variant: SlButtonVariant.tonal,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+    );
+  }
+
+  // Factory constructor for text button
+  factory SlButton.text({
+    required String text,
+    VoidCallback? onPressed,
+    IconData? prefixIcon,
+    IconData? suffixIcon,
+    bool isLoading = false,
+    SlButtonSize size = SlButtonSize.medium,
+    Color? foregroundColor,
+  }) {
+    return SlButton(
+      text: text,
+      onPressed: onPressed,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      isLoading: isLoading,
+      size: size,
+      variant: SlButtonVariant.text,
+      foregroundColor: foregroundColor,
+    );
+  }
+
+  // Factory constructor for icon-only button
+  factory SlButton.icon({
+    required IconData icon,
+    VoidCallback? onPressed,
+    SlButtonSize size = SlButtonSize.medium,
+    SlButtonVariant variant = SlButtonVariant.filled,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    bool isLoading = false,
+  }) {
+    return SlButton(
+      prefixIcon: icon,
+      onPressed: onPressed,
+      size: size,
+      variant: variant,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      isLoading: isLoading,
+      text: '', // Empty text but icon will show
+    );
   }
 }

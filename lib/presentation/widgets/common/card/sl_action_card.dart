@@ -1,3 +1,4 @@
+// lib/presentation/widgets/common/card/sl_action_card.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/card/sl_card.dart';
@@ -106,6 +107,44 @@ class SlActionCard extends StatelessWidget {
       spacing: AppDimens.spaceS,
       runSpacing: AppDimens.spaceS,
       children: actions,
+    );
+  }
+
+  // Factory constructor for actions with a title
+  factory SlActionCard.withTitle({
+    required String title,
+    String? subtitle,
+    required List<Widget> actions,
+    Widget? leading,
+    SlCardType cardType = SlCardType.elevated,
+    Color? backgroundColor,
+  }) {
+    return SlActionCard(
+      title: title,
+      subtitle: subtitle,
+      actions: actions,
+      leading: leading,
+      cardType: cardType,
+      backgroundColor: backgroundColor,
+    );
+  }
+
+  // Factory constructor for centered vertical actions
+  factory SlActionCard.vertical({
+    required String title,
+    String? subtitle,
+    required List<Widget> actions,
+    Widget? leading,
+    SlCardType cardType = SlCardType.elevated,
+  }) {
+    return SlActionCard(
+      title: title,
+      subtitle: subtitle,
+      actions: actions,
+      leading: leading,
+      actionsVertical: true,
+      actionsVerticalAlignment: CrossAxisAlignment.center,
+      cardType: cardType,
     );
   }
 }

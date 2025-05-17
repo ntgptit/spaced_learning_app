@@ -1,9 +1,9 @@
 // lib/presentation/widgets/common/dialog/sl_alert_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spaced_learning_app/core/extensions/color_extensions.dart'; // Assuming this contains success/warning/info extensions
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 enum AlertType { info, success, warning, error }
 
@@ -11,15 +11,15 @@ enum AlertType { info, success, warning, error }
 class SlAlertDialog extends ConsumerWidget {
   final String title;
   final String message;
-  final String? buttonText; // Made optional
-  final VoidCallback? onButtonPressed; // Made optional
+  final String? buttonText;
+  final VoidCallback? onButtonPressed;
   final IconData? icon;
   final AlertType alertType;
   final bool barrierDismissible;
   final bool autoDismiss;
   final Duration autoDismissDuration;
   final Widget? customContent;
-  final List<Widget>? actions; // Allow multiple actions
+  final List<Widget>? actions;
 
   const SlAlertDialog({
     super.key,
@@ -61,7 +61,7 @@ class SlAlertDialog extends ConsumerWidget {
     required String message,
     String buttonText = 'Great!',
     VoidCallback? onButtonPressed,
-    bool autoDismiss = true, // Success messages often auto-dismiss
+    bool autoDismiss = true,
     Duration autoDismissDuration = const Duration(seconds: 2),
   }) {
     return SlAlertDialog(
@@ -82,13 +82,12 @@ class SlAlertDialog extends ConsumerWidget {
     required String message,
     String buttonText = 'Understood',
     VoidCallback? onButtonPressed,
-    List<Widget>? actions, // Allow custom actions for warnings
+    List<Widget>? actions,
   }) {
     return SlAlertDialog(
       title: title,
       message: message,
       buttonText: actions == null ? buttonText : null,
-      // Only use buttonText if no custom actions
       onButtonPressed: actions == null ? onButtonPressed : null,
       alertType: AlertType.warning,
       icon: Icons.warning_amber_rounded,
@@ -129,9 +128,9 @@ class SlAlertDialog extends ConsumerWidget {
   Color _getAlertColor(ColorScheme colorScheme) {
     switch (alertType) {
       case AlertType.success:
-        return colorScheme.success; // From color_extensions
+        return colorScheme.success;
       case AlertType.warning:
-        return colorScheme.warning; // From color_extensions
+        return colorScheme.warning;
       case AlertType.error:
         return colorScheme.error;
       case AlertType.info:
@@ -140,7 +139,6 @@ class SlAlertDialog extends ConsumerWidget {
   }
 
   Color _getAlertTextColor(ColorScheme colorScheme, Color alertColor) {
-    // Ensure good contrast
     return alertColor.computeLuminance() > 0.5
         ? colorScheme.onSurface
         : colorScheme.surface;
@@ -167,15 +165,12 @@ class SlAlertDialog extends ConsumerWidget {
         buttonText != null &&
         onButtonPressed != null) {
       dialogActions.add(
-        SLButton(
+        SlButton(
           text: buttonText!,
-          onPressed: onButtonPressed ?? () => Navigator.of(context).pop(),
-          type: alertType == AlertType.error || alertType == AlertType.warning
-              ? SLButtonType
-                    .primary // or a specific SLButtonType for error/warning
-              : SLButtonType.primary,
+          onPressed: onButtonPressed!,
+          variant: SlButtonVariant.filled,
           backgroundColor: effectiveAlertColor,
-          textColor: _getAlertTextColor(colorScheme, effectiveAlertColor),
+          foregroundColor: _getAlertTextColor(colorScheme, effectiveAlertColor),
         ),
       );
     }
@@ -183,10 +178,10 @@ class SlAlertDialog extends ConsumerWidget {
         buttonText != null &&
         onButtonPressed == null) {
       dialogActions.add(
-        SLButton(
+        SlButton(
           text: buttonText!,
           onPressed: () => Navigator.of(context).pop(),
-          type: SLButtonType.text, // Default to text if no action
+          variant: SlButtonVariant.text,
         ),
       );
     }
@@ -197,7 +192,6 @@ class SlAlertDialog extends ConsumerWidget {
       ),
       backgroundColor: colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
-      // M3 spec
       titlePadding: const EdgeInsets.fromLTRB(
         AppDimens.paddingL,
         AppDimens.paddingL,
@@ -216,7 +210,7 @@ class SlAlertDialog extends ConsumerWidget {
       icon: Container(
         padding: const EdgeInsets.all(AppDimens.paddingXS),
         decoration: BoxDecoration(
-          color: effectiveAlertColor.withValues(alpha: 0.1),
+          color: effectiveAlertColor.withOpacity(0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -247,7 +241,6 @@ class SlAlertDialog extends ConsumerWidget {
             textAlign: TextAlign.center,
           ),
       actionsAlignment: MainAxisAlignment.center,
-      // Center actions for single button
       actionsOverflowButtonSpacing: AppDimens.spaceS,
       actions: dialogActions.isNotEmpty ? dialogActions : null,
     );

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlErrorStateWidget extends ConsumerWidget {
   final String title;
@@ -87,9 +87,8 @@ class SlErrorStateWidget extends ConsumerWidget {
 
   Color _getContrastColor(Color backgroundColor, ColorScheme colorScheme) {
     return backgroundColor.computeLuminance() > 0.5
-        ? colorScheme
-              .onSurface // Or a specific dark color
-        : colorScheme.surface; // Or a specific light color
+        ? colorScheme.onSurface
+        : colorScheme.surface;
   }
 
   Widget _buildFullError(
@@ -108,7 +107,7 @@ class SlErrorStateWidget extends ConsumerWidget {
               width: AppDimens.iconXXL,
               height: AppDimens.iconXXL,
               decoration: BoxDecoration(
-                color: errorColor.withValues(alpha: 0.1),
+                color: errorColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: AppDimens.iconXL, color: errorColor),
@@ -123,6 +122,7 @@ class SlErrorStateWidget extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             if (message != null) ...[
+              // Continuing from lib/presentation/widgets/common/state/sl_error_state_widget.dart
               const SizedBox(height: AppDimens.spaceM),
               Text(
                 message!,
@@ -134,13 +134,12 @@ class SlErrorStateWidget extends ConsumerWidget {
             ],
             if (onRetry != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              SLButton(
+              SlButton(
                 text: retryText ?? 'Try Again',
                 onPressed: onRetry,
-                type: SLButtonType.primary,
-                // Or a specific error button type
+                variant: SlButtonVariant.filled,
                 backgroundColor: errorColor,
-                textColor: _getContrastColor(errorColor, colorScheme),
+                foregroundColor: _getContrastColor(errorColor, colorScheme),
                 prefixIcon: Icons.refresh,
               ),
             ],
@@ -161,7 +160,7 @@ class SlErrorStateWidget extends ConsumerWidget {
     Color errorColor,
   ) {
     return Card(
-      color: errorColor.withValues(alpha: 0.08),
+      color: errorColor.withOpacity(0.08),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -169,7 +168,7 @@ class SlErrorStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: errorColor.withValues(alpha: 0.4)),
+        side: BorderSide(color: errorColor.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlTimeoutStateWidget extends ConsumerWidget {
   final String title;
@@ -11,8 +11,8 @@ class SlTimeoutStateWidget extends ConsumerWidget {
   final String retryButtonText;
   final VoidCallback? onCancel;
   final String? cancelButtonText;
-  final bool isServiceTimeout; // Renamed for clarity
-  final Duration? timeoutDuration; // Renamed for clarity
+  final bool isServiceTimeout;
+  final Duration? timeoutDuration;
   final bool compact;
   final IconData icon;
 
@@ -99,8 +99,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
               width: AppDimens.iconXXL,
               height: AppDimens.iconXXL,
               decoration: BoxDecoration(
-                color: colorScheme.tertiaryContainer.withValues(alpha: 0.7),
-                // Using tertiary as warning-like
+                color: colorScheme.tertiaryContainer.withOpacity(0.7),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -131,25 +130,25 @@ class SlTimeoutStateWidget extends ConsumerWidget {
               Text(
                 'Timeout occurred after ${timeoutDuration!.inSeconds} seconds.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.tertiary, // Using tertiary for emphasis
+                  color: colorScheme.tertiary,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
             const SizedBox(height: AppDimens.spaceXL),
-            SLButton(
+            SlButton(
               text: retryButtonText,
               onPressed: onRetry,
-              type: SLButtonType.primary,
+              variant: SlButtonVariant.filled,
               prefixIcon: Icons.refresh,
             ),
             if (cancelButtonText != null && onCancel != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              SLButton(
+              SlButton(
                 text: cancelButtonText!,
-                onPressed: onCancel,
-                type: SLButtonType.text,
+                onPressed: onCancel!,
+                variant: SlButtonVariant.text,
               ),
             ],
           ],
@@ -164,7 +163,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
     ColorScheme colorScheme,
   ) {
     return Card(
-      color: colorScheme.tertiaryContainer.withValues(alpha: 0.15),
+      color: colorScheme.tertiaryContainer.withOpacity(0.15),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -172,7 +171,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: colorScheme.tertiary.withValues(alpha: 0.4)),
+        side: BorderSide(color: colorScheme.tertiary.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
@@ -193,7 +192,6 @@ class SlTimeoutStateWidget extends ConsumerWidget {
                     ),
                   ),
                   if (message.isNotEmpty) ...[
-                    // Check if message is not empty
                     const SizedBox(height: AppDimens.spaceXS),
                     Text(
                       message,

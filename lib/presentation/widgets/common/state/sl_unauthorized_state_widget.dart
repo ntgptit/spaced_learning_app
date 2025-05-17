@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
 class SlUnauthorizedStateWidget extends ConsumerWidget {
   final String title;
@@ -12,7 +12,7 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
   final String? secondaryButtonText;
   final VoidCallback? onSecondaryButtonPressed;
   final bool showIcon;
-  final IconData icon; // Changed from customIcon to icon for consistency
+  final IconData icon;
 
   const SlUnauthorizedStateWidget({
     super.key,
@@ -23,7 +23,7 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
     this.secondaryButtonText,
     this.onSecondaryButtonPressed,
     this.showIcon = true,
-    this.icon = Icons.lock_outline_rounded, // Default icon
+    this.icon = Icons.lock_outline_rounded,
   });
 
   // Factory constructor for session expired state
@@ -38,7 +38,7 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
       message: message,
       primaryButtonText: 'Login Again',
       onPrimaryButtonPressed: onLoginAgain,
-      icon: Icons.refresh_rounded, // More fitting icon for session expiry
+      icon: Icons.refresh_rounded,
     );
   }
 
@@ -66,14 +66,12 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
 
   // Factory constructor for insufficient permissions state
   factory SlUnauthorizedStateWidget.insufficientPermissions({
-    VoidCallback? onRequestAccess, // Made optional
+    VoidCallback? onRequestAccess,
     VoidCallback? onGoBack,
     String title = 'Access Restricted',
     String message = 'You don\'t have sufficient permissions for this action.',
-    String primaryButtonText = 'Go Back', // Changed default
+    String primaryButtonText = 'Go Back',
   }) {
-    // If onRequestAccess is null, the primary button should be 'Go Back' if onGoBack is provided.
-    // If both are null, the primary button might not be shown or have a generic text.
     final bool hasRequestAccess = onRequestAccess != null;
     final String effectivePrimaryText = hasRequestAccess
         ? 'Request Access'
@@ -113,7 +111,7 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withValues(alpha: 0.7),
+                  color: colorScheme.errorContainer.withOpacity(0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -141,19 +139,18 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimens.spaceXL),
-            SLButton(
+            SlButton(
               text: primaryButtonText,
               onPressed: onPrimaryButtonPressed,
-              type: SLButtonType
-                  .primary, // Or error if more fitting for unauthorized
+              variant: SlButtonVariant.filled,
             ),
             if (secondaryButtonText != null &&
                 onSecondaryButtonPressed != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              SLButton(
+              SlButton(
                 text: secondaryButtonText!,
-                onPressed: onSecondaryButtonPressed,
-                type: SLButtonType.text,
+                onPressed: onSecondaryButtonPressed!,
+                variant: SlButtonVariant.text,
               ),
             ],
           ],

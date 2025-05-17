@@ -1,3 +1,4 @@
+// lib/presentation/widgets/common/input/sl_text_field.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
@@ -22,9 +23,9 @@ class SLTextField extends StatefulWidget {
   final bool readOnly;
   final bool enabled;
   final IconData? prefixIcon;
-  final Widget? prefix; // Alternative to prefixIcon for more complex widgets
+  final Widget? prefix;
   final IconData? suffixIcon;
-  final Widget? suffix; // Alternative to suffixIcon for more complex widgets
+  final Widget? suffix;
   final VoidCallback? onSuffixIconTap;
   final int? maxLength;
   final int? maxLines;
@@ -42,10 +43,9 @@ class SLTextField extends StatefulWidget {
   final Color? errorColor;
   final Color? borderColor;
   final Color? focusedBorderColor;
-  final Color? iconColor; // General icon color if specific ones aren't set
+  final Color? iconColor;
   final Color? prefixIconColor;
-  final Color?
-  suffixIconColor; // Specific color for the suffix icon (e.g., visibility toggle)
+  final Color? suffixIconColor;
   final Color? backgroundColor;
   final EdgeInsetsGeometry? contentPadding;
   final TextInputAction? textInputAction;
@@ -96,11 +96,86 @@ class SLTextField extends StatefulWidget {
     this.textInputAction,
     this.onEditingComplete,
     this.onSubmitted,
-    this.size = SlTextFieldSize.medium, // Default size
+    this.size = SlTextFieldSize.medium,
   });
 
   @override
   State<SLTextField> createState() => _SLTextFieldState();
+
+  // Factory constructor for a search field
+  factory SLTextField.search({
+    TextEditingController? controller,
+    String? hint = 'Search...',
+    ValueChanged<String>? onChanged,
+    VoidCallback? onClear,
+    FocusNode? focusNode,
+    SlTextFieldSize size = SlTextFieldSize.medium,
+    Color? fillColor,
+  }) {
+    return SLTextField(
+      controller: controller,
+      hint: hint,
+      prefixIcon: Icons.search,
+      keyboardType: TextInputType.text,
+      onChanged: onChanged,
+      focusNode: focusNode,
+      size: size,
+      fillColor: fillColor,
+      suffixIcon: Icons.clear,
+      onSuffixIconTap: onClear,
+    );
+  }
+
+  // Factory constructor for a number field
+  factory SLTextField.number({
+    TextEditingController? controller,
+    String? label,
+    String? hint,
+    ValueChanged<String>? onChanged,
+    String? Function(String?)? validator,
+    int? maxLength,
+    bool allowDecimal = false,
+  }) {
+    return SLTextField(
+      controller: controller,
+      label: label,
+      hint: hint,
+      keyboardType: allowDecimal
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.number,
+      inputFormatters: [
+        if (!allowDecimal) FilteringTextInputFormatter.digitsOnly,
+        if (allowDecimal)
+          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+      ],
+      onChanged: onChanged,
+      validator: validator,
+      maxLength: maxLength,
+      prefixIcon: Icons.numbers,
+    );
+  }
+
+  // Factory constructor for a multiline text field
+  factory SLTextField.multiline({
+    TextEditingController? controller,
+    String? label,
+    String? hint,
+    int minLines = 3,
+    int maxLines = 5,
+    ValueChanged<String>? onChanged,
+    String? Function(String?)? validator,
+  }) {
+    return SLTextField(
+      controller: controller,
+      label: label,
+      hint: hint,
+      minLines: minLines,
+      maxLines: maxLines,
+      keyboardType: TextInputType.multiline,
+      onChanged: onChanged,
+      validator: validator,
+    );
+  }
 }
 
 class _SLTextFieldState extends State<SLTextField> {
@@ -114,15 +189,13 @@ class _SLTextFieldState extends State<SLTextField> {
     switch (widget.size) {
       case SlTextFieldSize.small:
         return const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM, // 12dp
-          vertical:
-              AppDimens.paddingS +
-              2, // 10dp, makes it slightly taller than just paddingS
+          horizontal: AppDimens.paddingM,
+          vertical: AppDimens.paddingS + 2,
         );
       case SlTextFieldSize.medium:
         return const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingL, // 16dp
-          vertical: AppDimens.paddingL, // 16dp
+          horizontal: AppDimens.paddingL,
+          vertical: AppDimens.paddingL,
         );
     }
   }
@@ -130,14 +203,14 @@ class _SLTextFieldState extends State<SLTextField> {
   double _getEffectiveIconSize() {
     switch (widget.size) {
       case SlTextFieldSize.small:
-        return AppDimens.iconS; // e.g., 16.0 or 20.0
+        return AppDimens.iconS;
       case SlTextFieldSize.medium:
-        return AppDimens.iconM; // e.g., 20.0 or 24.0
+        return AppDimens.iconM;
     }
   }
 
   TextStyle _getEffectiveTextStyle(ThemeData theme, ColorScheme colorScheme) {
-    TextStyle baseStyle = theme.textTheme.bodyLarge!; // Default for medium size
+    TextStyle baseStyle = theme.textTheme.bodyLarge!;
 
     if (widget.size == SlTextFieldSize.small) {
       baseStyle =
@@ -148,9 +221,7 @@ class _SLTextFieldState extends State<SLTextField> {
     return baseStyle.copyWith(
       color: widget.enabled
           ? colorScheme.onSurface
-          : colorScheme.onSurface.withValues(
-              alpha: AppDimens.opacityDisabledText,
-            ),
+          : colorScheme.onSurface.withOpacity(AppDimens.opacityDisabledText),
     );
   }
 
@@ -236,7 +307,6 @@ class _SLTextFieldState extends State<SLTextField> {
       );
     }
 
-    // Widget.suffix takes precedence over generated suffix icons
     if (widget.suffix != null) {
       finalSuffixIconWidget = widget.suffix;
     }
@@ -291,6 +361,7 @@ class _SLTextFieldState extends State<SLTextField> {
           suffixIcon: finalSuffixIconWidget,
           counterText: widget.showCounter ? null : '',
           labelStyle: currentLabelStyle,
+          // Continuing from the previous sl_text_field.dart implementation:
           hintStyle:
               (widget.size == SlTextFieldSize.small
                       ? theme.textTheme.bodyMedium
@@ -298,8 +369,8 @@ class _SLTextFieldState extends State<SLTextField> {
                   ?.copyWith(
                     color:
                         widget.hintColor ??
-                        colorScheme.onSurfaceVariant.withValues(
-                          alpha: AppDimens.opacityHintText,
+                        colorScheme.onSurfaceVariant.withOpacity(
+                          AppDimens.opacityHintText,
                         ),
                   ),
           errorStyle: TextStyle(
@@ -348,8 +419,8 @@ class _SLTextFieldState extends State<SLTextField> {
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: (widget.borderColor ?? colorScheme.outline).withValues(
-                alpha: AppDimens.opacityDisabledOutline,
+              color: (widget.borderColor ?? colorScheme.outline).withOpacity(
+                AppDimens.opacityDisabledOutline,
               ),
             ),
           ),

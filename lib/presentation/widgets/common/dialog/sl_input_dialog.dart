@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
-
-import '../input/sl_text_field.dart'; // Assuming SLTextField
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/input/sl_text_field.dart';
 
 /// A dialog that allows the user to input text with various customization options.
 class SlInputDialog extends ConsumerStatefulWidget {
@@ -16,12 +15,12 @@ class SlInputDialog extends ConsumerStatefulWidget {
   final String confirmText;
   final String cancelText;
   final TextInputType keyboardType;
-  final bool obscureText; // If true, will show a toggle icon
+  final bool obscureText;
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
   final int? maxLength;
   final int maxLines;
-  final bool isDangerAction; // If confirm action is destructive
+  final bool isDangerAction;
   final IconData? prefixIcon;
   final bool barrierDismissible;
   final bool autofocus;
@@ -89,7 +88,6 @@ class SlInputDialog extends ConsumerStatefulWidget {
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       maxLength: maxLength,
       prefixIcon: Icons.looks_one_outlined,
-      // Example icon
       validator:
           validator ??
           (value) {
@@ -124,7 +122,7 @@ class SlInputDialog extends ConsumerStatefulWidget {
               return 'Password cannot be empty.';
             }
             if (value.length < 6) {
-              return 'Password must be at least 6 characters.'; // Example
+              return 'Password must be at least 6 characters.';
             }
             return null;
           },
@@ -139,23 +137,11 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
   late final TextEditingController _controller;
   final _formKey = GlobalKey<FormState>();
 
-  // bool _isValid = false; // Validation is handled by FormState
-
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
-    // _controller.addListener(_validateInput); // Form widget handles validation on interaction
-    // WidgetsBinding.instance.addPostFrameCallback((_) => _validateInput());
   }
-
-  // void _validateInput() {
-  //   if (mounted) {
-  //     setState(() {
-  //       _isValid = _formKey.currentState?.validate() ?? false;
-  //     });
-  //   }
-  // }
 
   @override
   void dispose() {
@@ -170,12 +156,9 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          AppDimens.radiusL,
-        ), // M3 dialog shape
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
       backgroundColor: colorScheme.surfaceContainerLowest,
-      // M3 surface color
       surfaceTintColor: colorScheme.surfaceTint,
       titlePadding: const EdgeInsets.fromLTRB(
         AppDimens.paddingL,
@@ -195,7 +178,6 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
       title: Text(
         widget.title,
         style: theme.textTheme.headlineSmall?.copyWith(
-          // M3 headline
           fontWeight: FontWeight.w600,
           color: widget.isDangerAction
               ? colorScheme.error
@@ -219,7 +201,6 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
               const SizedBox(height: AppDimens.spaceM),
             ],
             SLTextField(
-              // Using the common SLTextField
               controller: _controller,
               autofocus: widget.autofocus,
               hint: widget.hintText,
@@ -231,9 +212,7 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
               maxLength: widget.maxLength,
               maxLines: widget.maxLines,
               textCapitalization: widget.textCapitalization,
-              // onChanged: (_) => _validateInput(), // Form validation handles this
               fillColor: colorScheme.surfaceContainerLowest,
-              // Consistent with dialog background
               borderColor: colorScheme.outlineVariant,
               focusedBorderColor: colorScheme.primary,
             ),
@@ -241,22 +220,23 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
         ),
       ),
       actions: [
-        SLButton(
+        SlButton(
           text: widget.cancelText,
           onPressed: () => Navigator.of(context).pop(),
-          type: SLButtonType.text,
-          textColor: colorScheme.onSurfaceVariant,
+          variant: SlButtonVariant.text,
+          foregroundColor: colorScheme.onSurfaceVariant,
         ),
-        SLButton(
+        SlButton(
           text: widget.confirmText,
           onPressed: () {
             if (_formKey.currentState?.validate() ?? false) {
               Navigator.of(context).pop(_controller.text);
             }
           },
-          type: widget.isDangerAction
-              ? SLButtonType.error
-              : SLButtonType.primary,
+          variant: widget.isDangerAction
+              ? SlButtonVariant.filled
+              : SlButtonVariant.filled,
+          backgroundColor: widget.isDangerAction ? colorScheme.error : null,
         ),
       ],
     );
