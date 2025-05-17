@@ -1,16 +1,19 @@
 // lib/presentation/widgets/common/button/sl_outlined_button.dart
-import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
-class SlOutlinedButton extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button_base.dart';
+
+class SlOutlinedButton extends ConsumerWidget {
   final String text;
   final VoidCallback? onPressed;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
-  final bool isLoading;
+  final String? loadingId;
   final bool isFullWidth;
   final SlButtonSize size;
   final Color? foregroundColor;
+  final BorderSide? borderSide;
 
   const SlOutlinedButton({
     super.key,
@@ -18,24 +21,26 @@ class SlOutlinedButton extends StatelessWidget {
     this.onPressed,
     this.prefixIcon,
     this.suffixIcon,
-    this.isLoading = false,
+    this.loadingId,
     this.isFullWidth = false,
     this.size = SlButtonSize.medium,
     this.foregroundColor,
+    this.borderSide,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return SlButton(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SlButtonBase(
       text: text,
       onPressed: onPressed,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-      isLoading: isLoading,
+      loadingId: loadingId,
       isFullWidth: isFullWidth,
       size: size,
       variant: SlButtonVariant.outlined,
       foregroundColor: foregroundColor,
+      borderSide: borderSide,
     );
   }
 }

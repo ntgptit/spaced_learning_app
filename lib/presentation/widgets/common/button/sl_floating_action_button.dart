@@ -1,17 +1,32 @@
 // lib/presentation/widgets/common/button/sl_floating_action_button.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+part 'sl_floating_action_button.g.dart';
 
 enum SlFabSize { small, regular, large, extended }
 
-class SlFloatingActionButton extends StatelessWidget {
+@riverpod
+class FabState extends _$FabState {
+  @override
+  bool build({String id = 'default'}) => false;
+
+  void setLoading(bool isLoading) {
+    state = isLoading;
+  }
+}
+
+class SlFloatingActionButton extends ConsumerWidget {
   final VoidCallback? onPressed;
   final IconData icon;
   final String? label;
   final SlFabSize size;
   final Color? backgroundColor;
   final Color? foregroundColor;
-  final bool isLoading;
+  final String? loadingId;
 
   const SlFloatingActionButton({
     super.key,
@@ -21,13 +36,16 @@ class SlFloatingActionButton extends StatelessWidget {
     this.size = SlFabSize.regular,
     this.backgroundColor,
     this.foregroundColor,
-    this.isLoading = false,
+    this.loadingId,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isLoading = loadingId != null
+        ? ref.watch(fabStateProvider(id: loadingId!))
+        : false;
 
     final effectiveBackgroundColor = backgroundColor ?? colorScheme.primary;
     final effectiveForegroundColor = foregroundColor ?? colorScheme.onPrimary;
@@ -35,7 +53,7 @@ class SlFloatingActionButton extends StatelessWidget {
     // For extended FAB
     if (size == SlFabSize.extended && label != null) {
       return FloatingActionButton.extended(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading || onPressed == null ? null : onPressed,
         label: Text(label!),
         icon: isLoading
             ? SizedBox(
@@ -71,21 +89,21 @@ class SlFloatingActionButton extends StatelessWidget {
     switch (size) {
       case SlFabSize.small:
         return FloatingActionButton.small(
-          onPressed: isLoading ? null : onPressed,
+          onPressed: isLoading || onPressed == null ? null : onPressed,
           backgroundColor: effectiveBackgroundColor,
           foregroundColor: effectiveForegroundColor,
           child: content,
         );
       case SlFabSize.regular:
         return FloatingActionButton(
-          onPressed: isLoading ? null : onPressed,
+          onPressed: isLoading || onPressed == null ? null : onPressed,
           backgroundColor: effectiveBackgroundColor,
           foregroundColor: effectiveForegroundColor,
           child: content,
         );
       case SlFabSize.large:
         return FloatingActionButton.large(
-          onPressed: isLoading ? null : onPressed,
+          onPressed: isLoading || onPressed == null ? null : onPressed,
           backgroundColor: effectiveBackgroundColor,
           foregroundColor: effectiveForegroundColor,
           child: content,
@@ -93,7 +111,7 @@ class SlFloatingActionButton extends StatelessWidget {
       case SlFabSize.extended:
         // Fallback for extended FAB without a label
         return FloatingActionButton(
-          onPressed: isLoading ? null : onPressed,
+          onPressed: isLoading || onPressed == null ? null : onPressed,
           backgroundColor: effectiveBackgroundColor,
           foregroundColor: effectiveForegroundColor,
           child: content,
@@ -104,24 +122,24 @@ class SlFloatingActionButton extends StatelessWidget {
   double _getIconSize() {
     switch (size) {
       case SlFabSize.small:
-        return AppDimens.iconM; // 20.0
+        return AppDimens.iconM;
       case SlFabSize.regular:
       case SlFabSize.extended:
-        return AppDimens.iconL; // 24.0
+        return AppDimens.iconL;
       case SlFabSize.large:
-        return AppDimens.iconXL; // 32.0
+        return AppDimens.iconXL;
     }
   }
 
   double _getLoadingSize() {
     switch (size) {
       case SlFabSize.small:
-        return AppDimens.iconXS; // 12.0
+        return AppDimens.iconXS;
       case SlFabSize.regular:
       case SlFabSize.extended:
-        return AppDimens.iconS; // 16.0
+        return AppDimens.iconS;
       case SlFabSize.large:
-        return AppDimens.iconM; // 20.0
+        return AppDimens.iconM;
     }
   }
 }

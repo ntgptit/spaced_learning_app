@@ -1,12 +1,27 @@
 // lib/presentation/widgets/common/button/sl_icon_button.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+part 'sl_icon_button.g.dart';
 
 enum SlIconButtonSize { small, medium, large }
 
 enum SlIconButtonVariant { filled, tonal, outlined, standard }
 
-class SlIconButton extends StatelessWidget {
+@riverpod
+class IconButtonState extends _$IconButtonState {
+  @override
+  bool build({String id = 'default'}) => false;
+
+  void setLoading(bool isLoading) {
+    state = isLoading;
+  }
+}
+
+class SlIconButton extends ConsumerWidget {
   final IconData icon;
   final VoidCallback? onPressed;
   final SlIconButtonSize size;
@@ -14,7 +29,7 @@ class SlIconButton extends StatelessWidget {
   final Color? backgroundColor;
   final Color? iconColor;
   final String? tooltip;
-  final bool isLoading;
+  final String? loadingId;
 
   const SlIconButton({
     super.key,
@@ -25,13 +40,16 @@ class SlIconButton extends StatelessWidget {
     this.backgroundColor,
     this.iconColor,
     this.tooltip,
-    this.isLoading = false,
+    this.loadingId,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isLoading = loadingId != null
+        ? ref.watch(iconButtonStateProvider(id: loadingId!))
+        : false;
 
     // Size configuration
     final double buttonSize = _getButtonSize();
@@ -44,41 +62,60 @@ class SlIconButton extends StatelessWidget {
         backgroundColor ?? _getBackgroundColor(colorScheme);
 
     // Build different icon button variants
+    Widget buttonWidget;
+
     switch (variant) {
       case SlIconButtonVariant.filled:
-        return _buildFilledIconButton(
+        buttonWidget = _buildFilledIconButton(
           context,
           buttonSize,
           iconSize,
           borderRadius,
           effectiveBackgroundColor,
           effectiveIconColor,
+          isLoading,
+          ref,
         );
+        break;
       case SlIconButtonVariant.tonal:
-        return _buildTonalIconButton(
+        buttonWidget = _buildTonalIconButton(
           context,
           buttonSize,
           iconSize,
           borderRadius,
           effectiveBackgroundColor,
           effectiveIconColor,
+          isLoading,
+          ref,
         );
+        break;
       case SlIconButtonVariant.outlined:
-        return _buildOutlinedIconButton(
+        buttonWidget = _buildOutlinedIconButton(
           context,
           buttonSize,
           iconSize,
           borderRadius,
           effectiveIconColor,
+          colorScheme,
+          isLoading,
+          ref,
         );
+        break;
       case SlIconButtonVariant.standard:
-        return _buildStandardIconButton(
+        buttonWidget = _buildStandardIconButton(
           context,
           buttonSize,
           iconSize,
           effectiveIconColor,
+          isLoading,
+          ref,
         );
+        break;
     }
+
+    return tooltip != null
+        ? Tooltip(message: tooltip!, child: buttonWidget)
+        : buttonWidget;
   }
 
   Widget _buildFilledIconButton(
@@ -88,6 +125,8 @@ class SlIconButton extends StatelessWidget {
     double borderRadius,
     Color backgroundColor,
     Color iconColor,
+    bool isLoading,
+    WidgetRef ref,
   ) {
     return SizedBox(
       width: buttonSize,
@@ -99,10 +138,10 @@ class SlIconButton extends StatelessWidget {
         color: backgroundColor,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: isLoading ? null : onPressed,
+          onTap: isLoading || onPressed == null ? null : onPressed,
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingS),
-            child: _buildContent(iconSize, iconColor),
+            child: _buildContent(iconSize, iconColor, isLoading),
           ),
         ),
       ),
@@ -116,6 +155,8 @@ class SlIconButton extends StatelessWidget {
     double borderRadius,
     Color backgroundColor,
     Color iconColor,
+    bool isLoading,
+    WidgetRef ref,
   ) {
     return SizedBox(
       width: buttonSize,
@@ -127,10 +168,10 @@ class SlIconButton extends StatelessWidget {
         color: backgroundColor,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: isLoading ? null : onPressed,
+          onTap: isLoading || onPressed == null ? null : onPressed,
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingS),
-            child: _buildContent(iconSize, iconColor),
+            child: _buildContent(iconSize, iconColor, isLoading),
           ),
         ),
       ),
@@ -143,10 +184,10 @@ class SlIconButton extends StatelessWidget {
     double iconSize,
     double borderRadius,
     Color iconColor,
+    ColorScheme colorScheme,
+    bool isLoading,
+    WidgetRef ref,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return SizedBox(
       width: buttonSize,
       height: buttonSize,
@@ -161,10 +202,10 @@ class SlIconButton extends StatelessWidget {
         color: Colors.transparent,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: isLoading ? null : onPressed,
+          onTap: isLoading || onPressed == null ? null : onPressed,
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingS),
-            child: _buildContent(iconSize, iconColor),
+            child: _buildContent(iconSize, iconColor, isLoading),
           ),
         ),
       ),
@@ -176,19 +217,21 @@ class SlIconButton extends StatelessWidget {
     double buttonSize,
     double iconSize,
     Color iconColor,
+    bool isLoading,
+    WidgetRef ref,
   ) {
     return SizedBox(
       width: buttonSize,
       height: buttonSize,
       child: IconButton(
-        onPressed: isLoading ? null : onPressed,
-        icon: _buildContent(iconSize, iconColor),
+        onPressed: isLoading || onPressed == null ? null : onPressed,
+        icon: _buildContent(iconSize, iconColor, isLoading),
         tooltip: tooltip,
       ),
     );
   }
 
-  Widget _buildContent(double iconSize, Color iconColor) {
+  Widget _buildContent(double iconSize, Color iconColor, bool isLoading) {
     if (isLoading) {
       return SizedBox(
         width: iconSize,
@@ -207,22 +250,22 @@ class SlIconButton extends StatelessWidget {
   double _getButtonSize() {
     switch (size) {
       case SlIconButtonSize.small:
-        return AppDimens.iconL; // 24.0
+        return AppDimens.iconL;
       case SlIconButtonSize.medium:
-        return AppDimens.iconXL; // 32.0
+        return AppDimens.iconXL;
       case SlIconButtonSize.large:
-        return AppDimens.iconXXL; // 48.0
+        return AppDimens.iconXXL;
     }
   }
 
   double _getIconSize() {
     switch (size) {
       case SlIconButtonSize.small:
-        return AppDimens.iconS; // 16.0
+        return AppDimens.iconS;
       case SlIconButtonSize.medium:
-        return AppDimens.iconM; // 20.0
+        return AppDimens.iconM;
       case SlIconButtonSize.large:
-        return AppDimens.iconL; // 24.0
+        return AppDimens.iconL;
     }
   }
 

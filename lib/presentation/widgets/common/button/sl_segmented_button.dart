@@ -1,83 +1,215 @@
-// lib/presentation/widgets/common/button/sl_toggle_button.dart
+// lib/presentation/widgets/common/button/sl_segmented_button.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-class SlToggleButton extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  final String? label;
-  final IconData? icon;
-  final Color? activeColor;
-  final Color? inactiveColor;
-  final bool isDisabled;
+part 'sl_segmented_button.g.dart';
 
-  const SlToggleButton({
+@riverpod
+class SegmentState extends _$SegmentState {
+  @override
+  String build({String groupId = 'default'}) => '';
+
+  void setValue(String value) {
+    state = value;
+  }
+}
+
+@riverpod
+class MultiSegmentState extends _$MultiSegmentState {
+  @override
+  Set<String> build({String groupId = 'default'}) => {};
+
+  void toggleSelection(String value) {
+    final updatedSet = Set<String>.from(state);
+    if (updatedSet.contains(value)) {
+      updatedSet.remove(value);
+    } else {
+      updatedSet.add(value);
+    }
+    state = updatedSet;
+  }
+
+  void setSelections(Set<String> selections) {
+    state = selections;
+  }
+}
+
+class SlSegmentButton<T> extends ConsumerWidget {
+  final String groupId;
+  final List<ButtonSegment<T>> segments;
+  final T? initialSelection;
+  final Set<T>? initialMultiSelections;
+  final ValueChanged<T>? onSelectionChanged;
+  final ValueChanged<Set<T>>? onMultiSelectionChanged;
+  final bool isMultiSelect;
+  final bool showSelectedIcon;
+  final bool isDisabled;
+  final double? borderRadius;
+  final Color? selectedBackgroundColor;
+  final Color? backgroundColor;
+  final Color? selectedForegroundColor;
+  final Color? foregroundColor;
+
+  const SlSegmentButton({
     super.key,
-    required this.value,
-    required this.onChanged,
-    this.label,
-    this.icon,
-    this.activeColor,
-    this.inactiveColor,
+    required this.groupId,
+    required this.segments,
+    this.initialSelection,
+    this.initialMultiSelections,
+    this.onSelectionChanged,
+    this.onMultiSelectionChanged,
+    this.isMultiSelect = false,
+    this.showSelectedIcon = true,
     this.isDisabled = false,
-  });
+    this.borderRadius,
+    this.selectedBackgroundColor,
+    this.backgroundColor,
+    this.selectedForegroundColor,
+    this.foregroundColor,
+  }) : assert(
+         (isMultiSelect && initialMultiSelections != null) ||
+             (!isMultiSelect && initialSelection != null) ||
+             (initialSelection == null && initialMultiSelections == null),
+         'Provide initialSelection for single select or initialMultiSelections for multi-select',
+       );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final effectiveActiveColor = activeColor ?? colorScheme.primary;
-    final effectiveInactiveColor =
-        inactiveColor ?? colorScheme.surfaceContainerHighest;
+    // Initialize state with initial value(s)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isMultiSelect) {
+        if (initialMultiSelections != null) {
+          ref
+              .read(multiSegmentStateProvider(groupId: groupId).notifier)
+              .setSelections(
+                initialMultiSelections!.map((e) => e.toString()).toSet(),
+              );
+        }
+      } else {
+        if (initialSelection != null) {
+          ref
+              .read(segmentStateProvider(groupId: groupId).notifier)
+              .setValue(initialSelection.toString());
+        }
+      }
+    });
 
-    return InkWell(
-      onTap: isDisabled ? null : () => onChanged(!value),
-      borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM,
-          vertical: AppDimens.paddingS,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                color: isDisabled
-                    ? colorScheme.onSurface.withValues(
-                        alpha: AppDimens.opacityDisabled,
-                      )
-                    : (value
-                          ? effectiveActiveColor
-                          : colorScheme.onSurfaceVariant),
-                size: AppDimens.iconM,
-              ),
-              const SizedBox(width: AppDimens.spaceM),
-            ],
-            if (label != null) ...[
-              Text(
-                label!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDisabled
-                      ? colorScheme.onSurface.withValues(
-                          alpha: AppDimens.opacityDisabled,
-                        )
-                      : colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(width: AppDimens.spaceM),
-            ],
-            Switch(
-              value: value,
-              onChanged: isDisabled ? null : onChanged,
-              activeColor: effectiveActiveColor,
-              inactiveTrackColor: effectiveInactiveColor,
+    // Set up effective colors
+    final effectiveSelectedBackgroundColor =
+        selectedBackgroundColor ?? colorScheme.primary;
+    final effectiveBackgroundColor =
+        backgroundColor ?? colorScheme.surfaceContainerLow;
+    final effectiveSelectedForegroundColor =
+        selectedForegroundColor ?? colorScheme.onPrimary;
+    final effectiveForegroundColor = foregroundColor ?? colorScheme.onSurface;
+    final effectiveBorderRadius = borderRadius ?? AppDimens.radiusM;
+
+    if (isMultiSelect) {
+      // Handle multi-selection segmented button
+      final selectedValues = ref.watch(
+        multiSegmentStateProvider(groupId: groupId),
+      );
+
+      return SegmentedButton<T>(
+        segments: segments,
+        selected: _convertToTypeSet<T>(selectedValues),
+        onSelectionChanged: isDisabled
+            ? null
+            : (Set<T> values) {
+                ref
+                    .read(multiSegmentStateProvider(groupId: groupId).notifier)
+                    .setSelections(values.map((e) => e.toString()).toSet());
+
+                if (onMultiSelectionChanged != null) {
+                  onMultiSelectionChanged!(values);
+                }
+              },
+        multiSelectionEnabled: true,
+        emptySelectionAllowed: true,
+        showSelectedIcon: showSelectedIcon,
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return effectiveSelectedBackgroundColor;
+            }
+            return effectiveBackgroundColor;
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return effectiveSelectedForegroundColor;
+            }
+            return effectiveForegroundColor;
+          }),
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(effectiveBorderRadius),
             ),
-          ],
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      // Handle single-selection segmented button
+      final selectedValue = ref.watch(segmentStateProvider(groupId: groupId));
+
+      return SegmentedButton<T>(
+        segments: segments,
+        selected: _convertToTypeSet<T>(<String>{selectedValue}),
+        onSelectionChanged: isDisabled
+            ? null
+            : (Set<T> values) {
+                if (values.isNotEmpty) {
+                  final value = values.first;
+                  ref
+                      .read(segmentStateProvider(groupId: groupId).notifier)
+                      .setValue(value.toString());
+
+                  if (onSelectionChanged != null) {
+                    onSelectionChanged!(value);
+                  }
+                }
+              },
+        multiSelectionEnabled: false,
+        emptySelectionAllowed: false,
+        showSelectedIcon: showSelectedIcon,
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return effectiveSelectedBackgroundColor;
+            }
+            return effectiveBackgroundColor;
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return effectiveSelectedForegroundColor;
+            }
+            return effectiveForegroundColor;
+          }),
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(effectiveBorderRadius),
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  // Helper method to convert string Set to typed Set
+  Set<T> _convertToTypeSet<T>(Set<String> stringSet) {
+    final result = <T>{};
+
+    for (final segment in segments) {
+      if (stringSet.contains(segment.value.toString())) {
+        result.add(segment.value as T);
+      }
+    }
+
+    return result;
   }
 }

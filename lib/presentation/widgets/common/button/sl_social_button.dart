@@ -1,17 +1,19 @@
 // lib/presentation/widgets/common/button/sl_social_button.dart
+
 import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button_base.dart';
 
 enum SocialButtonType { google, facebook, apple, twitter, github, custom }
 
-class SlSocialButton extends StatelessWidget {
+class SlSocialButton extends ConsumerWidget {
   final SocialButtonType type;
   final String text;
   final VoidCallback? onPressed;
   final IconData? customIcon;
   final Color? backgroundColor;
   final Color? foregroundColor;
-  final bool isLoading;
+  final String? loadingId;
   final bool isFullWidth;
 
   const SlSocialButton({
@@ -22,7 +24,7 @@ class SlSocialButton extends StatelessWidget {
     this.customIcon,
     this.backgroundColor,
     this.foregroundColor,
-    this.isLoading = false,
+    this.loadingId,
     this.isFullWidth = false,
   }) : assert(
          type != SocialButtonType.custom || customIcon != null,
@@ -30,15 +32,15 @@ class SlSocialButton extends StatelessWidget {
        );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return SlButton(
+    return SlButtonBase(
       text: text,
       onPressed: onPressed,
       prefixIcon: _getIcon(),
-      isLoading: isLoading,
+      loadingId: loadingId,
       isFullWidth: isFullWidth,
       variant: SlButtonVariant.outlined,
       backgroundColor: backgroundColor ?? Colors.transparent,
@@ -54,8 +56,7 @@ class SlSocialButton extends StatelessWidget {
     // Default icons for social platforms
     switch (type) {
       case SocialButtonType.google:
-        return Icons
-            .g_mobiledata; // Placeholder - use actual Google icon in a real app
+        return Icons.g_mobiledata;
       case SocialButtonType.facebook:
         return Icons.facebook;
       case SocialButtonType.apple:

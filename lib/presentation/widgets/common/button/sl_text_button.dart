@@ -1,13 +1,16 @@
 // lib/presentation/widgets/common/button/sl_text_button.dart
-import 'package:flutter/material.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
-class SlTextButton extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button_base.dart';
+
+class SlTextButton extends ConsumerWidget {
   final String text;
   final VoidCallback? onPressed;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
-  final bool isLoading;
+  final String? loadingId;
+  final bool isFullWidth;
   final SlButtonSize size;
   final Color? foregroundColor;
 
@@ -17,19 +20,21 @@ class SlTextButton extends StatelessWidget {
     this.onPressed,
     this.prefixIcon,
     this.suffixIcon,
-    this.isLoading = false,
+    this.loadingId,
+    this.isFullWidth = false,
     this.size = SlButtonSize.medium,
     this.foregroundColor,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return SlButton(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SlButtonBase(
       text: text,
       onPressed: onPressed,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-      isLoading: isLoading,
+      loadingId: loadingId,
+      isFullWidth: isFullWidth,
       size: size,
       variant: SlButtonVariant.text,
       foregroundColor: foregroundColor,
