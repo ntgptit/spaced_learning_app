@@ -40,7 +40,8 @@ class SlTimePickerDialog extends ConsumerWidget {
       dayPeriodColor: colorScheme.surfaceContainerHigh,
       dialHandColor: colorScheme.primary,
       dialBackgroundColor: colorScheme.surfaceContainerLowest,
-      dialTextColor: MaterialStateProperty.resolveWith<Color>((states) {
+      // Correct implementation for dialTextColor
+      dialTextColor: MaterialStateColor.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
           return colorScheme.onPrimary;
         }
@@ -67,14 +68,6 @@ class SlTimePickerDialog extends ConsumerWidget {
         helpText: title,
         confirmText: confirmText,
         cancelText: cancelText,
-        builder: (context, child) {
-          return MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(alwaysUse24HourFormat: use24HourFormat),
-            child: child!,
-          );
-        },
       ),
     );
   }
@@ -93,20 +86,30 @@ class SlTimePickerDialog extends ConsumerWidget {
   }) async {
     initialTime ??= TimeOfDay.now();
 
+    // Wrap with MediaQuery to set 24-hour format
+    Widget dialogWidget = SlTimePickerDialog(
+      initialTime: initialTime,
+      title: title,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      headerColor: headerColor,
+      use24HourFormat: use24HourFormat,
+      headerStyle: headerStyle,
+    );
+
+    if (use24HourFormat) {
+      dialogWidget = MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: dialogWidget,
+      );
+    }
+
     final TimeOfDay? selectedTime = await showDialog<TimeOfDay>(
       context: context,
       barrierDismissible: barrierDismissible,
       barrierColor: Colors.black54,
       builder: (BuildContext context) {
-        return SlTimePickerDialog(
-          initialTime: initialTime!,
-          title: title,
-          confirmText: confirmText,
-          cancelText: cancelText,
-          headerColor: headerColor,
-          use24HourFormat: use24HourFormat,
-          headerStyle: headerStyle,
-        );
+        return dialogWidget;
       },
     );
 

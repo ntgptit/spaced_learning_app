@@ -47,35 +47,35 @@ class SlDatePickerDialog extends ConsumerWidget {
       backgroundColor: colorScheme.surface,
       headerBackgroundColor: headerColor ?? colorScheme.primary,
       headerForegroundColor: colorScheme.onPrimary,
-      dayBackgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
+      dayBackgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.primary;
         }
         return colorScheme.surfaceContainerLowest;
       }),
-      dayForegroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
+      dayForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.onPrimary;
         }
-        if (states.contains(MaterialState.disabled)) {
+        if (states.contains(WidgetState.disabled)) {
           return colorScheme.onSurface.withOpacity(0.38);
         }
         return colorScheme.onSurface;
       }),
-      todayBackgroundColor: MaterialStateProperty.all(
+      todayBackgroundColor: WidgetStateProperty.all(
         colorScheme.primaryContainer.withOpacity(0.5),
       ),
-      todayForegroundColor: MaterialStateProperty.all(
+      todayForegroundColor: WidgetStateProperty.all(
         colorScheme.onPrimaryContainer,
       ),
-      yearBackgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
+      yearBackgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.primary;
         }
         return colorScheme.surfaceContainerLowest;
       }),
-      yearForegroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
+      yearForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.onPrimary;
         }
         return colorScheme.onSurface;
@@ -83,7 +83,8 @@ class SlDatePickerDialog extends ConsumerWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      headerHeadlineStyle: headerStyle ?? 
+      headerHeadlineStyle:
+          headerStyle ??
           theme.textTheme.headlineMedium?.copyWith(
             color: colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
@@ -93,15 +94,13 @@ class SlDatePickerDialog extends ConsumerWidget {
     );
 
     return Theme(
-      data: theme.copyWith(
-        datePickerTheme: datePickerTheme,
-      ),
+      data: theme.copyWith(datePickerTheme: datePickerTheme),
       child: DatePickerDialog(
         initialDate: initialDate,
         firstDate: firstDate,
         lastDate: lastDate,
-        initialEntryMode: useCompactLayout 
-            ? DatePickerEntryMode.calendarOnly 
+        initialEntryMode: useCompactLayout
+            ? DatePickerEntryMode.calendarOnly
             : DatePickerEntryMode.calendar,
         helpText: title,
         confirmText: confirmText,
@@ -127,9 +126,12 @@ class SlDatePickerDialog extends ConsumerWidget {
     bool useSlidingAnimation = true,
     bool useCompactLayout = false,
   }) async {
-    initialDate ??= DateTime.now();
-    firstDate ??= DateTime(initialDate.year - 5, initialDate.month, initialDate.day);
-    lastDate ??= DateTime(initialDate.year + 5, initialDate.month, initialDate.day);
+    final now = DateTime.now();
+    final effectiveInitialDate = initialDate ?? now;
+    final effectiveFirstDate =
+        firstDate ?? DateTime(effectiveInitialDate.year - 5, 1, 1);
+    final effectiveLastDate =
+        lastDate ?? DateTime(effectiveInitialDate.year + 5, 12, 31);
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -141,14 +143,12 @@ class SlDatePickerDialog extends ConsumerWidget {
       builder: (BuildContext context) {
         return Theme(
           data: theme.copyWith(
-            colorScheme: colorScheme.copyWith(
-              surface: colorScheme.surface,
-            ),
+            colorScheme: colorScheme.copyWith(surface: colorScheme.surface),
           ),
           child: SlDatePickerDialog(
-            initialDate: initialDate!,
-            firstDate: firstDate,
-            lastDate: lastDate,
+            initialDate: effectiveInitialDate,
+            firstDate: effectiveFirstDate,
+            lastDate: effectiveLastDate,
             title: title,
             confirmText: confirmText,
             cancelText: cancelText,
@@ -190,15 +190,16 @@ class SlDatePickerDialog extends ConsumerWidget {
     DateTime? initialDate,
     String title = 'Date of Birth',
   }) {
-    initialDate ??= DateTime.now().subtract(const Duration(days: 365 * 18));
+    final now = DateTime.now();
+    final defaultDate =
+        initialDate ?? now.subtract(const Duration(days: 365 * 18));
     final firstDate = DateTime(1900);
-    final lastDate = DateTime.now();
 
     return show(
       context,
-      initialDate: initialDate,
+      initialDate: defaultDate,
       firstDate: firstDate,
-      lastDate: lastDate,
+      lastDate: now,
       title: title,
       headerColor: Theme.of(context).colorScheme.tertiary,
     );
@@ -211,15 +212,14 @@ class SlDatePickerDialog extends ConsumerWidget {
     String title = 'Select Future Date',
     int maxDaysInFuture = 365,
   }) {
-    initialDate ??= DateTime.now().add(const Duration(days: 1));
-    final firstDate = DateTime.now();
-    final lastDate = DateTime.now().add(Duration(days: maxDaysInFuture));
+    final now = DateTime.now();
+    final defaultDate = initialDate ?? now.add(const Duration(days: 1));
 
     return show(
       context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
+      initialDate: defaultDate,
+      firstDate: now,
+      lastDate: now.add(Duration(days: maxDaysInFuture)),
       title: title,
       headerColor: Theme.of(context).colorScheme.secondary,
     );
