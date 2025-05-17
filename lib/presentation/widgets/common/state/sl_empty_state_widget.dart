@@ -2,7 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_primary_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_text_button.dart';
+
+enum SlEmptyStateType { general, noResults, noData, firstUse }
 
 class SlEmptyStateWidget extends ConsumerWidget {
   final String title;
@@ -10,9 +13,11 @@ class SlEmptyStateWidget extends ConsumerWidget {
   final IconData? icon;
   final String? buttonText;
   final VoidCallback? onButtonPressed;
+  final IconData? buttonIcon;
   final Widget? customImage;
   final Color? iconColor;
   final bool showGradientBackground;
+  final SlEmptyStateType type; // To distinguish button types if needed
 
   const SlEmptyStateWidget({
     super.key,
@@ -21,17 +26,20 @@ class SlEmptyStateWidget extends ConsumerWidget {
     this.icon = Icons.inbox_outlined,
     this.buttonText,
     this.onButtonPressed,
+    this.buttonIcon,
     this.customImage,
     this.iconColor,
     this.showGradientBackground = false,
+    this.type = SlEmptyStateType.general,
   });
 
-  // Factory constructor for "No Results" state
   factory SlEmptyStateWidget.noResults({
+    Key? key,
     String? message,
     VoidCallback? onResetFilters,
   }) {
     return SlEmptyStateWidget(
+      key: key,
       title: 'No Results Found',
       message:
           message ??
@@ -39,45 +47,58 @@ class SlEmptyStateWidget extends ConsumerWidget {
       icon: Icons.search_off_rounded,
       buttonText: onResetFilters != null ? 'Reset Filters' : null,
       onButtonPressed: onResetFilters,
+      buttonIcon: onResetFilters != null ? Icons.filter_alt_off_outlined : null,
+      type: SlEmptyStateType.noResults,
     );
   }
 
-  // Factory constructor for "No Data" state
   factory SlEmptyStateWidget.noData({
-    String? title = 'No Data Available',
+    Key? key,
+    String title = 'No Data Available',
     String? message,
     String? buttonText,
     VoidCallback? onButtonPressed,
-    IconData icon = Icons.inbox_outlined,
+    IconData icon = Icons.dataset_outlined,
+    IconData? buttonIcon,
   }) {
     return SlEmptyStateWidget(
-      title: title!,
+      key: key,
+      title: title,
       message:
           message ??
           'There\'s nothing here yet. Try adding some data or check back later.',
       icon: icon,
       buttonText: buttonText,
       onButtonPressed: onButtonPressed,
+      buttonIcon: buttonText != null
+          ? (buttonIcon ?? Icons.add_circle_outline_rounded)
+          : null,
+      type: SlEmptyStateType.noData,
     );
   }
 
-  // Factory constructor for "First Use" or "Get Started" state
   factory SlEmptyStateWidget.firstUse({
+    Key? key,
     required String title,
     required String message,
     required String buttonText,
     required VoidCallback onButtonPressed,
-    IconData icon = Icons.lightbulb_outline,
-    Color? iconColor,
+    IconData icon = Icons.lightbulb_outline_rounded,
+    IconData buttonIcon = Icons.arrow_forward_rounded,
+    Color? iconColor, // Will default to primary if null
+    bool showGradientBackground = true,
   }) {
     return SlEmptyStateWidget(
+      key: key,
       title: title,
       message: message,
       icon: icon,
       buttonText: buttonText,
       onButtonPressed: onButtonPressed,
-      showGradientBackground: true,
-      iconColor: iconColor ?? Colors.amber,
+      buttonIcon: buttonIcon,
+      showGradientBackground: showGradientBackground,
+      iconColor: iconColor,
+      type: SlEmptyStateType.firstUse,
     );
   }
 
@@ -85,6 +106,7 @@ class SlEmptyStateWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme; // Or context.typography if available
     final effectiveIconColor = iconColor ?? colorScheme.primary;
 
     return Center(
@@ -96,7 +118,10 @@ class SlEmptyStateWidget extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (customImage != null)
-              customImage!
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppDimens.spaceXL),
+                child: customImage!,
+              )
             else if (icon != null)
               Container(
                 width: AppDimens.iconXXL,
@@ -120,19 +145,21 @@ class SlEmptyStateWidget extends ConsumerWidget {
                 child: Icon(
                   icon,
                   size: AppDimens.iconXL,
-                  color: effectiveIconColor.withOpacity(0.8),
+                  color: effectiveIconColor.withOpacity(
+                    showGradientBackground ? 1.0 : 0.8,
+                  ),
                 ),
               ),
             const SizedBox(height: AppDimens.spaceXL),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurface,
               ),
             ),
-            if (message != null) ...[
+            if (message != null && message!.isNotEmpty) ...[
               const SizedBox(height: AppDimens.spaceS),
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -141,7 +168,7 @@ class SlEmptyStateWidget extends ConsumerWidget {
                 child: Text(
                   message!,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge?.copyWith(
+                  style: textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -149,12 +176,19 @@ class SlEmptyStateWidget extends ConsumerWidget {
             ],
             if (buttonText != null && onButtonPressed != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              SlButton(
-                text: buttonText!,
-                onPressed: onButtonPressed,
-                variant: SlButtonVariant.filled,
-                prefixIcon: Icons.add_circle_outline,
-              ),
+              if (type == SlEmptyStateType.noResults)
+                SlTextButton(
+                  text: buttonText!,
+                  onPressed: onButtonPressed!,
+                  prefixIcon: buttonIcon,
+                  foregroundColor: colorScheme.primary,
+                )
+              else
+                SlPrimaryButton(
+                  text: buttonText!,
+                  onPressed: onButtonPressed!,
+                  prefixIcon: buttonIcon,
+                ),
             ],
           ],
         ),
