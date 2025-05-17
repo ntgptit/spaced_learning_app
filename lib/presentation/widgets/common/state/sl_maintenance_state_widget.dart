@@ -1,7 +1,8 @@
-// lib/presentation/widgets/common/states/sl_maintenance_state_widget.dart
+// lib/presentation/widgets/common/state/sl_maintenance_state_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
 
 class SlMaintenanceStateWidget extends ConsumerWidget {
   final String title;
@@ -13,11 +14,13 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
   final Widget? customImage;
   final bool showEstimatedTime;
   final DateTime? estimatedCompletionTime;
+  final IconData icon;
 
   const SlMaintenanceStateWidget({
     super.key,
     this.title = 'Under Maintenance',
-    this.message = 'We\'re currently making some improvements to our system.',
+    this.message =
+        'We\'re currently making some improvements. Please check back shortly.',
     this.estimatedTimeMessage,
     this.onRetryPressed,
     this.retryButtonText = 'Check Again',
@@ -25,7 +28,81 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
     this.customImage,
     this.showEstimatedTime = true,
     this.estimatedCompletionTime,
+    this.icon = Icons.build_rounded,
   });
+
+  // Factory constructor for a generic maintenance message
+  factory SlMaintenanceStateWidget.generic({
+    String title = 'System Maintenance',
+    String message =
+        'Our services are temporarily unavailable as we perform scheduled maintenance. We apologize for any inconvenience.',
+    VoidCallback? onRetry,
+  }) {
+    return SlMaintenanceStateWidget(
+      title: title,
+      message: message,
+      onRetryPressed: onRetry,
+      icon: Icons.settings_applications_outlined,
+    );
+  }
+
+  // Factory constructor with a specific reason
+  factory SlMaintenanceStateWidget.withReason({
+    required String reason,
+    String title = 'System Maintenance',
+    DateTime? estimatedEndTime,
+    VoidCallback? onRetry,
+    String retryText = 'Try Again',
+  }) {
+    return SlMaintenanceStateWidget(
+      title: title,
+      message:
+          'We\'re temporarily down for maintenance: $reason. We expect to be back soon.',
+      estimatedCompletionTime: estimatedEndTime,
+      onRetryPressed: onRetry,
+      retryButtonText: retryText,
+      showEstimatedTime: estimatedEndTime != null,
+      icon: Icons.miscellaneous_services_outlined,
+    );
+  }
+
+  // Factory constructor for scheduled maintenance
+  factory SlMaintenanceStateWidget.scheduled({
+    required DateTime startTime,
+    required DateTime endTime,
+    String? details,
+    String title = 'Scheduled Maintenance',
+  }) {
+    final now = DateTime.now();
+    final bool isActive = now.isAfter(startTime) && now.isBefore(endTime);
+    final String effectiveMessage;
+    if (isActive) {
+      effectiveMessage =
+          'Scheduled maintenance is currently in progress. We appreciate your patience.';
+    } else if (now.isBefore(startTime)) {
+      effectiveMessage =
+          'We will be undergoing scheduled maintenance starting at ${_formatTime(startTime)}.';
+    } else {
+      effectiveMessage = 'Scheduled maintenance has been completed.';
+    }
+
+    return SlMaintenanceStateWidget(
+      title: title,
+      message: details != null
+          ? '$effectiveMessage\n\nDetails: $details'
+          : effectiveMessage,
+      estimatedCompletionTime: endTime,
+      icon: isActive
+          ? Icons.build_circle_outlined
+          : Icons.event_available_outlined,
+      showEstimatedTime: isActive || now.isBefore(endTime),
+    );
+  }
+
+  static String _formatTime(DateTime time) {
+    // Consider using intl package for more robust date/time formatting
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} on ${time.day}/${time.month}/${time.year}';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,14 +117,15 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
       final difference = estimatedCompletionTime!.difference(now);
 
       if (difference.isNegative) {
-        timeMessage = 'Maintenance should be complete soon.';
+        timeMessage = 'Maintenance should be complete. Try refreshing.';
       } else if (difference.inHours > 0) {
-        timeMessage = 'Estimated time remaining: ${difference.inHours} hours';
+        timeMessage =
+            'Estimated time remaining: ~${difference.inHours} hour(s).';
       } else if (difference.inMinutes > 0) {
         timeMessage =
-            'Estimated time remaining: ${difference.inMinutes} minutes';
+            'Estimated time remaining: ~${difference.inMinutes} minute(s).';
       } else {
-        timeMessage = 'Maintenance should be complete within a minute.';
+        timeMessage = 'Maintenance should be complete very soon.';
       }
     }
 
@@ -60,22 +138,20 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showImage) ...[
-              if (customImage != null)
-                customImage!
-              else
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: colorScheme.secondary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+              customImage ??
+                  Container(
+                    width: AppDimens.iconXXL,
+                    height: AppDimens.iconXXL,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondaryContainer.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      size: AppDimens.iconXL,
+                      color: colorScheme.onSecondaryContainer,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.build_rounded,
-                    size: 64,
-                    color: colorScheme.secondary,
-                  ),
-                ),
               const SizedBox(height: AppDimens.spaceXL),
             ],
             Text(
@@ -102,13 +178,13 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
                   vertical: AppDimens.paddingM,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusL),
+                  color: colorScheme.tertiaryContainer.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 ),
                 child: Text(
                   timeMessage,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSecondaryContainer,
+                    color: colorScheme.onTertiaryContainer,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
@@ -117,67 +193,16 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
             ],
             if (onRetryPressed != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              OutlinedButton.icon(
+              SLButton(
+                text: retryButtonText ?? 'Check Again',
                 onPressed: onRetryPressed,
-                icon: const Icon(Icons.refresh),
-                label: Text(retryButtonText ?? 'Check Again'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingXL,
-                    vertical: AppDimens.paddingM,
-                  ),
-                  side: BorderSide(
-                    color: colorScheme.secondary,
-                    width: AppDimens.outlineButtonBorderWidth,
-                  ),
-                ),
+                type: SLButtonType.outline, // Or tonal for a softer look
+                prefixIcon: Icons.refresh,
               ),
             ],
           ],
         ),
       ),
     );
-  }
-
-  // Factory constructors
-  factory SlMaintenanceStateWidget.withReason({
-    required String reason,
-    DateTime? estimatedEndTime,
-    VoidCallback? onRetry,
-  }) {
-    return SlMaintenanceStateWidget(
-      title: 'System Maintenance',
-      message: 'We\'re temporarily down for maintenance: $reason',
-      estimatedCompletionTime: estimatedEndTime,
-      onRetryPressed: onRetry,
-      showEstimatedTime: estimatedEndTime != null,
-    );
-  }
-
-  factory SlMaintenanceStateWidget.scheduled({
-    required DateTime startTime,
-    required DateTime endTime,
-    String? details,
-  }) {
-    final now = DateTime.now();
-    final isActive = now.isAfter(startTime) && now.isBefore(endTime);
-    final message = isActive
-        ? 'Scheduled maintenance is in progress.'
-        : 'Scheduled maintenance will begin at ${_formatTime(startTime)}.';
-
-    return SlMaintenanceStateWidget(
-      title: 'Scheduled Maintenance',
-      message: details != null ? '$message\n\n$details' : message,
-      estimatedCompletionTime: endTime,
-      customImage: Icon(
-        isActive ? Icons.build_circle : Icons.event,
-        size: 64,
-        color: Colors.orange,
-      ),
-    );
-  }
-
-  static String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} on ${time.day}/${time.month}/${time.year}';
   }
 }

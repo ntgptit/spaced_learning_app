@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart'; // Assuming SLTextField
 
 /// A dialog that allows the user to input text with various customization options.
 class SlInputDialog extends ConsumerStatefulWidget {
@@ -13,16 +15,17 @@ class SlInputDialog extends ConsumerStatefulWidget {
   final String confirmText;
   final String cancelText;
   final TextInputType keyboardType;
-  final bool obscureText;
+  final bool obscureText; // If true, will show a toggle icon
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
   final int? maxLength;
   final int maxLines;
-  final bool isDanger;
+  final bool isDangerAction; // If confirm action is destructive
   final IconData? prefixIcon;
   final bool barrierDismissible;
   final bool autofocus;
   final TextCapitalization textCapitalization;
+  final AutovalidateMode autovalidateMode;
 
   const SlInputDialog({
     super.key,
@@ -38,12 +41,91 @@ class SlInputDialog extends ConsumerStatefulWidget {
     this.validator,
     this.maxLength,
     this.maxLines = 1,
-    this.isDanger = false,
+    this.isDangerAction = false,
     this.prefixIcon,
     this.barrierDismissible = true,
     this.autofocus = true,
     this.textCapitalization = TextCapitalization.none,
+    this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
+
+  // Factory for generic text input
+  factory SlInputDialog.text({
+    required String title,
+    String? message,
+    String? initialValue,
+    String? hintText,
+    String confirmText = 'OK',
+    String? Function(String?)? validator,
+  }) {
+    return SlInputDialog(
+      title: title,
+      message: message,
+      initialValue: initialValue,
+      hintText: hintText,
+      confirmText: confirmText,
+      validator: validator,
+    );
+  }
+
+  // Factory for number input
+  factory SlInputDialog.number({
+    required String title,
+    String? message,
+    String? initialValue,
+    String? hintText = 'Enter a number',
+    String confirmText = 'OK',
+    int? maxLength,
+    String? Function(String?)? validator,
+  }) {
+    return SlInputDialog(
+      title: title,
+      message: message,
+      initialValue: initialValue,
+      hintText: hintText,
+      confirmText: confirmText,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      maxLength: maxLength,
+      prefixIcon: Icons.looks_one_outlined,
+      // Example icon
+      validator:
+          validator ??
+          (value) {
+            if (value == null || value.isEmpty)
+              return 'Number cannot be empty.';
+            if (double.tryParse(value) == null) return 'Invalid number.';
+            return null;
+          },
+    );
+  }
+
+  // Factory for password input
+  factory SlInputDialog.password({
+    required String title,
+    String? message,
+    String hintText = 'Enter password',
+    String confirmText = 'Confirm',
+    String? Function(String?)? validator,
+  }) {
+    return SlInputDialog(
+      title: title,
+      message: message,
+      hintText: hintText,
+      confirmText: confirmText,
+      obscureText: true,
+      prefixIcon: Icons.lock_outline_rounded,
+      validator:
+          validator ??
+          (value) {
+            if (value == null || value.isEmpty)
+              return 'Password cannot be empty.';
+            if (value.length < 6)
+              return 'Password must be at least 6 characters.'; // Example
+            return null;
+          },
+    );
+  }
 
   @override
   ConsumerState<SlInputDialog> createState() => _SlInputDialogState();
@@ -52,31 +134,24 @@ class SlInputDialog extends ConsumerStatefulWidget {
 class _SlInputDialogState extends ConsumerState<SlInputDialog> {
   late final TextEditingController _controller;
   final _formKey = GlobalKey<FormState>();
-  bool _isValid = false;
+
+  // bool _isValid = false; // Validation is handled by FormState
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
-    _controller.addListener(_validateInput);
-
-    // Initial validation
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _validateInput();
-    });
+    // _controller.addListener(_validateInput); // Form widget handles validation on interaction
+    // WidgetsBinding.instance.addPostFrameCallback((_) => _validateInput());
   }
 
-  void _validateInput() {
-    if (mounted) {
-      setState(() {
-        if (widget.validator != null) {
-          _isValid = widget.validator!(_controller.text) == null;
-        } else {
-          _isValid = _controller.text.isNotEmpty;
-        }
-      });
-    }
-  }
+  // void _validateInput() {
+  //   if (mounted) {
+  //     setState(() {
+  //       _isValid = _formKey.currentState?.validate() ?? false;
+  //     });
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -91,45 +166,60 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        borderRadius: BorderRadius.circular(
+          AppDimens.radiusL,
+        ), // M3 dialog shape
       ),
-      backgroundColor: colorScheme.surface,
+      backgroundColor: colorScheme.surfaceContainerLowest,
+      // M3 surface color
+      surfaceTintColor: colorScheme.surfaceTint,
+      titlePadding: const EdgeInsets.fromLTRB(
+        AppDimens.paddingL,
+        AppDimens.paddingL,
+        AppDimens.paddingL,
+        AppDimens.paddingS,
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(
+        AppDimens.paddingL,
+        AppDimens.paddingS,
+        AppDimens.paddingL,
+        AppDimens.paddingL,
+      ),
+      actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      actionsAlignment: MainAxisAlignment.end,
+
       title: Text(
         widget.title,
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: widget.isDanger ? colorScheme.error : null,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          // M3 headline
+          fontWeight: FontWeight.w600,
+          color: widget.isDangerAction
+              ? colorScheme.error
+              : colorScheme.onSurface,
         ),
       ),
       content: Form(
         key: _formKey,
+        autovalidateMode: widget.autovalidateMode,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.message != null) ...[
-              Text(widget.message!, style: theme.textTheme.bodyLarge),
+              Text(
+                widget.message!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: AppDimens.spaceM),
             ],
-            TextFormField(
+            SLTextField(
+              // Using the common SLTextField
               controller: _controller,
               autofocus: widget.autofocus,
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                prefixIcon: widget.prefixIcon != null
-                    ? Icon(widget.prefixIcon)
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                ),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerLowest,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingL,
-                  vertical: AppDimens.paddingM,
-                ),
-                counterText: '',
-              ),
+              hint: widget.hintText,
+              prefixIcon: widget.prefixIcon,
               keyboardType: widget.keyboardType,
               obscureText: widget.obscureText,
               inputFormatters: widget.inputFormatters,
@@ -137,46 +227,34 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
               maxLength: widget.maxLength,
               maxLines: widget.maxLines,
               textCapitalization: widget.textCapitalization,
-              onChanged: (_) => _validateInput(),
+              // onChanged: (_) => _validateInput(), // Form validation handles this
+              fillColor: colorScheme.surfaceContainerLowest,
+              // Consistent with dialog background
+              borderColor: colorScheme.outlineVariant,
+              focusedBorderColor: colorScheme.primary,
             ),
           ],
         ),
       ),
       actions: [
-        TextButton(
+        SLButton(
+          text: widget.cancelText,
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            widget.cancelText,
-            style: TextStyle(color: colorScheme.onSurfaceVariant),
-          ),
+          type: SLButtonType.text,
+          textColor: colorScheme.onSurfaceVariant,
         ),
-        FilledButton(
-          onPressed: _isValid
-              ? () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    Navigator.of(context).pop(_controller.text);
-                  }
-                }
-              : null,
-          style: FilledButton.styleFrom(
-            backgroundColor: widget.isDanger
-                ? colorScheme.error
-                : colorScheme.primary,
-            foregroundColor: widget.isDanger
-                ? colorScheme.onError
-                : colorScheme.onPrimary,
-            disabledBackgroundColor: colorScheme.surfaceContainerHighest,
-            disabledForegroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.38,
-            ),
-          ),
-          child: Text(widget.confirmText),
+        SLButton(
+          text: widget.confirmText,
+          onPressed: () {
+            if (_formKey.currentState?.validate() ?? false) {
+              Navigator.of(context).pop(_controller.text);
+            }
+          },
+          type: widget.isDangerAction
+              ? SLButtonType.error
+              : SLButtonType.primary,
         ),
       ],
-      actionsPadding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingL,
-        vertical: AppDimens.paddingM,
-      ),
     );
   }
 
@@ -195,11 +273,12 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
     String? Function(String?)? validator,
     int? maxLength,
     int maxLines = 1,
-    bool isDanger = false,
+    bool isDangerAction = false,
     IconData? prefixIcon,
     bool barrierDismissible = true,
     bool autofocus = true,
     TextCapitalization textCapitalization = TextCapitalization.none,
+    AutovalidateMode autovalidateMode = AutovalidateMode.onUserInteraction,
   }) {
     return showDialog<String>(
       context: context,
@@ -217,86 +296,13 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
         validator: validator,
         maxLength: maxLength,
         maxLines: maxLines,
-        isDanger: isDanger,
+        isDangerAction: isDangerAction,
         prefixIcon: prefixIcon,
         barrierDismissible: barrierDismissible,
         autofocus: autofocus,
         textCapitalization: textCapitalization,
+        autovalidateMode: autovalidateMode,
       ),
-    );
-  }
-
-  /// Convenience method to show a name input dialog
-  static Future<String?> showNameInput(
-    BuildContext context, {
-    String title = 'Enter Name',
-    String? initialValue,
-    String confirmText = 'Save',
-  }) {
-    return show(
-      context,
-      title: title,
-      initialValue: initialValue,
-      hintText: 'Name',
-      confirmText: confirmText,
-      prefixIcon: Icons.person,
-      keyboardType: TextInputType.name,
-      textCapitalization: TextCapitalization.words,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Name cannot be empty';
-        }
-        return null;
-      },
-    );
-  }
-
-  /// Convenience method to show a password input dialog
-  static Future<String?> showPasswordInput(
-    BuildContext context, {
-    String title = 'Enter Password',
-    String confirmText = 'Submit',
-  }) {
-    return show(
-      context,
-      title: title,
-      hintText: 'Password',
-      confirmText: confirmText,
-      prefixIcon: Icons.lock,
-      obscureText: true,
-      validator: (value) {
-        if (value == null || value.length < 6) {
-          return 'Password must be at least 6 characters';
-        }
-        return null;
-      },
-    );
-  }
-
-  /// Convenience method to show a number input dialog
-  static Future<String?> showNumberInput(
-    BuildContext context, {
-    String title = 'Enter Number',
-    String? initialValue,
-    String confirmText = 'Submit',
-    int? maxLength,
-  }) {
-    return show(
-      context,
-      title: title,
-      initialValue: initialValue,
-      hintText: 'Number',
-      confirmText: confirmText,
-      keyboardType: TextInputType.number,
-      prefixIcon: Icons.numbers,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      maxLength: maxLength,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Number cannot be empty';
-        }
-        return null;
-      },
     );
   }
 }

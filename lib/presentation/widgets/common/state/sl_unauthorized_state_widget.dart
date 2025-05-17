@@ -1,7 +1,8 @@
-// lib/presentation/widgets/common/states/sl_unauthorized_state_widget.dart
+// lib/presentation/widgets/common/state/sl_unauthorized_state_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
 
 class SlUnauthorizedStateWidget extends ConsumerWidget {
   final String title;
@@ -11,7 +12,7 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
   final String? secondaryButtonText;
   final VoidCallback? onSecondaryButtonPressed;
   final bool showIcon;
-  final IconData? customIcon;
+  final IconData icon; // Changed from customIcon to icon for consistency
 
   const SlUnauthorizedStateWidget({
     super.key,
@@ -22,8 +23,77 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
     this.secondaryButtonText,
     this.onSecondaryButtonPressed,
     this.showIcon = true,
-    this.customIcon,
+    this.icon = Icons.lock_outline_rounded, // Default icon
   });
+
+  // Factory constructor for session expired state
+  factory SlUnauthorizedStateWidget.sessionExpired({
+    required VoidCallback onLoginAgain,
+    String title = 'Session Expired',
+    String message =
+        'Your session has expired. Please log in again to continue.',
+  }) {
+    return SlUnauthorizedStateWidget(
+      title: title,
+      message: message,
+      primaryButtonText: 'Login Again',
+      onPrimaryButtonPressed: onLoginAgain,
+      icon: Icons.refresh_rounded, // More fitting icon for session expiry
+    );
+  }
+
+  // Factory constructor for login required state
+  factory SlUnauthorizedStateWidget.requiresLogin({
+    required VoidCallback onLogin,
+    VoidCallback? onGoBack,
+    String title = 'Login Required',
+    String message = 'You need to be logged in to access this feature.',
+    String primaryButtonText = 'Login',
+    String? secondaryButtonText,
+  }) {
+    return SlUnauthorizedStateWidget(
+      title: title,
+      message: message,
+      primaryButtonText: primaryButtonText,
+      onPrimaryButtonPressed: onLogin,
+      secondaryButtonText: onGoBack != null
+          ? (secondaryButtonText ?? 'Go Back')
+          : null,
+      onSecondaryButtonPressed: onGoBack,
+      icon: Icons.login_rounded,
+    );
+  }
+
+  // Factory constructor for insufficient permissions state
+  factory SlUnauthorizedStateWidget.insufficientPermissions({
+    VoidCallback? onRequestAccess, // Made optional
+    VoidCallback? onGoBack,
+    String title = 'Access Restricted',
+    String message = 'You don\'t have sufficient permissions for this action.',
+    String primaryButtonText = 'Go Back', // Changed default
+  }) {
+    // If onRequestAccess is null, the primary button should be 'Go Back' if onGoBack is provided.
+    // If both are null, the primary button might not be shown or have a generic text.
+    final bool hasRequestAccess = onRequestAccess != null;
+    final String effectivePrimaryText = hasRequestAccess
+        ? 'Request Access'
+        : primaryButtonText;
+    final VoidCallback effectivePrimaryAction = hasRequestAccess
+        ? onRequestAccess
+        : (onGoBack ?? () {});
+
+    return SlUnauthorizedStateWidget(
+      title: title,
+      message: message,
+      primaryButtonText: effectivePrimaryText,
+      onPrimaryButtonPressed: effectivePrimaryAction,
+      secondaryButtonText: hasRequestAccess && onGoBack != null
+          ? 'Go Back'
+          : null,
+      onSecondaryButtonPressed: hasRequestAccess ? onGoBack : null,
+      icon: Icons.no_accounts_outlined,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,13 +113,13 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
+                  color: colorScheme.errorContainer.withOpacity(0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  customIcon ?? Icons.lock_outline,
+                  icon,
                   size: AppDimens.iconXL,
-                  color: colorScheme.error,
+                  color: colorScheme.onErrorContainer,
                 ),
               ),
               const SizedBox(height: AppDimens.spaceXL),
@@ -71,72 +141,24 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimens.spaceXL),
-            ElevatedButton(
+            SLButton(
+              text: primaryButtonText,
               onPressed: onPrimaryButtonPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primaryContainer,
-                foregroundColor: colorScheme.onPrimaryContainer,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingXXL,
-                  vertical: AppDimens.paddingM,
-                ),
-                elevation: AppDimens.elevationS,
-              ),
-              child: Text(primaryButtonText),
+              type: SLButtonType
+                  .primary, // Or error if more fitting for unauthorized
             ),
             if (secondaryButtonText != null &&
                 onSecondaryButtonPressed != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              TextButton(
+              SLButton(
+                text: secondaryButtonText!,
                 onPressed: onSecondaryButtonPressed,
-                child: Text(secondaryButtonText!),
+                type: SLButtonType.text,
               ),
             ],
           ],
         ),
       ),
-    );
-  }
-
-  // Factory constructors
-  factory SlUnauthorizedStateWidget.sessionExpired({
-    required VoidCallback onLoginAgain,
-  }) {
-    return SlUnauthorizedStateWidget(
-      title: 'Session Expired',
-      message: 'Your session has expired. Please log in again to continue.',
-      primaryButtonText: 'Login Again',
-      onPrimaryButtonPressed: onLoginAgain,
-      customIcon: Icons.access_time_filled,
-    );
-  }
-
-  factory SlUnauthorizedStateWidget.requiresLogin({
-    required VoidCallback onLogin,
-    VoidCallback? onGoBack,
-  }) {
-    return SlUnauthorizedStateWidget(
-      title: 'Login Required',
-      message: 'You need to be logged in to access this feature.',
-      primaryButtonText: 'Login',
-      onPrimaryButtonPressed: onLogin,
-      secondaryButtonText: onGoBack != null ? 'Go Back' : null,
-      onSecondaryButtonPressed: onGoBack,
-    );
-  }
-
-  factory SlUnauthorizedStateWidget.insufficientPermissions({
-    required VoidCallback onRequestAccess,
-    VoidCallback? onGoBack,
-  }) {
-    return SlUnauthorizedStateWidget(
-      title: 'Access Restricted',
-      message: 'You don\'t have sufficient permissions to access this content.',
-      primaryButtonText: 'Request Access',
-      onPrimaryButtonPressed: onRequestAccess,
-      secondaryButtonText: onGoBack != null ? 'Go Back' : null,
-      onSecondaryButtonPressed: onGoBack,
-      customIcon: Icons.no_accounts,
     );
   }
 }

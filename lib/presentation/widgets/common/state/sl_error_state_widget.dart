@@ -1,7 +1,8 @@
-// lib/presentation/widgets/common/states/sl_error_state_widget.dart
+// lib/presentation/widgets/common/state/sl_error_state_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
 
 class SlErrorStateWidget extends ConsumerWidget {
   final String title;
@@ -25,16 +26,78 @@ class SlErrorStateWidget extends ConsumerWidget {
     this.customAction,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final errorColor = accentColor ?? colorScheme.error;
+  // Factory constructor for network errors
+  factory SlErrorStateWidget.network({
+    VoidCallback? onRetry,
+    bool compact = false,
+    String? message,
+  }) {
+    return SlErrorStateWidget(
+      title: 'Network Error',
+      message:
+          message ??
+          'Failed to connect. Please check your connection and try again.',
+      icon: Icons.wifi_off_rounded,
+      onRetry: onRetry,
+      retryText: 'Try Again',
+      compact: compact,
+    );
+  }
 
-    if (compact) {
-      return _buildCompactError(theme, colorScheme, errorColor);
-    }
+  // Factory constructor for server errors
+  factory SlErrorStateWidget.serverError({
+    String? details,
+    VoidCallback? onRetry,
+    bool compact = false,
+  }) {
+    return SlErrorStateWidget(
+      title: 'Server Error',
+      message:
+          details ??
+          'Something went wrong on our end. We\'re working to fix it.',
+      icon: Icons.cloud_off_rounded,
+      onRetry: onRetry,
+      retryText: 'Try Again',
+      compact: compact,
+    );
+  }
 
+  // Factory constructor for custom errors
+  factory SlErrorStateWidget.custom({
+    required String title,
+    String? message,
+    IconData icon = Icons.error_outline,
+    VoidCallback? onRetry,
+    String? retryText = 'Try Again',
+    bool compact = false,
+    Color? accentColor,
+    Widget? customAction,
+  }) {
+    return SlErrorStateWidget(
+      title: title,
+      message: message,
+      icon: icon,
+      onRetry: onRetry,
+      retryText: retryText,
+      compact: compact,
+      accentColor: accentColor,
+      customAction: customAction,
+    );
+  }
+
+  Color _getContrastColor(Color backgroundColor, ColorScheme colorScheme) {
+    return backgroundColor.computeLuminance() > 0.5
+        ? colorScheme
+              .onSurface // Or a specific dark color
+        : colorScheme.surface; // Or a specific light color
+  }
+
+  Widget _buildFullError(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Color errorColor,
+  ) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimens.paddingXL),
@@ -45,7 +108,7 @@ class SlErrorStateWidget extends ConsumerWidget {
               width: AppDimens.iconXXL,
               height: AppDimens.iconXXL,
               decoration: BoxDecoration(
-                color: errorColor.withValues(alpha: 0.1),
+                color: errorColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: AppDimens.iconXL, color: errorColor),
@@ -71,18 +134,14 @@ class SlErrorStateWidget extends ConsumerWidget {
             ],
             if (onRetry != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              ElevatedButton.icon(
+              SLButton(
+                text: retryText ?? 'Try Again',
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: Text(retryText ?? 'Try Again'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingXL,
-                    vertical: AppDimens.paddingM,
-                  ),
-                  backgroundColor: errorColor,
-                  foregroundColor: _getContrastColor(errorColor),
-                ),
+                type: SLButtonType.primary,
+                // Or a specific error button type
+                backgroundColor: errorColor,
+                textColor: _getContrastColor(errorColor, colorScheme),
+                prefixIcon: Icons.refresh,
               ),
             ],
             if (customAction != null) ...[
@@ -96,12 +155,13 @@ class SlErrorStateWidget extends ConsumerWidget {
   }
 
   Widget _buildCompactError(
+    BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
     Color errorColor,
   ) {
     return Card(
-      color: errorColor.withValues(alpha: 0.08),
+      color: errorColor.withOpacity(0.08),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -109,7 +169,7 @@ class SlErrorStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: errorColor.withValues(alpha: 0.4)),
+        side: BorderSide(color: errorColor.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
@@ -148,6 +208,9 @@ class SlErrorStateWidget extends ConsumerWidget {
                 onPressed: onRetry,
                 style: TextButton.styleFrom(
                   foregroundColor: errorColor,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingS,
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
                 child: Text(retryText ?? 'Retry'),
@@ -158,60 +221,15 @@ class SlErrorStateWidget extends ConsumerWidget {
     );
   }
 
-  Color _getContrastColor(Color backgroundColor) {
-    return backgroundColor.computeLuminance() > 0.5
-        ? Colors.black
-        : Colors.white;
-  }
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final errorColor = accentColor ?? colorScheme.error;
 
-  // Factory constructors
-  factory SlErrorStateWidget.network({
-    VoidCallback? onRetry,
-    bool compact = false,
-  }) {
-    return SlErrorStateWidget(
-      title: 'Network Error',
-      message:
-          'Failed to connect to the server. Please check your connection and try again.',
-      icon: Icons.wifi_off_rounded,
-      onRetry: onRetry,
-      compact: compact,
-    );
-  }
-
-  factory SlErrorStateWidget.serverError({
-    String? details,
-    VoidCallback? onRetry,
-    bool compact = false,
-  }) {
-    return SlErrorStateWidget(
-      title: 'Server Error',
-      message:
-          details ??
-          'Something went wrong on our end. We\'re working to fix it.',
-      icon: Icons.cloud_off_rounded,
-      onRetry: onRetry,
-      compact: compact,
-    );
-  }
-
-  factory SlErrorStateWidget.custom({
-    required String title,
-    String? message,
-    IconData icon = Icons.error_outline,
-    VoidCallback? onRetry,
-    bool compact = false,
-    Color? accentColor,
-    Widget? customAction,
-  }) {
-    return SlErrorStateWidget(
-      title: title,
-      message: message,
-      icon: icon,
-      onRetry: onRetry,
-      compact: compact,
-      accentColor: accentColor,
-      customAction: customAction,
-    );
+    if (compact) {
+      return _buildCompactError(context, theme, colorScheme, errorColor);
+    }
+    return _buildFullError(context, theme, colorScheme, errorColor);
   }
 }

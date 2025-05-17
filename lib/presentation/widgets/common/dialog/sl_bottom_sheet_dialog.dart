@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
 
 /// A customizable bottom sheet dialog with Material 3 design principles.
 class SlBottomSheetDialog extends ConsumerWidget {
@@ -12,17 +13,20 @@ class SlBottomSheetDialog extends ConsumerWidget {
   final bool isDismissible;
   final bool enableDrag;
   final bool showCloseButton;
-  final double? maxHeight;
+  final double? maxHeightFraction; // Use fraction of screen height
   final EdgeInsetsGeometry padding;
-  final Widget? icon;
+  final Widget?
+  iconWidget; // Changed from IconData to Widget for more flexibility
   final bool useSafeArea;
   final bool showDivider;
   final BorderRadius? borderRadius;
   final ScrollController? scrollController;
   final bool isScrollControlled;
-  final Function(DragEndDetails)? onDragEnd;
+
+  // final Function(DragEndDetails)? onDragEnd; // Removed as it's part of showModalBottomSheet
   final Color? backgroundColor;
   final bool showDragHandle;
+  final bool expandToFullScreen; // New property
 
   const SlBottomSheetDialog({
     super.key,
@@ -33,162 +37,254 @@ class SlBottomSheetDialog extends ConsumerWidget {
     this.isDismissible = true,
     this.enableDrag = true,
     this.showCloseButton = true,
-    this.maxHeight,
+    this.maxHeightFraction = 0.85, // Default to 85% of screen height
     this.padding = const EdgeInsets.fromLTRB(
-      AppDimens.paddingL,
-      AppDimens.paddingL,
-      AppDimens.paddingL,
-      AppDimens.paddingL,
+      AppDimens.paddingL, // 16
+      AppDimens.paddingS, // 8 (for drag handle space)
+      AppDimens.paddingL, // 16
+      AppDimens.paddingL, // 16
     ),
-    this.icon,
-    this.useSafeArea = true,
+    this.iconWidget,
+    this.useSafeArea = true, // Default to true as per M3
     this.showDivider = true,
     this.borderRadius,
     this.scrollController,
-    this.isScrollControlled = true,
-    this.onDragEnd,
+    this.isScrollControlled = true, // Default to true for flexible height
+    // this.onDragEnd,
     this.backgroundColor,
     this.showDragHandle = true,
+    this.expandToFullScreen = false, // Default to not full screen
   });
+
+  // Factory for a simple message bottom sheet
+  factory SlBottomSheetDialog.message({
+    required String title,
+    required String message,
+    String closeButtonText = 'OK',
+    VoidCallback? onClose,
+    Widget? icon,
+  }) {
+    return SlBottomSheetDialog(
+      title: title,
+      message: message,
+      iconWidget: icon,
+      showCloseButton: false,
+      // Custom close button handling
+      actions: [
+        SLButton(
+          text: closeButtonText,
+          onPressed: onClose ?? () {},
+          // Needs context to pop, handle in show method
+          type: SLButtonType.primary,
+        ),
+      ],
+    );
+  }
+
+  // Factory for an action sheet
+  factory SlBottomSheetDialog.actionSheet({
+    String? title,
+    required List<Widget>
+    options, // Each option should be a tappable widget like ListTile or SLButton
+    Widget? cancelButton, // Optional custom cancel button
+  }) {
+    return SlBottomSheetDialog(
+      title: title,
+      content: ListView(
+        // Use ListView for scrollable options
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        children: options,
+      ),
+      actions: cancelButton != null ? [cancelButton] : null,
+      showCloseButton: title != null,
+      // Show close if title exists and no custom cancel
+      padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+    );
+  }
+
+  // Factory for a list view bottom sheet
+  factory SlBottomSheetDialog.list({
+    required String title,
+    required List<Widget> items, // Each item is a widget
+    bool showDividers = true,
+    ScrollController? scrollController,
+  }) {
+    return SlBottomSheetDialog(
+      title: title,
+      content: ListView.separated(
+        controller: scrollController,
+        shrinkWrap: true,
+        itemCount: items.length,
+        separatorBuilder: (context, index) => showDividers
+            ? const Divider(
+                height: 1,
+                indent: AppDimens.paddingL,
+                endIndent: AppDimens.paddingL,
+              )
+            : const SizedBox.shrink(),
+        itemBuilder: (context, index) => items[index],
+      ),
+      padding: const EdgeInsets.only(bottom: AppDimens.paddingL),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final mediaQuery = MediaQuery.of(context);
 
-    final effectiveBackgroundColor = backgroundColor ?? colorScheme.surface;
+    final effectiveBackgroundColor =
+        backgroundColor ?? colorScheme.surfaceContainerLow; // M3 surface color
 
     final effectiveBorderRadius =
         borderRadius ??
-        const BorderRadius.only(
-          topLeft: Radius.circular(AppDimens.radiusL),
-          topRight: Radius.circular(AppDimens.radiusL),
-        );
+        const BorderRadius.vertical(
+          top: Radius.circular(AppDimens.radiusXL),
+        ); // M3 like radius
 
-    return Container(
-      decoration: BoxDecoration(
-        color: effectiveBackgroundColor,
-        borderRadius: effectiveBorderRadius,
-      ),
-      constraints: BoxConstraints(
-        maxHeight: maxHeight ?? MediaQuery.of(context).size.height * 0.85,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (showDragHandle) ...[
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: AppDimens.paddingM),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(
-                      AppDimens.radiusCircular,
-                    ),
-                  ),
+    final double actualMaxHeight = expandToFullScreen
+        ? mediaQuery.size.height - (useSafeArea ? mediaQuery.padding.top : 0)
+        : mediaQuery.size.height * (maxHeightFraction ?? 0.85);
+
+    Widget mainContent = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showDragHandle)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: AppDimens.paddingM,
+                bottom: AppDimens.paddingS,
+              ),
+              child: Container(
+                width: AppDimens.paddingXXL + AppDimens.paddingS, // 32.0
+                height: AppDimens.paddingXXS * 2, // 4.0
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
                 ),
               ),
             ),
-          ],
-          if (title != null || showCloseButton) ...[
-            Padding(
-              padding: EdgeInsets.only(
-                left: padding.resolve(TextDirection.ltr).left,
-                right: padding.resolve(TextDirection.ltr).right,
-                top: showDragHandle
-                    ? AppDimens.paddingM
-                    : padding.resolve(TextDirection.ltr).top,
-                bottom: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+          ),
+        if (title != null || (showCloseButton && onClose != null))
+          Padding(
+            padding: EdgeInsets.only(
+              left: padding.resolve(TextDirection.ltr).left,
+              right: padding.resolve(TextDirection.ltr).right,
+              top: showDragHandle
+                  ? AppDimens.paddingXS
+                  : padding.resolve(TextDirection.ltr).top,
+              bottom: AppDimens.paddingS,
+            ),
+            child: Row(
+              children: [
+                if (iconWidget != null) ...[
+                  iconWidget!,
+                  const SizedBox(width: AppDimens.spaceS),
+                ],
+                if (title != null)
                   Expanded(
-                    child: Row(
-                      children: [
-                        if (icon != null) ...[
-                          icon!,
-                          const SizedBox(width: AppDimens.spaceM),
-                        ],
-                        if (title != null)
-                          Expanded(
-                            child: Text(
-                              title!,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
+                    child: Text(
+                      title!,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600, // M3 title
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                   ),
-                  if (showCloseButton)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      tooltip: 'Close',
-                    ),
-                ],
+                const Spacer(),
+                // Pushes close button to the right if title is short
+                if (showCloseButton && onClose != null)
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: onClose,
+                    tooltip: 'Close',
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+        if (showDivider && (title != null || message != null))
+          const Divider(height: 1, thickness: 1), // M3 divider
+        if (message != null)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: padding.resolve(TextDirection.ltr).left,
+              vertical: AppDimens.paddingM,
+            ),
+            child: Text(
+              message!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
-            if (showDivider) const Divider(height: AppDimens.spaceL),
-          ],
-          if (message != null)
-            Padding(
+          ),
+        if (content != null)
+          Flexible(
+            // Makes content scrollable if it overflows
+            child: SingleChildScrollView(
+              // Ensures scrollability
+              controller: scrollController,
               padding: EdgeInsets.only(
                 left: padding.resolve(TextDirection.ltr).left,
                 right: padding.resolve(TextDirection.ltr).right,
-                top: title != null
-                    ? AppDimens.paddingS
-                    : padding.resolve(TextDirection.ltr).top,
-                bottom: content != null
-                    ? AppDimens.paddingM
-                    : padding.resolve(TextDirection.ltr).bottom,
+                top: (title == null && message == null && !showDragHandle)
+                    ? padding.resolve(TextDirection.ltr).top
+                    : AppDimens.paddingS,
+                bottom: (actions == null || actions!.isEmpty)
+                    ? padding.resolve(TextDirection.ltr).bottom
+                    : AppDimens.paddingS,
               ),
-              child: Text(message!, style: theme.textTheme.bodyLarge),
+              child: content,
             ),
-          if (content != null)
-            Flexible(
-              child: Padding(
-                padding: title != null || message != null
-                    ? EdgeInsets.fromLTRB(
-                        padding.resolve(TextDirection.ltr).left,
-                        0,
-                        padding.resolve(TextDirection.ltr).right,
-                        actions != null
-                            ? 0
-                            : padding.resolve(TextDirection.ltr).bottom,
-                      )
-                    : padding,
-                child: content,
-              ),
+          ),
+        if (actions != null && actions!.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              padding.resolve(TextDirection.ltr).left,
+              AppDimens.paddingM,
+              padding.resolve(TextDirection.ltr).right,
+              padding.resolve(TextDirection.ltr).bottom +
+                  (useSafeArea ? mediaQuery.padding.bottom : 0),
             ),
-          if (actions != null && actions!.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                padding.resolve(TextDirection.ltr).left,
-                AppDimens.paddingM,
-                padding.resolve(TextDirection.ltr).right,
-                padding.resolve(TextDirection.ltr).bottom,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: actions!.map((action) {
-                  final index = actions!.indexOf(action);
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      left: index > 0 ? AppDimens.paddingM : 0,
-                    ),
-                    child: action,
-                  );
-                }).toList(),
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: actions!.asMap().entries.map((entry) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: entry.key > 0 ? AppDimens.spaceM : 0,
+                  ),
+                  child: entry.value,
+                );
+              }).toList(),
             ),
-        ],
+          ),
+      ],
+    );
+
+    return Material(
+      // Ensures Material theming is applied
+      type: MaterialType.transparency,
+      child: Container(
+        decoration: BoxDecoration(
+          color: effectiveBackgroundColor,
+          borderRadius: effectiveBorderRadius,
+          boxShadow: [
+            // M3 shadow
+            BoxShadow(
+              color: theme.shadowColor.withOpacity(0.1),
+              blurRadius: AppDimens.elevationS, // 2.0
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        constraints: BoxConstraints(maxHeight: actualMaxHeight),
+        child: useSafeArea
+            ? SafeArea(top: false, child: mainContent)
+            : mainContent,
       ),
     );
   }
@@ -203,26 +299,33 @@ class SlBottomSheetDialog extends ConsumerWidget {
     bool isDismissible = true,
     bool enableDrag = true,
     bool showCloseButton = true,
-    double? maxHeight,
+    double? maxHeightFraction = 0.85,
     EdgeInsetsGeometry? padding,
-    Widget? icon,
+    Widget? iconWidget,
     bool useSafeArea = true,
     bool showDivider = true,
     BorderRadius? borderRadius,
     ScrollController? scrollController,
     bool isScrollControlled = true,
-    Function(DragEndDetails)? onDragEnd,
     Color? backgroundColor,
     bool showDragHandle = true,
+    bool expandToFullScreen = false,
   }) {
+    VoidCallback? defaultOnClose = showCloseButton
+        ? () => Navigator.of(context).pop()
+        : null;
+
     return showModalBottomSheet<T>(
       context: context,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
-      useSafeArea: useSafeArea,
+      useSafeArea: false,
+      // SafeArea is handled inside SlBottomSheetDialog now
       backgroundColor: Colors.transparent,
+      // Make it transparent to see custom shape/color
       isScrollControlled: isScrollControlled,
-      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      // Handled by SlBottomSheetDialog's shadow
       builder: (context) => SlBottomSheetDialog(
         title: title,
         message: message,
@@ -231,91 +334,26 @@ class SlBottomSheetDialog extends ConsumerWidget {
         isDismissible: isDismissible,
         enableDrag: enableDrag,
         showCloseButton: showCloseButton,
-        maxHeight: maxHeight,
+        maxHeightFraction: maxHeightFraction,
         padding:
             padding ??
             const EdgeInsets.fromLTRB(
               AppDimens.paddingL,
-              AppDimens.paddingL,
+              AppDimens.paddingS,
               AppDimens.paddingL,
               AppDimens.paddingL,
             ),
-        icon: icon,
+        iconWidget: iconWidget,
         useSafeArea: useSafeArea,
         showDivider: showDivider,
         borderRadius: borderRadius,
         scrollController: scrollController,
         isScrollControlled: isScrollControlled,
-        onDragEnd: onDragEnd,
         backgroundColor: backgroundColor,
         showDragHandle: showDragHandle,
+        expandToFullScreen: expandToFullScreen,
+        onClose: defaultOnClose, // Pass the default close action
       ),
-    );
-  }
-
-  /// Convenience method to show an action sheet with options
-  static Future<T?> showActionSheet<T>(
-    BuildContext context, {
-    required String title,
-    String? message,
-    required List<Widget> options,
-    Widget? cancelButton,
-  }) {
-    return show<T>(
-      context,
-      title: title,
-      message: message,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: options.map((option) {
-          final index = options.indexOf(option);
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              option,
-              if (index < options.length - 1) const Divider(height: 1),
-            ],
-          );
-        }).toList(),
-      ),
-      actions: cancelButton != null ? [cancelButton] : null,
-      showDragHandle: true,
-    );
-  }
-
-  /// Convenience method to show a list in a bottom sheet
-  static Future<T?> showList<T>(
-    BuildContext context, {
-    required String title,
-    required List<Widget> items,
-    bool showDividers = true,
-  }) {
-    return show<T>(
-      context,
-      title: title,
-      content: ListView.separated(
-        shrinkWrap: true,
-        physics: const ClampingScrollPhysics(),
-        itemCount: items.length,
-        separatorBuilder: (context, index) =>
-            showDividers ? const Divider(height: 1) : const SizedBox.shrink(),
-        itemBuilder: (context, index) => items[index],
-      ),
-      showDragHandle: true,
-    );
-  }
-
-  /// Convenience method to show a menu with options
-  static Future<T?> showMenu<T>(
-    BuildContext context, {
-    String? title,
-    required List<ListTile> menuItems,
-  }) {
-    return show<T>(
-      context,
-      title: title,
-      content: Column(mainAxisSize: MainAxisSize.min, children: menuItems),
-      showDragHandle: true,
     );
   }
 }

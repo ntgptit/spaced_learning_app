@@ -1,8 +1,10 @@
 // lib/presentation/widgets/common/dialog/sl_date_picker_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+// Assuming color extensions are available for shades if needed
+// import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 
 /// A date picker dialog with Material 3 design and customizable options.
 class SlDatePickerDialog extends ConsumerWidget {
@@ -12,85 +14,159 @@ class SlDatePickerDialog extends ConsumerWidget {
   final String title;
   final String confirmText;
   final String cancelText;
-  final DateFormat? displayFormat;
-  final TextStyle? headerStyle;
+  final DatePickerEntryMode initialEntryMode;
+  final DatePickerMode initialDatePickerMode;
   final bool barrierDismissible;
-  final Color? headerColor;
-  final bool useShortWeekdays;
-  final bool useSlidingAnimation;
-  final bool useCompactLayout;
+  final Color?
+  headerBackgroundColor; // M3: use surface color or primary for header
+  final Color? headerForegroundColor; // M3: use onSurface or onPrimary
+  final String? helpText; // M3: helpText is usually the title
 
   const SlDatePickerDialog({
     super.key,
     required this.initialDate,
     required this.firstDate,
     required this.lastDate,
-    this.title = 'Select Date',
+    this.title = 'Select Date', // This will be used as helpText
     this.confirmText = 'OK',
-    this.cancelText = 'Cancel',
-    this.displayFormat,
-    this.headerStyle,
+    this.cancelText = 'CANCEL', // M3 usually uses uppercase for text buttons
+    this.initialEntryMode = DatePickerEntryMode.calendar,
+    this.initialDatePickerMode = DatePickerMode.day,
     this.barrierDismissible = true,
-    this.headerColor,
-    this.useShortWeekdays = false,
-    this.useSlidingAnimation = true,
-    this.useCompactLayout = false,
+    this.headerBackgroundColor,
+    this.headerForegroundColor,
+    this.helpText, // If provided, overrides title for helpText
   });
+
+  // Factory for picking a generic date
+  factory SlDatePickerDialog.pickDate({
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+    String title = 'Select Date',
+  }) {
+    return SlDatePickerDialog(
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      title: title,
+    );
+  }
+
+  // Factory for picking a birth date (past dates)
+  factory SlDatePickerDialog.pickBirthDate({
+    DateTime? initialDate,
+    String title = 'Select Date of Birth',
+  }) {
+    final now = DateTime.now();
+    return SlDatePickerDialog(
+      initialDate: initialDate ?? now.subtract(const Duration(days: 365 * 18)),
+      // Default to 18 years ago
+      firstDate: DateTime(1900),
+      lastDate: now,
+      title: title,
+      initialDatePickerMode:
+          DatePickerMode.year, // Often useful for birth dates
+    );
+  }
+
+  // Factory for picking a future date
+  factory SlDatePickerDialog.pickFutureDate({
+    DateTime? initialDate,
+    String title = 'Select Future Date',
+    DateTime? firstAvailableDate,
+    int maxYearsInFuture = 5,
+  }) {
+    final now = DateTime.now();
+    return SlDatePickerDialog(
+      initialDate: initialDate ?? now.add(const Duration(days: 1)),
+      firstDate: firstAvailableDate ?? now,
+      lastDate: DateTime(now.year + maxYearsInFuture, now.month, now.day),
+      title: title,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Create the date picker theme
+    // M3 DatePickerTheme
     final datePickerTheme = DatePickerThemeData(
-      backgroundColor: colorScheme.surface,
-      headerBackgroundColor: headerColor ?? colorScheme.primary,
-      headerForegroundColor: colorScheme.onPrimary,
-      dayBackgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.selected)) {
-          return colorScheme.primary;
-        }
-        return colorScheme.surfaceContainerLowest;
-      }),
-      dayForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.selected)) {
+      backgroundColor: colorScheme.surfaceContainerHigh,
+      // M3 dialog background
+      headerBackgroundColor: headerBackgroundColor ?? colorScheme.primary,
+      headerForegroundColor: headerForegroundColor ?? colorScheme.onPrimary,
+      headerHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(
+        // M3 header style
+        color: headerForegroundColor ?? colorScheme.onPrimary,
+      ),
+      headerHelpStyle: theme.textTheme.titleLarge?.copyWith(
+        // M3 help text style
+        color: headerForegroundColor ?? colorScheme.onPrimary,
+      ),
+      weekdayStyle: theme.textTheme.bodySmall?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
+      dayStyle: theme.textTheme.bodyLarge?.copyWith(
+        color: colorScheme.onSurface,
+      ),
+      dayForegroundColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
           return colorScheme.onPrimary;
         }
-        if (states.contains(WidgetState.disabled)) {
-          return colorScheme.onSurface.withValues(alpha: 0.38);
+        if (states.contains(MaterialState.disabled)) {
+          return colorScheme.onSurface.withOpacity(0.38);
         }
         return colorScheme.onSurface;
       }),
-      todayBackgroundColor: WidgetStateProperty.all(
-        colorScheme.primaryContainer.withValues(alpha: 0.5),
-      ),
-      todayForegroundColor: WidgetStateProperty.all(
-        colorScheme.onPrimaryContainer,
-      ),
-      yearBackgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.selected)) {
+      dayBackgroundColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
           return colorScheme.primary;
         }
-        return colorScheme.surfaceContainerLowest;
+        // Potentially add today's date highlight if needed, M3 handles this well by default
+        return Colors.transparent; // Default, let M3 handle other states
       }),
-      yearForegroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.selected)) {
+      yearStyle: theme.textTheme.bodyLarge?.copyWith(
+        color: colorScheme.onSurface,
+      ),
+      yearForegroundColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
           return colorScheme.onPrimary;
         }
         return colorScheme.onSurface;
       }),
+      yearBackgroundColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
+          return colorScheme.primary;
+        }
+        return Colors.transparent;
+      }),
+      todayBorder: BorderSide(color: colorScheme.primary),
+      todayForegroundColor: MaterialStateProperty.all<Color>(
+        colorScheme.primary,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      headerHeadlineStyle:
-          headerStyle ??
-          theme.textTheme.headlineMedium?.copyWith(
-            color: colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-      dayStyle: theme.textTheme.bodyLarge,
-      yearStyle: theme.textTheme.bodyLarge,
+      // M3 dialog shape
+      elevation: AppDimens.elevationM,
+      // M3 dialog elevation
+      cancelButtonStyle: TextButton.styleFrom(
+        foregroundColor: colorScheme.primary,
+      ),
+      confirmButtonStyle: FilledButton.styleFrom(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+      ),
     );
 
     return Theme(
@@ -99,12 +175,12 @@ class SlDatePickerDialog extends ConsumerWidget {
         initialDate: initialDate,
         firstDate: firstDate,
         lastDate: lastDate,
-        initialEntryMode: useCompactLayout
-            ? DatePickerEntryMode.calendarOnly
-            : DatePickerEntryMode.calendar,
-        helpText: title,
+        helpText: helpText ?? title.toUpperCase(),
+        // M3 help text is often uppercase
         confirmText: confirmText,
         cancelText: cancelText,
+        initialEntryMode: initialEntryMode,
+        initialDatePickerMode: initialDatePickerMode,
       ),
     );
   }
@@ -112,116 +188,37 @@ class SlDatePickerDialog extends ConsumerWidget {
   /// Show the date picker dialog
   static Future<DateTime?> show(
     BuildContext context, {
-    DateTime? initialDate,
-    DateTime? firstDate,
-    DateTime? lastDate,
-    String title = 'Select Date',
-    String confirmText = 'OK',
-    String cancelText = 'Cancel',
-    DateFormat? displayFormat,
-    TextStyle? headerStyle,
-    bool barrierDismissible = true,
-    Color? headerColor,
-    bool useShortWeekdays = false,
-    bool useSlidingAnimation = true,
-    bool useCompactLayout = false,
-  }) async {
-    final now = DateTime.now();
-    final effectiveInitialDate = initialDate ?? now;
-    final effectiveFirstDate =
-        firstDate ?? DateTime(effectiveInitialDate.year - 5, 1, 1);
-    final effectiveLastDate =
-        lastDate ?? DateTime(effectiveInitialDate.year + 5, 12, 31);
-
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final DateTime? selectedDate = await showDialog<DateTime>(
-      context: context,
-      barrierDismissible: barrierDismissible,
-      barrierColor: Colors.black54,
-      builder: (BuildContext context) {
-        return Theme(
-          data: theme.copyWith(
-            colorScheme: colorScheme.copyWith(surface: colorScheme.surface),
-          ),
-          child: SlDatePickerDialog(
-            initialDate: effectiveInitialDate,
-            firstDate: effectiveFirstDate,
-            lastDate: effectiveLastDate,
-            title: title,
-            confirmText: confirmText,
-            cancelText: cancelText,
-            displayFormat: displayFormat,
-            headerStyle: headerStyle,
-            headerColor: headerColor,
-            useShortWeekdays: useShortWeekdays,
-            useSlidingAnimation: useSlidingAnimation,
-            useCompactLayout: useCompactLayout,
-          ),
-        );
-      },
-    );
-
-    return selectedDate;
-  }
-
-  /// Convenience method to pick a date in a range
-  static Future<DateTime?> pickDateInRange(
-    BuildContext context, {
-    DateTime? initialDate,
+    required DateTime initialDate,
     required DateTime firstDate,
     required DateTime lastDate,
     String title = 'Select Date',
-  }) {
-    return show(
-      context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
-      title: title,
-      displayFormat: DateFormat.yMMMMd(),
-    );
-  }
-
-  /// Convenience method to pick a birth date
-  static Future<DateTime?> pickBirthDate(
-    BuildContext context, {
-    DateTime? initialDate,
-    String title = 'Date of Birth',
-  }) {
-    final now = DateTime.now();
-    final defaultDate =
-        initialDate ?? now.subtract(const Duration(days: 365 * 18));
-    final firstDate = DateTime(1900);
-
-    return show(
-      context,
-      initialDate: defaultDate,
-      firstDate: firstDate,
-      lastDate: now,
-      title: title,
-      headerColor: Theme.of(context).colorScheme.tertiary,
-    );
-  }
-
-  /// Convenience method to pick a future date
-  static Future<DateTime?> pickFutureDate(
-    BuildContext context, {
-    DateTime? initialDate,
-    String title = 'Select Future Date',
-    int maxDaysInFuture = 365,
-  }) {
-    final now = DateTime.now();
-    final defaultDate = initialDate ?? now.add(const Duration(days: 1));
-
-    return show(
-      context,
-      initialDate: defaultDate,
-      firstDate: now,
-      lastDate: now.add(Duration(days: maxDaysInFuture)),
-      title: title,
-      headerColor: Theme.of(context).colorScheme.secondary,
+    String confirmText = 'OK',
+    String cancelText = 'CANCEL',
+    DatePickerEntryMode initialEntryMode = DatePickerEntryMode.calendar,
+    DatePickerMode initialDatePickerMode = DatePickerMode.day,
+    bool barrierDismissible = true,
+    Color? headerBackgroundColor,
+    Color? headerForegroundColor,
+    String? helpText,
+  }) async {
+    return showDialog<DateTime>(
+      context: context,
+      barrierDismissible: barrierDismissible,
+      builder: (BuildContext context) {
+        return SlDatePickerDialog(
+          initialDate: initialDate,
+          firstDate: firstDate,
+          lastDate: lastDate,
+          title: title,
+          confirmText: confirmText,
+          cancelText: cancelText,
+          initialEntryMode: initialEntryMode,
+          initialDatePickerMode: initialDatePickerMode,
+          headerBackgroundColor: headerBackgroundColor,
+          headerForegroundColor: headerForegroundColor,
+          helpText: helpText,
+        );
+      },
     );
   }
 }

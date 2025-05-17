@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
 
 /// A confirmation dialog with customizable title, content, and action buttons.
 class SlConfirmDialog extends ConsumerWidget {
@@ -9,11 +10,14 @@ class SlConfirmDialog extends ConsumerWidget {
   final String message;
   final String confirmText;
   final String cancelText;
-  final VoidCallback? onConfirm;
-  final VoidCallback? onCancel;
+  final VoidCallback? onConfirm; // Made optional, default will pop true
+  final VoidCallback? onCancel; // Made optional, default will pop false
   final bool isDanger;
   final bool barrierDismissible;
   final IconData? icon;
+  final Color? iconColor; // Added for icon color customization
+  final Color? confirmButtonColor; // Added for confirm button color
+  final Color? cancelButtonColor; // Added for cancel button text color
 
   const SlConfirmDialog({
     super.key,
@@ -26,78 +30,173 @@ class SlConfirmDialog extends ConsumerWidget {
     this.isDanger = false,
     this.barrierDismissible = true,
     this.icon,
+    this.iconColor,
+    this.confirmButtonColor,
+    this.cancelButtonColor,
   });
+
+  // Factory constructor for a standard confirmation
+  factory SlConfirmDialog.standard({
+    required String title,
+    required String message,
+    String confirmText = 'Confirm',
+    String cancelText = 'Cancel',
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+    IconData icon = Icons.help_outline_rounded,
+  }) {
+    return SlConfirmDialog(
+      title: title,
+      message: message,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+      isDanger: false,
+      icon: icon,
+    );
+  }
+
+  // Factory constructor for a delete confirmation (dangerous action)
+  factory SlConfirmDialog.delete({
+    required String title,
+    required String message,
+    String confirmText = 'Delete',
+    String cancelText = 'Cancel',
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+  }) {
+    return SlConfirmDialog(
+      title: title,
+      message: message,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+      isDanger: true,
+      icon: Icons.delete_outline_rounded,
+    );
+  }
+
+  // Factory constructor for a warning confirmation
+  factory SlConfirmDialog.warning({
+    required String title,
+    required String message,
+    String confirmText = 'Continue',
+    String cancelText = 'Cancel',
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+  }) {
+    return SlConfirmDialog(
+      title: title,
+      message: message,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+      isDanger: false,
+      // Warnings are not necessarily "danger" like delete
+      icon: Icons.warning_amber_rounded,
+      iconColor: Colors.orange,
+      // Example specific color for warning
+      confirmButtonColor: Colors.orange, // Example specific color for warning
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
+    final effectiveIconColor =
+        iconColor ?? (isDanger ? colorScheme.error : colorScheme.primary);
+    final effectiveConfirmButtonColor =
+        confirmButtonColor ??
+        (isDanger ? colorScheme.error : colorScheme.primary);
+    final effectiveConfirmButtonTextColor =
+        effectiveConfirmButtonColor.computeLuminance() > 0.5
+        ? colorScheme.onSurface
+        : colorScheme.surface;
+    final effectiveCancelButtonColor =
+        cancelButtonColor ?? colorScheme.onSurfaceVariant;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL), // M3 radius
       ),
-      backgroundColor: colorScheme.surface,
-      title: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(
+      backgroundColor: colorScheme.surfaceContainerLowest,
+      // M3 surface color
+      surfaceTintColor: colorScheme.surfaceTint,
+      // M3 surface tint
+      iconPadding: const EdgeInsets.only(
+        top: AppDimens.paddingL,
+        bottom: AppDimens.paddingS,
+      ),
+      icon: icon != null
+          ? Icon(
               icon,
-              color: isDanger ? colorScheme.error : colorScheme.primary,
-              size: AppDimens.iconM,
-            ),
-            const SizedBox(width: AppDimens.spaceM),
-          ],
-          Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isDanger ? colorScheme.error : null,
-              ),
-            ),
-          ),
-        ],
+              color: effectiveIconColor,
+              size: AppDimens.iconL, // Consistent icon size
+            )
+          : null,
+      titlePadding: const EdgeInsets.fromLTRB(
+        AppDimens.paddingL,
+        AppDimens.paddingM,
+        AppDimens.paddingL,
+        AppDimens.paddingS,
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(
+        AppDimens.paddingL,
+        AppDimens.paddingS,
+        AppDimens.paddingL,
+        AppDimens.paddingL,
+      ),
+      actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      actionsAlignment: MainAxisAlignment.end,
+
+      title: Text(
+        title,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          // M3 headline
+          fontWeight: FontWeight.w600,
+          color: isDanger ? colorScheme.error : colorScheme.onSurface,
+        ),
+        textAlign: icon != null ? TextAlign.center : TextAlign.start,
       ),
       content: Text(
         message,
-        style: theme.textTheme.bodyLarge,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ), // M3 body
+        textAlign: icon != null ? TextAlign.center : TextAlign.start,
       ),
       actions: [
-        TextButton(
+        SLButton(
+          text: cancelText,
           onPressed: () {
             if (onCancel != null) {
               onCancel!();
             } else {
-              Navigator.of(context).pop(false);
+              Navigator.of(context).pop(false); // Default cancel action
             }
           },
-          child: Text(
-            cancelText,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
+          type: SLButtonType.text,
+          textColor: effectiveCancelButtonColor,
         ),
-        FilledButton(
+        SLButton(
+          text: confirmText,
           onPressed: () {
             if (onConfirm != null) {
               onConfirm!();
             } else {
-              Navigator.of(context).pop(true);
+              Navigator.of(context).pop(true); // Default confirm action
             }
           },
-          style: FilledButton.styleFrom(
-            backgroundColor: isDanger ? colorScheme.error : colorScheme.primary,
-            foregroundColor: isDanger ? colorScheme.onError : colorScheme.onPrimary,
-          ),
-          child: Text(confirmText),
+          type: isDanger ? SLButtonType.error : SLButtonType.primary,
+          backgroundColor: effectiveConfirmButtonColor,
+          textColor: effectiveConfirmButtonTextColor,
         ),
       ],
-      actionsPadding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingL,
-        vertical: AppDimens.paddingM,
-      ),
     );
   }
 
@@ -113,6 +212,9 @@ class SlConfirmDialog extends ConsumerWidget {
     bool isDanger = false,
     bool barrierDismissible = true,
     IconData? icon,
+    Color? iconColor,
+    Color? confirmButtonColor,
+    Color? cancelButtonColor,
   }) {
     return showDialog<bool>(
       context: context,
@@ -125,54 +227,12 @@ class SlConfirmDialog extends ConsumerWidget {
         onConfirm: onConfirm,
         onCancel: onCancel,
         isDanger: isDanger,
+        barrierDismissible: barrierDismissible,
         icon: icon,
+        iconColor: iconColor,
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: cancelButtonColor,
       ),
-    );
-  }
-
-  /// Convenience method to show a delete confirmation dialog
-  static Future<bool?> showDeleteConfirmation(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String confirmText = 'Delete',
-    String cancelText = 'Cancel',
-    VoidCallback? onConfirm,
-    VoidCallback? onCancel,
-  }) {
-    return show(
-      context,
-      title: title,
-      message: message,
-      confirmText: confirmText,
-      cancelText: cancelText,
-      onConfirm: onConfirm,
-      onCancel: onCancel,
-      isDanger: true,
-      icon: Icons.delete,
-    );
-  }
-
-  /// Convenience method to show a warning confirmation dialog
-  static Future<bool?> showWarningConfirmation(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String confirmText = 'Continue',
-    String cancelText = 'Cancel',
-    VoidCallback? onConfirm,
-    VoidCallback? onCancel,
-  }) {
-    return show(
-      context,
-      title: title,
-      message: message,
-      confirmText: confirmText,
-      cancelText: cancelText,
-      onConfirm: onConfirm,
-      onCancel: onCancel,
-      isDanger: false,
-      icon: Icons.warning_amber_rounded,
     );
   }
 }

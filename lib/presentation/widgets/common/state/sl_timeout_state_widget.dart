@@ -1,8 +1,8 @@
-// lib/presentation/widgets/common/states/sl_timeout_state_widget.dart
+// lib/presentation/widgets/common/state/sl_timeout_state_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
 
 class SlTimeoutStateWidget extends ConsumerWidget {
   final String title;
@@ -11,32 +11,82 @@ class SlTimeoutStateWidget extends ConsumerWidget {
   final String retryButtonText;
   final VoidCallback? onCancel;
   final String? cancelButtonText;
-  final bool isService;
-  final Duration? timeout;
+  final bool isServiceTimeout; // Renamed for clarity
+  final Duration? timeoutDuration; // Renamed for clarity
   final bool compact;
+  final IconData icon;
 
   const SlTimeoutStateWidget({
     super.key,
     this.title = 'Request Timeout',
-    this.message = 'The operation is taking longer than expected.',
+    this.message =
+        'The operation is taking longer than expected. Please try again.',
     required this.onRetry,
     this.retryButtonText = 'Try Again',
     this.onCancel,
     this.cancelButtonText,
-    this.isService = false,
-    this.timeout,
+    this.isServiceTimeout = false,
+    this.timeoutDuration,
     this.compact = false,
+    this.icon = Icons.timer_off_outlined,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  // Factory constructor for network request timeouts
+  factory SlTimeoutStateWidget.networkRequest({
+    required VoidCallback onRetry,
+    VoidCallback? onCancel,
+    String? message,
+    Duration? timeout,
+    bool compact = false,
+  }) {
+    return SlTimeoutStateWidget(
+      title: 'Network Timeout',
+      message:
+          message ??
+          'The connection to our servers timed out. Please check your internet connection and try again.',
+      onRetry: onRetry,
+      retryButtonText: 'Retry',
+      onCancel: onCancel,
+      cancelButtonText: onCancel != null ? 'Cancel' : null,
+      isServiceTimeout: false,
+      timeoutDuration: timeout,
+      compact: compact,
+      icon: Icons.signal_wifi_statusbar_connected_no_internet_4_outlined,
+    );
+  }
 
-    if (compact) {
-      return _buildCompactTimeout(theme, colorScheme);
-    }
+  // Factory constructor for slow process timeouts
+  factory SlTimeoutStateWidget.slowProcess({
+    required VoidCallback onRetry,
+    VoidCallback? onCancel,
+    String? processName,
+    String? message,
+    bool compact = false,
+  }) {
+    final effectiveMessage =
+        message ??
+        (processName != null
+            ? 'The $processName process is taking longer than expected. You can wait or try again.'
+            : 'This process is taking longer than expected. You can wait or try again.');
 
+    return SlTimeoutStateWidget(
+      title: 'Process Timeout',
+      message: effectiveMessage,
+      onRetry: onRetry,
+      retryButtonText: 'Retry Process',
+      onCancel: onCancel,
+      cancelButtonText: onCancel != null ? 'Cancel' : null,
+      isServiceTimeout: true,
+      compact: compact,
+      icon: Icons.hourglass_empty_rounded,
+    );
+  }
+
+  Widget _buildFullTimeout(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingXL),
@@ -49,13 +99,14 @@ class SlTimeoutStateWidget extends ConsumerWidget {
               width: AppDimens.iconXXL,
               height: AppDimens.iconXXL,
               decoration: BoxDecoration(
-                color: colorScheme.warning.withValues(alpha: 0.1),
+                color: colorScheme.tertiaryContainer.withOpacity(0.7),
+                // Using tertiary as warning-like
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isService ? Icons.pending_outlined : Icons.timer_off_outlined,
+                icon,
                 size: AppDimens.iconXL,
-                color: colorScheme.warning,
+                color: colorScheme.onTertiaryContainer,
               ),
             ),
             const SizedBox(height: AppDimens.spaceXL),
@@ -75,34 +126,31 @@ class SlTimeoutStateWidget extends ConsumerWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            if (timeout != null) ...[
+            if (timeoutDuration != null) ...[
               const SizedBox(height: AppDimens.spaceM),
               Text(
-                'Timeout after ${timeout!.inSeconds} seconds',
+                'Timeout occurred after ${timeoutDuration!.inSeconds} seconds.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.warning,
+                  color: colorScheme.tertiary, // Using tertiary for emphasis
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
             const SizedBox(height: AppDimens.spaceXL),
-            ElevatedButton.icon(
+            SLButton(
+              text: retryButtonText,
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text(retryButtonText),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.warning,
-                foregroundColor: colorScheme.onWarning,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingXL,
-                  vertical: AppDimens.paddingM,
-                ),
-              ),
+              type: SLButtonType.primary,
+              prefixIcon: Icons.refresh,
             ),
             if (cancelButtonText != null && onCancel != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              TextButton(onPressed: onCancel, child: Text(cancelButtonText!)),
+              SLButton(
+                text: cancelButtonText!,
+                onPressed: onCancel,
+                type: SLButtonType.text,
+              ),
             ],
           ],
         ),
@@ -110,9 +158,13 @@ class SlTimeoutStateWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildCompactTimeout(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildCompactTimeout(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Card(
-      color: colorScheme.warning.withValues(alpha: 0.08),
+      color: colorScheme.tertiaryContainer.withOpacity(0.15),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -120,17 +172,13 @@ class SlTimeoutStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: colorScheme.warning.withValues(alpha: 0.3)),
+        side: BorderSide(color: colorScheme.tertiary.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
         child: Row(
           children: [
-            Icon(
-              isService ? Icons.pending : Icons.timer_off,
-              color: colorScheme.warning,
-              size: AppDimens.iconM,
-            ),
+            Icon(icon, color: colorScheme.tertiary, size: AppDimens.iconM),
             const SizedBox(width: AppDimens.spaceM),
             Expanded(
               child: Column(
@@ -140,11 +188,12 @@ class SlTimeoutStateWidget extends ConsumerWidget {
                   Text(
                     title,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.warning,
+                      color: colorScheme.tertiary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   if (message.isNotEmpty) ...[
+                    // Check if message is not empty
                     const SizedBox(height: AppDimens.spaceXS),
                     Text(
                       message,
@@ -161,7 +210,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
             TextButton(
               onPressed: onRetry,
               style: TextButton.styleFrom(
-                foregroundColor: colorScheme.warning,
+                foregroundColor: colorScheme.tertiary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimens.paddingS,
                 ),
@@ -175,46 +224,14 @@ class SlTimeoutStateWidget extends ConsumerWidget {
     );
   }
 
-  // Factory constructors
-  factory SlTimeoutStateWidget.networkRequest({
-    required VoidCallback onRetry,
-    VoidCallback? onCancel,
-    Duration? timeout,
-    bool compact = false,
-  }) {
-    return SlTimeoutStateWidget(
-      title: 'Network Timeout',
-      message:
-          'The connection to our servers timed out. Please check your internet connection and try again.',
-      onRetry: onRetry,
-      retryButtonText: 'Try Again',
-      onCancel: onCancel,
-      cancelButtonText: onCancel != null ? 'Cancel' : null,
-      isService: false,
-      timeout: timeout,
-      compact: compact,
-    );
-  }
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-  factory SlTimeoutStateWidget.slowProcess({
-    required VoidCallback onRetry,
-    VoidCallback? onCancel,
-    String? processName,
-    bool compact = false,
-  }) {
-    final message = processName != null
-        ? 'The $processName process is taking longer than expected.'
-        : 'This process is taking longer than expected.';
-
-    return SlTimeoutStateWidget(
-      title: 'Process Timeout',
-      message: message,
-      onRetry: onRetry,
-      retryButtonText: 'Retry Process',
-      onCancel: onCancel,
-      cancelButtonText: onCancel != null ? 'Cancel' : null,
-      isService: true,
-      compact: compact,
-    );
+    if (compact) {
+      return _buildCompactTimeout(context, theme, colorScheme);
+    }
+    return _buildFullTimeout(context, theme, colorScheme);
   }
 }

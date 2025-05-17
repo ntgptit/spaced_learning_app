@@ -1,22 +1,25 @@
 // lib/presentation/widgets/common/dialog/sl_alert_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart'; // Assuming this contains success/warning/info extensions
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+
+enum AlertType { info, success, warning, error }
 
 /// An alert dialog with Material 3 design principles and customizable options.
 class SlAlertDialog extends ConsumerWidget {
   final String title;
   final String message;
-  final String? buttonText;
-  final VoidCallback? onButtonPressed;
+  final String? buttonText; // Made optional
+  final VoidCallback? onButtonPressed; // Made optional
   final IconData? icon;
   final AlertType alertType;
   final bool barrierDismissible;
   final bool autoDismiss;
   final Duration autoDismissDuration;
   final Widget? customContent;
-  final List<Widget>? actions;
+  final List<Widget>? actions; // Allow multiple actions
 
   const SlAlertDialog({
     super.key,
@@ -33,12 +36,121 @@ class SlAlertDialog extends ConsumerWidget {
     this.actions,
   });
 
+  // Factory constructor for a generic info alert
+  factory SlAlertDialog.info({
+    required String title,
+    required String message,
+    String buttonText = 'OK',
+    VoidCallback? onButtonPressed,
+    bool autoDismiss = false,
+  }) {
+    return SlAlertDialog(
+      title: title,
+      message: message,
+      buttonText: buttonText,
+      onButtonPressed: onButtonPressed,
+      alertType: AlertType.info,
+      icon: Icons.info_outline_rounded,
+      autoDismiss: autoDismiss,
+    );
+  }
+
+  // Factory constructor for a success alert
+  factory SlAlertDialog.success({
+    required String title,
+    required String message,
+    String buttonText = 'Great!',
+    VoidCallback? onButtonPressed,
+    bool autoDismiss = true, // Success messages often auto-dismiss
+    Duration autoDismissDuration = const Duration(seconds: 2),
+  }) {
+    return SlAlertDialog(
+      title: title,
+      message: message,
+      buttonText: buttonText,
+      onButtonPressed: onButtonPressed,
+      alertType: AlertType.success,
+      icon: Icons.check_circle_outline_rounded,
+      autoDismiss: autoDismiss,
+      autoDismissDuration: autoDismissDuration,
+    );
+  }
+
+  // Factory constructor for a warning alert
+  factory SlAlertDialog.warning({
+    required String title,
+    required String message,
+    String buttonText = 'Understood',
+    VoidCallback? onButtonPressed,
+    List<Widget>? actions, // Allow custom actions for warnings
+  }) {
+    return SlAlertDialog(
+      title: title,
+      message: message,
+      buttonText: actions == null ? buttonText : null,
+      // Only use buttonText if no custom actions
+      onButtonPressed: actions == null ? onButtonPressed : null,
+      alertType: AlertType.warning,
+      icon: Icons.warning_amber_rounded,
+      actions: actions,
+    );
+  }
+
+  // Factory constructor for an error alert
+  factory SlAlertDialog.error({
+    required String title,
+    required String message,
+    String buttonText = 'Dismiss',
+    VoidCallback? onButtonPressed,
+  }) {
+    return SlAlertDialog(
+      title: title,
+      message: message,
+      buttonText: buttonText,
+      onButtonPressed: onButtonPressed,
+      alertType: AlertType.error,
+      icon: Icons.error_outline_rounded,
+    );
+  }
+
+  IconData _getAlertIcon() {
+    switch (alertType) {
+      case AlertType.success:
+        return icon ?? Icons.check_circle_outline_rounded;
+      case AlertType.warning:
+        return icon ?? Icons.warning_amber_rounded;
+      case AlertType.error:
+        return icon ?? Icons.error_outline_rounded;
+      case AlertType.info:
+        return icon ?? Icons.info_outline_rounded;
+    }
+  }
+
+  Color _getAlertColor(ColorScheme colorScheme) {
+    switch (alertType) {
+      case AlertType.success:
+        return colorScheme.success; // From color_extensions
+      case AlertType.warning:
+        return colorScheme.warning; // From color_extensions
+      case AlertType.error:
+        return colorScheme.error;
+      case AlertType.info:
+        return colorScheme.primary;
+    }
+  }
+
+  Color _getAlertTextColor(ColorScheme colorScheme, Color alertColor) {
+    // Ensure good contrast
+    return alertColor.computeLuminance() > 0.5
+        ? colorScheme.onSurface
+        : colorScheme.surface;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Setup auto-dismissal if needed
     if (autoDismiss && context.mounted) {
       Future.delayed(autoDismissDuration, () {
         if (context.mounted) {
@@ -47,93 +159,98 @@ class SlAlertDialog extends ConsumerWidget {
       });
     }
 
-    // Get the alert color based on type
-    final Color alertColor = _getAlertColor(colorScheme);
+    final Color effectiveAlertColor = _getAlertColor(colorScheme);
+    final IconData effectiveIcon = _getAlertIcon();
+
+    List<Widget> dialogActions = actions ?? [];
+    if (dialogActions.isEmpty &&
+        buttonText != null &&
+        onButtonPressed != null) {
+      dialogActions.add(
+        SLButton(
+          text: buttonText!,
+          onPressed: onButtonPressed ?? () => Navigator.of(context).pop(),
+          type: alertType == AlertType.error || alertType == AlertType.warning
+              ? SLButtonType
+                    .primary // or a specific SLButtonType for error/warning
+              : SLButtonType.primary,
+          backgroundColor: effectiveAlertColor,
+          textColor: _getAlertTextColor(colorScheme, effectiveAlertColor),
+        ),
+      );
+    }
+    if (dialogActions.isEmpty &&
+        buttonText != null &&
+        onButtonPressed == null) {
+      dialogActions.add(
+        SLButton(
+          text: buttonText!,
+          onPressed: () => Navigator.of(context).pop(),
+          type: SLButtonType.text, // Default to text if no action
+        ),
+      );
+    }
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
       backgroundColor: colorScheme.surface,
-      title: Row(
-        children: [
-          if (icon != null || alertType != AlertType.info) ...[
-            Icon(
-              icon ?? _getAlertIcon(),
-              color: alertColor,
-              size: AppDimens.iconL,
-            ),
-            const SizedBox(width: AppDimens.spaceM),
-          ],
-          Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: alertType != AlertType.info ? alertColor : null,
-              ),
-            ),
-          ),
-        ],
+      surfaceTintColor: colorScheme.surfaceTint,
+      // M3 spec
+      titlePadding: const EdgeInsets.fromLTRB(
+        AppDimens.paddingL,
+        AppDimens.paddingL,
+        AppDimens.paddingL,
+        AppDimens.paddingS,
       ),
-      content: customContent ?? Text(message, style: theme.textTheme.bodyLarge),
-      actions:
-          actions ??
-          [
-            if (buttonText != null)
-              FilledButton(
-                onPressed: onButtonPressed ?? () => Navigator.of(context).pop(),
-                style: FilledButton.styleFrom(
-                  backgroundColor: alertColor,
-                  foregroundColor: _getAlertTextColor(colorScheme),
-                ),
-                child: Text(buttonText!),
-              ),
-          ],
+      contentPadding: EdgeInsets.fromLTRB(
+        AppDimens.paddingL,
+        AppDimens.paddingS,
+        AppDimens.paddingL,
+        (actions == null && buttonText == null)
+            ? AppDimens.paddingL
+            : AppDimens.paddingS,
+      ),
       actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      icon: Container(
+        padding: const EdgeInsets.all(AppDimens.paddingXS),
+        decoration: BoxDecoration(
+          color: effectiveAlertColor.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          effectiveIcon,
+          color: effectiveAlertColor,
+          size: AppDimens.iconL,
+        ),
+      ),
+      iconPadding: const EdgeInsets.only(
+        top: AppDimens.paddingL,
+        bottom: AppDimens.paddingS,
+      ),
+      title: Text(
+        title,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+        ),
+        textAlign: TextAlign.center,
+      ),
+      content:
+          customContent ??
+          Text(
+            message,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+      actionsAlignment: MainAxisAlignment.center,
+      // Center actions for single button
+      actionsOverflowButtonSpacing: AppDimens.spaceS,
+      actions: dialogActions.isNotEmpty ? dialogActions : null,
     );
-  }
-
-  /// Gets the appropriate icon for the alert type
-  IconData _getAlertIcon() {
-    switch (alertType) {
-      case AlertType.success:
-        return Icons.check_circle_outline;
-      case AlertType.warning:
-        return Icons.warning_amber_outlined;
-      case AlertType.error:
-        return Icons.error_outline;
-      case AlertType.info:
-        return Icons.info_outline;
-    }
-  }
-
-  /// Gets the appropriate color for the alert type
-  Color _getAlertColor(ColorScheme colorScheme) {
-    switch (alertType) {
-      case AlertType.success:
-        return colorScheme.success;
-      case AlertType.warning:
-        return colorScheme.warning;
-      case AlertType.error:
-        return colorScheme.error;
-      case AlertType.info:
-        return colorScheme.primary;
-    }
-  }
-
-  /// Gets the appropriate text color for the alert type
-  Color _getAlertTextColor(ColorScheme colorScheme) {
-    switch (alertType) {
-      case AlertType.success:
-        return colorScheme.onSuccess;
-      case AlertType.warning:
-        return colorScheme.onWarning;
-      case AlertType.error:
-        return colorScheme.onError;
-      case AlertType.info:
-        return colorScheme.onPrimary;
-    }
   }
 
   /// Show the alert dialog
@@ -141,7 +258,7 @@ class SlAlertDialog extends ConsumerWidget {
     BuildContext context, {
     required String title,
     required String message,
-    String? buttonText = 'OK',
+    String? buttonText,
     VoidCallback? onButtonPressed,
     IconData? icon,
     AlertType alertType = AlertType.info,
@@ -154,7 +271,6 @@ class SlAlertDialog extends ConsumerWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: barrierDismissible,
-      barrierColor: Colors.black54,
       builder: (BuildContext context) {
         return SlAlertDialog(
           title: title,
@@ -171,83 +287,4 @@ class SlAlertDialog extends ConsumerWidget {
       },
     );
   }
-
-  /// Convenience method to show a success alert
-  static Future<void> showSuccess(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? buttonText = 'OK',
-    VoidCallback? onButtonPressed,
-    bool autoDismiss = false,
-  }) {
-    return show(
-      context,
-      title: title,
-      message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
-      alertType: AlertType.success,
-      autoDismiss: autoDismiss,
-    );
-  }
-
-  /// Convenience method to show an error alert
-  static Future<void> showError(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? buttonText = 'OK',
-    VoidCallback? onButtonPressed,
-  }) {
-    return show(
-      context,
-      title: title,
-      message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
-      alertType: AlertType.error,
-    );
-  }
-
-  /// Convenience method to show a warning alert
-  static Future<void> showWarning(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? buttonText = 'OK',
-    VoidCallback? onButtonPressed,
-  }) {
-    return show(
-      context,
-      title: title,
-      message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
-      alertType: AlertType.warning,
-    );
-  }
-
-  /// Convenience method to show an info alert
-  static Future<void> showInfo(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? buttonText = 'OK',
-    VoidCallback? onButtonPressed,
-    bool autoDismiss = false,
-  }) {
-    return show(
-      context,
-      title: title,
-      message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
-      alertType: AlertType.info,
-      autoDismiss: autoDismiss,
-    );
-  }
 }
-
-/// Types of alerts to display with appropriate styling
-enum AlertType { info, success, warning, error }

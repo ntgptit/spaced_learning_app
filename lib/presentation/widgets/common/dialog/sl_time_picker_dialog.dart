@@ -1,100 +1,149 @@
 // lib/presentation/widgets/common/dialog/sl_time_picker_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+// Assuming color extensions for shades if needed
+// import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 
 /// A time picker dialog with Material 3 design and customizable options.
 class SlTimePickerDialog extends ConsumerWidget {
   final TimeOfDay initialTime;
-  final String title;
+  final String title; // Will be used as helpText in M3
   final String confirmText;
   final String cancelText;
   final bool barrierDismissible;
-  final Color? headerColor;
+  final Color? headerColor; // M3: use surfaceContainer or primary for header
+  final Color? headerForegroundColor; // M3: use onSurface or onPrimary
   final bool use24HourFormat;
-  final TextStyle? headerStyle;
+
+  // final TextStyle? headerStyle; // M3 uses helpTextStyle and headerHeadlineStyle from DatePickerThemeData
+  final TimePickerEntryMode initialEntryMode;
 
   const SlTimePickerDialog({
     super.key,
     required this.initialTime,
     this.title = 'Select Time',
     this.confirmText = 'OK',
-    this.cancelText = 'Cancel',
+    this.cancelText = 'CANCEL', // M3 uses uppercase
     this.barrierDismissible = true,
     this.headerColor,
+    this.headerForegroundColor,
     this.use24HourFormat = false,
-    this.headerStyle,
+    // this.headerStyle,
+    this.initialEntryMode = TimePickerEntryMode.dial,
   });
+
+  // Factory for a generic time picker
+  factory SlTimePickerDialog.pickTime({
+    required TimeOfDay initialTime,
+    String title = 'Select Time',
+  }) {
+    return SlTimePickerDialog(initialTime: initialTime, title: title);
+  }
+
+  // Factory for picking a reminder time
+  factory SlTimePickerDialog.pickReminderTime({
+    TimeOfDay? initialTime,
+    String title = 'Set Reminder Time',
+  }) {
+    return SlTimePickerDialog(
+      initialTime: initialTime ?? const TimeOfDay(hour: 9, minute: 0),
+      // Default 9 AM
+      title: title,
+      initialEntryMode:
+          TimePickerEntryMode.input, // Often easier for specific times
+    );
+  }
+
+  // Factory for picking a time with 24-hour format
+  factory SlTimePickerDialog.pick24HourTime({
+    required TimeOfDay initialTime,
+    String title = 'Select Time (24h)',
+  }) {
+    return SlTimePickerDialog(
+      initialTime: initialTime,
+      title: title,
+      use24HourFormat: true,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Create the time picker theme
-    final timePickerTheme = TimePickerThemeData(
-      backgroundColor: colorScheme.surface,
+    // M3 TimePickerTheme
+    final timePickerTheme = TimePickerTheme.of(context).copyWith(
+      backgroundColor: colorScheme.surfaceContainerHigh,
+      // M3 dialog background
       hourMinuteTextColor: colorScheme.onSurface,
-      hourMinuteColor: colorScheme.surfaceContainerHighest,
-      dayPeriodTextColor: colorScheme.onSurface,
-      dayPeriodColor: colorScheme.surfaceContainerHigh,
-      dialHandColor: colorScheme.primary,
-      dialBackgroundColor: colorScheme.surfaceContainerLowest,
-      // Correct implementation for dialTextColor
-      dialTextColor: WidgetStateColor.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) {
-          return colorScheme.onPrimary;
+      hourMinuteColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
+          return colorScheme.primaryContainer;
         }
-        return colorScheme.onSurface;
+        return colorScheme.surfaceContainerHighest; // Unselected state
       }),
-      entryModeIconColor: colorScheme.onSurface,
-      hourMinuteTextStyle: theme.textTheme.displayMedium?.copyWith(
-        fontWeight: FontWeight.bold,
+      dayPeriodTextColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
+          return colorScheme.onPrimaryContainer;
+        }
+        return colorScheme.onSurfaceVariant;
+      }),
+      dayPeriodColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
+          return colorScheme.primaryContainer;
+        }
+        return colorScheme.surfaceContainerHighest; // Unselected state
+      }),
+      dialHandColor: colorScheme.primary,
+      dialBackgroundColor: colorScheme.surfaceContainer,
+      // M3 dial background
+      dialTextColor: MaterialStateProperty.resolveWith<Color?>((
+        Set<MaterialState> states,
+      ) {
+        if (states.contains(MaterialState.selected)) {
+          return colorScheme.onPrimary; // Text on selected dial item
+        }
+        return colorScheme.onSurfaceVariant; // Text on unselected dial item
+      }),
+      entryModeIconColor: colorScheme.onSurfaceVariant,
+      hourMinuteTextStyle: theme.textTheme.displayLarge?.copyWith(
+        // M3 Hour/Minute style
+        fontWeight: FontWeight.normal,
+        color: colorScheme.onSurface,
       ),
-      dayPeriodTextStyle: theme.textTheme.titleMedium,
-      helpTextStyle: theme.textTheme.titleMedium?.copyWith(
-        color: headerColor ?? colorScheme.primary,
+      dayPeriodTextStyle: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w500,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+      helpTextStyle: theme.textTheme.labelLarge?.copyWith(
+        // M3 Help text (title)
+        color: headerForegroundColor ?? colorScheme.onSurfaceVariant,
+      ),
+      // Shape is handled by AlertDialog typically, but can be overridden
+      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimens.radiusL)),
+      cancelButtonStyle: TextButton.styleFrom(
+        foregroundColor: colorScheme.primary,
+      ),
+      confirmButtonStyle: FilledButton.styleFrom(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
       ),
     );
 
-    return Theme(
-      data: theme.copyWith(timePickerTheme: timePickerTheme),
-      child: TimePickerDialog(
-        initialTime: initialTime,
-        initialEntryMode: TimePickerEntryMode.dial,
-        helpText: title,
-        confirmText: confirmText,
-        cancelText: cancelText,
-      ),
-    );
-  }
-
-  /// Show the time picker dialog
-  static Future<TimeOfDay?> show(
-    BuildContext context, {
-    TimeOfDay? initialTime,
-    String title = 'Select Time',
-    String confirmText = 'OK',
-    String cancelText = 'Cancel',
-    bool barrierDismissible = true,
-    Color? headerColor,
-    bool use24HourFormat = false,
-    TextStyle? headerStyle,
-  }) async {
-    initialTime ??= TimeOfDay.now();
-
-    // Wrap with MediaQuery to set 24-hour format
-    Widget dialogWidget = SlTimePickerDialog(
+    // Wrap with MediaQuery to set 24-hour format if needed
+    Widget dialogWidget = TimePickerDialog(
       initialTime: initialTime,
-      title: title,
+      initialEntryMode: initialEntryMode,
+      helpText: title.toUpperCase(),
+      // M3 help text is often uppercase
       confirmText: confirmText,
       cancelText: cancelText,
-      headerColor: headerColor,
-      use24HourFormat: use24HourFormat,
-      headerStyle: headerStyle,
     );
 
     if (use24HourFormat) {
@@ -104,58 +153,42 @@ class SlTimePickerDialog extends ConsumerWidget {
       );
     }
 
-    final TimeOfDay? selectedTime = await showDialog<TimeOfDay>(
+    return Theme(
+      data: theme.copyWith(timePickerTheme: timePickerTheme),
+      child: dialogWidget,
+    );
+  }
+
+  /// Show the time picker dialog
+  static Future<TimeOfDay?> show(
+    BuildContext context, {
+    required TimeOfDay initialTime,
+    String title = 'Select Time',
+    String confirmText = 'OK',
+    String cancelText = 'CANCEL',
+    bool barrierDismissible = true,
+    Color? headerColor, // M3: use surface or primary
+    Color? headerForegroundColor, // M3: use onSurface or onPrimary
+    bool use24HourFormat = false,
+    TimePickerEntryMode initialEntryMode = TimePickerEntryMode.dial,
+    // TextStyle? headerStyle, // Not directly used in M3 TimePickerDialog, use theme
+  }) async {
+    return showDialog<TimeOfDay>(
       context: context,
       barrierDismissible: barrierDismissible,
-      barrierColor: Colors.black54,
-      builder: (BuildContext context) {
-        return dialogWidget;
+      builder: (BuildContext dialogContext) {
+        // It's important to use dialogContext for theming within the dialog
+        return SlTimePickerDialog(
+          initialTime: initialTime,
+          title: title,
+          confirmText: confirmText,
+          cancelText: cancelText,
+          headerColor: headerColor,
+          headerForegroundColor: headerForegroundColor,
+          use24HourFormat: use24HourFormat,
+          initialEntryMode: initialEntryMode,
+        );
       },
-    );
-
-    return selectedTime;
-  }
-
-  /// Convenience method to pick a time with 24-hour format
-  static Future<TimeOfDay?> pick24HourTime(
-    BuildContext context, {
-    TimeOfDay? initialTime,
-    String title = 'Select Time',
-  }) {
-    return show(
-      context,
-      initialTime: initialTime,
-      title: title,
-      use24HourFormat: true,
-      headerColor: Theme.of(context).colorScheme.secondary,
-    );
-  }
-
-  /// Convenience method to pick a time for an alarm
-  static Future<TimeOfDay?> pickAlarmTime(
-    BuildContext context, {
-    TimeOfDay? initialTime,
-    String title = 'Set Alarm Time',
-  }) {
-    return show(
-      context,
-      initialTime: initialTime ?? const TimeOfDay(hour: 7, minute: 0),
-      title: title,
-      headerColor: Theme.of(context).colorScheme.tertiary,
-    );
-  }
-
-  /// Convenience method to select reminder time
-  static Future<TimeOfDay?> pickReminderTime(
-    BuildContext context, {
-    TimeOfDay? initialTime,
-    String title = 'Set Reminder',
-  }) {
-    return show(
-      context,
-      initialTime: initialTime ?? const TimeOfDay(hour: 18, minute: 0),
-      title: title,
-      headerColor: Theme.of(context).colorScheme.primary,
     );
   }
 }

@@ -2,67 +2,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart'; // Assuming SLTextField for search
 
-/// A dialog that allows the user to select multiple items from a list.
+// Item model for SlMultiSelectDialog
+class SlMultiSelectItem<T> {
+  final String label;
+  final T value;
+  final Widget? leading; // Optional leading widget (e.g., an icon)
+  final bool enabled;
+
+  SlMultiSelectItem({
+    required this.label,
+    required this.value,
+    this.leading,
+    this.enabled = true,
+  });
+}
+
 class SlMultiSelectDialog<T> extends ConsumerStatefulWidget {
   final String title;
-  final List<T> items;
+  final List<SlMultiSelectItem<T>> items;
   final List<T> initialSelection;
-  final String Function(T) itemLabelBuilder;
-  final Widget Function(T)? itemBuilder;
+
+  // final String Function(T) itemLabelBuilder; // Replaced by SlMultiSelectItem.label
+  final Widget Function(BuildContext, SlMultiSelectItem<T>, bool isSelected)?
+  itemBuilder; // More flexible item builder
   final String confirmText;
   final String cancelText;
-  final String? searchHint;
+  final String? searchHintText;
   final bool enableSearch;
   final String? emptySearchText;
   final Widget? emptySearchWidget;
-  final Widget? icon;
+  final Widget? titleIcon; // Changed from IconData
   final bool showSelectedCount;
-  final String Function(int)? selectedCountBuilder;
+  final String Function(int count)? selectedCountBuilder;
   final bool isDismissible;
   final bool showDividers;
   final String? selectAllText;
   final String? clearAllText;
+  final double? maxHeightFraction;
 
   const SlMultiSelectDialog({
     super.key,
     required this.title,
     required this.items,
-    required this.initialSelection,
-    required this.itemLabelBuilder,
+    this.initialSelection = const [],
+    // required this.itemLabelBuilder,
     this.itemBuilder,
     this.confirmText = 'Confirm',
     this.cancelText = 'Cancel',
-    this.searchHint = 'Search',
+    this.searchHintText = 'Search items...',
     this.enableSearch = true,
-    this.emptySearchText = 'No items found',
+    this.emptySearchText = 'No items found.',
     this.emptySearchWidget,
-    this.icon,
+    this.titleIcon,
     this.showSelectedCount = true,
     this.selectedCountBuilder,
     this.isDismissible = true,
     this.showDividers = true,
-    this.selectAllText,
-    this.clearAllText,
+    this.selectAllText, // e.g., "Select All"
+    this.clearAllText, // e.g., "Clear All"
+    this.maxHeightFraction =
+        0.7, // Default max height as a fraction of screen height
   });
 
   @override
-  ConsumerState<SlMultiSelectDialog<T>> createState() => _SlMultiSelectDialogState<T>();
+  ConsumerState<SlMultiSelectDialog<T>> createState() =>
+      _SlMultiSelectDialogState<T>();
 }
 
-class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>> {
+class _SlMultiSelectDialogState<T>
+    extends ConsumerState<SlMultiSelectDialog<T>> {
   late List<T> _selectedItems;
-  late List<T> _filteredItems;
+  late List<SlMultiSelectItem<T>> _filteredItems;
   late TextEditingController _searchController;
-  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     _selectedItems = List<T>.from(widget.initialSelection);
-    _filteredItems = List<T>.from(widget.items);
+    _filteredItems = List<SlMultiSelectItem<T>>.from(widget.items);
     _searchController = TextEditingController();
-    _searchController.addListener(_filterItems);
+    if (widget.enableSearch) {
+      _searchController.addListener(_filterItems);
+    }
   }
 
   @override
@@ -72,42 +96,45 @@ class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>>
   }
 
   void _filterItems() {
-    if (_searchController.text.isEmpty) {
+    final query = _searchController.text.toLowerCase();
+    if (query.isEmpty) {
       setState(() {
-        _filteredItems = List<T>.from(widget.items);
-        _isSearching = false;
+        _filteredItems = List<SlMultiSelectItem<T>>.from(widget.items);
       });
       return;
     }
-
     setState(() {
-      _isSearching = true;
       _filteredItems = widget.items.where((item) {
-        final label = widget.itemLabelBuilder(item).toLowerCase();
-        return label.contains(_searchController.text.toLowerCase());
+        return item.label.toLowerCase().contains(query);
       }).toList();
     });
   }
 
-  void _toggleItem(T item) {
+  void _toggleItem(T itemValue) {
+    final item = widget.items.firstWhere((i) => i.value == itemValue);
+    if (!item.enabled) return;
+
     setState(() {
-      if (_selectedItems.contains(item)) {
-        _selectedItems.remove(item);
+      if (_selectedItems.contains(itemValue)) {
+        _selectedItems.remove(itemValue);
       } else {
-        _selectedItems.add(item);
+        _selectedItems.add(itemValue);
       }
     });
   }
 
   void _selectAll() {
     setState(() {
-      _selectedItems = List<T>.from(widget.items);
+      _selectedItems = widget.items
+          .where((item) => item.enabled)
+          .map((item) => item.value)
+          .toList();
     });
   }
 
   void _clearAll() {
     setState(() {
-      _selectedItems = [];
+      _selectedItems.clear();
     });
   }
 
@@ -115,41 +142,51 @@ class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>>
     if (widget.selectedCountBuilder != null) {
       return widget.selectedCountBuilder!(_selectedItems.length);
     }
-    return '${_selectedItems.length} selected';
+    final count = _selectedItems.length;
+    return '$count ${count == 1 ? "item" : "items"} selected';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final mediaQuery = MediaQuery.of(context);
+
+    final bool canSelectAll =
+        widget.selectAllText != null &&
+        widget.items.any((item) => item.enabled);
+    final bool canClearAll =
+        widget.clearAllText != null && _selectedItems.isNotEmpty;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        borderRadius: BorderRadius.circular(AppDimens.radiusL), // M3 shape
       ),
+      backgroundColor: colorScheme.surfaceContainerLowest,
+      surfaceTintColor: colorScheme.surfaceTint,
       titlePadding: const EdgeInsets.fromLTRB(
         AppDimens.paddingL,
         AppDimens.paddingL,
         AppDimens.paddingL,
-        0,
+        AppDimens.paddingS,
       ),
-      contentPadding: const EdgeInsets.fromLTRB(
-        AppDimens.paddingL,
-        AppDimens.paddingL,
-        AppDimens.paddingL,
-        0,
-      ),
+      contentPadding: const EdgeInsets.all(0),
+      // Content will have its own padding
+      actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      actionsAlignment: MainAxisAlignment.end,
+
       title: Row(
         children: [
-          if (widget.icon != null) ...[
-            widget.icon!,
-            const SizedBox(width: AppDimens.spaceM),
+          if (widget.titleIcon != null) ...[
+            widget.titleIcon!,
+            const SizedBox(width: AppDimens.spaceS),
           ],
           Expanded(
             child: Text(
               widget.title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
@@ -157,109 +194,140 @@ class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>>
             Chip(
               label: Text(
                 _getSelectedCountText(),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onPrimary,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
                 ),
               ),
-              backgroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.primaryContainer,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppDimens.paddingXS,
               ),
+              visualDensity: VisualDensity.compact,
             ),
         ],
       ),
-      content: SizedBox(
-        width: double.maxFinite,
-        height: MediaQuery.of(context).size.height * 0.5,
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: mediaQuery.size.height * (widget.maxHeightFraction ?? 0.7),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (widget.enableSearch) ...[
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: widget.searchHint,
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingM,
-                    vertical: AppDimens.paddingS,
-                  ),
+            if (widget.enableSearch)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingL,
+                  vertical: AppDimens.paddingM,
+                ),
+                child: SLTextField(
+                  controller: _searchController,
+                  hint: widget.searchHintText,
+                  prefixIcon: Icons.search_rounded,
+                  size: SlTextFieldSize.medium,
+                  // Or small
+                  fillColor: colorScheme.surfaceContainerHigh,
                 ),
               ),
-              const SizedBox(height: AppDimens.spaceM),
-            ],
-            if (widget.selectAllText != null || widget.clearAllText != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (widget.selectAllText != null)
-                    TextButton(
-                      onPressed: _selectAll,
-                      child: Text(widget.selectAllText!),
-                    ),
-                  if (widget.clearAllText != null) ...[
-                    const SizedBox(width: AppDimens.spaceXS),
-                    TextButton(
-                      onPressed: _clearAll,
-                      child: Text(widget.clearAllText!),
-                    ),
+            if (canSelectAll || canClearAll)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingL,
+                  vertical: AppDimens.paddingXS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (canSelectAll)
+                      SLButton(
+                        text: widget.selectAllText!,
+                        onPressed: _selectAll,
+                        type: SLButtonType.text,
+                        size: SLButtonSize.small,
+                      ),
+                    if (canSelectAll && canClearAll)
+                      const SizedBox(width: AppDimens.spaceS),
+                    if (canClearAll)
+                      SLButton(
+                        text: widget.clearAllText!,
+                        onPressed: _clearAll,
+                        type: SLButtonType.text,
+                        size: SLButtonSize.small,
+                      ),
                   ],
-                ],
+                ),
               ),
-              const SizedBox(height: AppDimens.spaceXS),
-            ],
+            if (widget.showDividers &&
+                (widget.enableSearch || canSelectAll || canClearAll))
+              const Divider(height: 1),
             Expanded(
               child: _filteredItems.isEmpty
                   ? Center(
-                      child: widget.emptySearchWidget ??
-                          Text(
-                            widget.emptySearchText!,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                      child:
+                          widget.emptySearchWidget ??
+                          Padding(
+                            padding: const EdgeInsets.all(AppDimens.paddingL),
+                            child: Text(
+                              widget.emptySearchText!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                     )
                   : ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppDimens.paddingS,
+                      ),
                       itemCount: _filteredItems.length,
                       separatorBuilder: (context, index) => widget.showDividers
-                          ? const Divider(height: 1)
+                          ? const Divider(
+                              height: 1,
+                              indent: AppDimens.paddingL,
+                              endIndent: AppDimens.paddingL,
+                            )
                           : const SizedBox.shrink(),
                       itemBuilder: (context, index) {
                         final item = _filteredItems[index];
-                        final isSelected = _selectedItems.contains(item);
-                        
+                        final isSelected = _selectedItems.contains(item.value);
+
                         if (widget.itemBuilder != null) {
                           return InkWell(
-                            onTap: () => _toggleItem(item),
-                            child: Row(
-                              children: [
-                                Expanded(child: widget.itemBuilder!(item)),
-                                Checkbox(
-                                  value: isSelected,
-                                  onChanged: (_) => _toggleItem(item),
-                                ),
-                              ],
+                            onTap: item.enabled
+                                ? () => _toggleItem(item.value)
+                                : null,
+                            child: widget.itemBuilder!(
+                              context,
+                              item,
+                              isSelected,
                             ),
                           );
                         }
-                        
+
                         return CheckboxListTile(
                           value: isSelected,
-                          onChanged: (_) => _toggleItem(item),
+                          onChanged: item.enabled
+                              ? (_) => _toggleItem(item.value)
+                              : null,
                           title: Text(
-                            widget.itemLabelBuilder(item),
-                            style: theme.textTheme.bodyLarge,
+                            item.label,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: item.enabled
+                                  ? colorScheme.onSurface
+                                  : colorScheme.onSurface.withOpacity(0.38),
+                            ),
                           ),
+                          secondary: item.leading,
                           activeColor: colorScheme.primary,
                           checkColor: colorScheme.onPrimary,
                           dense: true,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppDimens.paddingS,
+                            horizontal: AppDimens.paddingL,
                           ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          enabled: item.enabled,
                         );
                       },
                     ),
@@ -268,28 +336,17 @@ class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>>
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            widget.cancelText,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
+        SLButton(
+          text: widget.cancelText,
+          onPressed: () => Navigator.of(context).pop(), // Pops with null
+          type: SLButtonType.text,
         ),
-        FilledButton(
+        SLButton(
+          text: widget.confirmText,
           onPressed: () => Navigator.of(context).pop(_selectedItems),
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-          ),
-          child: Text(widget.confirmText),
+          type: SLButtonType.primary,
         ),
       ],
-      actionsPadding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingL,
-        vertical: AppDimens.paddingM,
-      ),
     );
   }
 
@@ -297,23 +354,24 @@ class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>>
   static Future<List<T>?> show<T>(
     BuildContext context, {
     required String title,
-    required List<T> items,
+    required List<SlMultiSelectItem<T>> items,
     List<T> initialSelection = const [],
-    required String Function(T) itemLabelBuilder,
-    Widget Function(T)? itemBuilder,
+    Widget Function(BuildContext, SlMultiSelectItem<T>, bool isSelected)?
+    itemBuilder,
     String confirmText = 'Confirm',
     String cancelText = 'Cancel',
-    String? searchHint = 'Search',
+    String? searchHintText = 'Search items...',
     bool enableSearch = true,
-    String? emptySearchText = 'No items found',
+    String? emptySearchText = 'No items found.',
     Widget? emptySearchWidget,
-    Widget? icon,
+    Widget? titleIcon,
     bool showSelectedCount = true,
-    String Function(int)? selectedCountBuilder,
+    String Function(int count)? selectedCountBuilder,
     bool isDismissible = true,
     bool showDividers = true,
     String? selectAllText,
     String? clearAllText,
+    double? maxHeightFraction,
   }) {
     return showDialog<List<T>>(
       context: context,
@@ -322,67 +380,22 @@ class _SlMultiSelectDialogState<T> extends ConsumerState<SlMultiSelectDialog<T>>
         title: title,
         items: items,
         initialSelection: initialSelection,
-        itemLabelBuilder: itemLabelBuilder,
         itemBuilder: itemBuilder,
         confirmText: confirmText,
         cancelText: cancelText,
-        searchHint: searchHint,
+        searchHintText: searchHintText,
         enableSearch: enableSearch,
         emptySearchText: emptySearchText,
         emptySearchWidget: emptySearchWidget,
-        icon: icon,
+        titleIcon: titleIcon,
         showSelectedCount: showSelectedCount,
         selectedCountBuilder: selectedCountBuilder,
         isDismissible: isDismissible,
         showDividers: showDividers,
         selectAllText: selectAllText,
         clearAllText: clearAllText,
+        maxHeightFraction: maxHeightFraction,
       ),
-    );
-  }
-
-  /// Convenience method to select multiple strings
-  static Future<List<String>?> showStrings(
-    BuildContext context, {
-    required String title,
-    required List<String> items,
-    List<String> initialSelection = const [],
-    String confirmText = 'Confirm',
-    String cancelText = 'Cancel',
-  }) {
-    return show<String>(
-      context,
-      title: title,
-      items: items,
-      initialSelection: initialSelection,
-      itemLabelBuilder: (item) => item,
-      confirmText: confirmText,
-      cancelText: cancelText,
-      selectAllText: 'Select All',
-      clearAllText: 'Clear All',
-    );
-  }
-
-  /// Convenience method to select multiple categories
-  static Future<List<String>?> showCategories(
-    BuildContext context, {
-    required String title,
-    required List<String> categories,
-    List<String> initialSelection = const [],
-    String confirmText = 'Apply',
-    String cancelText = 'Cancel',
-  }) {
-    return show<String>(
-      context,
-      title: title,
-      items: categories,
-      initialSelection: initialSelection,
-      itemLabelBuilder: (item) => item,
-      confirmText: confirmText,
-      cancelText: cancelText,
-      icon: const Icon(Icons.category_outlined),
-      selectAllText: 'Select All',
-      clearAllText: 'Clear',
     );
   }
 }

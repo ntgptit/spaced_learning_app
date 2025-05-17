@@ -1,4 +1,4 @@
-// lib/presentation/widgets/common/states/sl_loading_state_widget.dart
+// lib/presentation/widgets/common/state/sl_loading_state_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -30,86 +30,7 @@ class SlLoadingStateWidget extends ConsumerWidget {
     this.onDismiss,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final indicatorColor = color ?? colorScheme.primary;
-
-    final double sizeValue = _getSizeValue();
-    final Widget loadingIndicator = _buildLoadingIndicator(
-      sizeValue,
-      indicatorColor,
-    );
-
-    final Widget content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(width: sizeValue, height: sizeValue, child: loadingIndicator),
-        if (message != null) ...[
-          const SizedBox(height: AppDimens.spaceM),
-          Text(
-            message!,
-            style: theme.textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ],
-    );
-
-    if (!fullScreen) {
-      return Center(child: content);
-    }
-
-    return Stack(
-      children: [
-        if (backgroundWidget != null)
-          backgroundWidget!
-        else
-          Container(
-            color: colorScheme.surface.withValues(alpha: AppDimens.opacityHigh),
-          ),
-        Center(child: content),
-        if (dismissible && onDismiss != null)
-          Positioned(
-            top: AppDimens.paddingXL,
-            right: AppDimens.paddingL,
-            child: IconButton(
-              icon: Icon(Icons.close, color: colorScheme.onSurface),
-              onPressed: onDismiss,
-            ),
-          ),
-      ],
-    );
-  }
-
-  double _getSizeValue() {
-    switch (size) {
-      case SlLoadingSize.small:
-        return AppDimens.circularProgressSize;
-      case SlLoadingSize.medium:
-        return AppDimens.circularProgressSizeL;
-      case SlLoadingSize.large:
-        return AppDimens.iconXXL;
-    }
-  }
-
-  Widget _buildLoadingIndicator(double size, Color color) {
-    switch (type) {
-      case SlLoadingType.circular:
-        return SpinKitCircle(color: color, size: size);
-      case SlLoadingType.pulse:
-        return SpinKitPulse(color: color, size: size);
-      case SlLoadingType.threeBounce:
-        return SpinKitThreeBounce(color: color, size: size * 0.4);
-      case SlLoadingType.wave:
-        return SpinKitWave(color: color, size: size * 0.5);
-      case SlLoadingType.fadingCircle:
-        return SpinKitFadingCircle(color: color, size: size);
-    }
-  }
-
-  // Utility constructors
+  // Factory constructor for full-screen loading
   factory SlLoadingStateWidget.fullScreen({
     String? message,
     Color? color,
@@ -130,6 +51,7 @@ class SlLoadingStateWidget extends ConsumerWidget {
     );
   }
 
+  // Factory constructor for small loading indicator
   factory SlLoadingStateWidget.small({
     Color? color,
     SlLoadingType type = SlLoadingType.threeBounce,
@@ -141,11 +63,100 @@ class SlLoadingStateWidget extends ConsumerWidget {
     );
   }
 
+  // Factory constructor for loading indicator with a message
   factory SlLoadingStateWidget.withMessage(
     String message, {
     SlLoadingType type = SlLoadingType.threeBounce,
     Color? color,
   }) {
     return SlLoadingStateWidget(message: message, type: type, color: color);
+  }
+
+  double _getSizeValue() {
+    switch (size) {
+      case SlLoadingSize.small:
+        return AppDimens.circularProgressSize; // e.g., 24.0
+      case SlLoadingSize.medium:
+        return AppDimens.circularProgressSizeL; // e.g., 48.0
+      case SlLoadingSize.large:
+        return AppDimens.iconXXL; // e.g., 64.0
+    }
+  }
+
+  Widget _buildLoadingIndicator(double indicatorSize, Color indicatorColor) {
+    switch (type) {
+      case SlLoadingType.circular:
+        return SpinKitCircle(color: indicatorColor, size: indicatorSize);
+      case SlLoadingType.pulse:
+        return SpinKitPulse(color: indicatorColor, size: indicatorSize);
+      case SlLoadingType.threeBounce:
+        // ThreeBounce often looks better with a slightly smaller size relative to its container
+        return SpinKitThreeBounce(
+          color: indicatorColor,
+          size: indicatorSize * 0.7,
+        );
+      case SlLoadingType.wave:
+        return SpinKitWave(color: indicatorColor, size: indicatorSize * 0.8);
+      case SlLoadingType.fadingCircle:
+        return SpinKitFadingCircle(color: indicatorColor, size: indicatorSize);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final indicatorColor = color ?? colorScheme.primary;
+
+    final double actualIndicatorSize = _getSizeValue();
+    final Widget loadingIndicator = _buildLoadingIndicator(
+      actualIndicatorSize,
+      indicatorColor,
+    );
+
+    final Widget content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: actualIndicatorSize,
+          height: actualIndicatorSize,
+          child: loadingIndicator,
+        ),
+        if (message != null) ...[
+          const SizedBox(height: AppDimens.spaceM),
+          Text(
+            message!,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
+    );
+
+    if (!fullScreen) {
+      return Center(child: content);
+    }
+
+    return Stack(
+      children: [
+        backgroundWidget ??
+            Container(
+              color: colorScheme.surface.withOpacity(AppDimens.opacityHigh),
+            ),
+        Center(child: content),
+        if (dismissible && onDismiss != null)
+          Positioned(
+            top: AppDimens.paddingXL,
+            right: AppDimens.paddingL,
+            child: IconButton(
+              icon: Icon(Icons.close, color: colorScheme.onSurface),
+              onPressed: onDismiss,
+              tooltip: 'Dismiss',
+            ),
+          ),
+      ],
+    );
   }
 }

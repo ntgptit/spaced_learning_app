@@ -1,7 +1,8 @@
-// lib/presentation/widgets/common/states/sl_offline_state_widget.dart
+// lib/presentation/widgets/common/state/sl_offline_state_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton is here
 
 class SlOfflineStateWidget extends ConsumerWidget {
   final String title;
@@ -12,6 +13,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
   final VoidCallback? onSecondaryAction;
   final bool compact;
   final bool showOfflineImage;
+  final IconData icon;
 
   const SlOfflineStateWidget({
     super.key,
@@ -23,17 +25,51 @@ class SlOfflineStateWidget extends ConsumerWidget {
     this.onSecondaryAction,
     this.compact = false,
     this.showOfflineImage = true,
+    this.icon = Icons.wifi_off_rounded,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  // Factory constructor for a generic offline message
+  factory SlOfflineStateWidget.generic({
+    String title = 'You Are Offline',
+    String? message = 'Please check your internet connection and try again.',
+    VoidCallback? onRetry,
+    String? retryText = 'Retry',
+    bool compact = false,
+  }) {
+    return SlOfflineStateWidget(
+      title: title,
+      message: message,
+      onRetry: onRetry,
+      retryButtonText: retryText,
+      compact: compact,
+      icon: Icons.signal_wifi_off_outlined,
+    );
+  }
 
-    if (compact) {
-      return _buildCompactOffline(theme, colorScheme);
-    }
+  // Factory constructor for when content cannot be loaded due to being offline
+  factory SlOfflineStateWidget.contentUnavailable({
+    String title = 'Content Unavailable Offline',
+    String? message =
+        'This content requires an internet connection to load. Please connect and try again.',
+    VoidCallback? onRetry,
+    String? retryText = 'Refresh',
+    bool compact = false,
+  }) {
+    return SlOfflineStateWidget(
+      title: title,
+      message: message,
+      onRetry: onRetry,
+      retryButtonText: retryText,
+      compact: compact,
+      icon: Icons.cloud_off_outlined,
+    );
+  }
 
+  Widget _buildFullOffline(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingXL),
@@ -44,16 +80,16 @@ class SlOfflineStateWidget extends ConsumerWidget {
           children: [
             if (showOfflineImage) ...[
               Container(
-                width: 120,
-                height: 120,
+                width: AppDimens.iconXXL,
+                height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
+                  color: colorScheme.errorContainer.withOpacity(0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.wifi_off_rounded,
-                  size: 64,
-                  color: colorScheme.error,
+                  icon,
+                  size: AppDimens.iconXL,
+                  color: colorScheme.onErrorContainer,
                 ),
               ),
               const SizedBox(height: AppDimens.spaceXL),
@@ -78,25 +114,19 @@ class SlOfflineStateWidget extends ConsumerWidget {
             ],
             if (onRetry != null) ...[
               const SizedBox(height: AppDimens.spaceXL),
-              ElevatedButton.icon(
+              SLButton(
+                text: retryButtonText ?? 'Try Again',
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: Text(retryButtonText ?? 'Try Again'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingXL,
-                    vertical: AppDimens.paddingM,
-                  ),
-                ),
+                type: SLButtonType.primary,
+                prefixIcon: Icons.refresh,
               ),
             ],
             if (secondaryButtonText != null && onSecondaryAction != null) ...[
               const SizedBox(height: AppDimens.spaceM),
-              TextButton(
+              SLButton(
+                text: secondaryButtonText!,
                 onPressed: onSecondaryAction,
-                child: Text(secondaryButtonText!),
+                type: SLButtonType.text, // Or outline
               ),
             ],
           ],
@@ -105,9 +135,13 @@ class SlOfflineStateWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildCompactOffline(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildCompactOffline(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Card(
-      color: colorScheme.errorContainer.withValues(alpha: 0.15),
+      color: colorScheme.errorContainer.withOpacity(0.15),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -115,17 +149,13 @@ class SlOfflineStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: colorScheme.error.withValues(alpha: 0.3)),
+        side: BorderSide(color: colorScheme.error.withOpacity(0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
         child: Row(
           children: [
-            Icon(
-              Icons.wifi_off_rounded,
-              color: colorScheme.error,
-              size: AppDimens.iconM,
-            ),
+            Icon(icon, color: colorScheme.error, size: AppDimens.iconM),
             const SizedBox(width: AppDimens.spaceM),
             Expanded(
               child: Column(
@@ -157,7 +187,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
               TextButton(
                 onPressed: onRetry,
                 style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.primary, // Or error color
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingS,
                   ),
@@ -171,19 +201,14 @@ class SlOfflineStateWidget extends ConsumerWidget {
     );
   }
 
-  // Factory constructor
-  factory SlOfflineStateWidget.withCustomMessage({
-    required String message,
-    VoidCallback? onRetry,
-    String? retryButtonText,
-    bool compact = false,
-  }) {
-    return SlOfflineStateWidget(
-      title: 'You\'re Offline',
-      message: message,
-      retryButtonText: retryButtonText,
-      onRetry: onRetry,
-      compact: compact,
-    );
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (compact) {
+      return _buildCompactOffline(context, theme, colorScheme);
+    }
+    return _buildFullOffline(context, theme, colorScheme);
   }
 }
