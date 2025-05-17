@@ -59,7 +59,7 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
     _controller.addListener(_validateInput);
-    
+
     // Initial validation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _validateInput();
@@ -108,10 +108,7 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.message != null) ...[
-              Text(
-                widget.message!,
-                style: theme.textTheme.bodyLarge,
-              ),
+              Text(widget.message!, style: theme.textTheme.bodyLarge),
               const SizedBox(height: AppDimens.spaceM),
             ],
             TextFormField(
@@ -150,9 +147,7 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             widget.cancelText,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
           ),
         ),
         FilledButton(
@@ -164,10 +159,16 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
                 }
               : null,
           style: FilledButton.styleFrom(
-            backgroundColor: widget.isDanger ? colorScheme.error : colorScheme.primary,
-            foregroundColor: widget.isDanger ? colorScheme.onError : colorScheme.onPrimary,
+            backgroundColor: widget.isDanger
+                ? colorScheme.error
+                : colorScheme.primary,
+            foregroundColor: widget.isDanger
+                ? colorScheme.onError
+                : colorScheme.onPrimary,
             disabledBackgroundColor: colorScheme.surfaceContainerHighest,
-            disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.38,
+            ),
           ),
           child: Text(widget.confirmText),
         ),

@@ -58,12 +58,12 @@ class SlDatePickerDialog extends ConsumerWidget {
           return colorScheme.onPrimary;
         }
         if (states.contains(WidgetState.disabled)) {
-          return colorScheme.onSurface.withOpacity(0.38);
+          return colorScheme.onSurface.withValues(alpha: 0.38);
         }
         return colorScheme.onSurface;
       }),
       todayBackgroundColor: WidgetStateProperty.all(
-        colorScheme.primaryContainer.withOpacity(0.5),
+        colorScheme.primaryContainer.withValues(alpha: 0.5),
       ),
       todayForegroundColor: WidgetStateProperty.all(
         colorScheme.onPrimaryContainer,

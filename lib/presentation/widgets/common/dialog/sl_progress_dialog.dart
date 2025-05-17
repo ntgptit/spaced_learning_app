@@ -33,7 +33,7 @@ class SlProgressDialog extends ConsumerWidget {
 
     // Set up timeout callback if specified
     if (timeout != null && onTimeout != null) {
-      Future.delayed(timeout!, onTimeout!);
+      Future.delayed(timeout!, onTimeout);
     }
 
     return AlertDialog(

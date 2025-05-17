@@ -104,7 +104,6 @@ class SlAlertDialog extends ConsumerWidget {
       case AlertType.error:
         return Icons.error_outline;
       case AlertType.info:
-      default:
         return Icons.info_outline;
     }
   }
@@ -133,7 +132,6 @@ class SlAlertDialog extends ConsumerWidget {
       case AlertType.error:
         return colorScheme.onError;
       case AlertType.info:
-      default:
         return colorScheme.onPrimary;
     }
   }

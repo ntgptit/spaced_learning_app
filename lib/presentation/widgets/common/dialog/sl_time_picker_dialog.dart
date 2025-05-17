@@ -41,8 +41,8 @@ class SlTimePickerDialog extends ConsumerWidget {
       dialHandColor: colorScheme.primary,
       dialBackgroundColor: colorScheme.surfaceContainerLowest,
       // Correct implementation for dialTextColor
-      dialTextColor: MaterialStateColor.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
+      dialTextColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.onPrimary;
         }
         return colorScheme.onSurface;

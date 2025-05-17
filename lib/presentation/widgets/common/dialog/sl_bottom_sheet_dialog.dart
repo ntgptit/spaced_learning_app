@@ -55,14 +55,15 @@ class SlBottomSheetDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
-    final effectiveBackgroundColor = 
-        backgroundColor ?? colorScheme.surface;
-        
-    final effectiveBorderRadius = borderRadius ?? BorderRadius.only(
-      topLeft: Radius.circular(AppDimens.radiusL),
-      topRight: Radius.circular(AppDimens.radiusL),
-    );
+
+    final effectiveBackgroundColor = backgroundColor ?? colorScheme.surface;
+
+    final effectiveBorderRadius =
+        borderRadius ??
+        BorderRadius.only(
+          topLeft: Radius.circular(AppDimens.radiusL),
+          topRight: Radius.circular(AppDimens.radiusL),
+        );
 
     return Container(
       decoration: BoxDecoration(
@@ -84,8 +85,10 @@ class SlBottomSheetDialog extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(
+                      AppDimens.radiusCircular,
+                    ),
                   ),
                 ),
               ),
@@ -96,8 +99,8 @@ class SlBottomSheetDialog extends ConsumerWidget {
               padding: EdgeInsets.only(
                 left: padding.resolve(TextDirection.ltr).left,
                 right: padding.resolve(TextDirection.ltr).right,
-                top: showDragHandle 
-                    ? AppDimens.paddingM 
+                top: showDragHandle
+                    ? AppDimens.paddingM
                     : padding.resolve(TextDirection.ltr).top,
                 bottom: 0,
               ),
@@ -132,36 +135,32 @@ class SlBottomSheetDialog extends ConsumerWidget {
                 ],
               ),
             ),
-            if (showDivider)
-              const Divider(height: AppDimens.spaceL),
+            if (showDivider) const Divider(height: AppDimens.spaceL),
           ],
           if (message != null)
             Padding(
               padding: EdgeInsets.only(
                 left: padding.resolve(TextDirection.ltr).left,
                 right: padding.resolve(TextDirection.ltr).right,
-                top: title != null 
-                    ? AppDimens.paddingS 
+                top: title != null
+                    ? AppDimens.paddingS
                     : padding.resolve(TextDirection.ltr).top,
-                bottom: content != null 
-                    ? AppDimens.paddingM 
+                bottom: content != null
+                    ? AppDimens.paddingM
                     : padding.resolve(TextDirection.ltr).bottom,
               ),
-              child: Text(
-                message!,
-                style: theme.textTheme.bodyLarge,
-              ),
+              child: Text(message!, style: theme.textTheme.bodyLarge),
             ),
           if (content != null)
             Flexible(
               child: Padding(
-                padding: title != null || message != null 
+                padding: title != null || message != null
                     ? EdgeInsets.fromLTRB(
                         padding.resolve(TextDirection.ltr).left,
-                        0, 
+                        0,
                         padding.resolve(TextDirection.ltr).right,
-                        actions != null 
-                            ? 0 
+                        actions != null
+                            ? 0
                             : padding.resolve(TextDirection.ltr).bottom,
                       )
                     : padding,
@@ -233,12 +232,14 @@ class SlBottomSheetDialog extends ConsumerWidget {
         enableDrag: enableDrag,
         showCloseButton: showCloseButton,
         maxHeight: maxHeight,
-        padding: padding ?? const EdgeInsets.fromLTRB(
-          AppDimens.paddingL,
-          AppDimens.paddingL,
-          AppDimens.paddingL,
-          AppDimens.paddingL,
-        ),
+        padding:
+            padding ??
+            const EdgeInsets.fromLTRB(
+              AppDimens.paddingL,
+              AppDimens.paddingL,
+              AppDimens.paddingL,
+              AppDimens.paddingL,
+            ),
         icon: icon,
         useSafeArea: useSafeArea,
         showDivider: showDivider,
@@ -272,8 +273,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               option,
-              if (index < options.length - 1)
-                const Divider(height: 1),
+              if (index < options.length - 1) const Divider(height: 1),
             ],
           );
         }).toList(),
@@ -297,9 +297,8 @@ class SlBottomSheetDialog extends ConsumerWidget {
         shrinkWrap: true,
         physics: const ClampingScrollPhysics(),
         itemCount: items.length,
-        separatorBuilder: (context, index) => showDividers
-            ? const Divider(height: 1)
-            : const SizedBox.shrink(),
+        separatorBuilder: (context, index) =>
+            showDividers ? const Divider(height: 1) : const SizedBox.shrink(),
         itemBuilder: (context, index) => items[index],
       ),
       showDragHandle: true,
@@ -315,10 +314,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
     return show<T>(
       context,
       title: title,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: menuItems,
-      ),
+      content: Column(mainAxisSize: MainAxisSize.min, children: menuItems),
       showDragHandle: true,
     );
   }

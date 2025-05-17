@@ -44,9 +44,8 @@ class SlFullScreenDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
-    final effectiveBackgroundColor = 
-        backgroundColor ?? colorScheme.surface;
+
+    final effectiveBackgroundColor = backgroundColor ?? colorScheme.surface;
 
     final content = Scaffold(
       appBar: AppBar(
@@ -60,26 +59,25 @@ class SlFullScreenDialog extends ConsumerWidget {
         leading: leadingIcon != null
             ? IconButton(
                 icon: Icon(leadingIcon),
-                onPressed: onLeadingIconPressed ?? () => Navigator.of(context).pop(),
+                onPressed:
+                    onLeadingIconPressed ?? () => Navigator.of(context).pop(),
               )
             : showCloseButton
-                ? IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: onClose ?? () => Navigator.of(context).pop(),
-                  )
-                : null,
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: onClose ?? () => Navigator.of(context).pop(),
+              )
+            : null,
         actions: headerActions,
         backgroundColor: effectiveBackgroundColor,
         elevation: 0,
       ),
       body: Column(
         children: [
-          if (showDivider)
-            const Divider(height: 1),
+          if (showDivider) const Divider(height: 1),
           Expanded(
             child: Padding(
-              padding: padding ?? 
-                  const EdgeInsets.all(AppDimens.paddingL),
+              padding: padding ?? const EdgeInsets.all(AppDimens.paddingL),
               child: body,
             ),
           ),
@@ -89,7 +87,7 @@ class SlFullScreenDialog extends ConsumerWidget {
                 color: colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.shadow.withOpacity(0.1),
+                    color: colorScheme.shadow.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, -2),
                   ),
@@ -122,7 +120,7 @@ class SlFullScreenDialog extends ConsumerWidget {
     if (useSafeArea) {
       return SafeArea(child: content);
     }
-    
+
     return content;
   }
 
@@ -180,9 +178,7 @@ class SlFullScreenDialog extends ConsumerWidget {
     return show<T>(
       context,
       title: title,
-      body: SingleChildScrollView(
-        child: formBody,
-      ),
+      body: SingleChildScrollView(child: formBody),
       actions: actions,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
     );
