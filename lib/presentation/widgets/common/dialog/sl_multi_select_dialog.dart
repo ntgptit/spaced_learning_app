@@ -1,16 +1,18 @@
 // lib/presentation/widgets/common/dialog/sl_multi_select_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/input/sl_text_field.dart';
 
-import '../input/sl_text_field.dart'; // Assuming SLTextField for search
+part 'sl_multi_select_dialog.g.dart';
 
 // Item model for SlMultiSelectDialog
 class SlMultiSelectItem<T> {
   final String label;
   final T value;
-  final Widget? leading; // Optional leading widget (e.g., an icon)
+  final Widget? leading;
   final bool enabled;
 
   SlMultiSelectItem({
@@ -21,21 +23,84 @@ class SlMultiSelectItem<T> {
   });
 }
 
+// Provider for selected items in dialog
+@riverpod
+class DialogSelections extends _$DialogSelections {
+  @override
+  List<dynamic> build(String dialogId) => [];
+
+  void setInitialSelections(List<dynamic> selections) {
+    state = List<dynamic>.from(selections);
+  }
+
+  void toggleItem(dynamic item) {
+    final updatedList = List<dynamic>.from(state);
+    if (updatedList.contains(item)) {
+      updatedList.remove(item);
+    } else {
+      updatedList.add(item);
+    }
+    state = updatedList;
+  }
+
+  void selectAll(List<dynamic> items) {
+    state = List<dynamic>.from(items);
+  }
+
+  void clearAll() {
+    state = [];
+  }
+}
+
+// Provider for search query
+@riverpod
+class SearchQuery extends _$SearchQuery {
+  @override
+  String build(String dialogId) => '';
+
+  void setQuery(String query) {
+    state = query;
+  }
+
+  void clear() {
+    state = '';
+  }
+}
+
+// Provider for filtered items based on search
+@riverpod
+List<SlMultiSelectItem> filteredItems(
+  FilteredItemsRef ref,
+  String dialogId,
+  List<SlMultiSelectItem> allItems,
+) {
+  final searchQuery = ref.watch(searchQueryProvider(dialogId));
+
+  if (searchQuery.isEmpty) {
+    return allItems;
+  }
+
+  final queryLower = searchQuery.toLowerCase();
+  return allItems
+      .where((item) => item.label.toLowerCase().contains(queryLower))
+      .toList();
+}
+
+/// A dialog that allows users to select multiple items from a list.
 class SlMultiSelectDialog<T> extends ConsumerStatefulWidget {
+  final String dialogId;
   final String title;
   final List<SlMultiSelectItem<T>> items;
   final List<T> initialSelection;
-
-  // final String Function(T) itemLabelBuilder; // Replaced by SlMultiSelectItem.label
   final Widget Function(BuildContext, SlMultiSelectItem<T>, bool isSelected)?
-  itemBuilder; // More flexible item builder
+  itemBuilder;
   final String confirmText;
   final String cancelText;
   final String? searchHintText;
   final bool enableSearch;
   final String? emptySearchText;
   final Widget? emptySearchWidget;
-  final Widget? titleIcon; // Changed from IconData
+  final Widget? titleIcon;
   final bool showSelectedCount;
   final String Function(int count)? selectedCountBuilder;
   final bool isDismissible;
@@ -46,10 +111,10 @@ class SlMultiSelectDialog<T> extends ConsumerStatefulWidget {
 
   const SlMultiSelectDialog({
     super.key,
+    required this.dialogId,
     required this.title,
     required this.items,
     this.initialSelection = const [],
-    // required this.itemLabelBuilder,
     this.itemBuilder,
     this.confirmText = 'Confirm',
     this.cancelText = 'Cancel',
@@ -62,32 +127,152 @@ class SlMultiSelectDialog<T> extends ConsumerStatefulWidget {
     this.selectedCountBuilder,
     this.isDismissible = true,
     this.showDividers = true,
-    this.selectAllText, // e.g., "Select All"
-    this.clearAllText, // e.g., "Clear All"
-    this.maxHeightFraction =
-        0.7, // Default max height as a fraction of screen height
+    this.selectAllText,
+    this.clearAllText,
+    this.maxHeightFraction = 0.7,
   });
 
   @override
   ConsumerState<SlMultiSelectDialog<T>> createState() =>
       _SlMultiSelectDialogState<T>();
+
+  /// Factory for a standard multi-select dialog
+  factory SlMultiSelectDialog.standard({
+    required String dialogId,
+    required String title,
+    required List<SlMultiSelectItem<T>> items,
+    List<T> initialSelection = const [],
+    String confirmText = 'Confirm',
+    String cancelText = 'Cancel',
+    bool enableSearch = true,
+  }) {
+    return SlMultiSelectDialog<T>(
+      dialogId: dialogId,
+      title: title,
+      items: items,
+      initialSelection: initialSelection,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      enableSearch: enableSearch,
+    );
+  }
+
+  /// Factory for a compact multi-select dialog
+  factory SlMultiSelectDialog.compact({
+    required String dialogId,
+    required String title,
+    required List<SlMultiSelectItem<T>> items,
+    List<T> initialSelection = const [],
+    Widget? titleIcon,
+  }) {
+    return SlMultiSelectDialog<T>(
+      dialogId: dialogId,
+      title: title,
+      items: items,
+      initialSelection: initialSelection,
+      maxHeightFraction: 0.5,
+      titleIcon: titleIcon,
+      showSelectedCount: true,
+      enableSearch: false,
+    );
+  }
+
+  /// Factory for a dialog with item selection management
+  factory SlMultiSelectDialog.withManagement({
+    required String dialogId,
+    required String title,
+    required List<SlMultiSelectItem<T>> items,
+    List<T> initialSelection = const [],
+    String? selectAllText = 'Select All',
+    String? clearAllText = 'Clear All',
+  }) {
+    return SlMultiSelectDialog<T>(
+      dialogId: dialogId,
+      title: title,
+      items: items,
+      initialSelection: initialSelection,
+      selectAllText: selectAllText,
+      clearAllText: clearAllText,
+      enableSearch: true,
+    );
+  }
+
+  /// Show the multi-select dialog with the given parameters
+  static Future<List<T>?> show<T>(
+    BuildContext context,
+    WidgetRef ref, {
+    required String dialogId,
+    required String title,
+    required List<SlMultiSelectItem<T>> items,
+    List<T> initialSelection = const [],
+    Widget Function(BuildContext, SlMultiSelectItem<T>, bool isSelected)?
+    itemBuilder,
+    String confirmText = 'Confirm',
+    String cancelText = 'Cancel',
+    String? searchHintText = 'Search items...',
+    bool enableSearch = true,
+    String? emptySearchText = 'No items found.',
+    Widget? emptySearchWidget,
+    Widget? titleIcon,
+    bool showSelectedCount = true,
+    String Function(int count)? selectedCountBuilder,
+    bool isDismissible = true,
+    bool showDividers = true,
+    String? selectAllText,
+    String? clearAllText,
+    double? maxHeightFraction,
+  }) {
+    // Initialize dialog selections with initial selection
+    ref
+        .read(dialogSelectionsProvider(dialogId).notifier)
+        .setInitialSelections(initialSelection);
+
+    // Reset search query
+    ref.read(searchQueryProvider(dialogId).notifier).clear();
+
+    return showDialog<List<T>>(
+      context: context,
+      barrierDismissible: isDismissible,
+      builder: (context) => SlMultiSelectDialog<T>(
+        dialogId: dialogId,
+        title: title,
+        items: items,
+        initialSelection: initialSelection,
+        itemBuilder: itemBuilder,
+        confirmText: confirmText,
+        cancelText: cancelText,
+        searchHintText: searchHintText,
+        enableSearch: enableSearch,
+        emptySearchText: emptySearchText,
+        emptySearchWidget: emptySearchWidget,
+        titleIcon: titleIcon,
+        showSelectedCount: showSelectedCount,
+        selectedCountBuilder: selectedCountBuilder,
+        isDismissible: isDismissible,
+        showDividers: showDividers,
+        selectAllText: selectAllText,
+        clearAllText: clearAllText,
+        maxHeightFraction: maxHeightFraction,
+      ),
+    );
+  }
 }
 
 class _SlMultiSelectDialogState<T>
     extends ConsumerState<SlMultiSelectDialog<T>> {
-  late List<T> _selectedItems;
-  late List<SlMultiSelectItem<T>> _filteredItems;
   late TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
-    _selectedItems = List<T>.from(widget.initialSelection);
-    _filteredItems = List<SlMultiSelectItem<T>>.from(widget.items);
     _searchController = TextEditingController();
-    if (widget.enableSearch) {
-      _searchController.addListener(_filterItems);
-    }
+
+    // Initialize selections after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(dialogSelectionsProvider(widget.dialogId).notifier)
+          .setInitialSelections(widget.initialSelection);
+    });
   }
 
   @override
@@ -96,55 +281,40 @@ class _SlMultiSelectDialogState<T>
     super.dispose();
   }
 
-  void _filterItems() {
-    final query = _searchController.text.toLowerCase();
-    if (query.isEmpty) {
-      setState(() {
-        _filteredItems = List<SlMultiSelectItem<T>>.from(widget.items);
-      });
-      return;
-    }
-    setState(() {
-      _filteredItems = widget.items.where((item) {
-        return item.label.toLowerCase().contains(query);
-      }).toList();
-    });
-  }
-
-  void _toggleItem(T itemValue) {
-    final item = widget.items.firstWhere((i) => i.value == itemValue);
+  void _toggleItem(T value) {
+    final item = widget.items.firstWhere((item) => item.value == value);
     if (!item.enabled) return;
 
-    setState(() {
-      if (_selectedItems.contains(itemValue)) {
-        _selectedItems.remove(itemValue);
-      } else {
-        _selectedItems.add(itemValue);
-      }
-    });
+    ref
+        .read(dialogSelectionsProvider(widget.dialogId).notifier)
+        .toggleItem(value);
   }
 
   void _selectAll() {
-    setState(() {
-      _selectedItems = widget.items
-          .where((item) => item.enabled)
-          .map((item) => item.value)
-          .toList();
-    });
+    final availableItems = widget.items
+        .where((item) => item.enabled)
+        .map((item) => item.value)
+        .toList();
+
+    ref
+        .read(dialogSelectionsProvider(widget.dialogId).notifier)
+        .selectAll(availableItems);
   }
 
   void _clearAll() {
-    setState(() {
-      _selectedItems.clear();
-    });
+    ref.read(dialogSelectionsProvider(widget.dialogId).notifier).clearAll();
   }
 
-  String _getSelectedCountText() {
+  String _getSelectedCountText(List<T> selectedItems) {
     if (widget.selectedCountBuilder != null) {
-      return widget.selectedCountBuilder!(_selectedItems.length);
+      return widget.selectedCountBuilder!(selectedItems.length);
     }
-    final count = _selectedItems.length;
+    final count = selectedItems.length;
     return '$count ${count == 1 ? "item" : "items"} selected';
+  }
+
+  void _onSearchChanged(String query) {
+    ref.read(searchQueryProvider(widget.dialogId).notifier).setQuery(query);
   }
 
   @override
@@ -153,15 +323,35 @@ class _SlMultiSelectDialogState<T>
     final colorScheme = theme.colorScheme;
     final mediaQuery = MediaQuery.of(context);
 
+    // Get selected items from provider
+    final List<dynamic> selectedItemsDynamic = ref.watch(
+      dialogSelectionsProvider(widget.dialogId),
+    );
+    final List<T> selectedItems = selectedItemsDynamic.whereType<T>().toList();
+
+    // Get filtered items based on search
+    final List<SlMultiSelectItem> filteredItemsResult = ref.watch(
+      filteredItemsProvider(
+        widget.dialogId,
+        widget.items.cast<SlMultiSelectItem>(),
+      ),
+    );
+
+    // Cast back to specific type for type safety
+    final List<SlMultiSelectItem<T>> filteredItems = filteredItemsResult
+        .whereType<SlMultiSelectItem<T>>()
+        .toList();
+
     final bool canSelectAll =
         widget.selectAllText != null &&
         widget.items.any((item) => item.enabled);
+
     final bool canClearAll =
-        widget.clearAllText != null && _selectedItems.isNotEmpty;
+        widget.clearAllText != null && selectedItems.isNotEmpty;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL), // M3 shape
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
       backgroundColor: colorScheme.surfaceContainerLowest,
       surfaceTintColor: colorScheme.surfaceTint,
@@ -172,7 +362,6 @@ class _SlMultiSelectDialogState<T>
         AppDimens.paddingS,
       ),
       contentPadding: const EdgeInsets.all(0),
-      // Content will have its own padding
       actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
       actionsAlignment: MainAxisAlignment.end,
 
@@ -191,10 +380,10 @@ class _SlMultiSelectDialogState<T>
               ),
             ),
           ),
-          if (widget.showSelectedCount && _selectedItems.isNotEmpty)
+          if (widget.showSelectedCount && selectedItems.isNotEmpty)
             Chip(
               label: Text(
-                _getSelectedCountText(),
+                _getSelectedCountText(selectedItems),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colorScheme.onPrimaryContainer,
                 ),
@@ -224,10 +413,10 @@ class _SlMultiSelectDialogState<T>
                 child: SLTextField(
                   controller: _searchController,
                   hint: widget.searchHintText,
-                  prefixIcon: Icons.search_rounded,
+                  prefixIcon: Icons.search,
                   size: SlTextFieldSize.medium,
-                  // THIS LINE SHOULD NOW WORK
                   fillColor: colorScheme.surfaceContainerHigh,
+                  onChanged: _onSearchChanged,
                 ),
               ),
             if (canSelectAll || canClearAll)
@@ -240,20 +429,20 @@ class _SlMultiSelectDialogState<T>
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (canSelectAll)
-                      SLButton(
+                      SlButton(
                         text: widget.selectAllText!,
                         onPressed: _selectAll,
-                        type: SLButtonType.text,
-                        size: SLButtonSize.small,
+                        variant: SlButtonVariant.text,
+                        size: SlButtonSize.small,
                       ),
                     if (canSelectAll && canClearAll)
                       const SizedBox(width: AppDimens.spaceS),
                     if (canClearAll)
-                      SLButton(
+                      SlButton(
                         text: widget.clearAllText!,
                         onPressed: _clearAll,
-                        type: SLButtonType.text,
-                        size: SLButtonSize.small,
+                        variant: SlButtonVariant.text,
+                        size: SlButtonSize.small,
                       ),
                   ],
                 ),
@@ -262,7 +451,7 @@ class _SlMultiSelectDialogState<T>
                 (widget.enableSearch || canSelectAll || canClearAll))
               const Divider(height: 1),
             Expanded(
-              child: _filteredItems.isEmpty
+              child: filteredItems.isEmpty
                   ? Center(
                       child:
                           widget.emptySearchWidget ??
@@ -282,7 +471,7 @@ class _SlMultiSelectDialogState<T>
                       padding: const EdgeInsets.symmetric(
                         vertical: AppDimens.paddingS,
                       ),
-                      itemCount: _filteredItems.length,
+                      itemCount: filteredItems.length,
                       separatorBuilder: (context, index) => widget.showDividers
                           ? const Divider(
                               height: 1,
@@ -291,8 +480,8 @@ class _SlMultiSelectDialogState<T>
                             )
                           : const SizedBox.shrink(),
                       itemBuilder: (context, index) {
-                        final item = _filteredItems[index];
-                        final isSelected = _selectedItems.contains(item.value);
+                        final item = filteredItems[index];
+                        final isSelected = selectedItems.contains(item.value);
 
                         if (widget.itemBuilder != null) {
                           return InkWell(
@@ -317,9 +506,7 @@ class _SlMultiSelectDialogState<T>
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: item.enabled
                                   ? colorScheme.onSurface
-                                  : colorScheme.onSurface.withValues(
-                                      alpha: 0.38,
-                                    ),
+                                  : colorScheme.onSurface.withOpacity(0.38),
                             ),
                           ),
                           secondary: item.leading,
@@ -339,66 +526,17 @@ class _SlMultiSelectDialogState<T>
         ),
       ),
       actions: [
-        SLButton(
+        SlButton(
           text: widget.cancelText,
-          onPressed: () => Navigator.of(context).pop(), // Pops with null
-          type: SLButtonType.text,
+          onPressed: () => Navigator.of(context).pop(),
+          variant: SlButtonVariant.text,
         ),
-        SLButton(
+        SlButton(
           text: widget.confirmText,
-          onPressed: () => Navigator.of(context).pop(_selectedItems),
-          type: SLButtonType.primary,
+          onPressed: () => Navigator.of(context).pop(selectedItems),
+          variant: SlButtonVariant.filled,
         ),
       ],
-    );
-  }
-
-  /// Show the multi-select dialog
-  static Future<List<T>?> show<T>(
-    BuildContext context, {
-    required String title,
-    required List<SlMultiSelectItem<T>> items,
-    List<T> initialSelection = const [],
-    Widget Function(BuildContext, SlMultiSelectItem<T>, bool isSelected)?
-    itemBuilder,
-    String confirmText = 'Confirm',
-    String cancelText = 'Cancel',
-    String? searchHintText = 'Search items...',
-    bool enableSearch = true,
-    String? emptySearchText = 'No items found.',
-    Widget? emptySearchWidget,
-    Widget? titleIcon,
-    bool showSelectedCount = true,
-    String Function(int count)? selectedCountBuilder,
-    bool isDismissible = true,
-    bool showDividers = true,
-    String? selectAllText,
-    String? clearAllText,
-    double? maxHeightFraction,
-  }) {
-    return showDialog<List<T>>(
-      context: context,
-      barrierDismissible: isDismissible,
-      builder: (context) => SlMultiSelectDialog<T>(
-        title: title,
-        items: items,
-        initialSelection: initialSelection,
-        itemBuilder: itemBuilder,
-        confirmText: confirmText,
-        cancelText: cancelText,
-        searchHintText: searchHintText,
-        enableSearch: enableSearch,
-        emptySearchText: emptySearchText,
-        emptySearchWidget: emptySearchWidget,
-        titleIcon: titleIcon,
-        showSelectedCount: showSelectedCount,
-        selectedCountBuilder: selectedCountBuilder,
-        isDismissible: isDismissible,
-        showDividers: showDividers,
-        selectAllText: selectAllText,
-        clearAllText: clearAllText,
-        maxHeightFraction: maxHeightFraction,
-      ),
     );
   }
 }

@@ -1,6 +1,20 @@
+// lib/presentation/widgets/common/dialog/sl_time_picker_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+part 'sl_time_picker_dialog.g.dart';
+
+@riverpod
+class SelectedTime extends _$SelectedTime {
+  @override
+  TimeOfDay build() => TimeOfDay.now();
+
+  void setTime(TimeOfDay time) {
+    state = time;
+  }
+}
 
 /// A time picker dialog with Material 3 design and customizable options.
 class SlTimePickerDialog extends ConsumerWidget {
@@ -27,6 +41,7 @@ class SlTimePickerDialog extends ConsumerWidget {
     this.initialEntryMode = TimePickerEntryMode.dial,
   });
 
+  /// Factory for picking a time
   factory SlTimePickerDialog.pickTime({
     required TimeOfDay initialTime,
     String title = 'Select Time',
@@ -39,6 +54,7 @@ class SlTimePickerDialog extends ConsumerWidget {
     );
   }
 
+  /// Factory for picking a reminder time
   factory SlTimePickerDialog.pickReminderTime({
     TimeOfDay? initialTime,
     String title = 'Set Reminder Time',
@@ -50,6 +66,7 @@ class SlTimePickerDialog extends ConsumerWidget {
     );
   }
 
+  /// Factory for picking time in 24-hour format
   factory SlTimePickerDialog.pick24HourTime({
     required TimeOfDay initialTime,
     String title = 'Select Time (24h)',
@@ -131,8 +148,10 @@ class SlTimePickerDialog extends ConsumerWidget {
     );
   }
 
+  /// Show the time picker dialog
   static Future<TimeOfDay?> show(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required TimeOfDay initialTime,
     String title = 'Select Time',
     String confirmText = 'OK',
@@ -143,7 +162,10 @@ class SlTimePickerDialog extends ConsumerWidget {
     bool use24HourFormat = false,
     TimePickerEntryMode initialEntryMode = TimePickerEntryMode.dial,
   }) async {
-    return showDialog<TimeOfDay>(
+    // Set initial time to provider
+    ref.read(selectedTimeProvider.notifier).setTime(initialTime);
+
+    final result = await showDialog<TimeOfDay>(
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (BuildContext dialogContext) {
@@ -160,5 +182,12 @@ class SlTimePickerDialog extends ConsumerWidget {
         );
       },
     );
+
+    // Update provider with result
+    if (result != null) {
+      ref.read(selectedTimeProvider.notifier).setTime(result);
+    }
+
+    return result;
   }
 }

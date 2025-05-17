@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+
+import '../button/sl_primary_button.dart';
 
 /// A customizable bottom sheet dialog with Material 3 design principles.
 class SlBottomSheetDialog extends ConsumerWidget {
@@ -24,7 +25,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
   final Color? backgroundColor;
   final bool showDragHandle;
   final bool expandToFullScreen;
-  final VoidCallback? onClose; // Added onClose callback
+  final VoidCallback? onClose;
 
   const SlBottomSheetDialog({
     super.key,
@@ -51,7 +52,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
     this.backgroundColor,
     this.showDragHandle = true,
     this.expandToFullScreen = false,
-    this.onClose, // Added to constructor
+    this.onClose,
   });
 
   /// Factory for a simple message bottom sheet
@@ -70,17 +71,15 @@ class SlBottomSheetDialog extends ConsumerWidget {
       iconWidget: icon,
       showCloseButton: false,
       actions: [
-        SLButton(
+        SlPrimaryButton(
           text: closeButtonText,
           onPressed: () {
-            Navigator.pop(context); // Always pop the dialog
-            onClose?.call(); // Call the provided onClose if it exists
+            Navigator.pop(context);
+            onClose?.call();
           },
-          type: SLButtonType.primary,
         ),
       ],
-      onClose:
-          onClose, // Pass through the onClose for when the sheet is dismissed by other means
+      onClose: onClose,
     );
   }
 
@@ -89,7 +88,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
     BuildContext context, {
     String? title,
     required List<Widget> options,
-    Widget? cancelButton, // Optional custom cancel button
+    Widget? cancelButton,
     VoidCallback? onClose,
   }) {
     SlBottomSheetDialog.show(
@@ -169,7 +168,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
                 width: AppDimens.paddingXXL + AppDimens.paddingS,
                 height: AppDimens.paddingXXS * 2,
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
                 ),
               ),
@@ -205,7 +204,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
                 if (showCloseButton && onClose != null)
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
-                    onPressed: onClose, // Correctly uses the class member
+                    onPressed: onClose,
                     tooltip: 'Close',
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -276,7 +275,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
           borderRadius: effectiveBorderRadius,
           boxShadow: [
             BoxShadow(
-              color: theme.shadowColor.withValues(alpha: 0.1),
+              color: theme.shadowColor.withOpacity(0.1),
               blurRadius: AppDimens.elevationS,
               offset: const Offset(0, 1),
             ),
@@ -311,11 +310,8 @@ class SlBottomSheetDialog extends ConsumerWidget {
     Color? backgroundColor,
     bool showDragHandle = true,
     bool expandToFullScreen = false,
-    VoidCallback? onClose, // Added onClose to the show method parameters
+    VoidCallback? onClose,
   }) {
-    // The onClose passed here will be used if the user dismisses the sheet
-    // by dragging, tapping outside (if isDismissible is true), or if the
-    // default close button (if enabled and no custom actions) is pressed.
     return showModalBottomSheet<T>(
       context: context,
       isDismissible: isDismissible,
@@ -325,14 +321,6 @@ class SlBottomSheetDialog extends ConsumerWidget {
       isScrollControlled: isScrollControlled,
       elevation: 0,
       builder: (BuildContext builderContext) {
-        // Use builderContext for creating the dialog instance
-        // If a specific onClose for the X button is needed and it's different from
-        // the general onClose, that logic needs to be handled carefully.
-        // For simplicity, this.onClose in SlBottomSheetDialog will be the one
-        // triggered by the X button.
-        // The onClose passed to showModalBottomSheet's .whenComplete can handle
-        // dismissal by other means if needed, or the onClose parameter passed to
-        // SlBottomSheetDialog can be called via whenComplete.
         return SlBottomSheetDialog(
           title: title,
           message: message,
@@ -359,14 +347,10 @@ class SlBottomSheetDialog extends ConsumerWidget {
           backgroundColor: backgroundColor,
           showDragHandle: showDragHandle,
           expandToFullScreen: expandToFullScreen,
-          onClose:
-              onClose, // Pass the onClose from show() to the SlBottomSheetDialog instance
+          onClose: onClose,
         );
       },
     ).whenComplete(() {
-      // This will be called when the bottom sheet is closed for any reason,
-      // including Navigator.pop(context), dragging, or barrier tap.
-      // If an onClose callback was provided to the show() method, call it here.
       onClose?.call();
     });
   }

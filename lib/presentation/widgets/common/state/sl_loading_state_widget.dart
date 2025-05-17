@@ -2,11 +2,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+
+part 'sl_loading_state_widget.g.dart';
 
 enum SlLoadingType { circular, pulse, threeBounce, wave, fadingCircle }
 
 enum SlLoadingSize { small, medium, large }
+
+@riverpod
+class LoadingState extends _$LoadingState {
+  @override
+  bool build() => false;
+
+  void setLoading(bool isLoading) {
+    state = isLoading;
+  }
+}
 
 class SlLoadingStateWidget extends ConsumerWidget {
   final String? message;
@@ -159,5 +172,29 @@ class SlLoadingStateWidget extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  /// Shows a full-screen loading overlay
+  static void showFullScreen(
+    BuildContext context,
+    WidgetRef ref, {
+    String? message,
+  }) {
+    ref.read(loadingStateProvider.notifier).setLoading(true);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          SlLoadingStateWidget.fullScreen(message: message, dismissible: false),
+    );
+  }
+
+  /// Hides any displayed loading overlay
+  static void hide(BuildContext context, WidgetRef ref) {
+    if (ref.read(loadingStateProvider)) {
+      Navigator.of(context, rootNavigator: true).pop();
+      ref.read(loadingStateProvider.notifier).setLoading(false);
+    }
   }
 }

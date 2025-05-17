@@ -1,14 +1,28 @@
 // lib/presentation/widgets/common/dialog/sl_score_input_dialog_content.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
 
-import '../../../../core/extensions/color_extensions.dart';
+part 'sl_score_input_dialog_content.g.dart';
+
+/// Provider for managing score value in the dialog
+@riverpod
+class ScoreValue extends _$ScoreValue {
+  @override
+  double build(String dialogId, {double initialValue = 70.0}) => initialValue;
+
+  void setScore(double value) {
+    state = value;
+  }
+}
 
 /// Content widget for the score input dialog.
 /// This widget allows users to input a score with visual feedback.
-class SlScoreInputDialogContent extends ConsumerStatefulWidget {
+class SlScoreInputDialogContent extends ConsumerWidget {
+  final String dialogId;
   final double initialValue;
   final double minValue;
   final double maxValue;
@@ -22,6 +36,7 @@ class SlScoreInputDialogContent extends ConsumerStatefulWidget {
   /// Creates a score input dialog content widget.
   const SlScoreInputDialogContent({
     super.key,
+    required this.dialogId,
     this.initialValue = 70.0,
     this.minValue = 0.0,
     this.maxValue = 100.0,
@@ -33,41 +48,80 @@ class SlScoreInputDialogContent extends ConsumerStatefulWidget {
     this.titleIcon = Icons.leaderboard_outlined, // Default icon
   });
 
-  @override
-  ConsumerState<SlScoreInputDialogContent> createState() =>
-      _SlScoreInputDialogContentState();
-}
+  /// Factory for a standard score input dialog
+  factory SlScoreInputDialogContent.standard({
+    required String dialogId,
+    double initialValue = 70.0,
+    String title = 'Rate Your Experience',
+    String? subtitle = 'Drag the slider to rate',
+    IconData titleIcon = Icons.star_outline_rounded,
+  }) {
+    return SlScoreInputDialogContent(
+      dialogId: dialogId,
+      initialValue: initialValue,
+      title: title,
+      subtitle: subtitle,
+      titleIcon: titleIcon,
+    );
+  }
 
-class _SlScoreInputDialogContentState
-    extends ConsumerState<SlScoreInputDialogContent> {
-  late double _scoreValue;
+  /// Factory for a feedback score dialog
+  factory SlScoreInputDialogContent.feedback({
+    required String dialogId,
+    double initialValue = 50.0,
+    String title = 'Provide Feedback',
+    String? subtitle = 'How would you rate this content?',
+  }) {
+    return SlScoreInputDialogContent(
+      dialogId: dialogId,
+      initialValue: initialValue,
+      title: title,
+      subtitle: subtitle,
+      titleIcon: Icons.feedback_outlined,
+      confirmText: 'Submit Feedback',
+    );
+  }
 
-  @override
-  void initState() {
-    super.initState();
-    _scoreValue = widget.initialValue.clamp(widget.minValue, widget.maxValue);
+  /// Factory for a quiz/test score input
+  factory SlScoreInputDialogContent.assessment({
+    required String dialogId,
+    double initialValue = 0.0,
+    double maxValue = 100.0,
+    String title = 'Input Test Score',
+    String? subtitle = 'Move the slider to set the score',
+  }) {
+    return SlScoreInputDialogContent(
+      dialogId: dialogId,
+      initialValue: initialValue,
+      maxValue: maxValue,
+      title: title,
+      subtitle: subtitle,
+      titleIcon: Icons.school_outlined,
+      confirmText: 'Record Score',
+    );
   }
 
   /// Get the color for the score based on its value
-  Color _getScoreColor(ColorScheme colorScheme, BuildContext context) {
-    final percentage =
-        (_scoreValue - widget.minValue) / (widget.maxValue - widget.minValue);
+  Color _getScoreColor(
+    ColorScheme colorScheme,
+    BuildContext context,
+    double score,
+  ) {
+    final percentage = (score - minValue) / (maxValue - minValue);
 
     // Using Theme extension if available, otherwise direct colors
     final theme = Theme.of(context);
-    if (theme.extensions.containsKey(SemanticColorExtension)) {
-      return theme.getScoreColor(
-        _scoreValue,
-      ); // Assuming getScoreColor exists in theme extensions
+    if (theme.extension<SemanticColorExtension>() != null) {
+      return theme.getScoreColor(score);
     }
 
     // Fallback to direct colors
     if (percentage >= 0.9) {
-      return colorScheme.primary; // Or a specific success green
+      return colorScheme.primary;
     }
     if (percentage >= 0.7) return colorScheme.tertiary;
     if (percentage >= 0.5) return colorScheme.secondary;
-    if (percentage >= 0.3) return Colors.orange.shade700; // More vibrant orange
+    if (percentage >= 0.3) return Colors.orange.shade700;
     return colorScheme.error;
   }
 
@@ -78,11 +132,26 @@ class _SlScoreInputDialogContentState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final scoreColor = _getScoreColor(colorScheme, context);
-    final scoreDisplayBackgroundColor = scoreColor.withValues(alpha: 0.1);
+
+    // Initialize the provider with initial value
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(
+            scoreValueProvider(dialogId, initialValue: initialValue).notifier,
+          )
+          .setScore(initialValue.clamp(minValue, maxValue));
+    });
+
+    // Watch the score value from provider
+    final scoreValue = ref.watch(
+      scoreValueProvider(dialogId, initialValue: initialValue),
+    );
+
+    final scoreColor = _getScoreColor(colorScheme, context, scoreValue);
+    final scoreDisplayBackgroundColor = scoreColor.withOpacity(0.1);
     final scoreDisplayTextColor = _getContrastTextColor(
       scoreColor,
       colorScheme,
@@ -95,18 +164,17 @@ class _SlScoreInputDialogContentState
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (widget.titleIcon != null) ...[
+            if (titleIcon != null) ...[
               Icon(
-                widget.titleIcon,
+                titleIcon,
                 color: colorScheme.primary,
                 size: AppDimens.iconL,
               ),
               const SizedBox(width: AppDimens.spaceS),
             ],
             Text(
-              widget.title,
+              title,
               style: theme.textTheme.headlineSmall?.copyWith(
-                // M3 headline
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurface,
               ),
@@ -114,10 +182,10 @@ class _SlScoreInputDialogContentState
             ),
           ],
         ),
-        if (widget.subtitle != null) ...[
+        if (subtitle != null) ...[
           const SizedBox(height: AppDimens.spaceXS),
           Text(
-            widget.subtitle!,
+            subtitle!,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -126,18 +194,15 @@ class _SlScoreInputDialogContentState
         ],
         const SizedBox(height: AppDimens.spaceXL),
         Container(
-          width: AppDimens.iconXXXL * 1.8, // Slightly larger display
+          width: AppDimens.iconXXXL * 1.8,
           height: AppDimens.iconXXXL * 1.8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: scoreDisplayBackgroundColor,
-            border: Border.all(
-              color: scoreColor.withValues(alpha: 0.5),
-              width: 2,
-            ),
+            border: Border.all(color: scoreColor.withOpacity(0.5), width: 2),
             boxShadow: [
               BoxShadow(
-                color: scoreColor.withValues(alpha: 0.2),
+                color: scoreColor.withOpacity(0.2),
                 blurRadius: AppDimens.shadowRadiusM,
                 spreadRadius: AppDimens.shadowOffsetS,
               ),
@@ -145,10 +210,9 @@ class _SlScoreInputDialogContentState
           ),
           child: Center(
             child: Text(
-              _scoreValue.round().toString(),
+              scoreValue.round().toString(),
               style: theme.textTheme.displayMedium?.copyWith(
-                // M3 display
-                color: scoreColor, // Use the dynamic score color
+                color: scoreColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -158,37 +222,37 @@ class _SlScoreInputDialogContentState
         SliderTheme(
           data: SliderThemeData(
             activeTrackColor: scoreColor,
-            inactiveTrackColor: scoreColor.withValues(alpha: 0.25),
+            inactiveTrackColor: scoreColor.withOpacity(0.25),
             thumbColor: scoreColor,
-            overlayColor: scoreColor.withValues(alpha: 0.15),
+            overlayColor: scoreColor.withOpacity(0.15),
             trackHeight: AppDimens.lineProgressHeightL,
-            // 8.0
             thumbShape: const RoundSliderThumbShape(
               enabledThumbRadius: AppDimens.radiusM,
             ),
-            // 12.0
             overlayShape: const RoundSliderOverlayShape(
               overlayRadius: AppDimens.paddingXL,
             ),
-            // 24.0
             valueIndicatorColor: colorScheme.primaryContainer,
             valueIndicatorTextStyle: theme.textTheme.labelSmall?.copyWith(
               color: colorScheme.onPrimaryContainer,
             ),
-            valueIndicatorShape:
-                const PaddleSliderValueIndicatorShape(), // M3 style
+            valueIndicatorShape: const PaddleSliderValueIndicatorShape(),
           ),
           child: Slider(
-            value: _scoreValue,
-            min: widget.minValue,
-            max: widget.maxValue,
-            divisions: widget.divisions,
-            label: '${_scoreValue.round()}%',
-            // Label for accessibility and hover
+            value: scoreValue,
+            min: minValue,
+            max: maxValue,
+            divisions: divisions,
+            label: '${scoreValue.round()}',
             onChanged: (value) {
-              setState(() {
-                _scoreValue = value;
-              });
+              ref
+                  .read(
+                    scoreValueProvider(
+                      dialogId,
+                      initialValue: initialValue,
+                    ).notifier,
+                  )
+                  .setScore(value);
             },
           ),
         ),
@@ -198,13 +262,13 @@ class _SlScoreInputDialogContentState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.minValue.round().toString(),
+                minValue.round().toString(),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                widget.maxValue.round().toString(),
+                maxValue.round().toString(),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -213,24 +277,21 @@ class _SlScoreInputDialogContentState
           ),
         ),
         const SizedBox(height: AppDimens.spaceXL),
-        // More spacing before actions
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            SLButton(
-              text: widget.cancelText,
+            SlButton(
+              text: cancelText,
               onPressed: () => Navigator.of(context).pop(),
-              type: SLButtonType.text,
+              variant: SlButtonVariant.text,
             ),
             const SizedBox(width: AppDimens.spaceM),
-            SLButton(
-              text: widget.confirmText,
-              onPressed: () => Navigator.of(context).pop(_scoreValue),
-              type: SLButtonType.primary,
-              // Or a type that uses scoreColor
+            SlButton(
+              text: confirmText,
+              onPressed: () => Navigator.of(context).pop(scoreValue),
+              variant: SlButtonVariant.filled,
               backgroundColor: scoreColor,
-              // Dynamic button color
-              textColor: _getContrastTextColor(scoreColor, colorScheme),
+              foregroundColor: _getContrastTextColor(scoreColor, colorScheme),
             ),
           ],
         ),
@@ -240,7 +301,9 @@ class _SlScoreInputDialogContentState
 
   /// Shows a dialog with a score input slider
   static Future<double?> show(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
+    required String dialogId,
     double initialValue = 70.0,
     double minValue = 0.0,
     double maxValue = 100.0,
@@ -251,21 +314,25 @@ class _SlScoreInputDialogContentState
     String cancelText = 'Cancel',
     IconData? titleIcon = Icons.leaderboard_outlined,
   }) {
+    // Initialize the provider
+    ref
+        .read(scoreValueProvider(dialogId, initialValue: initialValue).notifier)
+        .setScore(initialValue.clamp(minValue, maxValue));
+
     return showDialog<double>(
       context: context,
-      barrierDismissible: true, // Usually score inputs are dismissible
+      barrierDismissible: true,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              AppDimens.radiusXL,
-            ), // M3 Dialog shape
+            borderRadius: BorderRadius.circular(AppDimens.radiusXL),
           ),
           backgroundColor: Theme.of(
             dialogContext,
           ).colorScheme.surfaceContainerLowest,
           surfaceTintColor: Theme.of(dialogContext).colorScheme.surfaceTint,
           content: SlScoreInputDialogContent(
+            dialogId: dialogId,
             initialValue: initialValue,
             minValue: minValue,
             maxValue: maxValue,
@@ -276,9 +343,7 @@ class _SlScoreInputDialogContentState
             cancelText: cancelText,
             titleIcon: titleIcon,
           ),
-          contentPadding: const EdgeInsets.all(
-            AppDimens.paddingXL,
-          ), // Consistent padding
+          contentPadding: const EdgeInsets.all(AppDimens.paddingXL),
         );
       },
     );
