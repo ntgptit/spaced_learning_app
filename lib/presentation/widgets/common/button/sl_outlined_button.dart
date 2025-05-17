@@ -1,5 +1,4 @@
 // lib/presentation/widgets/common/button/sl_outlined_button.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button_base.dart';
@@ -14,6 +13,7 @@ class SlOutlinedButton extends ConsumerWidget {
   final SlButtonSize size;
   final Color? foregroundColor;
   final BorderSide? borderSide;
+  final double? borderRadius;
 
   const SlOutlinedButton({
     super.key,
@@ -26,6 +26,7 @@ class SlOutlinedButton extends ConsumerWidget {
     this.size = SlButtonSize.medium,
     this.foregroundColor,
     this.borderSide,
+    this.borderRadius,
   });
 
   @override
@@ -41,6 +42,7 @@ class SlOutlinedButton extends ConsumerWidget {
       variant: SlButtonVariant.outlined,
       foregroundColor: foregroundColor,
       borderSide: borderSide,
+      borderRadius: borderRadius,
     );
   }
 }

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_primary_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_text_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/dialog/sl_dialog_button_bar.dart';
 
 enum AlertType { info, success, warning, error }
 
@@ -11,44 +13,48 @@ enum AlertType { info, success, warning, error }
 class SlAlertDialog extends ConsumerWidget {
   final String title;
   final String message;
-  final String? buttonText;
-  final VoidCallback? onButtonPressed;
+  final String? confirmButtonText;
+  final VoidCallback? onConfirm;
   final IconData? icon;
   final AlertType alertType;
   final bool barrierDismissible;
   final bool autoDismiss;
   final Duration autoDismissDuration;
   final Widget? customContent;
-  final List<Widget>? actions;
+  final List<Widget>? customActions; // For completely custom actions
+  final String? cancelButtonText; // Added for two-button scenarios
+  final VoidCallback? onCancel; // Added for two-button scenarios
 
   const SlAlertDialog({
     super.key,
     required this.title,
     required this.message,
-    this.buttonText,
-    this.onButtonPressed,
+    this.confirmButtonText,
+    this.onConfirm,
     this.icon,
     this.alertType = AlertType.info,
     this.barrierDismissible = true,
     this.autoDismiss = false,
     this.autoDismissDuration = const Duration(seconds: 3),
     this.customContent,
-    this.actions,
+    this.customActions,
+    this.cancelButtonText,
+    this.onCancel,
   });
 
   // Factory constructor for a generic info alert
   factory SlAlertDialog.info({
     required String title,
     required String message,
-    String buttonText = 'OK',
-    VoidCallback? onButtonPressed,
+    String confirmButtonText = 'OK',
+    VoidCallback? onConfirm,
     bool autoDismiss = false,
   }) {
     return SlAlertDialog(
       title: title,
       message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
+      confirmButtonText: confirmButtonText,
+      onConfirm: onConfirm,
       alertType: AlertType.info,
       icon: Icons.info_outline_rounded,
       autoDismiss: autoDismiss,
@@ -59,16 +65,16 @@ class SlAlertDialog extends ConsumerWidget {
   factory SlAlertDialog.success({
     required String title,
     required String message,
-    String buttonText = 'Great!',
-    VoidCallback? onButtonPressed,
+    String confirmButtonText = 'Great!',
+    VoidCallback? onConfirm,
     bool autoDismiss = true,
     Duration autoDismissDuration = const Duration(seconds: 2),
   }) {
     return SlAlertDialog(
       title: title,
       message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
+      confirmButtonText: confirmButtonText,
+      onConfirm: onConfirm,
       alertType: AlertType.success,
       icon: Icons.check_circle_outline_rounded,
       autoDismiss: autoDismiss,
@@ -80,18 +86,22 @@ class SlAlertDialog extends ConsumerWidget {
   factory SlAlertDialog.warning({
     required String title,
     required String message,
-    String buttonText = 'Understood',
-    VoidCallback? onButtonPressed,
-    List<Widget>? actions,
+    String confirmButtonText = 'Understood',
+    VoidCallback? onConfirm,
+    String? cancelButtonText = 'Cancel',
+    VoidCallback? onCancel,
+    List<Widget>? customActions,
   }) {
     return SlAlertDialog(
       title: title,
       message: message,
-      buttonText: actions == null ? buttonText : null,
-      onButtonPressed: actions == null ? onButtonPressed : null,
+      confirmButtonText: customActions == null ? confirmButtonText : null,
+      onConfirm: customActions == null ? onConfirm : null,
+      cancelButtonText: customActions == null ? cancelButtonText : null,
+      onCancel: customActions == null ? onCancel : null,
       alertType: AlertType.warning,
       icon: Icons.warning_amber_rounded,
-      actions: actions,
+      customActions: customActions,
     );
   }
 
@@ -99,14 +109,14 @@ class SlAlertDialog extends ConsumerWidget {
   factory SlAlertDialog.error({
     required String title,
     required String message,
-    String buttonText = 'Dismiss',
-    VoidCallback? onButtonPressed,
+    String confirmButtonText = 'Dismiss',
+    VoidCallback? onConfirm,
   }) {
     return SlAlertDialog(
       title: title,
       message: message,
-      buttonText: buttonText,
-      onButtonPressed: onButtonPressed,
+      confirmButtonText: confirmButtonText,
+      onConfirm: onConfirm,
       alertType: AlertType.error,
       icon: Icons.error_outline_rounded,
     );
@@ -138,12 +148,6 @@ class SlAlertDialog extends ConsumerWidget {
     }
   }
 
-  Color _getAlertTextColor(ColorScheme colorScheme, Color alertColor) {
-    return alertColor.computeLuminance() > 0.5
-        ? colorScheme.onSurface
-        : colorScheme.surface;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -160,31 +164,32 @@ class SlAlertDialog extends ConsumerWidget {
     final Color effectiveAlertColor = _getAlertColor(colorScheme);
     final IconData effectiveIcon = _getAlertIcon();
 
-    final List<Widget> dialogActions = actions ?? [];
-    if (dialogActions.isEmpty &&
-        buttonText != null &&
-        onButtonPressed != null) {
-      dialogActions.add(
-        SlButton(
-          text: buttonText!,
-          onPressed: onButtonPressed!,
-          variant: SlButtonVariant.filled,
-          backgroundColor: effectiveAlertColor,
-          foregroundColor: _getAlertTextColor(colorScheme, effectiveAlertColor),
-        ),
+    Widget? confirmActionWidget;
+    if (confirmButtonText != null) {
+      confirmActionWidget = SlPrimaryButton(
+        text: confirmButtonText!,
+        onPressed: onConfirm ?? () => Navigator.of(context).pop(),
+        backgroundColor: effectiveAlertColor,
+        foregroundColor: effectiveAlertColor.hasGoodContrastWith(Colors.white)
+            ? Colors.white
+            : Colors.black,
       );
     }
-    if (dialogActions.isEmpty &&
-        buttonText != null &&
-        onButtonPressed == null) {
-      dialogActions.add(
-        SlButton(
-          text: buttonText!,
-          onPressed: () => Navigator.of(context).pop(),
-          variant: SlButtonVariant.text,
-        ),
+
+    Widget? cancelActionWidget;
+    if (cancelButtonText != null) {
+      cancelActionWidget = SlTextButton(
+        text: cancelButtonText!,
+        onPressed: onCancel ?? () => Navigator.of(context).pop(false),
       );
     }
+
+    final List<Widget> effectiveActions =
+        customActions ??
+        [
+          if (cancelActionWidget != null) cancelActionWidget,
+          if (confirmActionWidget != null) confirmActionWidget,
+        ].where((widget) => widget != null).toList().cast<Widget>();
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
@@ -202,11 +207,12 @@ class SlAlertDialog extends ConsumerWidget {
         AppDimens.paddingL,
         AppDimens.paddingS,
         AppDimens.paddingL,
-        (actions == null && buttonText == null)
-            ? AppDimens.paddingL
-            : AppDimens.paddingS,
+        (effectiveActions.isEmpty) ? AppDimens.paddingL : AppDimens.paddingS,
       ),
-      actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      actionsPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingM,
+      ),
       icon: Container(
         padding: const EdgeInsets.all(AppDimens.paddingXS),
         decoration: BoxDecoration(
@@ -240,9 +246,16 @@ class SlAlertDialog extends ConsumerWidget {
             ),
             textAlign: TextAlign.center,
           ),
-      actionsAlignment: MainAxisAlignment.center,
+      actionsAlignment: MainAxisAlignment.end,
       actionsOverflowButtonSpacing: AppDimens.spaceS,
-      actions: dialogActions.isNotEmpty ? dialogActions : null,
+      actions: effectiveActions.isNotEmpty
+          ? [
+              SlDialogButtonBar(
+                cancelButton: cancelActionWidget,
+                confirmButton: confirmActionWidget,
+              ),
+            ]
+          : null,
     );
   }
 
@@ -251,16 +264,26 @@ class SlAlertDialog extends ConsumerWidget {
     BuildContext context, {
     required String title,
     required String message,
-    String? buttonText,
-    VoidCallback? onButtonPressed,
+    String? confirmButtonText,
+    VoidCallback? onConfirm,
     IconData? icon,
     AlertType alertType = AlertType.info,
     bool barrierDismissible = true,
     bool autoDismiss = false,
     Duration autoDismissDuration = const Duration(seconds: 3),
     Widget? customContent,
-    List<Widget>? actions,
+    List<Widget>? customActions,
+    String? cancelButtonText,
+    VoidCallback? onCancel,
   }) {
+    // Determine default button text if not provided for custom actions
+    String effectiveConfirmButtonText = confirmButtonText ?? 'OK';
+    if (customActions == null &&
+        onConfirm == null &&
+        confirmButtonText == null) {
+      effectiveConfirmButtonText = 'OK';
+    }
+
     return showDialog<void>(
       context: context,
       barrierDismissible: barrierDismissible,
@@ -268,14 +291,16 @@ class SlAlertDialog extends ConsumerWidget {
         return SlAlertDialog(
           title: title,
           message: message,
-          buttonText: buttonText,
-          onButtonPressed: onButtonPressed,
+          confirmButtonText: effectiveConfirmButtonText,
+          onConfirm: onConfirm,
           icon: icon,
           alertType: alertType,
           autoDismiss: autoDismiss,
           autoDismissDuration: autoDismissDuration,
           customContent: customContent,
-          actions: actions,
+          customActions: customActions,
+          cancelButtonText: cancelButtonText,
+          onCancel: onCancel,
         );
       },
     );

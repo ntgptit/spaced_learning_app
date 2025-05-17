@@ -1,5 +1,4 @@
 // lib/presentation/widgets/common/button/sl_text_button.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button_base.dart';
@@ -13,6 +12,7 @@ class SlTextButton extends ConsumerWidget {
   final bool isFullWidth;
   final SlButtonSize size;
   final Color? foregroundColor;
+  final double? borderRadius;
 
   const SlTextButton({
     super.key,
@@ -24,6 +24,7 @@ class SlTextButton extends ConsumerWidget {
     this.isFullWidth = false,
     this.size = SlButtonSize.medium,
     this.foregroundColor,
+    this.borderRadius,
   });
 
   @override
@@ -38,6 +39,7 @@ class SlTextButton extends ConsumerWidget {
       size: size,
       variant: SlButtonVariant.text,
       foregroundColor: foregroundColor,
+      borderRadius: borderRadius,
     );
   }
 }

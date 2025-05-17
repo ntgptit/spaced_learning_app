@@ -2,9 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_primary_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_text_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/dialog/sl_dialog_button_bar.dart';
 
-/// A confirmation dialog with customizable title, content, and action buttons.
+/// A confirmation dialog with customizable title, content, and action buttons,
+/// using SlButtonBase derivatives.
 class SlConfirmDialog extends ConsumerWidget {
   final String title;
   final String message;
@@ -12,12 +15,12 @@ class SlConfirmDialog extends ConsumerWidget {
   final String cancelText;
   final VoidCallback? onConfirm;
   final VoidCallback? onCancel;
-  final bool isDanger;
+  final bool isDangerAction; // True if the confirm action is destructive
   final bool barrierDismissible;
   final IconData? icon;
   final Color? iconColor;
-  final Color? confirmButtonColor;
-  final Color? cancelButtonColor;
+  final Color? confirmButtonColor; // Custom color for the confirm button
+  final Color? cancelButtonColor; // Custom color for the cancel button text
 
   const SlConfirmDialog({
     super.key,
@@ -27,13 +30,39 @@ class SlConfirmDialog extends ConsumerWidget {
     this.cancelText = 'Cancel',
     this.onConfirm,
     this.onCancel,
-    this.isDanger = false,
+    this.isDangerAction = false,
     this.barrierDismissible = true,
     this.icon,
     this.iconColor,
     this.confirmButtonColor,
     this.cancelButtonColor,
   });
+
+  factory SlConfirmDialog._create({
+    required String title,
+    required String message,
+    required String confirmText,
+    required String cancelText,
+    required VoidCallback? onConfirm,
+    required VoidCallback? onCancel,
+    required bool isDangerAction,
+    required IconData? icon,
+    Color? iconColor,
+    Color? confirmButtonColor,
+  }) {
+    return SlConfirmDialog(
+      title: title,
+      message: message,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+      isDangerAction: isDangerAction,
+      icon: icon,
+      iconColor: iconColor,
+      confirmButtonColor: confirmButtonColor,
+    );
+  }
 
   // Factory constructor for a standard confirmation
   factory SlConfirmDialog.standard({
@@ -45,14 +74,14 @@ class SlConfirmDialog extends ConsumerWidget {
     VoidCallback? onCancel,
     IconData icon = Icons.help_outline_rounded,
   }) {
-    return SlConfirmDialog(
+    return SlConfirmDialog._create(
       title: title,
       message: message,
       confirmText: confirmText,
       cancelText: cancelText,
       onConfirm: onConfirm,
       onCancel: onCancel,
-      isDanger: false,
+      isDangerAction: false,
       icon: icon,
     );
   }
@@ -66,14 +95,14 @@ class SlConfirmDialog extends ConsumerWidget {
     VoidCallback? onConfirm,
     VoidCallback? onCancel,
   }) {
-    return SlConfirmDialog(
+    return SlConfirmDialog._create(
       title: title,
       message: message,
       confirmText: confirmText,
       cancelText: cancelText,
       onConfirm: onConfirm,
       onCancel: onCancel,
-      isDanger: true,
+      isDangerAction: true,
       icon: Icons.delete_outline_rounded,
     );
   }
@@ -87,17 +116,19 @@ class SlConfirmDialog extends ConsumerWidget {
     VoidCallback? onConfirm,
     VoidCallback? onCancel,
   }) {
-    return SlConfirmDialog(
+    return SlConfirmDialog._create(
       title: title,
       message: message,
       confirmText: confirmText,
       cancelText: cancelText,
       onConfirm: onConfirm,
       onCancel: onCancel,
-      isDanger: false,
+      isDangerAction: false,
+      // Warning is not necessarily a "danger" action like delete
       icon: Icons.warning_amber_rounded,
       iconColor: Colors.orange,
-      confirmButtonColor: Colors.orange,
+      // Default warning color
+      confirmButtonColor: Colors.orange, // Default warning color
     );
   }
 
@@ -107,23 +138,49 @@ class SlConfirmDialog extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     final effectiveIconColor =
-        iconColor ?? (isDanger ? colorScheme.error : colorScheme.primary);
+        iconColor ?? (isDangerAction ? colorScheme.error : colorScheme.primary);
+
     final effectiveConfirmButtonColor =
         confirmButtonColor ??
-        (isDanger ? colorScheme.error : colorScheme.primary);
-    final effectiveConfirmButtonTextColor =
+        (isDangerAction ? colorScheme.error : colorScheme.primary);
+
+    final effectiveConfirmButtonForegroundColor =
         effectiveConfirmButtonColor.computeLuminance() > 0.5
         ? colorScheme.onSurface
         : colorScheme.surface;
-    final effectiveCancelButtonColor =
-        cancelButtonColor ?? colorScheme.onSurfaceVariant;
+
+    final SlTextButton cancelAction = SlTextButton(
+      text: cancelText,
+      onPressed: () {
+        if (onCancel != null) {
+          onCancel!();
+        } else {
+          Navigator.of(context).pop(false);
+        }
+      },
+      foregroundColor: cancelButtonColor ?? colorScheme.onSurfaceVariant,
+    );
+
+    final SlPrimaryButton confirmAction = SlPrimaryButton(
+      text: confirmText,
+      onPressed: () {
+        if (onConfirm != null) {
+          onConfirm!();
+        } else {
+          Navigator.of(context).pop(true);
+        }
+      },
+      backgroundColor: effectiveConfirmButtonColor,
+      foregroundColor: effectiveConfirmButtonForegroundColor,
+    );
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      backgroundColor: colorScheme.surfaceContainerLowest,
+      backgroundColor: colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
+      // M3 surface tint
       iconPadding: const EdgeInsets.only(
         top: AppDimens.paddingL,
         bottom: AppDimens.paddingS,
@@ -143,13 +200,16 @@ class SlConfirmDialog extends ConsumerWidget {
         AppDimens.paddingL,
         AppDimens.paddingL,
       ),
-      actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      actionsPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingM,
+      ),
       actionsAlignment: MainAxisAlignment.end,
       title: Text(
         title,
         style: theme.textTheme.headlineSmall?.copyWith(
           fontWeight: FontWeight.w600,
-          color: isDanger ? colorScheme.error : colorScheme.onSurface,
+          color: isDangerAction ? colorScheme.error : colorScheme.onSurface,
         ),
         textAlign: icon != null ? TextAlign.center : TextAlign.start,
       ),
@@ -161,30 +221,9 @@ class SlConfirmDialog extends ConsumerWidget {
         textAlign: icon != null ? TextAlign.center : TextAlign.start,
       ),
       actions: [
-        SlButton(
-          text: cancelText,
-          onPressed: () {
-            if (onCancel != null) {
-              onCancel!();
-              return;
-            }
-            Navigator.of(context).pop(false);
-          },
-          variant: SlButtonVariant.text,
-          foregroundColor: effectiveCancelButtonColor,
-        ),
-        SlButton(
-          text: confirmText,
-          onPressed: () {
-            if (onConfirm != null) {
-              onConfirm!();
-              return;
-            }
-            Navigator.of(context).pop(true);
-          },
-          variant: isDanger ? SlButtonVariant.filled : SlButtonVariant.filled,
-          backgroundColor: effectiveConfirmButtonColor,
-          foregroundColor: effectiveConfirmButtonTextColor,
+        SlDialogButtonBar(
+          cancelButton: cancelAction,
+          confirmButton: confirmAction,
         ),
       ],
     );
@@ -199,7 +238,7 @@ class SlConfirmDialog extends ConsumerWidget {
     String cancelText = 'Cancel',
     VoidCallback? onConfirm,
     VoidCallback? onCancel,
-    bool isDanger = false,
+    bool isDangerAction = false,
     bool barrierDismissible = true,
     IconData? icon,
     Color? iconColor,
@@ -216,7 +255,7 @@ class SlConfirmDialog extends ConsumerWidget {
         cancelText: cancelText,
         onConfirm: onConfirm,
         onCancel: onCancel,
-        isDanger: isDanger,
+        isDangerAction: isDangerAction,
         barrierDismissible: barrierDismissible,
         icon: icon,
         iconColor: iconColor,

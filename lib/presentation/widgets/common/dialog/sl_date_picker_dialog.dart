@@ -47,6 +47,37 @@ class SlDatePickerDialog extends ConsumerWidget {
     this.helpText,
   });
 
+  factory SlDatePickerDialog._create({
+    // Private factory
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+    String title = 'Select Date',
+    String confirmText = 'OK',
+    String cancelText = 'CANCEL',
+    DatePickerEntryMode initialEntryMode = DatePickerEntryMode.calendar,
+    DatePickerMode initialDatePickerMode = DatePickerMode.day,
+    bool barrierDismissible = true,
+    Color? headerBackgroundColor,
+    Color? headerForegroundColor,
+    String? helpText,
+  }) {
+    return SlDatePickerDialog(
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      title: title,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      initialEntryMode: initialEntryMode,
+      initialDatePickerMode: initialDatePickerMode,
+      barrierDismissible: barrierDismissible,
+      headerBackgroundColor: headerBackgroundColor,
+      headerForegroundColor: headerForegroundColor,
+      helpText: helpText,
+    );
+  }
+
   /// Factory for picking a generic date
   factory SlDatePickerDialog.pickDate({
     required DateTime initialDate,
@@ -54,7 +85,7 @@ class SlDatePickerDialog extends ConsumerWidget {
     required DateTime lastDate,
     String title = 'Select Date',
   }) {
-    return SlDatePickerDialog(
+    return SlDatePickerDialog._create(
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
@@ -68,7 +99,7 @@ class SlDatePickerDialog extends ConsumerWidget {
     String title = 'Select Date of Birth',
   }) {
     final now = DateTime.now();
-    return SlDatePickerDialog(
+    return SlDatePickerDialog._create(
       initialDate: initialDate ?? now.subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
       lastDate: now,
@@ -85,7 +116,7 @@ class SlDatePickerDialog extends ConsumerWidget {
     int maxYearsInFuture = 5,
   }) {
     final now = DateTime.now();
-    return SlDatePickerDialog(
+    return SlDatePickerDialog._create(
       initialDate: initialDate ?? now.add(const Duration(days: 1)),
       firstDate: firstAvailableDate ?? now,
       lastDate: DateTime(now.year + maxYearsInFuture, now.month, now.day),
@@ -98,89 +129,20 @@ class SlDatePickerDialog extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final datePickerTheme = DatePickerThemeData(
-      backgroundColor: colorScheme.surfaceContainerHigh,
-      headerBackgroundColor: headerBackgroundColor ?? colorScheme.primary,
-      headerForegroundColor: headerForegroundColor ?? colorScheme.onPrimary,
-      headerHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(
-        color: headerForegroundColor ?? colorScheme.onPrimary,
-      ),
-      headerHelpStyle: theme.textTheme.titleLarge?.copyWith(
-        color: headerForegroundColor ?? colorScheme.onPrimary,
-      ),
-      weekdayStyle: theme.textTheme.bodySmall?.copyWith(
-        color: colorScheme.onSurfaceVariant,
-      ),
-      dayStyle: theme.textTheme.bodyLarge?.copyWith(
-        color: colorScheme.onSurface,
-      ),
-      dayForegroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
-      ) {
-        if (states.contains(MaterialState.selected)) {
-          return colorScheme.onPrimary;
-        }
-        if (states.contains(MaterialState.disabled)) {
-          return colorScheme.onSurface.withOpacity(0.38);
-        }
-        return colorScheme.onSurface;
-      }),
-      dayBackgroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
-      ) {
-        if (states.contains(MaterialState.selected)) {
-          return colorScheme.primary;
-        }
-        return Colors.transparent;
-      }),
-      yearStyle: theme.textTheme.bodyLarge?.copyWith(
-        color: colorScheme.onSurface,
-      ),
-      yearForegroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
-      ) {
-        if (states.contains(MaterialState.selected)) {
-          return colorScheme.onPrimary;
-        }
-        return colorScheme.onSurface;
-      }),
-      yearBackgroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
-      ) {
-        if (states.contains(MaterialState.selected)) {
-          return colorScheme.primary;
-        }
-        return Colors.transparent;
-      }),
-      todayBorder: BorderSide(color: colorScheme.primary),
-      todayForegroundColor: MaterialStateProperty.all<Color>(
-        colorScheme.primary,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
-      ),
-      elevation: AppDimens.elevationM,
-      cancelButtonStyle: TextButton.styleFrom(
-        foregroundColor: colorScheme.primary,
-      ),
-      confirmButtonStyle: FilledButton.styleFrom(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-      ),
-    );
-
-    return Theme(
-      data: theme.copyWith(datePickerTheme: datePickerTheme),
-      child: DatePickerDialog(
-        initialDate: initialDate,
-        firstDate: firstDate,
-        lastDate: lastDate,
-        helpText: helpText ?? title.toUpperCase(),
-        confirmText: confirmText,
-        cancelText: cancelText,
-        initialEntryMode: initialEntryMode,
-        initialCalendarMode: initialDatePickerMode,
-      ),
+    // This build method is for wrapping Flutter's DatePickerDialog
+    // The direct styling of buttons inside DatePickerDialog is limited.
+    // We rely on the global theme passed to showDatePicker's builder.
+    // For direct use of SlDatePickerDialog as a widget (less common for pickers),
+    // this internal DatePickerDialog will inherit theme.
+    return DatePickerDialog(
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      helpText: helpText ?? title.toUpperCase(),
+      confirmText: confirmText,
+      cancelText: cancelText,
+      initialEntryMode: initialEntryMode,
+      initialCalendarMode: initialDatePickerMode,
     );
   }
 
@@ -201,31 +163,93 @@ class SlDatePickerDialog extends ConsumerWidget {
     Color? headerForegroundColor,
     String? helpText,
   }) async {
-    // Set initial date in provider
     ref.read(selectedDateProvider.notifier).setDate(initialDate);
 
-    final result = await showDialog<DateTime>(
+    final result = await showDatePicker(
       context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      helpText: helpText ?? title.toUpperCase(),
+      confirmText: confirmText,
+      cancelText: cancelText,
+      initialEntryMode: initialEntryMode,
       barrierDismissible: barrierDismissible,
-      builder: (BuildContext dialogContext) {
-        return SlDatePickerDialog(
-          initialDate: initialDate,
-          firstDate: firstDate,
-          lastDate: lastDate,
-          title: title,
-          confirmText: confirmText,
-          cancelText: cancelText,
-          initialEntryMode: initialEntryMode,
-          initialDatePickerMode: initialDatePickerMode,
-          headerBackgroundColor: headerBackgroundColor,
-          headerForegroundColor: headerForegroundColor,
-          helpText: helpText,
-          barrierDismissible: barrierDismissible,
+      builder: (context, child) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: colorScheme.copyWith(
+              primary: colorScheme.primary,
+              onPrimary: colorScheme.onPrimary,
+              surface: colorScheme.surfaceContainerHigh,
+              // M3 dialog surface
+              onSurface: colorScheme.onSurface,
+            ),
+            datePickerTheme: DatePickerThemeData(
+              backgroundColor: colorScheme.surfaceContainerHigh,
+              headerBackgroundColor:
+                  headerBackgroundColor ?? colorScheme.primary,
+              headerForegroundColor:
+                  headerForegroundColor ?? colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimens.radiusL),
+              ),
+              elevation: AppDimens.elevationM,
+              // Button styles for the native dialog
+              cancelButtonStyle: TextButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+                textStyle: theme.textTheme.labelLarge,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingM,
+                  vertical: AppDimens.paddingS,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
+                ),
+              ),
+              confirmButtonStyle: FilledButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                textStyle: theme.textTheme.labelLarge,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingL,
+                  vertical: AppDimens.paddingS,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
+                ),
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              // Fallback for dialog actions if not picked up by DatePickerTheme
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+                textStyle: theme.textTheme.labelLarge,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingM,
+                  vertical: AppDimens.paddingS,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
+                ),
+              ),
+            ),
+            dialogTheme: DialogThemeData(
+              // General dialog theming
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimens.radiusL),
+              ),
+              backgroundColor: colorScheme.surfaceContainerHigh,
+              elevation: AppDimens.elevationM,
+            ),
+          ),
+          child: child!,
         );
       },
     );
 
-    // Update provider with result
     if (result != null) {
       ref.read(selectedDateProvider.notifier).setDate(result);
     }

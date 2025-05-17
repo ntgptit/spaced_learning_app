@@ -2,15 +2,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-
-import '../button/sl_primary_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_primary_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/dialog/sl_dialog_button_bar.dart';
 
 /// A customizable bottom sheet dialog with Material 3 design principles.
 class SlBottomSheetDialog extends ConsumerWidget {
   final String? title;
   final String? message;
   final Widget? content;
-  final List<Widget>? actions;
+  final List<Widget>? actions; // Use this for custom button arrangements
   final bool isDismissible;
   final bool enableDrag;
   final bool showCloseButton;
@@ -25,7 +25,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
   final Color? backgroundColor;
   final bool showDragHandle;
   final bool expandToFullScreen;
-  final VoidCallback? onClose;
+  final VoidCallback? onClose; // Called when sheet is closed by any means
 
   const SlBottomSheetDialog({
     super.key,
@@ -55,6 +55,56 @@ class SlBottomSheetDialog extends ConsumerWidget {
     this.onClose,
   });
 
+  factory SlBottomSheetDialog._create({
+    // Private factory
+    String? title,
+    String? message,
+    Widget? content,
+    List<Widget>? actions,
+    bool isDismissible = true,
+    bool enableDrag = true,
+    bool showCloseButton = true,
+    double? maxHeightFraction = 0.85,
+    EdgeInsetsGeometry padding = const EdgeInsets.fromLTRB(
+      AppDimens.paddingL,
+      AppDimens.paddingS,
+      AppDimens.paddingL,
+      AppDimens.paddingL,
+    ),
+    Widget? iconWidget,
+    bool useSafeArea = true,
+    bool showDivider = true,
+    BorderRadius? borderRadius,
+    ScrollController? scrollController,
+    bool isScrollControlled = true,
+    Color? backgroundColor,
+    bool showDragHandle = true,
+    bool expandToFullScreen = false,
+    VoidCallback? onClose,
+  }) {
+    return SlBottomSheetDialog(
+      title: title,
+      message: message,
+      content: content,
+      actions: actions,
+      isDismissible: isDismissible,
+      enableDrag: enableDrag,
+      showCloseButton: showCloseButton,
+      maxHeightFraction: maxHeightFraction,
+      padding: padding,
+      iconWidget: iconWidget,
+      useSafeArea: useSafeArea,
+      showDivider: showDivider,
+      borderRadius: borderRadius,
+      scrollController: scrollController,
+      isScrollControlled: isScrollControlled,
+      backgroundColor: backgroundColor,
+      showDragHandle: showDragHandle,
+      expandToFullScreen: expandToFullScreen,
+      onClose: onClose,
+    );
+  }
+
   /// Factory for a simple message bottom sheet
   static void showMessage(
     BuildContext context, {
@@ -72,11 +122,13 @@ class SlBottomSheetDialog extends ConsumerWidget {
       showCloseButton: false,
       actions: [
         SlPrimaryButton(
+          // Using SlPrimaryButton
           text: closeButtonText,
           onPressed: () {
             Navigator.pop(context);
             onClose?.call();
           },
+          isFullWidth: true, // Example of using new button props
         ),
       ],
       onClose: onClose,
@@ -88,7 +140,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
     BuildContext context, {
     String? title,
     required List<Widget> options,
-    Widget? cancelButton,
+    Widget? cancelButton, // This should be an SlButtonBase derivative
     VoidCallback? onClose,
   }) {
     SlBottomSheetDialog.show(
@@ -144,7 +196,8 @@ class SlBottomSheetDialog extends ConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
 
     final effectiveBackgroundColor =
-        backgroundColor ?? colorScheme.surfaceContainerLow;
+        backgroundColor ??
+        colorScheme.surfaceContainerLowest; // M3: surfaceContainerLow
     final effectiveBorderRadius =
         borderRadius ??
         const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXL));
@@ -152,6 +205,8 @@ class SlBottomSheetDialog extends ConsumerWidget {
     final double actualMaxHeight = expandToFullScreen
         ? mediaQuery.size.height - (useSafeArea ? mediaQuery.padding.top : 0)
         : mediaQuery.size.height * (maxHeightFraction ?? 0.85);
+
+    final defaultOnClose = onClose ?? () => Navigator.pop(context);
 
     final Widget mainContent = Column(
       mainAxisSize: MainAxisSize.min,
@@ -201,10 +256,10 @@ class SlBottomSheetDialog extends ConsumerWidget {
                     ),
                   ),
                 const Spacer(),
-                if (showCloseButton && onClose != null)
+                if (showCloseButton)
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
-                    onPressed: onClose,
+                    onPressed: defaultOnClose,
                     tooltip: 'Close',
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -240,7 +295,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
                     ? padding.resolve(TextDirection.ltr).bottom
                     : AppDimens.paddingS,
               ),
-              child: content,
+              child: content!,
             ),
           ),
         if (actions != null && actions!.isNotEmpty)
@@ -252,38 +307,39 @@ class SlBottomSheetDialog extends ConsumerWidget {
               padding.resolve(TextDirection.ltr).bottom +
                   (useSafeArea ? mediaQuery.padding.bottom : 0),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: actions!.asMap().entries.map((entry) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    left: entry.key > 0 ? AppDimens.spaceM : 0,
-                  ),
-                  child: entry.value,
-                );
-              }).toList(),
+            child: SlDialogButtonBar(
+              // Using SlDialogButtonBar for consistency
+              // This assumes actions are typically [cancel, confirm] or just [confirm]
+              cancelButton: actions!.length > 1 ? actions![0] : null,
+              confirmButton: actions!.length == 1
+                  ? actions![0]
+                  : (actions!.length > 1 ? actions![1] : null),
             ),
           ),
       ],
     );
 
     return Material(
-      type: MaterialType.transparency,
+      type: MaterialType.transparency, // Ensures InkWell splashes are visible
       child: Container(
         decoration: BoxDecoration(
           color: effectiveBackgroundColor,
           borderRadius: effectiveBorderRadius,
           boxShadow: [
+            // M3 style elevation shadow
             BoxShadow(
               color: theme.shadowColor.withOpacity(0.1),
-              blurRadius: AppDimens.elevationS,
-              offset: const Offset(0, 1),
+              blurRadius: AppDimens.elevationS, // e.g., 3.0
+              offset: const Offset(0, 1), // Shadow below
             ),
           ],
         ),
         constraints: BoxConstraints(maxHeight: actualMaxHeight),
         child: useSafeArea
-            ? SafeArea(top: false, child: mainContent)
+            ? SafeArea(
+                top: false,
+                child: mainContent,
+              ) // Avoid top safe area for bottom sheet
             : mainContent,
       ),
     );
@@ -317,11 +373,15 @@ class SlBottomSheetDialog extends ConsumerWidget {
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       useSafeArea: false,
+      // Let the SlBottomSheetDialog handle its own safe area for content
       backgroundColor: Colors.transparent,
+      // Make background transparent
       isScrollControlled: isScrollControlled,
       elevation: 0,
+      // Use custom shadow in SlBottomSheetDialog
       builder: (BuildContext builderContext) {
-        return SlBottomSheetDialog(
+        return SlBottomSheetDialog._create(
+          // Using private factory
           title: title,
           message: message,
           content: content,
@@ -347,11 +407,11 @@ class SlBottomSheetDialog extends ConsumerWidget {
           backgroundColor: backgroundColor,
           showDragHandle: showDragHandle,
           expandToFullScreen: expandToFullScreen,
-          onClose: onClose,
+          onClose: onClose ?? () => Navigator.pop(builderContext),
         );
       },
     ).whenComplete(() {
-      onClose?.call();
+      onClose?.call(); // Call onClose when the sheet is dismissed by any means
     });
   }
 }

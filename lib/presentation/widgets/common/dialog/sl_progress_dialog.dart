@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart'; // SLLoadingIndicator is here
 
 /// A dialog that shows a loading indicator with an optional message.
 /// It can be customized with different indicator types, colors, and a timeout.
@@ -146,8 +146,7 @@ class _SlProgressDialogState extends ConsumerState<SlProgressDialog> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      backgroundColor:
-          widget.backgroundColor ?? colorScheme.surfaceContainerLowest,
+      backgroundColor: widget.backgroundColor ?? colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
       contentPadding: const EdgeInsets.all(AppDimens.paddingXL),
       content: Column(
@@ -155,6 +154,7 @@ class _SlProgressDialogState extends ConsumerState<SlProgressDialog> {
         children: [
           widget.customProgressWidget ??
               SLLoadingIndicator(
+                // Using SLLoadingIndicator from common widgets
                 size: widget.progressIndicatorSize,
                 color: widget.progressColor ?? colorScheme.primary,
                 type: widget.indicatorType,

@@ -4,9 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_primary_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/button/sl_text_button.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/dialog/sl_dialog_button_bar.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/input/sl_text_field.dart';
-
 part 'sl_input_dialog.g.dart';
 
 @riverpod
@@ -38,7 +39,7 @@ class SlInputDialog extends ConsumerStatefulWidget {
   final String? Function(String?)? validator;
   final int? maxLength;
   final int maxLines;
-  final bool isDangerAction;
+  final bool isDangerAction; // For styling the confirm button if needed
   final IconData? prefixIcon;
   final bool barrierDismissible;
   final bool autofocus;
@@ -68,6 +69,50 @@ class SlInputDialog extends ConsumerStatefulWidget {
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
 
+  factory SlInputDialog._create({
+    required String dialogId,
+    required String title,
+    String? message,
+    String? initialValue,
+    String? hintText,
+    String confirmText = 'Submit',
+    String cancelText = 'Cancel',
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+    int? maxLength,
+    int maxLines = 1,
+    bool isDangerAction = false,
+    IconData? prefixIcon,
+    bool barrierDismissible = true,
+    bool autofocus = true,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    AutovalidateMode autovalidateMode = AutovalidateMode.onUserInteraction,
+  }) {
+    return SlInputDialog(
+      dialogId: dialogId,
+      title: title,
+      message: message,
+      initialValue: initialValue,
+      hintText: hintText,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: inputFormatters,
+      validator: validator,
+      maxLength: maxLength,
+      maxLines: maxLines,
+      isDangerAction: isDangerAction,
+      prefixIcon: prefixIcon,
+      barrierDismissible: barrierDismissible,
+      autofocus: autofocus,
+      textCapitalization: textCapitalization,
+      autovalidateMode: autovalidateMode,
+    );
+  }
+
   /// Factory for generic text input
   factory SlInputDialog.text({
     required String dialogId,
@@ -78,7 +123,7 @@ class SlInputDialog extends ConsumerStatefulWidget {
     String confirmText = 'OK',
     String? Function(String?)? validator,
   }) {
-    return SlInputDialog(
+    return SlInputDialog._create(
       dialogId: dialogId,
       title: title,
       message: message,
@@ -100,7 +145,7 @@ class SlInputDialog extends ConsumerStatefulWidget {
     int? maxLength,
     String? Function(String?)? validator,
   }) {
-    return SlInputDialog(
+    return SlInputDialog._create(
       dialogId: dialogId,
       title: title,
       message: message,
@@ -132,7 +177,7 @@ class SlInputDialog extends ConsumerStatefulWidget {
     String confirmText = 'Confirm',
     String? Function(String?)? validator,
   }) {
-    return SlInputDialog(
+    return SlInputDialog._create(
       dialogId: dialogId,
       title: title,
       message: message,
@@ -182,18 +227,18 @@ class SlInputDialog extends ConsumerStatefulWidget {
     AutovalidateMode autovalidateMode = AutovalidateMode.onUserInteraction,
   }) {
     // Set initial value in provider if present
+    final notifier = ref.read(dialogInputValueProvider(dialogId).notifier);
     if (initialValue != null && initialValue.isNotEmpty) {
-      ref
-          .read(dialogInputValueProvider(dialogId).notifier)
-          .setValue(initialValue);
+      notifier.setValue(initialValue);
     } else {
-      ref.read(dialogInputValueProvider(dialogId).notifier).clear();
+      notifier.clear();
     }
 
     return showDialog<String>(
       context: context,
       barrierDismissible: barrierDismissible,
-      builder: (context) => SlInputDialog(
+      builder: (context) => SlInputDialog._create(
+        // Using private factory
         dialogId: dialogId,
         title: title,
         message: message,
@@ -227,7 +272,6 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
 
-    // Listen to changes from provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final providerValue = ref.read(dialogInputValueProvider(widget.dialogId));
       if (providerValue.isNotEmpty && _controller.text.isEmpty) {
@@ -247,11 +291,20 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final Color effectiveConfirmButtonColor = widget.isDangerAction
+        ? colorScheme.error
+        : colorScheme.primary;
+
+    final Color effectiveConfirmButtonForegroundColor =
+        effectiveConfirmButtonColor.computeLuminance() > 0.5
+        ? colorScheme.onSurface
+        : colorScheme.surface;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      backgroundColor: colorScheme.surfaceContainerLowest,
+      backgroundColor: colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
       titlePadding: const EdgeInsets.fromLTRB(
         AppDimens.paddingL,
@@ -265,7 +318,10 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
         AppDimens.paddingL,
         AppDimens.paddingL,
       ),
-      actionsPadding: const EdgeInsets.all(AppDimens.paddingL),
+      actionsPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingL,
+        vertical: AppDimens.paddingM,
+      ),
       actionsAlignment: MainAxisAlignment.end,
 
       title: Text(
@@ -318,21 +374,21 @@ class _SlInputDialogState extends ConsumerState<SlInputDialog> {
         ),
       ),
       actions: [
-        SlButton(
-          text: widget.cancelText,
-          onPressed: () => Navigator.of(context).pop(),
-          variant: SlButtonVariant.text,
-          foregroundColor: colorScheme.onSurfaceVariant,
-        ),
-        SlButton(
-          text: widget.confirmText,
-          onPressed: () {
-            if (_formKey.currentState?.validate() ?? false) {
-              Navigator.of(context).pop(_controller.text);
-            }
-          },
-          variant: SlButtonVariant.filled,
-          backgroundColor: widget.isDangerAction ? colorScheme.error : null,
+        SlDialogButtonBar(
+          cancelButton: SlTextButton(
+            text: widget.cancelText,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          confirmButton: SlPrimaryButton(
+            text: widget.confirmText,
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
+                Navigator.of(context).pop(_controller.text);
+              }
+            },
+            backgroundColor: effectiveConfirmButtonColor,
+            foregroundColor: effectiveConfirmButtonForegroundColor,
+          ),
         ),
       ],
     );

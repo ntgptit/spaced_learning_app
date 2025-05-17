@@ -1,5 +1,4 @@
 // lib/presentation/widgets/common/button/sl_primary_button.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/button/sl_button_base.dart';
@@ -14,6 +13,8 @@ class SlPrimaryButton extends ConsumerWidget {
   final SlButtonSize size;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final double? elevation;
+  final double? borderRadius;
 
   const SlPrimaryButton({
     super.key,
@@ -26,6 +27,8 @@ class SlPrimaryButton extends ConsumerWidget {
     this.size = SlButtonSize.medium,
     this.backgroundColor,
     this.foregroundColor,
+    this.elevation,
+    this.borderRadius,
   });
 
   @override
@@ -41,6 +44,8 @@ class SlPrimaryButton extends ConsumerWidget {
       variant: SlButtonVariant.filled,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
+      elevation: elevation,
+      borderRadius: borderRadius,
     );
   }
 }
