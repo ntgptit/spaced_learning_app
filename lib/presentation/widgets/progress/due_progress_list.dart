@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_empty_state.dart';
 import 'package:spaced_learning_app/presentation/widgets/progress/due_progress_list_item.dart';
 
@@ -37,7 +37,9 @@ class DueProgressList extends ConsumerWidget {
 
         if (progressAsync.hasError) {
           return Center(
-            child: SLErrorView(
+            child: SlErrorStateWidget(
+              // Updated widget
+              title: 'Failed to Load Progress',
               message: progressAsync.error.toString(),
               onRetry: onRefresh,
             ),
@@ -156,7 +158,12 @@ class DueProgressList extends ConsumerWidget {
       },
       loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, _) => Center(
-        child: SLErrorView(message: error.toString(), onRetry: onRefresh),
+        child: SlErrorStateWidget(
+          // Updated widget
+          title: 'Error Loading Progress',
+          message: error.toString(),
+          onRetry: onRefresh,
+        ),
       ),
     );
   }

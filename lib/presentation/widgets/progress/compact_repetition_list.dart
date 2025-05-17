@@ -1,3 +1,4 @@
+// lib/presentation/widgets/progress/compact_repetition_list.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
@@ -6,7 +7,7 @@ import 'package:spaced_learning_app/domain/models/repetition.dart';
 import 'package:spaced_learning_app/presentation/utils/repetition_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 import 'package:spaced_learning_app/presentation/widgets/progress/status_section.dart';
 
 import '../../../core/theme/app_dimens.dart';
@@ -42,12 +43,16 @@ class CompactRepetitionList extends ConsumerWidget {
         return _buildContent(context, repetitions, colorScheme);
       },
       loading: () => _buildLoadingState(theme, colorScheme),
-      error: (error, stackTrace) => SLErrorView(
+      error: (error, stackTrace) => SlErrorStateWidget(
+        title: 'Error Loading Repetitions',
         message: error.toString(),
         onRetry: () => ref
             .read(repetitionStateProvider.notifier)
             .loadRepetitionsByProgressId(progressId),
         compact: true,
+        icon: Icons.error_outline,
+        // Example icon
+        accentColor: colorScheme.error, // Example color
       ),
     );
   }

@@ -1,3 +1,4 @@
+// lib/presentation/screens/auth/register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/constants/app_constants.dart';
@@ -5,8 +6,8 @@ import 'package:spaced_learning_app/core/navigation/navigation_helper.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -129,7 +130,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (success &&
           mounted &&
           ref.read(authStateProvider).valueOrNull == true) {
-        // Sử dụng NavigationHelper để clear stack và đi đến home
         NavigationHelper.clearStackAndGo(context, '/');
       }
     }
@@ -156,7 +156,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeader(theme),
-                    _buildSLErrorView(authError, theme),
+                    _buildErrorWidget(authError, theme), // Updated this line
                     _buildNameFields(),
                     const SizedBox(height: 16),
                     _buildAuthFields(theme),
@@ -195,15 +195,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildSLErrorView(String? errorMessage, ThemeData theme) {
+  // Updated to use SlErrorStateWidget
+  Widget _buildErrorWidget(String? errorMessage, ThemeData theme) {
     return errorMessage != null
         ? Column(
             children: [
-              SLErrorView(
+              SlErrorStateWidget(
+                title: 'Registration Failed',
                 message: errorMessage,
                 compact: true,
                 onRetry: () =>
                     ref.read(authErrorProvider.notifier).clearError(),
+                icon: Icons.person_add_alt_1_outlined,
+                // Example icon
+                accentColor: theme.colorScheme.error, // Example color
               ),
               const SizedBox(height: 16),
             ],

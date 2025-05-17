@@ -1,3 +1,4 @@
+// lib/presentation/screens/auth/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,8 +7,8 @@ import 'package:spaced_learning_app/presentation/screens/auth/register_screen.da
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -64,7 +65,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (success &&
           mounted &&
           ref.read(authStateProvider).valueOrNull == true) {
-        // Sử dụng GoRouter thay vì Navigator
         GoRouter.of(context).go('/');
       }
     }
@@ -92,7 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildHeader(theme),
-                    _buildSLErrorView(authError, theme),
+                    _buildErrorWidget(authError, theme), // Updated this line
                     _buildFormFields(theme),
                     _buildActions(authState.isLoading, theme),
                   ],
@@ -129,15 +129,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildSLErrorView(String? errorMessage, ThemeData theme) {
+  // Updated to use SlErrorStateWidget
+  Widget _buildErrorWidget(String? errorMessage, ThemeData theme) {
     return errorMessage != null
         ? Column(
             children: [
-              SLErrorView(
+              SlErrorStateWidget(
+                title: 'Login Failed',
                 message: errorMessage,
                 compact: true,
                 onRetry: () =>
                     ref.read(authErrorProvider.notifier).clearError(),
+                icon: Icons.login_outlined,
+                // Example icon
+                accentColor: theme.colorScheme.error, // Example color
               ),
               const SizedBox(height: 16),
             ],

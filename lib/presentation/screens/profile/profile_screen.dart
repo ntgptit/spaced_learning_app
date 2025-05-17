@@ -1,5 +1,4 @@
 // lib/presentation/screens/profile/profile_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,8 +8,8 @@ import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/user_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 
 import '../../widgets/profile/login_prompt.dart';
 import '../../widgets/profile/profile_edit_form.dart';
@@ -62,11 +61,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (!mounted) return;
 
     if (success) {
-      await _loadUserData();
+      await _loadUserData(); // Reload user data to reflect changes
       setState(() => _isEditing = false);
       _showSnackBar('Profile updated successfully', Colors.green);
     } else {
-      _showSnackBar('Failed to update profile', Colors.red);
+      // Error is handled by the userStateProvider, no need to show another snackbar here
+      // if the provider sets an error state.
+      final userError = ref.read(userErrorProvider);
+      if (userError != null) {
+        _showSnackBar('Failed to update profile: $userError', Colors.red);
+      } else {
+        _showSnackBar('Failed to update profile', Colors.red);
+      }
     }
   }
 
@@ -75,6 +81,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (!mounted) return;
 
+    // Check if logout was successful (authState is now false)
     if (!(ref.read(authStateProvider).valueOrNull ?? false)) {
       NavigationHelper.clearStackAndGo(context, '/login');
     }
@@ -83,7 +90,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _toggleEditing() {
     setState(() {
       _isEditing = !_isEditing;
-      if (!_isEditing) _resetForm();
+      if (!_isEditing) _resetForm(); // Reset form when canceling edit
     });
   }
 
@@ -144,6 +151,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ? ref.watch(currentUserProvider)
         : null;
 
+    // If not authenticated, show login prompt
     if (user == null) {
       return const ProfileLoginPrompt();
     }
@@ -152,17 +160,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return userStateAsync.when(
       data: (currentUser) {
+        // Use the loaded currentUser from userStateProvider if available,
+        // otherwise fallback to the one from currentUserProvider (initial load).
         final effectiveUser = currentUser ?? user;
         return _buildProfileContent(effectiveUser);
       },
       loading: () => const Center(child: SLLoadingIndicator()),
-      error: (error, stack) => SLErrorView(
+      error: (error, stack) => SlErrorStateWidget(
+        // Updated widget
+        title: 'Error Loading Profile',
         message: error.toString(),
         onRetry: () {
+          // Clear previous error and reload
           ref.read(userStateProvider.notifier).clearError();
           _runSafe(_loadUserData);
         },
         compact: true,
+        // Or false for a larger error display
+        icon: Icons.person_off_outlined,
+        accentColor: Theme.of(context).colorScheme.error,
       ),
     );
   }
@@ -200,15 +216,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           isFullWidth: true,
           backgroundColor: colorScheme.surfaceContainerHighest,
           textColor: colorScheme.error,
-          borderColor: colorScheme.error.withValues(alpha: 0.3),
+          borderColor: colorScheme.error.withAlpha(77),
+          // 30% opacity
           onPressed: _logout,
         ),
 
-        const SizedBox(height: AppDimens.spaceXXL),
+        const SizedBox(height: AppDimens.spaceXXL), // For bottom spacing
       ],
     );
   }
 
+  // Helper to run callbacks safely after build
   void _runSafe(VoidCallback cb) {
     if (!mounted) return;
     Future.microtask(cb);

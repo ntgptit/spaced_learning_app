@@ -6,9 +6,9 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/reminder_settings_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/sl_toggle_switch.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 
 class ReminderConfig {
   static const String noonTime = '12:30 PM';
@@ -44,7 +44,6 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
   }
 
   Future<void> _loadInitialData() async {
-    // Chỉ gọi refreshSettings() nếu dữ liệu chưa được tải
     final settingsState = ref.read(reminderSettingsStateProvider);
     if (settingsState.value == null || !settingsState.hasValue) {
       await ref.read(reminderSettingsStateProvider.notifier).refreshSettings();
@@ -68,7 +67,6 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
               router.pop();
               return;
             }
-            // Nếu không thể pop, tự động điều hướng về trang chủ
             router.go('/');
           },
           tooltip: 'Back',
@@ -128,7 +126,7 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
                 if (isLoading && isInitialized)
                   Positioned.fill(
                     child: Container(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: Colors.black.withAlpha(77), // 30% opacity
                       child: const Center(child: CircularProgressIndicator()),
                     ),
                   ),
@@ -137,21 +135,27 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
           },
           loading: () => const Center(child: SLLoadingIndicator()),
           error: (error, stackTrace) => Center(
-            child: SLErrorView(
+            child: SlErrorStateWidget(
+              // Updated widget
+              title: 'Failed to Load Device Permissions',
               message: 'Failed to load device permissions: $error',
               onRetry: () =>
                   ref.read(devicePermissionsProvider.notifier).build(),
+              icon: Icons.perm_device_info_outlined,
             ),
           ),
         );
       },
       loading: () => const Center(child: SLLoadingIndicator()),
       error: (error, stackTrace) => Center(
-        child: SLErrorView(
+        child: SlErrorStateWidget(
+          // Updated widget
+          title: 'Failed to Load Reminder Settings',
           message: 'Failed to load reminder settings: $error',
           onRetry: () => ref
               .read(reminderSettingsStateProvider.notifier)
               .refreshSettings(),
+          icon: Icons.settings_applications_outlined,
         ),
       ),
     );
@@ -383,7 +387,7 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
 
             const SizedBox(height: AppDimens.spaceM),
 
-            if (sdkVersion >= 31)
+            if (sdkVersion >= 31) // Only show for Android 12+
               _buildPermissionItem(
                 context,
                 'Exact Alarm Permission',
@@ -436,6 +440,7 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
       // Toggle is disabled because we can't directly toggle permissions
       onChanged: (_) {},
       enabled: false,
+      // This makes the switch non-interactive
       type: SLToggleSwitchType.outlined,
       trailing: !isGranted
           ? SLButton(
@@ -446,7 +451,7 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
             )
           : null,
       activeColor: colorScheme.primary,
-      inactiveThumbColor: colorScheme.error,
+      inactiveThumbColor: colorScheme.error, // Show error color if not granted
     );
   }
 
@@ -456,21 +461,21 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
   ) async {
     try {
       final success = await updateFunc();
-      if (!mounted) return;
+      if (!mounted) return; // Check if widget is still mounted
 
       if (success) {
         SnackBarUtils.show(context, successMessage);
         return;
       }
-
+      // If updateFunc returns false, it indicates a failure
       SnackBarUtils.show(
         context,
         'Failed to update setting',
         backgroundColor: Theme.of(context).colorScheme.errorContainer,
       );
     } catch (e) {
+      // Catch any other exceptions
       if (!mounted) return;
-
       SnackBarUtils.show(
         context,
         'Error: $e',
@@ -490,9 +495,10 @@ class _ReminderSettingsViewState extends ConsumerState<_ReminderSettingsView> {
       if (success) {
         SnackBarUtils.show(context, successMessage);
       }
+      // Optionally, handle the case where success is false,
+      // though typically system dialogs handle this.
     } catch (e) {
       if (!mounted) return;
-
       SnackBarUtils.show(
         context,
         'Error: $e',

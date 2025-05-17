@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/repetition_viewmodel.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/state/sl_error_state_widget.dart'; // Updated import
 import 'package:spaced_learning_app/presentation/widgets/progress/compact_repetition_list.dart';
 
 class ProgressRepetitionList extends ConsumerStatefulWidget {
@@ -71,7 +71,6 @@ class _ProgressRepetitionListState extends ConsumerState<ProgressRepetitionList>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final _ = theme.colorScheme;
     final repetitionsState = ref.watch(repetitionStateProvider);
 
     return Column(
@@ -106,12 +105,16 @@ class _ProgressRepetitionListState extends ConsumerState<ProgressRepetitionList>
               ],
             ),
           ),
-          error: (error, stackTrace) => SLErrorView(
+          error: (error, stackTrace) => SlErrorStateWidget(
+            // Updated widget
+            title: 'Error Loading Repetitions',
             message: error.toString(),
             onRetry: () => ref
                 .read(repetitionStateProvider.notifier)
                 .loadRepetitionsByProgressId(widget.progressId),
             compact: true,
+            icon: Icons.error_outline,
+            accentColor: theme.colorScheme.error,
           ),
         ),
       ],
