@@ -60,7 +60,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
 
     final effectiveBorderRadius =
         borderRadius ??
-        BorderRadius.only(
+        const BorderRadius.only(
           topLeft: Radius.circular(AppDimens.radiusL),
           topRight: Radius.circular(AppDimens.radiusL),
         );
@@ -164,7 +164,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
                             : padding.resolve(TextDirection.ltr).bottom,
                       )
                     : padding,
-                child: content!,
+                child: content,
               ),
             ),
           if (actions != null && actions!.isNotEmpty)
