@@ -160,7 +160,6 @@ class SlTimeoutStateWidget extends ConsumerWidget {
             ),
             TextButton(
               onPressed: onRetry,
-              child: Text(retryButtonText),
               style: TextButton.styleFrom(
                 foregroundColor: colorScheme.warning,
                 padding: const EdgeInsets.symmetric(
@@ -168,6 +167,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
                 ),
                 visualDensity: VisualDensity.compact,
               ),
+              child: Text(retryButtonText),
             ),
           ],
         ),

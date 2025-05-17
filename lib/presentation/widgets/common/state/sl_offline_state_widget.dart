@@ -156,7 +156,6 @@ class SlOfflineStateWidget extends ConsumerWidget {
             if (onRetry != null)
               TextButton(
                 onPressed: onRetry,
-                child: Text(retryButtonText ?? 'Retry'),
                 style: TextButton.styleFrom(
                   foregroundColor: colorScheme.primary,
                   padding: const EdgeInsets.symmetric(
@@ -164,6 +163,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
                   ),
                   visualDensity: VisualDensity.compact,
                 ),
+                child: Text(retryButtonText ?? 'Retry'),
               ),
           ],
         ),

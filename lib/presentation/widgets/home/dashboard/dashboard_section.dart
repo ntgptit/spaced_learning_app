@@ -63,7 +63,7 @@ class DashboardSection extends ConsumerWidget {
       },
       loading: () => const Center(
         child: SlLoadingStateWidget(
-          message: "Loading statistics...",
+          message: 'Loading statistics...',
           type: SlLoadingType.threeBounce,
         ),
       ),

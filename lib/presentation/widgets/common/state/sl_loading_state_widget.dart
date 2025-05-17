@@ -36,10 +36,13 @@ class SlLoadingStateWidget extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final indicatorColor = color ?? colorScheme.primary;
 
-    double sizeValue = _getSizeValue();
-    Widget loadingIndicator = _buildLoadingIndicator(sizeValue, indicatorColor);
+    final double sizeValue = _getSizeValue();
+    final Widget loadingIndicator = _buildLoadingIndicator(
+      sizeValue,
+      indicatorColor,
+    );
 
-    Widget content = Column(
+    final Widget content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(width: sizeValue, height: sizeValue, child: loadingIndicator),

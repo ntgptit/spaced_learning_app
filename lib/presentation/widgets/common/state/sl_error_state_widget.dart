@@ -146,11 +146,11 @@ class SlErrorStateWidget extends ConsumerWidget {
             if (onRetry != null)
               TextButton(
                 onPressed: onRetry,
-                child: Text(retryText ?? 'Retry'),
                 style: TextButton.styleFrom(
                   foregroundColor: errorColor,
                   visualDensity: VisualDensity.compact,
                 ),
+                child: Text(retryText ?? 'Retry'),
               ),
           ],
         ),

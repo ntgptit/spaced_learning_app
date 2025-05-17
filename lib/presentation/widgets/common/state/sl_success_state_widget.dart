@@ -166,7 +166,6 @@ class SlSuccessStateWidget extends ConsumerWidget {
             ),
             TextButton(
               onPressed: onPrimaryButtonPressed,
-              child: Text(primaryButtonText),
               style: TextButton.styleFrom(
                 foregroundColor: colorScheme.success,
                 padding: const EdgeInsets.symmetric(
@@ -174,6 +173,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
                 ),
                 visualDensity: VisualDensity.compact,
               ),
+              child: Text(primaryButtonText),
             ),
           ],
         ),

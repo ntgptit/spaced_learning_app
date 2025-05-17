@@ -150,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             if (_isInitialLoading ||
                 ref.read(homeViewModelProvider.notifier).isFirstLoading) {
               return const SlLoadingStateWidget(
-                message: "Loading your learning data...",
+                message: 'Loading your learning data...',
                 type: SlLoadingType.fadingCircle,
                 size: SlLoadingSize.large,
               );
