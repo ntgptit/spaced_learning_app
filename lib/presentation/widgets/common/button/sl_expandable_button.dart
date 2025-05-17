@@ -109,8 +109,8 @@ class _SlExpandableButtonState extends State<SlExpandableButton>
                     Icon(
                       widget.icon,
                       color: widget.isDisabled
-                          ? colorScheme.onSurface.withOpacity(
-                              AppDimens.opacityDisabled,
+                          ? colorScheme.onSurface.withValues(
+                              alpha: AppDimens.opacityDisabled,
                             )
                           : effectiveForegroundColor,
                       size: AppDimens.iconM,
@@ -122,8 +122,8 @@ class _SlExpandableButtonState extends State<SlExpandableButton>
                       widget.label,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: widget.isDisabled
-                            ? colorScheme.onSurface.withOpacity(
-                                AppDimens.opacityDisabled,
+                            ? colorScheme.onSurface.withValues(
+                                alpha: AppDimens.opacityDisabled,
                               )
                             : effectiveForegroundColor,
                         fontWeight: FontWeight.w500,
@@ -135,8 +135,8 @@ class _SlExpandableButtonState extends State<SlExpandableButton>
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: widget.isDisabled
-                          ? colorScheme.onSurface.withOpacity(
-                              AppDimens.opacityDisabled,
+                          ? colorScheme.onSurface.withValues(
+                              alpha: AppDimens.opacityDisabled,
                             )
                           : effectiveForegroundColor,
                     ),

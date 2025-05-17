@@ -18,7 +18,7 @@ class SlChipButton extends StatelessWidget {
   final bool isDisabled;
 
   const SlChipButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.onDeleted,
@@ -30,7 +30,7 @@ class SlChipButton extends StatelessWidget {
     this.selectedBackgroundColor,
     this.selectedForegroundColor,
     this.isDisabled = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
