@@ -110,7 +110,7 @@ class _SLTextFieldState extends State<SLTextField> {
     if (widget.contentPadding != null) {
       return widget.contentPadding!;
     }
-    // No 'else', using switch which covers all enum cases or a default
+
     switch (widget.size) {
       case SlTextFieldSize.small:
         return const EdgeInsets.symmetric(
@@ -120,8 +120,6 @@ class _SLTextFieldState extends State<SLTextField> {
               2, // 10dp, makes it slightly taller than just paddingS
         );
       case SlTextFieldSize.medium:
-        // Default case for SlTextFieldSize.medium or any other future sizes if not specified
-        // This also acts as the default if the switch somehow doesn't match.
         return const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingL, // 16dp
           vertical: AppDimens.paddingL, // 16dp
@@ -130,20 +128,18 @@ class _SLTextFieldState extends State<SLTextField> {
   }
 
   double _getEffectiveIconSize() {
-    // No 'else', using switch
     switch (widget.size) {
       case SlTextFieldSize.small:
-        return AppDimens.iconS; // e.g., 20.0
+        return AppDimens.iconS; // e.g., 16.0 or 20.0
       case SlTextFieldSize.medium:
-        return AppDimens.iconM; // e.g., 24.0
+        return AppDimens.iconM; // e.g., 20.0 or 24.0
     }
   }
 
   TextStyle _getEffectiveTextStyle(ThemeData theme, ColorScheme colorScheme) {
     TextStyle baseStyle = theme.textTheme.bodyLarge!; // Default for medium size
+
     if (widget.size == SlTextFieldSize.small) {
-      // For small size, consider using a slightly smaller text style if defined in AppTypography
-      // or adjust font size directly.
       baseStyle =
           theme.textTheme.bodyMedium ??
           theme.textTheme.bodyLarge!.copyWith(fontSize: 14);
@@ -152,7 +148,6 @@ class _SLTextFieldState extends State<SLTextField> {
     return baseStyle.copyWith(
       color: widget.enabled
           ? colorScheme.onSurface
-          // Assuming AppDimens.opacityDisabledText or a similar value (e.g., 0.38)
           : colorScheme.onSurface.withValues(
               alpha: AppDimens.opacityDisabledText,
             ),
@@ -162,14 +157,17 @@ class _SLTextFieldState extends State<SLTextField> {
   TextStyle _getEffectiveLabelStyle(ThemeData theme, ColorScheme colorScheme) {
     TextStyle baseStyle = theme.textTheme.bodyLarge!;
     Color defaultLabelColor = widget.labelColor ?? colorScheme.onSurfaceVariant;
+
     if (widget.size == SlTextFieldSize.small) {
       baseStyle =
           theme.textTheme.bodySmall ??
           theme.textTheme.bodyLarge!.copyWith(fontSize: 12);
     }
+
     if (widget.errorText != null) {
       defaultLabelColor = widget.errorColor ?? colorScheme.error;
     }
+
     return baseStyle.copyWith(color: defaultLabelColor);
   }
 
@@ -185,9 +183,7 @@ class _SLTextFieldState extends State<SLTextField> {
 
     final Color defaultIconColor =
         widget.iconColor ?? colorScheme.onSurfaceVariant;
-    final Color activeIconColor =
-        widget.iconColor ??
-        colorScheme.primary; // Used when field is focused or for actions
+    final Color activeIconColor = widget.iconColor ?? colorScheme.primary;
     final Color errorStateIconColor = widget.errorColor ?? colorScheme.error;
 
     final Color currentPrefixIconColor =
@@ -206,7 +202,6 @@ class _SLTextFieldState extends State<SLTextField> {
         borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
         child: Padding(
           padding: const EdgeInsets.all(AppDimens.paddingS / 2),
-          // Consistent small padding for tap area
           child: Icon(
             widget.suffixIcon,
             color:
@@ -221,7 +216,6 @@ class _SLTextFieldState extends State<SLTextField> {
     }
 
     if (widget.obscureText) {
-      // Override if obscureText is true, regardless of suffixIcon presence, to show visibility toggle
       finalSuffixIconWidget = InkWell(
         onTap: () {
           setState(() {
@@ -236,21 +230,19 @@ class _SLTextFieldState extends State<SLTextField> {
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
             color: widget.suffixIconColor ?? defaultIconColor,
-            // Default color for visibility
             size: effectiveIconSize,
           ),
         ),
       );
     }
 
-    // If widget.suffix is provided, it takes precedence over suffixIcon and obscureText toggle
+    // Widget.suffix takes precedence over generated suffix icons
     if (widget.suffix != null) {
       finalSuffixIconWidget = widget.suffix;
     }
 
     return Container(
       color: widget.backgroundColor ?? Colors.transparent,
-      // M3 uses surface colors, transparency might be needed
       child: TextFormField(
         controller: widget.controller,
         focusNode: widget.focusNode,
@@ -280,15 +272,14 @@ class _SLTextFieldState extends State<SLTextField> {
           helperText: widget.helperText,
           filled: true,
           fillColor: widget.fillColor ?? colorScheme.surfaceContainerLowest,
-          // M3 typical fill
           contentPadding: currentContentPadding,
           prefixIcon: widget.prefixIcon != null
               ? Padding(
                   padding: EdgeInsetsDirectional.only(
-                    start: AppDimens.paddingM, // Consistent padding
+                    start: AppDimens.paddingM,
                     end: widget.size == SlTextFieldSize.small
                         ? AppDimens.paddingXS
-                        : AppDimens.paddingS, // Slightly less space for small
+                        : AppDimens.paddingS,
                   ),
                   child: Icon(
                     widget.prefixIcon,
@@ -297,10 +288,8 @@ class _SLTextFieldState extends State<SLTextField> {
                   ),
                 )
               : widget.prefix,
-          // Use prefix widget if prefixIcon is null
           suffixIcon: finalSuffixIconWidget,
           counterText: widget.showCounter ? null : '',
-          // Empty string hides default counter
           labelStyle: currentLabelStyle,
           hintStyle:
               (widget.size == SlTextFieldSize.small
@@ -311,13 +300,13 @@ class _SLTextFieldState extends State<SLTextField> {
                         widget.hintColor ??
                         colorScheme.onSurfaceVariant.withValues(
                           alpha: AppDimens.opacityHintText,
-                        ), // Use specific opacity for hint
+                        ),
                   ),
           errorStyle: TextStyle(
             color: widget.errorColor ?? colorScheme.error,
             fontSize: widget.size == SlTextFieldSize.small
                 ? AppDimens.fontMicro
-                : null, // Smaller error text
+                : null,
           ),
           helperStyle:
               (widget.size == SlTextFieldSize.small
@@ -326,7 +315,6 @@ class _SLTextFieldState extends State<SLTextField> {
                   ?.copyWith(color: colorScheme.onSurfaceVariant),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            // Consistent radius
             borderSide: BorderSide(
               color: widget.borderColor ?? colorScheme.outline,
             ),
@@ -341,7 +329,7 @@ class _SLTextFieldState extends State<SLTextField> {
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
               color: widget.focusedBorderColor ?? colorScheme.primary,
-              width: AppDimens.borderWidthFocused, // Use defined dimension
+              width: AppDimens.borderWidthFocused,
             ),
           ),
           errorBorder: OutlineInputBorder(
@@ -354,8 +342,7 @@ class _SLTextFieldState extends State<SLTextField> {
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
               color: widget.errorColor ?? colorScheme.error,
-              width: AppDimens
-                  .borderWidthFocused, // Consistent focused error width
+              width: AppDimens.borderWidthFocused,
             ),
           ),
           disabledBorder: OutlineInputBorder(

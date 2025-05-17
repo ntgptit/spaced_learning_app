@@ -7,7 +7,7 @@ class SLPasswordField extends StatefulWidget {
   final String? errorText;
   final TextEditingController? controller;
   final IconData? prefixIconData;
-  final Widget? prefixIcon; // New: Widget-based prefix icon
+  final Widget? prefixIcon; // Widget-based prefix icon
   final Widget? prefixWidget;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onEditingComplete;
@@ -52,16 +52,16 @@ class SLPasswordField extends StatefulWidget {
 class _SLPasswordFieldState extends State<SLPasswordField> {
   @override
   Widget build(BuildContext context) {
-    final dynamic resolvedPrefixIcon =
-        widget.prefixIcon ?? widget.prefixIconData;
-
+    // Sửa lỗi - Không dùng dynamic mà xử lý đúng theo kiểu
     return SLTextField(
       label: widget.label,
       hint: widget.hint,
       controller: widget.controller,
       errorText: widget.errorText,
-      prefixIcon: resolvedPrefixIcon,
-      prefix: widget.prefixWidget,
+      // Sử dụng đúng typesafe: prefixIcon dùng cho IconData
+      prefixIcon: widget.prefixIconData,
+      // prefix dùng cho Widget
+      prefix: widget.prefixIcon ?? widget.prefixWidget,
       obscureText: true,
       keyboardType: TextInputType.visiblePassword,
       onChanged: widget.onChanged,
