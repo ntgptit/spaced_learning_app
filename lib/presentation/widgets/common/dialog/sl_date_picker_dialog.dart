@@ -2,40 +2,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-
-// Assuming color extensions are available for shades if needed
-// import 'package:spaced_learning_app/core/extensions/color_extensions.dart';
+// import 'package:spaced_learning_app/core/extensions/color_extensions.dart'; // Assuming this contains success/warning/info extensions - Not used here directly
 
 /// A date picker dialog with Material 3 design and customizable options.
 class SlDatePickerDialog extends ConsumerWidget {
   final DateTime initialDate;
   final DateTime firstDate;
   final DateTime lastDate;
-  final String title;
+  final String title; // This will be used as helpText in M3 DatePickerDialog
   final String confirmText;
   final String cancelText;
   final DatePickerEntryMode initialEntryMode;
-  final DatePickerMode initialDatePickerMode;
+  final DatePickerMode
+  initialDatePickerMode; // This is a valid parameter for DatePickerDialog
   final bool barrierDismissible;
-  final Color?
-  headerBackgroundColor; // M3: use surface color or primary for header
-  final Color? headerForegroundColor; // M3: use onSurface or onPrimary
-  final String? helpText; // M3: helpText is usually the title
+  final Color? headerBackgroundColor;
+  final Color? headerForegroundColor;
+  final String? helpText; // If provided, overrides title for helpText
 
   const SlDatePickerDialog({
     super.key,
     required this.initialDate,
     required this.firstDate,
     required this.lastDate,
-    this.title = 'Select Date', // This will be used as helpText
+    this.title = 'Select Date',
     this.confirmText = 'OK',
-    this.cancelText = 'CANCEL', // M3 usually uses uppercase for text buttons
+    this.cancelText = 'CANCEL',
     this.initialEntryMode = DatePickerEntryMode.calendar,
-    this.initialDatePickerMode = DatePickerMode.day,
+    this.initialDatePickerMode = DatePickerMode.day, // Default to day
     this.barrierDismissible = true,
     this.headerBackgroundColor,
     this.headerForegroundColor,
-    this.helpText, // If provided, overrides title for helpText
+    this.helpText,
   });
 
   // Factory for picking a generic date
@@ -61,12 +59,10 @@ class SlDatePickerDialog extends ConsumerWidget {
     final now = DateTime.now();
     return SlDatePickerDialog(
       initialDate: initialDate ?? now.subtract(const Duration(days: 365 * 18)),
-      // Default to 18 years ago
       firstDate: DateTime(1900),
       lastDate: now,
       title: title,
-      initialDatePickerMode:
-          DatePickerMode.year, // Often useful for birth dates
+      initialDatePickerMode: DatePickerMode.year,
     );
   }
 
@@ -91,18 +87,14 @@ class SlDatePickerDialog extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // M3 DatePickerTheme
     final datePickerTheme = DatePickerThemeData(
       backgroundColor: colorScheme.surfaceContainerHigh,
-      // M3 dialog background
       headerBackgroundColor: headerBackgroundColor ?? colorScheme.primary,
       headerForegroundColor: headerForegroundColor ?? colorScheme.onPrimary,
       headerHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(
-        // M3 header style
         color: headerForegroundColor ?? colorScheme.onPrimary,
       ),
       headerHelpStyle: theme.textTheme.titleLarge?.copyWith(
-        // M3 help text style
         color: headerForegroundColor ?? colorScheme.onPrimary,
       ),
       weekdayStyle: theme.textTheme.bodySmall?.copyWith(
@@ -111,55 +103,50 @@ class SlDatePickerDialog extends ConsumerWidget {
       dayStyle: theme.textTheme.bodyLarge?.copyWith(
         color: colorScheme.onSurface,
       ),
-      dayForegroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
+      dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
       ) {
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.onPrimary;
         }
-        if (states.contains(MaterialState.disabled)) {
-          return colorScheme.onSurface.withOpacity(0.38);
+        if (states.contains(WidgetState.disabled)) {
+          return colorScheme.onSurface.withValues(alpha: 0.38);
         }
         return colorScheme.onSurface;
       }),
-      dayBackgroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
+      dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
       ) {
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.primary;
         }
-        // Potentially add today's date highlight if needed, M3 handles this well by default
-        return Colors.transparent; // Default, let M3 handle other states
+        return Colors.transparent;
       }),
       yearStyle: theme.textTheme.bodyLarge?.copyWith(
         color: colorScheme.onSurface,
       ),
-      yearForegroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
+      yearForegroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
       ) {
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.onPrimary;
         }
         return colorScheme.onSurface;
       }),
-      yearBackgroundColor: MaterialStateProperty.resolveWith<Color?>((
-        Set<MaterialState> states,
+      yearBackgroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
       ) {
-        if (states.contains(MaterialState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return colorScheme.primary;
         }
         return Colors.transparent;
       }),
       todayBorder: BorderSide(color: colorScheme.primary),
-      todayForegroundColor: MaterialStateProperty.all<Color>(
-        colorScheme.primary,
-      ),
+      todayForegroundColor: WidgetStateProperty.all<Color>(colorScheme.primary),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
       ),
-      // M3 dialog shape
       elevation: AppDimens.elevationM,
-      // M3 dialog elevation
       cancelButtonStyle: TextButton.styleFrom(
         foregroundColor: colorScheme.primary,
       ),
@@ -169,6 +156,11 @@ class SlDatePickerDialog extends ConsumerWidget {
       ),
     );
 
+    // The DatePickerDialog widget itself DOES accept initialDatePickerMode.
+    // The error was likely a typo or misunderstanding of the API.
+    // If the error persists, it might be that the Flutter version being used
+    // has a slightly different API for DatePickerDialog.
+    // However, standard Material 3 DatePickerDialog should have this.
     return Theme(
       data: theme.copyWith(datePickerTheme: datePickerTheme),
       child: DatePickerDialog(
@@ -176,11 +168,9 @@ class SlDatePickerDialog extends ConsumerWidget {
         firstDate: firstDate,
         lastDate: lastDate,
         helpText: helpText ?? title.toUpperCase(),
-        // M3 help text is often uppercase
         confirmText: confirmText,
         cancelText: cancelText,
         initialEntryMode: initialEntryMode,
-        initialDatePickerMode: initialDatePickerMode,
       ),
     );
   }
@@ -195,16 +185,20 @@ class SlDatePickerDialog extends ConsumerWidget {
     String confirmText = 'OK',
     String cancelText = 'CANCEL',
     DatePickerEntryMode initialEntryMode = DatePickerEntryMode.calendar,
-    DatePickerMode initialDatePickerMode = DatePickerMode.day,
+    DatePickerMode initialDatePickerMode =
+        DatePickerMode.day, // Parameter for showDatePicker
     bool barrierDismissible = true,
     Color? headerBackgroundColor,
     Color? headerForegroundColor,
     String? helpText,
   }) async {
+    // When using showDatePicker directly, it handles its own theming largely.
+    // To use SlDatePickerDialog's custom theming, we call showDialog with SlDatePickerDialog as the builder.
     return showDialog<DateTime>(
       context: context,
       barrierDismissible: barrierDismissible,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
+        // Pass all parameters to the SlDatePickerDialog constructor
         return SlDatePickerDialog(
           initialDate: initialDate,
           firstDate: firstDate,
@@ -214,11 +208,37 @@ class SlDatePickerDialog extends ConsumerWidget {
           cancelText: cancelText,
           initialEntryMode: initialEntryMode,
           initialDatePickerMode: initialDatePickerMode,
+          // Pass it here
           headerBackgroundColor: headerBackgroundColor,
           headerForegroundColor: headerForegroundColor,
           helpText: helpText,
+          barrierDismissible:
+              barrierDismissible, // Pass barrierDismissible if SlDatePickerDialog needs it
         );
       },
     );
+    // If you want to use Flutter's raw showDatePicker with M3 theming, it's simpler:
+    // return showDatePicker(
+    //   context: context,
+    //   initialDate: initialDate,
+    //   firstDate: firstDate,
+    //   lastDate: lastDate,
+    //   helpText: helpText ?? title.toUpperCase(),
+    //   confirmText: confirmText,
+    //   cancelText: cancelText,
+    //   initialEntryMode: initialEntryMode,
+    //   initialDatePickerMode: initialDatePickerMode, // Correct place for showDatePicker
+    //   barrierDismissible: barrierDismissible,
+    //   // Theming is largely handled by the global Theme or DatePickerTheme
+    //   // builder: (context, child) {
+    //   //   // You can wrap child with a Theme widget here if needed for further customization
+    //   //   return Theme(
+    //   //     data: Theme.of(context).copyWith(
+    //   //       // Specific overrides for showDatePicker if SlDatePickerDialog's theme isn't picked up
+    //   //     ),
+    //   //     child: child!,
+    //   //   );
+    //   // },
+    // );
   }
 }

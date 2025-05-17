@@ -174,3 +174,59 @@ extension CustomColorScheme on ColorScheme {
       ? tertiaryContainer.withValues(alpha: 0.9).saturate(0.1)
       : tertiaryContainer.withValues(alpha: 0.8).saturate(0.1);
 }
+
+@immutable
+class SemanticColorExtension extends ThemeExtension<SemanticColorExtension> {
+  final Color low;
+  final Color medium;
+  final Color high;
+  final Color excellent;
+
+  const SemanticColorExtension({
+    required this.low,
+    required this.medium,
+    required this.high,
+    required this.excellent,
+  });
+
+  @override
+  SemanticColorExtension copyWith({
+    Color? low,
+    Color? medium,
+    Color? high,
+    Color? excellent,
+  }) {
+    return SemanticColorExtension(
+      low: low ?? this.low,
+      medium: medium ?? this.medium,
+      high: high ?? this.high,
+      excellent: excellent ?? this.excellent,
+    );
+  }
+
+  @override
+  SemanticColorExtension lerp(
+    ThemeExtension<SemanticColorExtension>? other,
+    double t,
+  ) {
+    if (other is! SemanticColorExtension) return this;
+    return SemanticColorExtension(
+      low: Color.lerp(low, other.low, t)!,
+      medium: Color.lerp(medium, other.medium, t)!,
+      high: Color.lerp(high, other.high, t)!,
+      excellent: Color.lerp(excellent, other.excellent, t)!,
+    );
+  }
+}
+
+extension ScoreColorExtension on ThemeData {
+  Color getScoreColor(double score) {
+    final ext = extension<SemanticColorExtension>();
+    if (ext == null) return Colors.grey;
+
+    if (score >= 90) return ext.excellent;
+    if (score >= 70) return ext.high;
+    if (score >= 50) return ext.medium;
+    return ext.low;
+  }
+}

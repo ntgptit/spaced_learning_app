@@ -143,7 +143,9 @@ class SlLoadingStateWidget extends ConsumerWidget {
       children: [
         backgroundWidget ??
             Container(
-              color: colorScheme.surface.withOpacity(AppDimens.opacityHigh),
+              color: colorScheme.surface.withValues(
+                alpha: AppDimens.opacityHigh,
+              ),
             ),
         Center(child: content),
         if (dismissible && onDismiss != null)

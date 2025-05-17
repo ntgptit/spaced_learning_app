@@ -113,7 +113,7 @@ class SlUnauthorizedStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withOpacity(0.7),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

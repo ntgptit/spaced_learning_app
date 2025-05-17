@@ -108,7 +108,7 @@ class SlErrorStateWidget extends ConsumerWidget {
               width: AppDimens.iconXXL,
               height: AppDimens.iconXXL,
               decoration: BoxDecoration(
-                color: errorColor.withOpacity(0.1),
+                color: errorColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: AppDimens.iconXL, color: errorColor),
@@ -161,7 +161,7 @@ class SlErrorStateWidget extends ConsumerWidget {
     Color errorColor,
   ) {
     return Card(
-      color: errorColor.withOpacity(0.08),
+      color: errorColor.withValues(alpha: 0.08),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -169,7 +169,7 @@ class SlErrorStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: errorColor.withOpacity(0.4)),
+        side: BorderSide(color: errorColor.withValues(alpha: 0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),

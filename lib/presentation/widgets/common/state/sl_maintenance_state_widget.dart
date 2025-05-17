@@ -143,7 +143,9 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
                     width: AppDimens.iconXXL,
                     height: AppDimens.iconXXL,
                     decoration: BoxDecoration(
-                      color: colorScheme.secondaryContainer.withOpacity(0.5),
+                      color: colorScheme.secondaryContainer.withValues(
+                        alpha: 0.5,
+                      ),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -178,7 +180,7 @@ class SlMaintenanceStateWidget extends ConsumerWidget {
                   vertical: AppDimens.paddingM,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.tertiaryContainer.withOpacity(0.7),
+                  color: colorScheme.tertiaryContainer.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(AppDimens.radiusM),
                 ),
                 child: Text(

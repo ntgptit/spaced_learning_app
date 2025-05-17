@@ -162,7 +162,7 @@ class SlAlertDialog extends ConsumerWidget {
     final Color effectiveAlertColor = _getAlertColor(colorScheme);
     final IconData effectiveIcon = _getAlertIcon();
 
-    List<Widget> dialogActions = actions ?? [];
+    final List<Widget> dialogActions = actions ?? [];
     if (dialogActions.isEmpty &&
         buttonText != null &&
         onButtonPressed != null) {
@@ -216,7 +216,7 @@ class SlAlertDialog extends ConsumerWidget {
       icon: Container(
         padding: const EdgeInsets.all(AppDimens.paddingXS),
         decoration: BoxDecoration(
-          color: effectiveAlertColor.withOpacity(0.1),
+          color: effectiveAlertColor.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(

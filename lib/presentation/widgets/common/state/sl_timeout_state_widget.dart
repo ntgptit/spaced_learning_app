@@ -99,7 +99,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
               width: AppDimens.iconXXL,
               height: AppDimens.iconXXL,
               decoration: BoxDecoration(
-                color: colorScheme.tertiaryContainer.withOpacity(0.7),
+                color: colorScheme.tertiaryContainer.withValues(alpha: 0.7),
                 // Using tertiary as warning-like
                 shape: BoxShape.circle,
               ),
@@ -164,7 +164,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
     ColorScheme colorScheme,
   ) {
     return Card(
-      color: colorScheme.tertiaryContainer.withOpacity(0.15),
+      color: colorScheme.tertiaryContainer.withValues(alpha: 0.15),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -172,7 +172,7 @@ class SlTimeoutStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: colorScheme.tertiary.withOpacity(0.4)),
+        side: BorderSide(color: colorScheme.tertiary.withValues(alpha: 0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),

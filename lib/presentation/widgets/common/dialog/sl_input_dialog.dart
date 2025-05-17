@@ -92,8 +92,9 @@ class SlInputDialog extends ConsumerStatefulWidget {
       validator:
           validator ??
           (value) {
-            if (value == null || value.isEmpty)
+            if (value == null || value.isEmpty) {
               return 'Number cannot be empty.';
+            }
             if (double.tryParse(value) == null) return 'Invalid number.';
             return null;
           },
@@ -118,10 +119,12 @@ class SlInputDialog extends ConsumerStatefulWidget {
       validator:
           validator ??
           (value) {
-            if (value == null || value.isEmpty)
+            if (value == null || value.isEmpty) {
               return 'Password cannot be empty.';
-            if (value.length < 6)
+            }
+            if (value.length < 6) {
               return 'Password must be at least 6 characters.'; // Example
+            }
             return null;
           },
     );

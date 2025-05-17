@@ -128,7 +128,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: successColor.withOpacity(0.1),
+                  color: successColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, size: AppDimens.iconXL, color: successColor),
@@ -193,7 +193,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
       });
     }
     return Card(
-      color: successColor.withOpacity(0.08),
+      color: successColor.withValues(alpha: 0.08),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -201,7 +201,7 @@ class SlSuccessStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: successColor.withOpacity(0.4)),
+        side: BorderSide(color: successColor.withValues(alpha: 0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),

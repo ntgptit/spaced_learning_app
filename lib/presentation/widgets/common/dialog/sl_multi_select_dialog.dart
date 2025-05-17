@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
-import 'package:spaced_learning_app/presentation/widgets/common/app_text_field.dart'; // Assuming SLTextField for search
+
+import '../input/sl_text_field.dart'; // Assuming SLTextField for search
 
 // Item model for SlMultiSelectDialog
 class SlMultiSelectItem<T> {
@@ -225,7 +226,7 @@ class _SlMultiSelectDialogState<T>
                   hint: widget.searchHintText,
                   prefixIcon: Icons.search_rounded,
                   size: SlTextFieldSize.medium,
-                  // Or small
+                  // THIS LINE SHOULD NOW WORK
                   fillColor: colorScheme.surfaceContainerHigh,
                 ),
               ),
@@ -316,7 +317,9 @@ class _SlMultiSelectDialogState<T>
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: item.enabled
                                   ? colorScheme.onSurface
-                                  : colorScheme.onSurface.withOpacity(0.38),
+                                  : colorScheme.onSurface.withValues(
+                                      alpha: 0.38,
+                                    ),
                             ),
                           ),
                           secondary: item.leading,

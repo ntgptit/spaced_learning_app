@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 
-enum SlTextFieldSize { small, medium, large }
+// Define the enum for text field sizes
+enum SlTextFieldSize {
+  small,
+  medium, // Default
+}
 
-class SlTextField extends StatelessWidget {
+class SLTextField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? errorText;
@@ -18,9 +22,9 @@ class SlTextField extends StatelessWidget {
   final bool readOnly;
   final bool enabled;
   final IconData? prefixIcon;
-  final Widget? prefix;
+  final Widget? prefix; // Alternative to prefixIcon for more complex widgets
   final IconData? suffixIcon;
-  final Widget? suffix;
+  final Widget? suffix; // Alternative to suffixIcon for more complex widgets
   final VoidCallback? onSuffixIconTap;
   final int? maxLength;
   final int? maxLines;
@@ -38,6 +42,10 @@ class SlTextField extends StatelessWidget {
   final Color? errorColor;
   final Color? borderColor;
   final Color? focusedBorderColor;
+  final Color? iconColor; // General icon color if specific ones aren't set
+  final Color? prefixIconColor;
+  final Color?
+  suffixIconColor; // Specific color for the suffix icon (e.g., visibility toggle)
   final Color? backgroundColor;
   final EdgeInsetsGeometry? contentPadding;
   final TextInputAction? textInputAction;
@@ -45,7 +53,7 @@ class SlTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final SlTextFieldSize size;
 
-  const SlTextField({
+  const SLTextField({
     super.key,
     this.label,
     this.hint,
@@ -80,263 +88,286 @@ class SlTextField extends StatelessWidget {
     this.errorColor,
     this.borderColor,
     this.focusedBorderColor,
+    this.iconColor,
+    this.prefixIconColor,
+    this.suffixIconColor,
     this.backgroundColor,
     this.contentPadding,
     this.textInputAction,
     this.onEditingComplete,
     this.onSubmitted,
-    this.size = SlTextFieldSize.medium,
+    this.size = SlTextFieldSize.medium, // Default size
   });
+
+  @override
+  State<SLTextField> createState() => _SLTextFieldState();
+}
+
+class _SLTextFieldState extends State<SLTextField> {
+  bool _passwordVisible = false;
+
+  EdgeInsetsGeometry _getEffectiveContentPadding() {
+    if (widget.contentPadding != null) {
+      return widget.contentPadding!;
+    }
+    // No 'else', using switch which covers all enum cases or a default
+    switch (widget.size) {
+      case SlTextFieldSize.small:
+        return const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingM, // 12dp
+          vertical:
+              AppDimens.paddingS +
+              2, // 10dp, makes it slightly taller than just paddingS
+        );
+      case SlTextFieldSize.medium:
+        // Default case for SlTextFieldSize.medium or any other future sizes if not specified
+        // This also acts as the default if the switch somehow doesn't match.
+        return const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingL, // 16dp
+          vertical: AppDimens.paddingL, // 16dp
+        );
+    }
+  }
+
+  double _getEffectiveIconSize() {
+    // No 'else', using switch
+    switch (widget.size) {
+      case SlTextFieldSize.small:
+        return AppDimens.iconS; // e.g., 20.0
+      case SlTextFieldSize.medium:
+        return AppDimens.iconM; // e.g., 24.0
+    }
+  }
+
+  TextStyle _getEffectiveTextStyle(ThemeData theme, ColorScheme colorScheme) {
+    TextStyle baseStyle = theme.textTheme.bodyLarge!; // Default for medium size
+    if (widget.size == SlTextFieldSize.small) {
+      // For small size, consider using a slightly smaller text style if defined in AppTypography
+      // or adjust font size directly.
+      baseStyle =
+          theme.textTheme.bodyMedium ??
+          theme.textTheme.bodyLarge!.copyWith(fontSize: 14);
+    }
+
+    return baseStyle.copyWith(
+      color: widget.enabled
+          ? colorScheme.onSurface
+          // Assuming AppDimens.opacityDisabledText or a similar value (e.g., 0.38)
+          : colorScheme.onSurface.withValues(
+              alpha: AppDimens.opacityDisabledText,
+            ),
+    );
+  }
+
+  TextStyle _getEffectiveLabelStyle(ThemeData theme, ColorScheme colorScheme) {
+    TextStyle baseStyle = theme.textTheme.bodyLarge!;
+    Color defaultLabelColor = widget.labelColor ?? colorScheme.onSurfaceVariant;
+    if (widget.size == SlTextFieldSize.small) {
+      baseStyle =
+          theme.textTheme.bodySmall ??
+          theme.textTheme.bodyLarge!.copyWith(fontSize: 12);
+    }
+    if (widget.errorText != null) {
+      defaultLabelColor = widget.errorColor ?? colorScheme.error;
+    }
+    return baseStyle.copyWith(color: defaultLabelColor);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Determine appropriate sizes based on the field size
-    final EdgeInsetsGeometry effectiveContentPadding =
-        contentPadding ?? _getContentPadding();
+    final effectiveIconSize = _getEffectiveIconSize();
+    final currentContentPadding = _getEffectiveContentPadding();
+    final currentTextStyle = _getEffectiveTextStyle(theme, colorScheme);
+    final currentLabelStyle = _getEffectiveLabelStyle(theme, colorScheme);
 
-    // Determine effective colors
-    final effectiveFillColor = fillColor ?? colorScheme.surfaceContainerLowest;
-    final effectiveLabelColor = labelColor ?? colorScheme.onSurface;
-    final effectiveHintColor = hintColor ?? colorScheme.onSurfaceVariant;
-    final effectiveErrorColor = errorColor ?? colorScheme.error;
-    final effectiveBorderColor = borderColor ?? colorScheme.outline;
-    final effectiveFocusedBorderColor =
-        focusedBorderColor ?? colorScheme.primary;
+    final Color defaultIconColor =
+        widget.iconColor ?? colorScheme.onSurfaceVariant;
+    final Color activeIconColor =
+        widget.iconColor ??
+        colorScheme.primary; // Used when field is focused or for actions
+    final Color errorStateIconColor = widget.errorColor ?? colorScheme.error;
 
-    // Build prefix and suffix widgets
-    Widget? prefixWidget = prefix;
-    if (prefixIcon != null && prefixWidget == null) {
-      prefixWidget = Icon(
-        prefixIcon,
-        color: errorText != null ? effectiveErrorColor : colorScheme.primary,
-        size: _getIconSize(),
-      );
-    }
+    final Color currentPrefixIconColor =
+        widget.prefixIconColor ??
+        (widget.errorText != null ? errorStateIconColor : defaultIconColor);
 
-    Widget? suffixWidget = suffix;
-    if (suffixIcon != null && suffixWidget == null) {
-      suffixWidget = InkWell(
-        onTap: onSuffixIconTap,
-        borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
+    final Color currentSuffixIconColor =
+        widget.suffixIconColor ??
+        (widget.errorText != null ? errorStateIconColor : defaultIconColor);
+
+    Widget? finalSuffixIconWidget;
+
+    if (widget.suffixIcon != null) {
+      finalSuffixIconWidget = InkWell(
+        onTap: widget.onSuffixIconTap,
+        borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
         child: Padding(
-          padding: const EdgeInsets.all(AppDimens.paddingS),
+          padding: const EdgeInsets.all(AppDimens.paddingS / 2),
+          // Consistent small padding for tap area
           child: Icon(
-            suffixIcon,
-            color: errorText != null
-                ? effectiveErrorColor
-                : colorScheme.primary,
-            size: _getIconSize(),
+            widget.suffixIcon,
+            color:
+                widget.suffixIconColor ??
+                (widget.errorText != null
+                    ? errorStateIconColor
+                    : activeIconColor),
+            size: effectiveIconSize,
           ),
         ),
       );
     }
 
+    if (widget.obscureText) {
+      // Override if obscureText is true, regardless of suffixIcon presence, to show visibility toggle
+      finalSuffixIconWidget = InkWell(
+        onTap: () {
+          setState(() {
+            _passwordVisible = !_passwordVisible;
+          });
+        },
+        borderRadius: BorderRadius.circular(AppDimens.radiusXXL),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.paddingS / 2),
+          child: Icon(
+            _passwordVisible
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
+            color: widget.suffixIconColor ?? defaultIconColor,
+            // Default color for visibility
+            size: effectiveIconSize,
+          ),
+        ),
+      );
+    }
+
+    // If widget.suffix is provided, it takes precedence over suffixIcon and obscureText toggle
+    if (widget.suffix != null) {
+      finalSuffixIconWidget = widget.suffix;
+    }
+
     return Container(
-      color: backgroundColor,
+      color: widget.backgroundColor ?? Colors.transparent,
+      // M3 uses surface colors, transparency might be needed
       child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-        readOnly: readOnly,
-        enabled: enabled,
-        maxLength: maxLength,
-        maxLines: obscureText ? 1 : maxLines,
-        minLines: minLines,
-        textAlign: textAlign,
-        textCapitalization: textCapitalization,
-        autofocus: autofocus,
-        onChanged: onChanged,
-        onTap: onTap,
-        inputFormatters: inputFormatters,
-        textInputAction: textInputAction,
-        onEditingComplete: onEditingComplete,
-        onFieldSubmitted: onSubmitted,
-        validator: validator,
-        autovalidateMode: autovalidateMode,
-        style: _getTextStyle(theme, colorScheme),
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        keyboardType: widget.keyboardType,
+        textInputAction: widget.textInputAction,
+        textCapitalization: widget.textCapitalization,
+        textAlign: widget.textAlign,
+        readOnly: widget.readOnly,
+        enabled: widget.enabled,
+        obscureText: widget.obscureText && !_passwordVisible,
+        maxLength: widget.maxLength,
+        maxLines: widget.obscureText ? 1 : widget.maxLines,
+        minLines: widget.minLines,
+        autofocus: widget.autofocus,
+        onChanged: widget.onChanged,
+        onTap: widget.onTap,
+        inputFormatters: widget.inputFormatters,
+        onEditingComplete: widget.onEditingComplete,
+        onFieldSubmitted: widget.onSubmitted,
+        autovalidateMode: widget.autovalidateMode,
+        validator: widget.validator,
+        style: currentTextStyle,
         decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          errorText: errorText,
-          helperText: helperText,
+          labelText: widget.label,
+          hintText: widget.hint,
+          errorText: widget.errorText,
+          helperText: widget.helperText,
           filled: true,
-          fillColor: effectiveFillColor,
-          contentPadding: effectiveContentPadding,
-          prefixIcon: prefixWidget is Icon ? prefixWidget : null,
-          prefix: prefixWidget is! Icon ? prefixWidget : null,
-          suffixIcon: suffixWidget,
-          counterText: showCounter ? null : '',
-          labelStyle: TextStyle(
-            color: effectiveLabelColor,
-            fontSize: _getLabelFontSize(),
-          ),
-          hintStyle: TextStyle(
-            color: effectiveHintColor,
-            fontSize: _getHintFontSize(),
-          ),
+          fillColor: widget.fillColor ?? colorScheme.surfaceContainerLowest,
+          // M3 typical fill
+          contentPadding: currentContentPadding,
+          prefixIcon: widget.prefixIcon != null
+              ? Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start: AppDimens.paddingM, // Consistent padding
+                    end: widget.size == SlTextFieldSize.small
+                        ? AppDimens.paddingXS
+                        : AppDimens.paddingS, // Slightly less space for small
+                  ),
+                  child: Icon(
+                    widget.prefixIcon,
+                    color: currentPrefixIconColor,
+                    size: effectiveIconSize,
+                  ),
+                )
+              : widget.prefix,
+          // Use prefix widget if prefixIcon is null
+          suffixIcon: finalSuffixIconWidget,
+          counterText: widget.showCounter ? null : '',
+          // Empty string hides default counter
+          labelStyle: currentLabelStyle,
+          hintStyle:
+              (widget.size == SlTextFieldSize.small
+                      ? theme.textTheme.bodyMedium
+                      : theme.textTheme.bodyLarge)
+                  ?.copyWith(
+                    color:
+                        widget.hintColor ??
+                        colorScheme.onSurfaceVariant.withValues(
+                          alpha: AppDimens.opacityHintText,
+                        ), // Use specific opacity for hint
+                  ),
           errorStyle: TextStyle(
-            color: effectiveErrorColor,
-            fontSize: _getErrorFontSize(),
+            color: widget.errorColor ?? colorScheme.error,
+            fontSize: widget.size == SlTextFieldSize.small
+                ? AppDimens.fontMicro
+                : null, // Smaller error text
           ),
+          helperStyle:
+              (widget.size == SlTextFieldSize.small
+                      ? theme.textTheme.bodySmall
+                      : theme.textTheme.bodyMedium)
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            // Consistent radius
             borderSide: BorderSide(
-              color: effectiveBorderColor,
-              width: _getBorderWidth(),
+              color: widget.borderColor ?? colorScheme.outline,
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: effectiveBorderColor,
-              width: _getBorderWidth(),
+              color: widget.borderColor ?? colorScheme.outline,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: effectiveFocusedBorderColor,
-              width: _getBorderWidth() * 1.5,
+              color: widget.focusedBorderColor ?? colorScheme.primary,
+              width: AppDimens.borderWidthFocused, // Use defined dimension
             ),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: effectiveErrorColor,
-              width: _getBorderWidth(),
+              color: widget.errorColor ?? colorScheme.error,
             ),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: effectiveErrorColor,
-              width: _getBorderWidth() * 1.5,
+              color: widget.errorColor ?? colorScheme.error,
+              width: AppDimens
+                  .borderWidthFocused, // Consistent focused error width
             ),
           ),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_getBorderRadius()),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
             borderSide: BorderSide(
-              color: colorScheme.outline.withValues(
-                alpha: AppDimens.opacityDisabled,
+              color: (widget.borderColor ?? colorScheme.outline).withValues(
+                alpha: AppDimens.opacityDisabledOutline,
               ),
-              width: _getBorderWidth(),
             ),
           ),
         ),
       ),
     );
-  }
-
-  // Helper methods for size-dependent styling
-  TextStyle _getTextStyle(ThemeData theme, ColorScheme colorScheme) {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return theme.textTheme.bodyMedium!.copyWith(
-          color: enabled
-              ? colorScheme.onSurface
-              : colorScheme.onSurface.withValues(
-                  alpha: AppDimens.opacityDisabled,
-                ),
-        );
-      case SlTextFieldSize.large:
-        return theme.textTheme.bodyLarge!.copyWith(
-          color: enabled
-              ? colorScheme.onSurface
-              : colorScheme.onSurface.withValues(
-                  alpha: AppDimens.opacityDisabled,
-                ),
-        );
-      case SlTextFieldSize.medium:
-        return theme.textTheme.bodyMedium!.copyWith(
-          color: enabled
-              ? colorScheme.onSurface
-              : colorScheme.onSurface.withValues(
-                  alpha: AppDimens.opacityDisabled,
-                ),
-        );
-    }
-  }
-
-  EdgeInsetsGeometry _getContentPadding() {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM,
-          vertical: AppDimens.paddingS,
-        );
-      case SlTextFieldSize.large:
-        return const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingL,
-          vertical: AppDimens.paddingL,
-        );
-      case SlTextFieldSize.medium:
-        return const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingL,
-          vertical: AppDimens.paddingM,
-        );
-    }
-  }
-
-  double _getIconSize() {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return AppDimens.iconS;
-      case SlTextFieldSize.large:
-        return AppDimens.iconL;
-      case SlTextFieldSize.medium:
-        return AppDimens.iconM;
-    }
-  }
-
-  double _getBorderRadius() {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return AppDimens.radiusS;
-      case SlTextFieldSize.large:
-        return AppDimens.radiusL;
-      case SlTextFieldSize.medium:
-        return AppDimens.radiusM;
-    }
-  }
-
-  double _getBorderWidth() {
-    return AppDimens.outlineButtonBorderWidth;
-  }
-
-  double _getLabelFontSize() {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return AppDimens.fontS;
-      case SlTextFieldSize.large:
-        return AppDimens.fontL;
-      case SlTextFieldSize.medium:
-        return AppDimens.fontM;
-    }
-  }
-
-  double _getHintFontSize() {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return AppDimens.fontS;
-      case SlTextFieldSize.large:
-        return AppDimens.fontL;
-      case SlTextFieldSize.medium:
-        return AppDimens.fontM;
-    }
-  }
-
-  double _getErrorFontSize() {
-    switch (size) {
-      case SlTextFieldSize.small:
-        return AppDimens.fontXS;
-      case SlTextFieldSize.large:
-        return AppDimens.fontM;
-      case SlTextFieldSize.medium:
-        return AppDimens.fontS;
-    }
   }
 }

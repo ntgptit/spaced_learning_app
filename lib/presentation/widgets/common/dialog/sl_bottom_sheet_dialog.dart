@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart'; // Assuming SLButton
+import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
 /// A customizable bottom sheet dialog with Material 3 design principles.
 class SlBottomSheetDialog extends ConsumerWidget {
@@ -13,20 +13,18 @@ class SlBottomSheetDialog extends ConsumerWidget {
   final bool isDismissible;
   final bool enableDrag;
   final bool showCloseButton;
-  final double? maxHeightFraction; // Use fraction of screen height
+  final double? maxHeightFraction;
   final EdgeInsetsGeometry padding;
-  final Widget?
-  iconWidget; // Changed from IconData to Widget for more flexibility
+  final Widget? iconWidget;
   final bool useSafeArea;
   final bool showDivider;
   final BorderRadius? borderRadius;
   final ScrollController? scrollController;
   final bool isScrollControlled;
-
-  // final Function(DragEndDetails)? onDragEnd; // Removed as it's part of showModalBottomSheet
   final Color? backgroundColor;
   final bool showDragHandle;
-  final bool expandToFullScreen; // New property
+  final bool expandToFullScreen;
+  final VoidCallback? onClose; // Added onClose callback
 
   const SlBottomSheetDialog({
     super.key,
@@ -37,95 +35,106 @@ class SlBottomSheetDialog extends ConsumerWidget {
     this.isDismissible = true,
     this.enableDrag = true,
     this.showCloseButton = true,
-    this.maxHeightFraction = 0.85, // Default to 85% of screen height
+    this.maxHeightFraction = 0.85,
     this.padding = const EdgeInsets.fromLTRB(
-      AppDimens.paddingL, // 16
-      AppDimens.paddingS, // 8 (for drag handle space)
-      AppDimens.paddingL, // 16
-      AppDimens.paddingL, // 16
+      AppDimens.paddingL,
+      AppDimens.paddingS,
+      AppDimens.paddingL,
+      AppDimens.paddingL,
     ),
     this.iconWidget,
-    this.useSafeArea = true, // Default to true as per M3
+    this.useSafeArea = true,
     this.showDivider = true,
     this.borderRadius,
     this.scrollController,
-    this.isScrollControlled = true, // Default to true for flexible height
-    // this.onDragEnd,
+    this.isScrollControlled = true,
     this.backgroundColor,
     this.showDragHandle = true,
-    this.expandToFullScreen = false, // Default to not full screen
+    this.expandToFullScreen = false,
+    this.onClose, // Added to constructor
   });
 
-  // Factory for a simple message bottom sheet
-  factory SlBottomSheetDialog.message({
+  /// Factory for a simple message bottom sheet
+  static void showMessage(
+    BuildContext context, {
     required String title,
     required String message,
     String closeButtonText = 'OK',
     VoidCallback? onClose,
     Widget? icon,
   }) {
-    return SlBottomSheetDialog(
+    SlBottomSheetDialog.show(
+      context,
       title: title,
       message: message,
       iconWidget: icon,
       showCloseButton: false,
-      // Custom close button handling
       actions: [
         SLButton(
           text: closeButtonText,
-          onPressed: onClose ?? () {},
-          // Needs context to pop, handle in show method
+          onPressed: () {
+            Navigator.pop(context); // Always pop the dialog
+            onClose?.call(); // Call the provided onClose if it exists
+          },
           type: SLButtonType.primary,
         ),
       ],
+      onClose:
+          onClose, // Pass through the onClose for when the sheet is dismissed by other means
     );
   }
 
-  // Factory for an action sheet
-  factory SlBottomSheetDialog.actionSheet({
+  /// Factory for an action sheet
+  static void showActionSheet(
+    BuildContext context, {
     String? title,
-    required List<Widget>
-    options, // Each option should be a tappable widget like ListTile or SLButton
+    required List<Widget> options,
     Widget? cancelButton, // Optional custom cancel button
+    VoidCallback? onClose,
   }) {
-    return SlBottomSheetDialog(
+    SlBottomSheetDialog.show(
+      context,
       title: title,
       content: ListView(
-        // Use ListView for scrollable options
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         children: options,
       ),
       actions: cancelButton != null ? [cancelButton] : null,
-      showCloseButton: title != null,
-      // Show close if title exists and no custom cancel
+      showCloseButton: title != null && cancelButton == null,
       padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+      onClose: onClose,
     );
   }
 
-  // Factory for a list view bottom sheet
-  factory SlBottomSheetDialog.list({
+  /// Factory for a list view bottom sheet
+  static void showList(
+    BuildContext context, {
     required String title,
-    required List<Widget> items, // Each item is a widget
+    required List<Widget> items,
     bool showDividers = true,
     ScrollController? scrollController,
+    VoidCallback? onClose,
   }) {
-    return SlBottomSheetDialog(
+    SlBottomSheetDialog.show(
+      context,
       title: title,
       content: ListView.separated(
         controller: scrollController,
         shrinkWrap: true,
         itemCount: items.length,
-        separatorBuilder: (context, index) => showDividers
-            ? const Divider(
-                height: 1,
-                indent: AppDimens.paddingL,
-                endIndent: AppDimens.paddingL,
-              )
-            : const SizedBox.shrink(),
+        separatorBuilder: (context, index) {
+          if (!showDividers) return const SizedBox.shrink();
+          return const Divider(
+            height: 1,
+            indent: AppDimens.paddingL,
+            endIndent: AppDimens.paddingL,
+          );
+        },
         itemBuilder: (context, index) => items[index],
       ),
       padding: const EdgeInsets.only(bottom: AppDimens.paddingL),
+      onClose: onClose,
     );
   }
 
@@ -136,19 +145,16 @@ class SlBottomSheetDialog extends ConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
 
     final effectiveBackgroundColor =
-        backgroundColor ?? colorScheme.surfaceContainerLow; // M3 surface color
-
+        backgroundColor ?? colorScheme.surfaceContainerLow;
     final effectiveBorderRadius =
         borderRadius ??
-        const BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusXL),
-        ); // M3 like radius
+        const BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXL));
 
     final double actualMaxHeight = expandToFullScreen
         ? mediaQuery.size.height - (useSafeArea ? mediaQuery.padding.top : 0)
         : mediaQuery.size.height * (maxHeightFraction ?? 0.85);
 
-    Widget mainContent = Column(
+    final Widget mainContent = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -160,10 +166,10 @@ class SlBottomSheetDialog extends ConsumerWidget {
                 bottom: AppDimens.paddingS,
               ),
               child: Container(
-                width: AppDimens.paddingXXL + AppDimens.paddingS, // 32.0
-                height: AppDimens.paddingXXS * 2, // 4.0
+                width: AppDimens.paddingXXL + AppDimens.paddingS,
+                height: AppDimens.paddingXXS * 2,
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(AppDimens.radiusCircular),
                 ),
               ),
@@ -190,17 +196,16 @@ class SlBottomSheetDialog extends ConsumerWidget {
                     child: Text(
                       title!,
                       style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600, // M3 title
+                        fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
                     ),
                   ),
                 const Spacer(),
-                // Pushes close button to the right if title is short
                 if (showCloseButton && onClose != null)
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
-                    onPressed: onClose,
+                    onPressed: onClose, // Correctly uses the class member
                     tooltip: 'Close',
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -208,7 +213,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
             ),
           ),
         if (showDivider && (title != null || message != null))
-          const Divider(height: 1, thickness: 1), // M3 divider
+          const Divider(height: 1, thickness: 1),
         if (message != null)
           Padding(
             padding: EdgeInsets.symmetric(
@@ -224,9 +229,7 @@ class SlBottomSheetDialog extends ConsumerWidget {
           ),
         if (content != null)
           Flexible(
-            // Makes content scrollable if it overflows
             child: SingleChildScrollView(
-              // Ensures scrollability
               controller: scrollController,
               padding: EdgeInsets.only(
                 left: padding.resolve(TextDirection.ltr).left,
@@ -266,17 +269,15 @@ class SlBottomSheetDialog extends ConsumerWidget {
     );
 
     return Material(
-      // Ensures Material theming is applied
       type: MaterialType.transparency,
       child: Container(
         decoration: BoxDecoration(
           color: effectiveBackgroundColor,
           borderRadius: effectiveBorderRadius,
           boxShadow: [
-            // M3 shadow
             BoxShadow(
-              color: theme.shadowColor.withOpacity(0.1),
-              blurRadius: AppDimens.elevationS, // 2.0
+              color: theme.shadowColor.withValues(alpha: 0.1),
+              blurRadius: AppDimens.elevationS,
               offset: const Offset(0, 1),
             ),
           ],
@@ -310,50 +311,63 @@ class SlBottomSheetDialog extends ConsumerWidget {
     Color? backgroundColor,
     bool showDragHandle = true,
     bool expandToFullScreen = false,
+    VoidCallback? onClose, // Added onClose to the show method parameters
   }) {
-    VoidCallback? defaultOnClose = showCloseButton
-        ? () => Navigator.of(context).pop()
-        : null;
-
+    // The onClose passed here will be used if the user dismisses the sheet
+    // by dragging, tapping outside (if isDismissible is true), or if the
+    // default close button (if enabled and no custom actions) is pressed.
     return showModalBottomSheet<T>(
       context: context,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       useSafeArea: false,
-      // SafeArea is handled inside SlBottomSheetDialog now
       backgroundColor: Colors.transparent,
-      // Make it transparent to see custom shape/color
       isScrollControlled: isScrollControlled,
       elevation: 0,
-      // Handled by SlBottomSheetDialog's shadow
-      builder: (context) => SlBottomSheetDialog(
-        title: title,
-        message: message,
-        content: content,
-        actions: actions,
-        isDismissible: isDismissible,
-        enableDrag: enableDrag,
-        showCloseButton: showCloseButton,
-        maxHeightFraction: maxHeightFraction,
-        padding:
-            padding ??
-            const EdgeInsets.fromLTRB(
-              AppDimens.paddingL,
-              AppDimens.paddingS,
-              AppDimens.paddingL,
-              AppDimens.paddingL,
-            ),
-        iconWidget: iconWidget,
-        useSafeArea: useSafeArea,
-        showDivider: showDivider,
-        borderRadius: borderRadius,
-        scrollController: scrollController,
-        isScrollControlled: isScrollControlled,
-        backgroundColor: backgroundColor,
-        showDragHandle: showDragHandle,
-        expandToFullScreen: expandToFullScreen,
-        onClose: defaultOnClose, // Pass the default close action
-      ),
-    );
+      builder: (BuildContext builderContext) {
+        // Use builderContext for creating the dialog instance
+        // If a specific onClose for the X button is needed and it's different from
+        // the general onClose, that logic needs to be handled carefully.
+        // For simplicity, this.onClose in SlBottomSheetDialog will be the one
+        // triggered by the X button.
+        // The onClose passed to showModalBottomSheet's .whenComplete can handle
+        // dismissal by other means if needed, or the onClose parameter passed to
+        // SlBottomSheetDialog can be called via whenComplete.
+        return SlBottomSheetDialog(
+          title: title,
+          message: message,
+          content: content,
+          actions: actions,
+          isDismissible: isDismissible,
+          enableDrag: enableDrag,
+          showCloseButton: showCloseButton,
+          maxHeightFraction: maxHeightFraction,
+          padding:
+              padding ??
+              const EdgeInsets.fromLTRB(
+                AppDimens.paddingL,
+                AppDimens.paddingS,
+                AppDimens.paddingL,
+                AppDimens.paddingL,
+              ),
+          iconWidget: iconWidget,
+          useSafeArea: useSafeArea,
+          showDivider: showDivider,
+          borderRadius: borderRadius,
+          scrollController: scrollController,
+          isScrollControlled: isScrollControlled,
+          backgroundColor: backgroundColor,
+          showDragHandle: showDragHandle,
+          expandToFullScreen: expandToFullScreen,
+          onClose:
+              onClose, // Pass the onClose from show() to the SlBottomSheetDialog instance
+        );
+      },
+    ).whenComplete(() {
+      // This will be called when the bottom sheet is closed for any reason,
+      // including Navigator.pop(context), dragging, or barrier tap.
+      // If an onClose callback was provided to the show() method, call it here.
+      onClose?.call();
+    });
   }
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/input/sl_text_field.dart';
 
-class SlPasswordField extends StatefulWidget {
+class SLPasswordField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? errorText;
   final TextEditingController? controller;
-  final IconData? prefixIcon;
+  final IconData?
+  prefixIconData; // Use IconData for consistency with SLTextField.prefixIcon
+  final Widget? prefixWidget; // Allow a full widget for prefix if needed
   final ValueChanged<String>? onChanged;
   final VoidCallback? onEditingComplete;
   final TextInputAction? textInputAction;
@@ -18,17 +20,16 @@ class SlPasswordField extends StatefulWidget {
   final Color? borderColor;
   final Color? focusedBorderColor;
   final Color? backgroundColor;
-  final bool enabled;
-  final SlTextFieldSize size;
-  final AutovalidateMode autovalidateMode;
+  final SlTextFieldSize size; // Added size parameter
 
-  const SlPasswordField({
+  const SLPasswordField({
     super.key,
     this.label,
     this.hint,
     this.errorText,
     this.controller,
-    this.prefixIcon,
+    this.prefixIconData,
+    this.prefixWidget,
     this.onChanged,
     this.onEditingComplete,
     this.textInputAction = TextInputAction.done,
@@ -40,37 +41,26 @@ class SlPasswordField extends StatefulWidget {
     this.borderColor,
     this.focusedBorderColor,
     this.backgroundColor,
-    this.enabled = true,
-    this.size = SlTextFieldSize.medium,
-    this.autovalidateMode = AutovalidateMode.onUserInteraction,
+    this.size = SlTextFieldSize.medium, // Default size
   });
 
   @override
-  State<SlPasswordField> createState() => _SlPasswordFieldState();
+  State<SLPasswordField> createState() => _SLPasswordFieldState();
 }
 
-class _SlPasswordFieldState extends State<SlPasswordField> {
-  bool _obscureText = true;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscureText = !_obscureText;
-    });
-  }
-
+class _SLPasswordFieldState extends State<SLPasswordField> {
   @override
   Widget build(BuildContext context) {
-    return SlTextField(
+    return SLTextField(
       label: widget.label,
       hint: widget.hint,
-      errorText: widget.errorText,
       controller: widget.controller,
-      prefixIcon: widget.prefixIcon,
-      suffixIcon: _obscureText
-          ? Icons.visibility_outlined
-          : Icons.visibility_off_outlined,
-      onSuffixIconTap: _togglePasswordVisibility,
-      obscureText: _obscureText,
+      errorText: widget.errorText,
+      prefixIcon: widget.prefixIconData,
+      // Pass IconData to SLTextField's prefixIcon
+      prefix: widget.prefixWidget,
+      // Pass Widget to SLTextField's prefix
+      obscureText: true,
       keyboardType: TextInputType.visiblePassword,
       onChanged: widget.onChanged,
       onEditingComplete: widget.onEditingComplete,
@@ -83,9 +73,7 @@ class _SlPasswordFieldState extends State<SlPasswordField> {
       borderColor: widget.borderColor,
       focusedBorderColor: widget.focusedBorderColor,
       backgroundColor: widget.backgroundColor,
-      enabled: widget.enabled,
-      size: widget.size,
-      autovalidateMode: widget.autovalidateMode,
+      size: widget.size, // Pass down the size
     );
   }
 }

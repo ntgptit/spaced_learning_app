@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 
-import '../../../../core/theme/theme_extensions.dart'; // Assuming SLButton
+import '../../../../core/extensions/color_extensions.dart';
 
 /// Content widget for the score input dialog.
 /// This widget allows users to input a score with visual feedback.
@@ -62,8 +62,9 @@ class _SlScoreInputDialogContentState
     }
 
     // Fallback to direct colors
-    if (percentage >= 0.9)
+    if (percentage >= 0.9) {
       return colorScheme.primary; // Or a specific success green
+    }
     if (percentage >= 0.7) return colorScheme.tertiary;
     if (percentage >= 0.5) return colorScheme.secondary;
     if (percentage >= 0.3) return Colors.orange.shade700; // More vibrant orange
@@ -81,7 +82,7 @@ class _SlScoreInputDialogContentState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final scoreColor = _getScoreColor(colorScheme, context);
-    final scoreDisplayBackgroundColor = scoreColor.withOpacity(0.1);
+    final scoreDisplayBackgroundColor = scoreColor.withValues(alpha: 0.1);
     final scoreDisplayTextColor = _getContrastTextColor(
       scoreColor,
       colorScheme,
@@ -130,10 +131,13 @@ class _SlScoreInputDialogContentState
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: scoreDisplayBackgroundColor,
-            border: Border.all(color: scoreColor.withOpacity(0.5), width: 2),
+            border: Border.all(
+              color: scoreColor.withValues(alpha: 0.5),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: scoreColor.withOpacity(0.2),
+                color: scoreColor.withValues(alpha: 0.2),
                 blurRadius: AppDimens.shadowRadiusM,
                 spreadRadius: AppDimens.shadowOffsetS,
               ),
@@ -154,9 +158,9 @@ class _SlScoreInputDialogContentState
         SliderTheme(
           data: SliderThemeData(
             activeTrackColor: scoreColor,
-            inactiveTrackColor: scoreColor.withOpacity(0.25),
+            inactiveTrackColor: scoreColor.withValues(alpha: 0.25),
             thumbColor: scoreColor,
-            overlayColor: scoreColor.withOpacity(0.15),
+            overlayColor: scoreColor.withValues(alpha: 0.15),
             trackHeight: AppDimens.lineProgressHeightL,
             // 8.0
             thumbShape: const RoundSliderThumbShape(

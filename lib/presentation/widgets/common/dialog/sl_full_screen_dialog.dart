@@ -127,7 +127,7 @@ class SlFullScreenDialog extends ConsumerWidget {
               // M3 surface container for action bar
               boxShadow: [
                 BoxShadow(
-                  color: theme.shadowColor.withOpacity(0.1),
+                  color: theme.shadowColor.withValues(alpha: 0.1),
                   blurRadius: AppDimens.elevationS, // 2.0
                   offset: const Offset(0, -1), // Shadow above
                 ),

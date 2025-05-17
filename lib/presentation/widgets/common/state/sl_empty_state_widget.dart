@@ -106,12 +106,12 @@ class SlEmptyStateWidget extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: showGradientBackground
                       ? null
-                      : effectiveIconColor.withOpacity(0.1),
+                      : effectiveIconColor.withValues(alpha: 0.1),
                   gradient: showGradientBackground
                       ? LinearGradient(
                           colors: [
-                            effectiveIconColor.withOpacity(0.05),
-                            effectiveIconColor.withOpacity(0.15),
+                            effectiveIconColor.withValues(alpha: 0.05),
+                            effectiveIconColor.withValues(alpha: 0.15),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -122,7 +122,7 @@ class SlEmptyStateWidget extends ConsumerWidget {
                 child: Icon(
                   icon,
                   size: AppDimens.iconXL,
-                  color: effectiveIconColor.withOpacity(0.8),
+                  color: effectiveIconColor.withValues(alpha: 0.8),
                 ),
               ),
             const SizedBox(height: AppDimens.spaceXL),

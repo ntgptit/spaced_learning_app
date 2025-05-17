@@ -83,7 +83,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
                 width: AppDimens.iconXXL,
                 height: AppDimens.iconXXL,
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withOpacity(0.7),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -141,7 +141,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
     ColorScheme colorScheme,
   ) {
     return Card(
-      color: colorScheme.errorContainer.withOpacity(0.15),
+      color: colorScheme.errorContainer.withValues(alpha: 0.15),
       elevation: 0,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingL,
@@ -149,7 +149,7 @@ class SlOfflineStateWidget extends ConsumerWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        side: BorderSide(color: colorScheme.error.withOpacity(0.3)),
+        side: BorderSide(color: colorScheme.error.withValues(alpha: 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingM),
