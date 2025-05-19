@@ -30,6 +30,9 @@ import 'package:spaced_learning_app/domain/repositories/progress_repository.dart
 import 'package:spaced_learning_app/domain/repositories/repetition_repository.dart';
 import 'package:spaced_learning_app/domain/repositories/user_repository.dart';
 
+import '../../data/repositories/grammar_repository_impl.dart';
+import '../../domain/repositories/grammar_repository.dart';
+
 part 'providers.g.dart';
 
 // CORE SERVICES
@@ -135,6 +138,10 @@ LearningStatsRepository learningStatsRepository(Ref ref) =>
 @riverpod
 LearningProgressRepository learningProgressRepository(Ref ref) =>
     LearningProgressRepositoryImpl(ref.read(apiClientProvider));
+
+@riverpod
+GrammarRepository grammarRepository(Ref ref) =>
+    GrammarRepositoryImpl(ref.read(apiClientProvider));
 
 // DATA SERVICES
 
