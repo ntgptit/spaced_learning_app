@@ -1,121 +1,176 @@
+// lib/presentation/widgets/modules/module_header.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart'; // Using SLCard
 
 class ModuleHeader extends StatelessWidget {
   final ModuleDetail module;
 
   const ModuleHeader({super.key, required this.module});
 
+  // Estimates reading time based on word count.
+  String _estimateReadingTime(int? wordCount) {
+    if (wordCount == null || wordCount <= 0)
+      return 'N/A'; // Not Applicable if no word count.
+    // Assuming an average reading speed of 200 words per minute.
+    final readingTimeMinutes = (wordCount / 200).ceil();
+    if (readingTimeMinutes < 1) return '<1 min';
+    return readingTimeMinutes == 1 ? '1 min' : '$readingTimeMinutes mins';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(module.title, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: AppDimens.spaceM),
+        // Module Title
+        Text(
+          module.title,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            // Increased font size for emphasis
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: AppDimens.spaceS), // Reduced space slightly
+        // Module Number and Book Name
         Row(
           children: [
-            _buildModuleTag(context),
-            const SizedBox(width: AppDimens.spaceL),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingM, // Adjusted padding
+                vertical: AppDimens.paddingXS,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                // Use primary container for tag
+                borderRadius: BorderRadius.circular(
+                  AppDimens.radiusXL,
+                ), // Fully rounded
+              ),
+              child: Text(
+                'Module ${module.moduleNo}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600, // Bolder text
+                ),
+              ),
+            ),
+            const SizedBox(width: AppDimens.spaceM),
             Expanded(
               child: Text(
-                'Book: ${module.bookName ?? "Unknown"}',
-                style: theme.textTheme.bodyMedium,
+                'From: ${module.bookName ?? "Unknown Book"}',
+                // Provide a fallback
+                style: theme.textTheme.titleSmall?.copyWith(
+                  // Slightly larger text for book name
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppDimens.spaceL),
-        _buildStatsCard(context),
-      ],
-    );
-  }
-
-  Widget _buildModuleTag(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingL,
-        vertical: AppDimens.paddingS,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXL),
-      ),
-      child: Text(
-        'Module ${module.moduleNo}',
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onPrimary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.paddingL),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildStatItem(
-              context,
-              module.progress.length.toString(),
-              'Students',
+        const SizedBox(height: AppDimens.spaceL), // Consistent spacing
+        // Stats Card using SLCard for a modern, contained look
+        SLCard(
+          padding: const EdgeInsets.all(AppDimens.paddingL),
+          backgroundColor: colorScheme.surfaceContainerHigh,
+          // Material 3 surface color
+          elevation: AppDimens.elevationNone,
+          // Flat design, relying on color and border
+          applyOuterShadow: false,
+          // No outer shadow for cleaner look
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withOpacity(0.5),
             ),
-            _buildDivider(context),
-            _buildStatItem(
-              context,
-              module.wordCount?.toString() ?? 'N/A',
-              'Words',
-            ),
-            _buildDivider(context),
-            _buildStatItem(
-              context,
-              _estimateReadingTime(module.wordCount),
-              'Reading Time',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(BuildContext context, String value, String label) {
-    final theme = Theme.of(context);
-
-    return Column(
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem(
+                context,
+                module.progress.length.toString(),
+                'Students',
+                Icons.people_outline_rounded, // Modern icon
+              ),
+              _buildDivider(context),
+              _buildStatItem(
+                context,
+                module.wordCount?.toString() ?? 'N/A',
+                'Words',
+                Icons.article_outlined, // Modern icon
+              ),
+              _buildDivider(context),
+              _buildStatItem(
+                context,
+                _estimateReadingTime(module.wordCount),
+                'Est. Time',
+                Icons.timer_outlined, // Modern icon
+              ),
+            ],
           ),
         ),
-        Text(label, style: theme.textTheme.bodySmall),
       ],
     );
   }
 
-  Widget _buildDivider(BuildContext context) {
+  // Helper widget to build individual stat items within the stats card.
+  Widget _buildStatItem(
+    BuildContext context,
+    String value,
+    String label,
+    IconData icon,
+  ) {
     final theme = Theme.of(context);
-    final dividerColor = theme.colorScheme.outline.withValues(alpha: 0.5);
+    final colorScheme = theme.colorScheme;
 
-    return Container(height: 40, width: 1, color: dividerColor);
+    return Expanded(
+      // Use Expanded to allow items to share space equally
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        // Ensure column takes minimum vertical space
+        children: [
+          Icon(icon, size: AppDimens.iconM, color: colorScheme.primary),
+          const SizedBox(height: AppDimens.spaceXS),
+          Text(
+            value,
+            style: theme.textTheme.titleLarge?.copyWith(
+              // Use titleLarge for stat value
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppDimens.spaceXXS),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
-  String _estimateReadingTime(int? wordCount) {
-    if (wordCount == null || wordCount <= 0) return 'N/A';
-    final readingTimeMinutes = (wordCount / 200).ceil();
-    if (readingTimeMinutes < 1) return '<1 min';
-    return readingTimeMinutes == 1 ? '1 min' : '$readingTimeMinutes mins';
+  // Helper widget to build a vertical divider between stat items.
+  Widget _buildDivider(BuildContext context) {
+    final theme = Theme.of(context);
+    final dividerColor =
+        theme.colorScheme.outlineVariant; // Use outlineVariant for divider
+
+    return Container(
+      height: AppDimens.iconXXL, // Height of the divider
+      width: AppDimens.dividerThickness, // Thickness of the divider
+      color: dividerColor.withOpacity(0.5),
+    ); // Make it slightly transparent
   }
 }

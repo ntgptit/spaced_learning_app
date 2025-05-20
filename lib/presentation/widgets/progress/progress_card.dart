@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
+import 'package:spaced_learning_app/core/theme/theme_extensions.dart'; // For getProgressColor
 import 'package:spaced_learning_app/domain/models/progress.dart';
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart'; // Using SLCard
 
 class ProgressCard extends ConsumerWidget {
   final ProgressDetail progress;
-  final bool isDue;
-  final String? subtitle;
+  final bool isDue; // Indicates if the progress item is due
+  final String?
+  subtitle; // Optional subtitle, e.g., original module title if different
   final VoidCallback? onTap;
 
   const ProgressCard({
@@ -25,141 +28,119 @@ class ProgressCard extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(
-        vertical: AppDimens.spaceXS,
-        horizontal: AppDimens.spaceXXS,
-      ),
-      color: colorScheme.surface,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimens.paddingL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderRow(colorScheme, textTheme),
-              if (progress.repetitions.isNotEmpty) ...[
-                const SizedBox(height: AppDimens.spaceS),
-                _buildRepetitionCountBadge(colorScheme, textTheme),
-              ],
-            ],
-          ),
-        ),
-      ),
+    // Determine the color of the progress indicator based on completion percentage
+    final progressIndicatorColor = theme.getProgressColor(
+      progress.percentComplete,
     );
-  }
+    // Determine the text color for due dates, highlighting if due
+    final dateTextColor = isDue
+        ? colorScheme.error
+        : colorScheme.onSurfaceVariant;
 
-  Widget _buildHeaderRow(ColorScheme colorScheme, TextTheme textTheme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildProgressIndicator(colorScheme),
-        const SizedBox(width: AppDimens.spaceL),
-        _buildProgressDetails(colorScheme, textTheme),
-        if (isDue) _buildDueIndicator(colorScheme),
-      ],
-    );
-  }
-
-  Widget _buildProgressIndicator(ColorScheme colorScheme) {
-    return SizedBox(
-      width: AppDimens.circularProgressSizeL,
-      height: AppDimens.circularProgressSizeL,
-      child: CircularProgressIndicator(
-        value: progress.percentComplete / 100,
-        backgroundColor: colorScheme.surfaceContainerHighest,
-        strokeWidth: AppDimens.lineProgressHeight,
-        valueColor: AlwaysStoppedAnimation<Color>(
-          _getProgressColor(progress.percentComplete, colorScheme),
-        ),
-      ),
-    );
-  }
-
-  Color _getProgressColor(double percent, ColorScheme colorScheme) {
-    if (percent >= 90) return colorScheme.tertiary;
-    if (percent >= 60) return colorScheme.primary;
-    if (percent >= 30) return colorScheme.secondary;
-    return colorScheme.error;
-  }
-
-  Widget _buildProgressDetails(ColorScheme colorScheme, TextTheme textTheme) {
-    final dateFormat = DateFormat('MMM dd, yyyy');
-    final nextStudyText = progress.nextStudyDate != null
-        ? dateFormat.format(progress.nextStudyDate!)
-        : 'Not scheduled';
-
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return SLCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppDimens.paddingL),
+      backgroundColor: colorScheme.surfaceContainer,
+      // M3 surface color
+      elevation: AppDimens.elevationXS,
+      // Subtle elevation
+      margin: const EdgeInsets.symmetric(vertical: AppDimens.spaceS),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center, // Align items centrally
         children: [
-          Text(
-            progress.moduleTitle ?? 'Module ${progress.moduleId}',
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
+          // Progress Indicator (Circular)
+          SizedBox(
+            width: AppDimens.circularProgressSizeL + AppDimens.paddingXS,
+            // Slightly larger tap area
+            height: AppDimens.circularProgressSizeL + AppDimens.paddingXS,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: progress.percentComplete / 100,
+                  backgroundColor: colorScheme.surfaceContainerHighest
+                      .withOpacity(0.5),
+                  // Softer background
+                  strokeWidth: AppDimens.lineProgressHeight + 2,
+                  // Thicker stroke
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progressIndicatorColor,
+                  ),
+                  strokeCap: StrokeCap.round, // Rounded stroke caps
+                ),
+                Text(
+                  '${progress.percentComplete.toInt()}%',
+                  style: textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color:
+                        progressIndicatorColor, // Text color matches progress
+                  ),
+                ),
+              ],
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
-          if (subtitle != null) ...[
-            const SizedBox(height: AppDimens.spaceXS),
-            Text(
-              subtitle!,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          const SizedBox(height: AppDimens.spaceXS),
-          Text(
-            'Next study: $nextStudyText',
-            style: textTheme.bodySmall?.copyWith(
-              color: isDue ? colorScheme.primary : colorScheme.onSurfaceVariant,
-              fontWeight: isDue ? FontWeight.bold : null,
+          const SizedBox(width: AppDimens.spaceL), // Increased spacing
+          // Progress Details (Title, Subtitle, Dates)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  progress.moduleTitle ?? 'Module ${progress.moduleId}',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    // Slightly less bold than header title
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // Display subtitle if provided
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: AppDimens.spaceXXS),
+                  Text(
+                    subtitle!,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: AppDimens.spaceS), // Consistent spacing
+                // Next Study Date
+                Row(
+                  children: [
+                    Icon(
+                      isDue
+                          ? Icons.notification_important_rounded
+                          : Icons.event_note_outlined, // Contextual icon
+                      size: AppDimens.iconXS,
+                      color: dateTextColor,
+                    ),
+                    const SizedBox(width: AppDimens.spaceXS),
+                    Text(
+                      progress.nextStudyDate != null
+                          ? 'Next: ${DateFormat.yMMMd().format(progress.nextStudyDate!)}'
+                          : 'Next: Not scheduled',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: dateTextColor,
+                        fontWeight: isDue ? FontWeight.bold : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppDimens.spaceXS),
-          Text(
-            'Progress: ${progress.percentComplete.toInt()}%',
-            style: textTheme.bodySmall?.copyWith(
+          // Chevron icon to indicate tappable item
+          if (onTap != null)
+            Icon(
+              Icons.chevron_right_rounded, // Rounded icon
               color: colorScheme.onSurfaceVariant,
+              size: AppDimens.iconM,
             ),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDueIndicator(ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.only(left: AppDimens.spaceS),
-      child: Icon(Icons.notifications_active, color: colorScheme.error),
-    );
-  }
-
-  Widget _buildRepetitionCountBadge(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingS,
-        vertical: AppDimens.paddingXS,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(AppDimens.radiusXS),
-      ),
-      child: Text(
-        'Repetitions: ${progress.repetitions.length}',
-        style: textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
       ),
     );
   }
