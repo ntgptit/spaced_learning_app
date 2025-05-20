@@ -169,6 +169,12 @@ class AppDimens {
   static const double opacityDisabled = 0.38; // Standard disabled opacity
   static const double opacityNone = 0.0; // Added for clarity
 
+  static const double opacityZero = 0.0;
+  static const double opacitySlight = 0.15; // For subtle scrims or overlays
+  static const double opacityPattern = 0.08; // For very subtle patterns
+  static const double opacityShadow = 0.1; // For subtle shadows
+  static const double opacityLow = 0.3;
+
   static const double scaleFactorSmall = 0.85; // Cho màn hình nhỏ
   static const double scaleFactorLarge = 1.15; // Cho màn hình lớn
 }
