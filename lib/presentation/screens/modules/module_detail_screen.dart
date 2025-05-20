@@ -1,5 +1,7 @@
+// lib/presentation/screens/modules/module_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart'; // Đảm bảo import GoRouter
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
@@ -11,6 +13,7 @@ import 'package:spaced_learning_app/presentation/widgets/common/error_display.da
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
 
 import '../../../core/navigation/navigation_helper.dart';
+import '../../widgets/common/app_button.dart'; // Import cho SLButton
 import '../../widgets/modules/module_content_section.dart';
 import '../../widgets/modules/module_header.dart';
 import '../../widgets/modules/module_progress_section.dart';
@@ -117,6 +120,15 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     }
   }
 
+  // Thêm hàm để điều hướng đến màn hình grammar
+  void _navigateToGrammar() {
+    final module = ref.read(selectedModuleProvider).valueOrNull;
+    if (module == null) return;
+
+    // Sử dụng GoRouter để điều hướng đến màn hình grammar
+    context.go('/books/${module.bookId}/modules/${widget.moduleId}/grammar');
+  }
+
   bool _isAuthenticated() {
     final isLoggedIn = ref.watch(authStateProvider).valueOrNull ?? false;
     final currentUser = ref.watch(currentUserProvider);
@@ -205,11 +217,28 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
           );
         },
       ),
-      floatingActionButton: module != null && !hasProgress
-          ? FloatingActionButton.extended(
-              onPressed: _startLearning,
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Start Learning'),
+      floatingActionButton: module != null
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // // Thêm FAB để chuyển đến Grammar
+                // FloatingActionButton.extended(
+                //   heroTag: 'grammar',
+                //   onPressed: _navigateToGrammar,
+                //   icon: const Icon(Icons.menu_book),
+                //   label: const Text('Grammar'),
+                //   backgroundColor: Theme.of(context).colorScheme.secondary,
+                // ),
+                const SizedBox(width: 16),
+                // FAB bắt đầu học nếu chưa có progress
+                if (!hasProgress)
+                  FloatingActionButton.extended(
+                    heroTag: 'learn',
+                    onPressed: _startLearning,
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Start Learning'),
+                  ),
+              ],
             )
           : null,
     );
@@ -269,7 +298,19 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
             const SizedBox(height: AppDimens.spaceXXL),
           ],
           ModuleContentSection(module: module),
-          const SizedBox(height: 80),
+
+          // Thêm phần Grammar button ở đây để tăng khả năng hiển thị
+          const SizedBox(height: AppDimens.spaceXXL),
+          Center(
+            child: SLButton(
+              text: 'View Grammar Rules',
+              type: SLButtonType.outline,
+              prefixIcon: Icons.book,
+              onPressed: _navigateToGrammar,
+            ),
+          ),
+
+          const SizedBox(height: 80), // Để không bị FloatingActionButton che
         ],
       ),
     );

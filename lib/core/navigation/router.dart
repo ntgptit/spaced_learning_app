@@ -11,7 +11,9 @@ import 'package:spaced_learning_app/presentation/screens/books/books_screen.dart
 import 'package:spaced_learning_app/presentation/screens/help/spaced_repetition_info_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/home/home_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/learning/learning_progress_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/modules/grammar_detail_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/modules/module_detail_screen.dart';
+import 'package:spaced_learning_app/presentation/screens/modules/module_grammar_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/profile/profile_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/due_progress_screen.dart';
 import 'package:spaced_learning_app/presentation/screens/progress/progress_detail_screen.dart';
@@ -167,6 +169,51 @@ GoRouter router(Ref ref) {
                       }
                       return ModuleDetailScreen(moduleId: moduleId);
                     },
+                    routes: [
+                      // Thêm route cho ModuleGrammarScreen như là con của module
+                      GoRoute(
+                        path: 'grammar',
+                        name: 'moduleGrammar',
+                        builder: (context, state) {
+                          final bookId = state.pathParameters['id'];
+                          final moduleId = state.pathParameters['moduleId'];
+
+                          if (moduleId == null || moduleId.isEmpty) {
+                            return _buildErrorScreen(
+                              'Invalid module ID',
+                              () => GoRouter.of(context).go('/books/$bookId'),
+                            );
+                          }
+
+                          return ModuleGrammarScreen(moduleId: moduleId);
+                        },
+                      ),
+                      // Thêm route cho GrammarDetailScreen như là con của module
+                      GoRoute(
+                        path: 'grammars/:grammarId',
+                        name: 'grammarDetail',
+                        builder: (context, state) {
+                          final bookId = state.pathParameters['id'];
+                          final moduleId = state.pathParameters['moduleId'];
+                          final grammarId = state.pathParameters['grammarId'];
+
+                          if (moduleId == null ||
+                              moduleId.isEmpty ||
+                              grammarId == null ||
+                              grammarId.isEmpty) {
+                            return _buildErrorScreen(
+                              'Invalid module or grammar ID',
+                              () => GoRouter.of(context).go('/books/$bookId'),
+                            );
+                          }
+
+                          return GrammarDetailScreen(
+                            moduleId: moduleId,
+                            grammarId: grammarId,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
