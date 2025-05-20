@@ -1,45 +1,37 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/book.dart';
 
 class BookCover extends StatelessWidget {
   final BookSummary book;
-  final ThemeData theme;
 
-  const BookCover({super.key, required this.book, required this.theme});
+  const BookCover({super.key, required this.book});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final bookIdHash = book.id.hashCode;
-    final hue = (bookIdHash % 360).abs().toDouble();
-    const saturation = 0.6;
-    const lightness = 0.75;
-    final coverColor = HSLColor.fromAHSL(
-      1.0,
-      hue,
-      saturation,
-      lightness,
-    ).toColor();
+    final coverColor = _generateCoverColor();
 
     return Container(
       width: AppDimens.thumbnailSizeS,
-      // 80.0
       height: AppDimens.thumbnailSizeM * 0.85,
-      // 102.0 (adjusted to maintain aspect ratio)
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             coverColor,
-            coverColor.withValues(alpha: AppDimens.opacityVeryHigh),
+            coverColor.withOpacity(AppDimens.opacityVeryHigh),
           ],
         ),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: AppDimens.opacitySemi),
+            color: colorScheme.shadow.withOpacity(AppDimens.opacitySemi),
             blurRadius: AppDimens.shadowRadiusM,
             offset: const Offset(0, AppDimens.shadowOffsetS),
           ),
@@ -51,8 +43,8 @@ class BookCover extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             child: CustomPaint(
               painter: _BookPatternPainter(
-                patternColor: colorScheme.onPrimary.withValues(
-                  alpha: AppDimens.opacitySemi,
+                patternColor: colorScheme.onPrimary.withOpacity(
+                  AppDimens.opacitySemi,
                 ),
                 lineCount: 3,
               ),
@@ -62,7 +54,6 @@ class BookCover extends StatelessWidget {
               ),
             ),
           ),
-
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -70,8 +61,8 @@ class BookCover extends StatelessWidget {
                 Icon(
                   Icons.menu_book,
                   size: AppDimens.iconL,
-                  color: colorScheme.onPrimary.withValues(
-                    alpha: AppDimens.opacityFull,
+                  color: colorScheme.onPrimary.withOpacity(
+                    AppDimens.opacityFull,
                   ),
                 ),
                 const SizedBox(height: AppDimens.spaceXS),
@@ -93,7 +84,6 @@ class BookCover extends StatelessWidget {
               ],
             ),
           ),
-
           if (book.category != null)
             Positioned(
               bottom: 0,
@@ -102,8 +92,8 @@ class BookCover extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: colorScheme.shadow.withValues(
-                    alpha: AppDimens.opacityMediumHigh,
+                  color: colorScheme.shadow.withOpacity(
+                    AppDimens.opacityMediumHigh,
                   ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(AppDimens.radiusM),
@@ -111,9 +101,9 @@ class BookCover extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  book.category ?? '',
+                  book.category!,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onPrimary,
+                    color: colorScheme.onPrimary.withOpacity(0.9),
                     fontSize: 8,
                   ),
                   maxLines: 1,
@@ -126,6 +116,15 @@ class BookCover extends StatelessWidget {
       ),
     );
   }
+
+  Color _generateCoverColor() {
+    final input = '${book.name}${book.category ?? ''}${book.hashCode}';
+    final bytes = utf8.encode(input);
+    final digest = md5.convert(bytes).toString();
+    final hue = (int.parse(digest.substring(0, 12), radix: 16) % 360)
+        .toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.4, 0.7).toColor();
+  }
 }
 
 class _BookPatternPainter extends CustomPainter {
@@ -137,12 +136,12 @@ class _BookPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = patternColor
-      ..strokeWidth = 0.8
+      ..color = patternColor.withOpacity(0.7)
+      ..strokeWidth = 0.6
       ..style = PaintingStyle.stroke;
 
     final spacingY = size.height / (lineCount + 1);
-    for (int i = 1; i <= lineCount; i++) {
+    for (var i = 1; i <= lineCount; i++) {
       final y = spacingY * i;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }

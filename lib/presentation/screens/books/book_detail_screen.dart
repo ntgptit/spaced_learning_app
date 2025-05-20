@@ -220,7 +220,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen>
                 children: [
                   Hero(
                     tag: 'book-${book.id}',
-                    child: BookCover(book: book.toSummary(), theme: theme),
+                    child: BookCover(book: book.toSummary()),
                   ),
                   const SizedBox(width: AppDimens.spaceL),
                   Expanded(

@@ -31,7 +31,7 @@ class BookListCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              BookCover(book: book, theme: theme),
+              BookCover(book: book),
 
               const SizedBox(width: AppDimens.spaceL),
 
