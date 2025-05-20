@@ -37,7 +37,7 @@ class ModuleContentSection extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL),
             side: BorderSide(
-              color: colorScheme.outlineVariant.withOpacity(0.7),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.7),
             ),
           ),
           applyOuterShadow: false,
@@ -63,7 +63,9 @@ class ModuleContentSection extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppDimens.spaceL), // Increased spacing
-                Divider(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                Divider(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
                 const SizedBox(height: AppDimens.spaceL),
               ],
               // Placeholder for module content
@@ -94,7 +96,7 @@ class ModuleContentSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingL), // Generous padding
       decoration: BoxDecoration(
-        color: colorScheme.tertiaryContainer.withOpacity(0.7),
+        color: colorScheme.tertiaryContainer.withValues(alpha: 0.7),
         // Using tertiary container for tips
         borderRadius: BorderRadius.circular(
           AppDimens.radiusM,

@@ -25,13 +25,13 @@ class BookCover extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             coverColor,
-            coverColor.withOpacity(AppDimens.opacityVeryHigh),
+            coverColor.withValues(alpha: AppDimens.opacityVeryHigh),
           ],
         ),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(AppDimens.opacitySemi),
+            color: colorScheme.shadow.withValues(alpha: AppDimens.opacitySemi),
             blurRadius: AppDimens.shadowRadiusM,
             offset: const Offset(0, AppDimens.shadowOffsetS),
           ),
@@ -43,8 +43,8 @@ class BookCover extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             child: CustomPaint(
               painter: _BookPatternPainter(
-                patternColor: colorScheme.onPrimary.withOpacity(
-                  AppDimens.opacitySemi,
+                patternColor: colorScheme.onPrimary.withValues(
+                  alpha: AppDimens.opacitySemi,
                 ),
                 lineCount: 3,
               ),
@@ -61,8 +61,8 @@ class BookCover extends StatelessWidget {
                 Icon(
                   Icons.menu_book,
                   size: AppDimens.iconL,
-                  color: colorScheme.onPrimary.withOpacity(
-                    AppDimens.opacityFull,
+                  color: colorScheme.onPrimary.withValues(
+                    alpha: AppDimens.opacityFull,
                   ),
                 ),
                 const SizedBox(height: AppDimens.spaceXS),
@@ -92,8 +92,8 @@ class BookCover extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: colorScheme.shadow.withOpacity(
-                    AppDimens.opacityMediumHigh,
+                  color: colorScheme.shadow.withValues(
+                    alpha: AppDimens.opacityMediumHigh,
                   ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(AppDimens.radiusM),
@@ -103,7 +103,7 @@ class BookCover extends StatelessWidget {
                 child: Text(
                   book.category!,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onPrimary.withOpacity(0.9),
+                    color: colorScheme.onPrimary.withValues(alpha: 0.9),
                     fontSize: 8,
                   ),
                   maxLines: 1,
@@ -136,7 +136,7 @@ class _BookPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = patternColor.withOpacity(0.7)
+      ..color = patternColor.withValues(alpha: 0.7)
       ..strokeWidth = 0.6
       ..style = PaintingStyle.stroke;
 

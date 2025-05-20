@@ -59,7 +59,7 @@ class ProgressCard extends ConsumerWidget {
                 CircularProgressIndicator(
                   value: progress.percentComplete / 100,
                   backgroundColor: colorScheme.surfaceContainerHighest
-                      .withOpacity(0.5),
+                      .withValues(alpha: 0.5),
                   // Softer background
                   strokeWidth: AppDimens.lineProgressHeight + 2,
                   // Thicker stroke

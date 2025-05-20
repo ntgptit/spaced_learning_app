@@ -142,8 +142,8 @@ class SLCard extends StatelessWidget {
               LinearGradient(
                 // Default gradient if none provided
                 colors: [
-                  colorScheme.primaryContainer.withOpacity(0.5),
-                  colorScheme.secondaryContainer.withOpacity(0.5),
+                  colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  colorScheme.secondaryContainer.withValues(alpha: 0.5),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -162,7 +162,7 @@ class SLCard extends StatelessWidget {
         onTap: onTap,
         highlightColor: highlightColor,
         // User can override, otherwise M3 default ripple.
-        splashColor: colorScheme.primary.withOpacity(0.12),
+        splashColor: colorScheme.primary.withValues(alpha: 0.12),
         // M3 standard splash.
         borderRadius: (effectiveShape is RoundedRectangleBorder)
             ? effectiveShape.borderRadius.resolve(Directionality.of(context))
@@ -202,7 +202,7 @@ class SLCard extends StatelessWidget {
               : BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
-              color: effectiveShadowColor.withOpacity(0.08),
+              color: effectiveShadowColor.withValues(alpha: 0.08),
               // Softer, more diffuse shadow.
               blurRadius: AppDimens.shadowRadiusL,
               // Larger blur.

@@ -84,7 +84,8 @@ class GrammarContentSection extends StatelessWidget {
               padding: const EdgeInsets.all(AppDimens.paddingS),
               // Padding around the icon
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1), // Light background for icon
+                color: iconColor.withValues(alpha: 0.1),
+                // Light background for icon
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -119,7 +120,7 @@ class GrammarContentSection extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             side: BorderSide(
-              color: colorScheme.outlineVariant.withOpacity(0.5),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
           ),
           applyOuterShadow: false,

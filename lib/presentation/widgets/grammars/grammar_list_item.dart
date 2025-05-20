@@ -30,7 +30,9 @@ class GrammarListItem extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
         // M3 consistent radius
-        side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.7)),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+        ),
       ),
       applyOuterShadow: false,
       child: Row(
@@ -40,7 +42,7 @@ class GrammarListItem extends StatelessWidget {
             width: AppDimens.avatarSizeM, // Standardized size
             height: AppDimens.avatarSizeM,
             decoration: BoxDecoration(
-              color: colorScheme.secondaryContainer.withOpacity(0.8),
+              color: colorScheme.secondaryContainer.withValues(alpha: 0.8),
               // Use secondary container
               shape: BoxShape.circle,
             ),
@@ -88,7 +90,7 @@ class GrammarListItem extends StatelessWidget {
           Icon(
             Icons.chevron_right_rounded, // Rounded icon
             size: AppDimens.iconM + 4, // Slightly larger chevron
-            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
           ),
         ],
       ),

@@ -40,7 +40,7 @@ class GrammarHeader extends StatelessWidget {
         // Informational Card using SLCard
         SLCard(
           padding: const EdgeInsets.all(AppDimens.paddingL),
-          backgroundColor: colorScheme.primaryContainer.withOpacity(0.7),
+          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.7),
           // M3 surface color with opacity
           elevation: AppDimens.elevationNone,
           // Flat card

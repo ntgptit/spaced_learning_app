@@ -89,7 +89,7 @@ class ModuleHeader extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL),
             side: BorderSide(
-              color: colorScheme.outlineVariant.withOpacity(0.5),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
           ),
           child: Row(
@@ -171,7 +171,7 @@ class ModuleHeader extends StatelessWidget {
     return Container(
       height: AppDimens.iconXXL, // Height of the divider
       width: AppDimens.dividerThickness, // Thickness of the divider
-      color: dividerColor.withOpacity(0.5),
+      color: dividerColor.withValues(alpha: 0.5),
     ); // Make it slightly transparent
   }
 }
