@@ -64,6 +64,24 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen> {
     ref.read(grammarsStateProvider.notifier).searchGrammars(query);
   }
 
+  // Phương thức mới để xử lý điều hướng đến grammar detail
+  void _navigateToGrammarDetail(String grammarId) {
+    // Lấy thông tin module từ provider, nhưng thực hiện bên ngoài quá trình xây dựng widget
+    final module = ref.read(selectedModuleProvider).valueOrNull;
+    if (module == null) {
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Module information not available')),
+      );
+      return;
+    }
+
+    // Điều hướng đến grammar detail thông qua bookId
+    context.push(
+      '/books/${module.bookId}/modules/${widget.moduleId}/grammars/$grammarId',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -179,9 +197,8 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen> {
           final grammar = grammars[index];
           return GrammarListItem(
             grammar: grammar,
-            onTap: () => context.push(
-              '/modules/${widget.moduleId}/grammars/${grammar.id}',
-            ),
+            // Sử dụng phương thức mới để điều hướng, chỉ truyền ID grammar
+            onTap: () => _navigateToGrammarDetail(grammar.id),
           );
         },
       ),
