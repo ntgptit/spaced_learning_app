@@ -11,8 +11,9 @@ class ModuleHeader extends StatelessWidget {
 
   // Estimates reading time based on word count.
   String _estimateReadingTime(int? wordCount) {
-    if (wordCount == null || wordCount <= 0)
+    if (wordCount == null || wordCount <= 0) {
       return 'N/A'; // Not Applicable if no word count.
+    }
     // Assuming an average reading speed of 200 words per minute.
     final readingTimeMinutes = (wordCount / 200).ceil();
     if (readingTimeMinutes < 1) return '<1 min';
