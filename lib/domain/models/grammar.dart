@@ -9,7 +9,7 @@ abstract class GrammarSummary with _$GrammarSummary {
     required String id,
     required String moduleId,
     String? moduleName,
-    required String title,
+    required String grammarPattern, // Thay đổi từ title
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _GrammarSummary;
@@ -24,10 +24,13 @@ abstract class GrammarDetail with _$GrammarDetail {
     required String id,
     required String moduleId,
     String? moduleName,
-    required String title,
-    String? explanation,
-    String? usageNote,
-    String? example,
+    required String grammarPattern, // Thay đổi từ title
+    String? definition, // Thêm mới
+    String? structure, // Thêm mới
+    String? conjugation, // Thêm mới
+    String? examples, // Thay đổi từ example (số nhiều)
+    String? commonPhrases, // Thêm mới
+    String? notes, // Thêm mới
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _GrammarDetail;

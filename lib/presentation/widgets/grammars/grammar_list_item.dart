@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/grammar.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart'; // Using SLCard
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
 
 class GrammarListItem extends StatelessWidget {
   final GrammarSummary grammar;
@@ -22,48 +22,41 @@ class GrammarListItem extends StatelessWidget {
     return SLCard(
       onTap: onTap,
       padding: const EdgeInsets.all(AppDimens.paddingM),
-      // Consistent padding
       backgroundColor: colorScheme.surfaceContainer,
-      // M3 surface color
       elevation: AppDimens.elevationNone,
-      // Flat design with border
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
-        // M3 consistent radius
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.7),
-        ),
+        side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.7)),
       ),
       applyOuterShadow: false,
       child: Row(
         children: [
           // Icon for grammar rule
           Container(
-            width: AppDimens.avatarSizeM, // Standardized size
+            width: AppDimens.avatarSizeM,
             height: AppDimens.avatarSizeM,
             decoration: BoxDecoration(
-              color: colorScheme.secondaryContainer.withValues(alpha: 0.8),
-              // Use secondary container
+              color: colorScheme.secondaryContainer.withOpacity(0.8),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Icon(
-                Icons.spellcheck_rounded, // More specific icon
+                Icons.spellcheck_rounded,
                 color: colorScheme.onSecondaryContainer,
                 size: AppDimens.iconM,
               ),
             ),
           ),
-          const SizedBox(width: AppDimens.spaceL), // Increased spacing
-          // Grammar title and module name
+          const SizedBox(width: AppDimens.spaceL),
+          // Grammar pattern and module name
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  grammar.title,
+                  grammar.grammarPattern,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600, // Slightly bolder
+                    fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
                   ),
                   maxLines: 2,
@@ -85,12 +78,12 @@ class GrammarListItem extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: AppDimens.spaceS), // Space before chevron
+          const SizedBox(width: AppDimens.spaceS),
           // Chevron icon to indicate tappable item
           Icon(
-            Icons.chevron_right_rounded, // Rounded icon
-            size: AppDimens.iconM + 4, // Slightly larger chevron
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            Icons.chevron_right_rounded,
+            size: AppDimens.iconM + 4,
+            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
           ),
         ],
       ),

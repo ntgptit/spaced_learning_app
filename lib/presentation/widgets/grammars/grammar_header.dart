@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/domain/models/grammar.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart'; // Using SLCard
+import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
 
 class GrammarHeader extends StatelessWidget {
   final GrammarDetail grammar;
@@ -17,11 +17,10 @@ class GrammarHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Grammar Title
+        // Grammar Pattern (Title)
         Text(
-          grammar.title,
+          grammar.grammarPattern,
           style: theme.textTheme.headlineMedium?.copyWith(
-            // Increased font size
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
           ),
@@ -36,31 +35,28 @@ class GrammarHeader extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: AppDimens.spaceL), // Consistent spacing
-        // Informational Card using SLCard
+        const SizedBox(height: AppDimens.spaceL),
+        // Informational Card
         SLCard(
           padding: const EdgeInsets.all(AppDimens.paddingL),
-          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.7),
-          // M3 surface color with opacity
+          backgroundColor: colorScheme.primaryContainer.withOpacity(0.7),
           elevation: AppDimens.elevationNone,
-          // Flat card
           applyOuterShadow: false,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            // Align items to the start
             children: [
               Icon(
-                Icons.info_outline_rounded, // Rounded icon
+                Icons.info_outline_rounded,
                 color: colorScheme.onPrimaryContainer,
-                size: AppDimens.iconM + 2, // Slightly larger icon
+                size: AppDimens.iconM + 2,
               ),
               const SizedBox(width: AppDimens.spaceM),
               Expanded(
                 child: Text(
-                  'This grammar point is part of your learning module. Understanding these rules will enhance your communication skills and comprehension.',
+                  'This grammar pattern is part of your learning module. Understanding these rules will enhance your communication skills and comprehension.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onPrimaryContainer,
-                    height: 1.5, // Improved line height
+                    height: 1.5,
                   ),
                 ),
               ),
