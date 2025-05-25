@@ -2,24 +2,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:spaced_learning_app/core/di/providers.dart'; // For grammarRepositoryProvider
+import 'package:spaced_learning_app/core/di/providers.dart';
 import 'package:spaced_learning_app/core/navigation/navigation_helper.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
-import 'package:spaced_learning_app/domain/models/grammar.dart'; // For GrammarSummary
+import 'package:spaced_learning_app/domain/models/grammar.dart';
 import 'package:spaced_learning_app/domain/models/module.dart';
 import 'package:spaced_learning_app/domain/models/progress.dart';
 import 'package:spaced_learning_app/presentation/utils/snackbar_utils.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/auth_viewmodel.dart';
-// import 'package:spaced_learning_app/presentation/viewmodels/grammar_viewmodel.dart'; // Not directly needed for state watching here for this logic
 import 'package:spaced_learning_app/presentation/viewmodels/module_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/progress_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_bar_with_back.dart';
-import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/module_content_section.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/module_header.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/module_progress_section.dart';
+import 'package:spaced_learning_app/presentation/widgets/modules/detail/module_detail_content.dart';
+import 'package:spaced_learning_app/presentation/widgets/modules/detail/module_detail_fab_section.dart';
+import 'package:spaced_learning_app/presentation/widgets/modules/detail/module_detail_header.dart';
+import 'package:spaced_learning_app/presentation/widgets/modules/detail/module_loading_skeleton.dart';
+import 'package:spaced_learning_app/presentation/widgets/modules/detail/module_progress_card.dart';
 
 class ModuleDetailScreen extends ConsumerStatefulWidget {
   final String moduleId;
@@ -30,29 +30,110 @@ class ModuleDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
 }
 
-class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
-  late Future<void> _dataLoadingFuture;
+class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   bool _isInitialLoad = true;
-  bool _isCheckingGrammar = false; // State for grammar check loading indicator
-  bool _hasGrammar = false; // Flag to track if the module has grammar content
+  bool _isRefreshing = false;
+  bool _isCheckingGrammar = false;
+  bool _hasGrammar = false;
 
   @override
   void initState() {
     super.initState();
-    _dataLoadingFuture = Future.delayed(
-      Duration.zero,
-      _loadDataAndSetInitialLoadComplete,
-    );
-    // Check if module has grammar content after initial data load
-    _dataLoadingFuture.then((_) => _checkGrammarContent());
+    _initializeAnimations();
+    _loadInitialData();
   }
 
-  // Check if the module has any grammar content
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+  }
+
+  void _loadInitialData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _performDataLoad();
+      await _checkGrammarContent();
+
+      if (mounted) {
+        setState(() => _isInitialLoad = false);
+        _fadeController.forward();
+        await Future.delayed(const Duration(milliseconds: 200));
+        if (mounted) {
+          _slideController.forward();
+        }
+      }
+    });
+  }
+
+  Future<void> _performDataLoad() async {
+    if (_isRefreshing) return;
+
+    setState(() => _isRefreshing = true);
+
+    try {
+      await ref
+          .read(selectedModuleProvider.notifier)
+          .loadModuleDetails(widget.moduleId);
+
+      if (!mounted) return;
+
+      final module = ref.read(selectedModuleProvider).valueOrNull;
+      if (module == null) return;
+
+      // Load progress details if available
+      if (module.progress.isNotEmpty) {
+        final progressId = module.progress[0].id;
+        await ref
+            .read(selectedProgressProvider.notifier)
+            .loadProgressDetails(progressId);
+      } else if (ref.read(authStateProvider).valueOrNull ?? false) {
+        await ref
+            .read(selectedProgressProvider.notifier)
+            .loadModuleProgress(widget.moduleId);
+      }
+    } catch (error) {
+      debugPrint('Error loading module data: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
+  }
+
   Future<void> _checkGrammarContent() async {
     if (!mounted) return;
 
     final module = ref.read(selectedModuleProvider).valueOrNull;
-    if (module == null || module.bookId.isEmpty) return;
+    if (module?.bookId.isEmpty ?? true) return;
 
     try {
       final grammarRepository = ref.read(grammarRepositoryProvider);
@@ -60,88 +141,25 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
           .getGrammarsByModuleId(widget.moduleId);
 
       if (mounted) {
-        setState(() {
-          _hasGrammar = grammars.isNotEmpty;
-        });
+        setState(() => _hasGrammar = grammars.isNotEmpty);
       }
     } catch (e) {
       debugPrint('Error checking grammar content: $e');
-      // If there's an error, we'll assume no grammar content to be safe
       if (mounted) {
-        setState(() {
-          _hasGrammar = false;
-        });
+        setState(() => _hasGrammar = false);
       }
     }
   }
 
-  Future<void> _loadDataAndSetInitialLoadComplete() async {
-    if (!mounted) return;
-    // Set initial load to true only once at the very beginning
-    if (_isInitialLoad) {
-      // Check _isInitialLoad before setting it.
-      setState(() {
-        // This _isInitialLoad is for the FutureBuilder, not to be confused
-        // with the refresh indicator's own loading state.
-      });
-    }
-    await _loadData();
-    if (mounted) {
-      setState(() {
-        _isInitialLoad = false; // Mark initial load as complete
-      });
-    }
-  }
-
-  Future<void> _loadData() async {
-    if (!mounted) return;
-    final moduleId = widget.moduleId;
-    try {
-      // Load module details
-      await ref
-          .read(selectedModuleProvider.notifier)
-          .loadModuleDetails(moduleId);
-
-      if (!mounted) return; // Re-check after await
-      final module = ref.read(selectedModuleProvider).valueOrNull;
-      if (module == null) return; // Exit if module details couldn't be loaded
-
-      // Load progress details
-      // If progress info is already embedded in module, use that first
-      if (module.progress.isNotEmpty) {
-        final progressId = module.progress[0].id;
-        await ref
-            .read(selectedProgressProvider.notifier)
-            .loadProgressDetails(progressId);
-      } else if (ref.read(authStateProvider).valueOrNull ?? false) {
-        // Otherwise, if user is logged in, fetch their specific progress for this module
-        await ref
-            .read(selectedProgressProvider.notifier)
-            .loadModuleProgress(moduleId);
-      }
-    } catch (error) {
-      debugPrint(
-        'Error loading module/progress data for ModuleDetailScreen: $error',
-      );
-      // Errors will be handled by the FutureBuilder based on _dataLoadingFuture's state
-    }
-  }
-
-  Future<void> _refreshData() async {
-    if (!mounted) return;
-    setState(() {
-      // Set _isInitialLoad to true to show the main loading indicator via FutureBuilder
-      _isInitialLoad = true;
-      _dataLoadingFuture = _loadDataAndSetInitialLoadComplete();
-    });
-    // Await the future so the RefreshIndicator knows when to stop.
-    await _dataLoadingFuture;
-    // Re-check grammar content after refresh
-    _checkGrammarContent();
+  Future<void> _handleRefresh() async {
+    setState(() => _isInitialLoad = true);
+    await _performDataLoad();
+    await _checkGrammarContent();
   }
 
   Future<void> _startLearning() async {
     if (!mounted) return;
+
     if (!_isAuthenticated()) {
       _showLoginSnackBar();
       return;
@@ -163,17 +181,14 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     }
 
     try {
-      final newProgress = await _createNewProgress(widget.moduleId);
+      final newProgress = await _createNewProgress();
       if (newProgress != null && mounted) {
         _navigateToProgress(newProgress.id);
       } else if (mounted) {
-        SnackBarUtils.show(
-          context,
-          'Failed to create or start learning progress.',
-        );
+        SnackBarUtils.show(context, 'Failed to start learning progress.');
       }
     } catch (error) {
-      debugPrint('Error creating new progress: $error');
+      debugPrint('Error creating progress: $error');
       if (mounted) {
         SnackBarUtils.show(
           context,
@@ -183,23 +198,16 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     }
   }
 
-  Future<void> _navigateToGrammarOrDetail() async {
+  Future<void> _navigateToGrammar() async {
     if (!mounted) return;
 
-    setState(() {
-      _isCheckingGrammar = true;
-    });
+    setState(() => _isCheckingGrammar = true);
 
     final module = ref.read(selectedModuleProvider).valueOrNull;
-    if (module == null || module.bookId.isEmpty) {
+    if (module?.bookId.isEmpty ?? true) {
       if (mounted) {
-        SnackBarUtils.show(
-          context,
-          'Module information is not available to view grammar.',
-        );
-        setState(() {
-          _isCheckingGrammar = false;
-        });
+        SnackBarUtils.show(context, 'Module information is not available.');
+        setState(() => _isCheckingGrammar = false);
       }
       return;
     }
@@ -219,26 +227,24 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
       } else if (grammars.length == 1) {
         final singleGrammar = grammars.first;
         context.push(
-          '/books/${module.bookId}/modules/${widget.moduleId}/grammars/${singleGrammar.id}',
+          '/books/${module!.bookId}/modules/${widget.moduleId}/grammars/${singleGrammar.id}',
         );
       } else {
         context.go(
-          '/books/${module.bookId}/modules/${widget.moduleId}/grammar',
+          '/books/${module!.bookId}/modules/${widget.moduleId}/grammar',
         );
       }
     } catch (e) {
       if (mounted) {
         SnackBarUtils.show(
           context,
-          'Failed to load grammar information: ${e.toString()}',
+          'Failed to load grammar: ${e.toString()}',
           backgroundColor: Theme.of(context).colorScheme.errorContainer,
         );
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isCheckingGrammar = false;
-        });
+        setState(() => _isCheckingGrammar = false);
       }
     }
   }
@@ -258,17 +264,19 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     );
   }
 
-  Future<ProgressDetail?> _createNewProgress(String moduleId) async {
+  Future<ProgressDetail?> _createNewProgress() async {
     if (!mounted) return null;
+
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       _showLoginSnackBar();
       return null;
     }
+
     return ref
         .read(progressStateProvider.notifier)
         .createProgress(
-          moduleId: moduleId,
+          moduleId: widget.moduleId,
           userId: currentUser.id,
           firstLearningDate: DateTime.now(),
           nextStudyDate: DateTime.now(),
@@ -277,13 +285,15 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
 
   void _navigateToProgress(String progressId) {
     if (!mounted) return;
+
     if (progressId.isEmpty) {
       SnackBarUtils.show(context, 'Invalid progress ID. Cannot navigate.');
       return;
     }
+
     NavigationHelper.pushWithResult(context, '/progress/$progressId').then((_) {
       if (mounted) {
-        _refreshData();
+        _handleRefresh();
       }
     });
   }
@@ -294,180 +304,154 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen> {
     final colorScheme = theme.colorScheme;
     final moduleAsync = ref.watch(selectedModuleProvider);
     final progressAsync = ref.watch(selectedProgressProvider);
-    final moduleValue = moduleAsync.valueOrNull;
-    final bool hasProgress =
-        progressAsync.valueOrNull != null ||
-        (moduleValue?.progress.isNotEmpty ?? false);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBarWithBack(
-        title: moduleValue?.title ?? 'Module Details',
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_outlined),
-            onPressed: _refreshData,
-            tooltip: 'Refresh module data',
-          ),
-        ],
-      ),
-      body: FutureBuilder<void>(
-        future: _dataLoadingFuture,
-        builder: (context, snapshot) {
-          if (_isInitialLoad ||
-              snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: SLLoadingIndicator(
-                type: LoadingIndicatorType.fadingCircle,
-              ),
-            );
-          }
-
-          String? combinedErrorMessage;
-          if (snapshot.hasError) {
-            combinedErrorMessage = snapshot.error.toString();
-          } else if (moduleAsync.hasError) {
-            combinedErrorMessage = moduleAsync.error.toString();
-          } else if (progressAsync.hasError &&
-              (progressAsync.valueOrNull != null ||
-                  (moduleValue?.progress.isNotEmpty ?? false))) {
-            // Only consider progressAsync error if we expected progress data
-            combinedErrorMessage = progressAsync.error.toString();
-          }
-
-          if (combinedErrorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimens.paddingL),
-                child: SLErrorView(
-                  message: "Error: $combinedErrorMessage",
-                  onRetry: _refreshData,
-                ),
-              ),
-            );
-          }
-
-          if (moduleValue == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimens.paddingL),
-                child: SLErrorView(
-                  message: 'Module not found.',
-                  onRetry: _refreshData,
-                ),
-              ),
-            );
-          }
-
-          return _buildModuleDetailContent(
-            context,
-            theme,
-            moduleValue,
-            progressAsync.valueOrNull,
-            hasProgress,
-          );
-        },
+      appBar: _buildAppBar(moduleAsync.valueOrNull?.title),
+      body: _buildBody(moduleAsync, progressAsync),
+      floatingActionButton: _buildFloatingActionButton(
+        moduleAsync.valueOrNull,
+        progressAsync.valueOrNull,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: moduleValue != null
-          ? Padding(
-              padding: const EdgeInsets.only(
-                bottom: AppDimens.paddingS,
-                right: AppDimens.paddingXS,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  // Only show "View Grammar" button if the module has grammar content
-                  if (_hasGrammar) ...[
-                    SizedBox(
-                      width: 175, // Cố định chiều rộng của nút
-                      child: SLButton(
-                        text: 'View Grammar',
-                        isLoading: _isCheckingGrammar,
-                        onPressed: _isCheckingGrammar
-                            ? null
-                            : _navigateToGrammarOrDetail,
-                        type: SLButtonType.secondary,
-                        prefixIcon: Icons.menu_book_rounded,
-                        size: SLButtonSize.medium,
-                        isFullWidth: true, // Đảm bảo nút lấp đầy không gian cha
-                      ),
-                    ),
-                    if (!hasProgress) const SizedBox(height: AppDimens.spaceM),
-                  ],
-                  if (!hasProgress)
-                    SizedBox(
-                      width: 175, // Cùng chiều rộng với nút trên
-                      child: SLButton(
-                        text: 'Start Learning',
-                        onPressed: _startLearning,
-                        type: SLButtonType.primary,
-                        prefixIcon: Icons.play_arrow_rounded,
-                        size: SLButtonSize.medium,
-                        isFullWidth: true, // Đảm bảo nút lấp đầy không gian cha
-                      ),
-                    ),
-                ],
-              ),
-            )
-          : null,
     );
   }
 
-  Widget _buildModuleDetailContent(
-    BuildContext context,
-    ThemeData theme,
-    ModuleDetail module,
-    ProgressDetail? userProgress,
-    bool hasProgress,
+  PreferredSizeWidget _buildAppBar(String? moduleTitle) {
+    return AppBarWithBack(
+      title: moduleTitle ?? 'Module Details',
+      actions: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _isRefreshing
+              ? const Padding(
+                  padding: EdgeInsets.all(AppDimens.paddingM),
+                  child: SizedBox(
+                    width: AppDimens.iconM,
+                    height: AppDimens.iconM,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : IconButton(
+                  key: const ValueKey('refresh'),
+                  icon: const Icon(Icons.refresh_outlined),
+                  onPressed: _handleRefresh,
+                  tooltip: 'Refresh module data',
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody(
+    AsyncValue<ModuleDetail?> moduleAsync,
+    AsyncValue<ProgressDetail?> progressAsync,
   ) {
-    // Calculate bottom padding dynamically based on the number of FABs visible
-    double fabAreaHeight = 0;
-    if (module.id.isNotEmpty) {
-      // Check if module is valid before calculating FAB height
-      if (_hasGrammar) {
-        fabAreaHeight = AppDimens.buttonHeightM; // Height for "View Grammar"
-        if (!hasProgress) {
-          fabAreaHeight +=
-              AppDimens.spaceM +
-              AppDimens
-                  .buttonHeightM; // Add height for "Start Learning" + spacing
-        }
-      } else if (!hasProgress) {
-        fabAreaHeight = AppDimens.buttonHeightM; // Only "Start Learning" button
+    if (_isInitialLoad) {
+      return const ModuleLoadingSkeleton();
+    }
+
+    final combinedError = _getCombinedError(moduleAsync, progressAsync);
+    if (combinedError != null) {
+      return _buildErrorView(combinedError);
+    }
+
+    final module = moduleAsync.valueOrNull;
+    if (module == null) {
+      return _buildErrorView('Module not found.');
+    }
+
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: _buildModuleContent(module, progressAsync.valueOrNull),
+      ),
+    );
+  }
+
+  String? _getCombinedError(
+    AsyncValue<ModuleDetail?> moduleAsync,
+    AsyncValue<ProgressDetail?> progressAsync,
+  ) {
+    if (moduleAsync.hasError) {
+      return moduleAsync.error.toString();
+    }
+
+    // Only consider progress error if we have a module and expected progress
+    if (progressAsync.hasError && moduleAsync.valueOrNull != null) {
+      final hasProgressData = moduleAsync.valueOrNull!.progress.isNotEmpty;
+      if (hasProgressData) {
+        return progressAsync.error.toString();
       }
     }
-    final double bottomPaddingForFab =
-        fabAreaHeight + AppDimens.paddingXL; // Add some extra clearance
+
+    return null;
+  }
+
+  Widget _buildErrorView(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.paddingL),
+        child: SLErrorView(message: "Error: $message", onRetry: _handleRefresh),
+      ),
+    );
+  }
+
+  Widget _buildModuleContent(
+    ModuleDetail module,
+    ProgressDetail? userProgress,
+  ) {
+    final hasProgress = userProgress != null || module.progress.isNotEmpty;
 
     return RefreshIndicator(
-      onRefresh: _refreshData,
-      color: theme.colorScheme.primary,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          AppDimens.paddingL,
-          AppDimens.paddingL,
-          AppDimens.paddingL,
-          bottomPaddingForFab,
-        ),
-        children: [
-          ModuleHeader(module: module),
-          const SizedBox(height: AppDimens.spaceXL),
-          if (hasProgress) ...[
-            ModuleProgressSection(
-              progress: userProgress ?? module.progress[0] as ProgressDetail,
-              moduleTitle: module.title,
-              onTap: _navigateToProgress,
+      onRefresh: _handleRefresh,
+      color: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(AppDimens.paddingL),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                ModuleDetailHeader(module: module),
+                const SizedBox(height: AppDimens.spaceXL),
+
+                if (hasProgress) ...[
+                  ModuleProgressCard(
+                    progress:
+                        userProgress ?? module.progress[0] as ProgressDetail,
+                    moduleTitle: module.title,
+                    onTap: _navigateToProgress,
+                  ),
+                  const SizedBox(height: AppDimens.spaceXL),
+                ],
+
+                ModuleDetailContent(module: module),
+                const SizedBox(height: AppDimens.spaceXXXL), // Space for FAB
+              ]),
             ),
-            const SizedBox(height: AppDimens.spaceXL),
-          ],
-          ModuleContentSection(module: module),
-          // Extra space already handled by ListView padding
+          ),
         ],
       ),
+    );
+  }
+
+  Widget? _buildFloatingActionButton(
+    ModuleDetail? module,
+    ProgressDetail? userProgress,
+  ) {
+    if (module == null) return null;
+
+    final hasProgress = userProgress != null || module.progress.isNotEmpty;
+
+    return ModuleDetailFabSection(
+      hasProgress: hasProgress,
+      hasGrammar: _hasGrammar,
+      isCheckingGrammar: _isCheckingGrammar,
+      onStartLearning: _startLearning,
+      onViewGrammar: _navigateToGrammar,
     );
   }
 }
