@@ -10,9 +10,9 @@ import 'package:spaced_learning_app/presentation/widgets/common/app_bar_with_bac
 import 'package:spaced_learning_app/presentation/widgets/common/app_empty_state.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/loading_indicator.dart';
-import '../../widgets/grammars/grammar_list_section.dart';
-import '../../widgets/grammars/grammar_screen_header.dart';
-import '../../widgets/grammars/grammar_search_bar.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_list_view.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_search_section.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_stats_card.dart';
 
 class ModuleGrammarScreen extends ConsumerStatefulWidget {
   final String moduleId;
@@ -25,59 +25,78 @@ class ModuleGrammarScreen extends ConsumerStatefulWidget {
 }
 
 class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  bool _isSearching = false;
+
+  bool _isInitialLoad = true;
   bool _isRefreshing = false;
+  bool _isSearching = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-    _initializeData();
+    _loadInitialData();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeController.dispose();
+    _slideController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
   }
 
   void _initializeAnimations() {
-    _animationController = AnimationController(
+    _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
 
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
     _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
+      parent: _fadeController,
       curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
     );
 
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
           CurvedAnimation(
-            parent: _animationController,
+            parent: _slideController,
             curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
           ),
         );
   }
 
-  void _initializeData() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitialData();
-      _animationController.forward();
+  void _loadInitialData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _performDataLoad();
+
+      if (!mounted) return;
+
+      setState(() => _isInitialLoad = false);
+      _fadeController.forward();
+
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (!mounted) return;
+
+      _slideController.forward();
     });
   }
 
-  Future<void> _loadInitialData() async {
+  Future<void> _performDataLoad() async {
     if (_isRefreshing) return;
 
     setState(() => _isRefreshing = true);
@@ -91,6 +110,8 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
             .read(grammarsStateProvider.notifier)
             .loadGrammarsByModuleId(widget.moduleId),
       ]);
+    } catch (error) {
+      debugPrint('Error loading grammar data: $error');
     } finally {
       if (mounted) {
         setState(() => _isRefreshing = false);
@@ -100,19 +121,16 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
 
   void _handleSearch(String query) {
     final trimmedQuery = query.trim();
+    setState(() {
+      _searchQuery = trimmedQuery;
+      _isSearching = trimmedQuery.isNotEmpty;
+    });
 
     if (trimmedQuery.isEmpty) {
-      if (_isSearching) {
-        setState(() => _isSearching = false);
-        ref
-            .read(grammarsStateProvider.notifier)
-            .loadGrammarsByModuleId(widget.moduleId);
-      }
+      ref
+          .read(grammarsStateProvider.notifier)
+          .loadGrammarsByModuleId(widget.moduleId);
       return;
-    }
-
-    if (!_isSearching) {
-      setState(() => _isSearching = true);
     }
 
     ref.read(grammarsStateProvider.notifier).searchGrammars(trimmedQuery);
@@ -122,6 +140,11 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
     _searchController.clear();
     _searchFocusNode.unfocus();
     _handleSearch('');
+  }
+
+  Future<void> _handleRefresh() async {
+    setState(() => _isInitialLoad = true);
+    await _performDataLoad();
   }
 
   void _navigateToGrammarDetail(String grammarId) {
@@ -151,33 +174,84 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final moduleAsync = ref.watch(selectedModuleProvider);
-    final grammarsAsync = ref.watch(grammarsStateProvider);
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: _buildAppBar(moduleAsync.valueOrNull?.title),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: Column(
-            children: [
-              _buildSearchSection(),
-              Expanded(child: _buildContentSection(grammarsAsync)),
-            ],
-          ),
-        ),
+  Widget _buildLoadingState() {
+    return const Center(
+      child: SLLoadingIndicator(
+        type: LoadingIndicatorType.fadingCircle,
+        size: AppDimens.circularProgressSizeL,
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(String? moduleTitle) {
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: SLErrorView(
+        message: 'Failed to load grammar rules: $error',
+        onRetry: _handleRefresh,
+        icon: Icons.menu_book_outlined,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return SLEmptyState(
+      icon: _isSearching ? Icons.search_off_rounded : Icons.menu_book_outlined,
+      title: _isSearching
+          ? 'No grammar rules found'
+          : 'No grammar rules available',
+      message: _isSearching
+          ? 'Try different search terms or clear the search to see all rules.'
+          : 'This module doesn\'t have any grammar rules yet. Try refreshing or check back later.',
+      buttonText: _isSearching ? 'Clear Search' : 'Refresh',
+      onButtonPressed: _isSearching ? _clearSearch : _handleRefresh,
+    );
+  }
+
+  Widget _buildContent(List<GrammarSummary> grammars) {
+    final module = ref.watch(selectedModuleProvider).valueOrNull;
+
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // Stats Card
+          if (!_isSearching && grammars.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: GrammarStatsCard(
+                totalCount: grammars.length,
+                moduleTitle: module?.title,
+                onRefresh: _handleRefresh,
+                isRefreshing: _isRefreshing,
+              ),
+            ),
+          ],
+
+          // Grammar List
+          if (grammars.isEmpty)
+            SliverFillRemaining(child: _buildEmptyState())
+          else
+            GrammarListView(
+              grammars: grammars,
+              onGrammarTap: _navigateToGrammarDetail,
+              isSearchMode: _isSearching,
+              searchQuery: _searchQuery,
+            ),
+
+          // Bottom spacing
+          const SliverToBoxAdapter(child: SizedBox(height: AppDimens.spaceXXL)),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    final module = ref.watch(selectedModuleProvider).valueOrNull;
     final screenTitle = _isSearching
         ? 'Search Results'
-        : '${moduleTitle ?? 'Module'} Grammar';
+        : '${module?.title ?? 'Module'} Grammar';
 
     return AppBarWithBack(
       title: screenTitle,
@@ -196,7 +270,7 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
               : IconButton(
                   key: const ValueKey('refresh'),
                   icon: const Icon(Icons.refresh_rounded),
-                  onPressed: _loadInitialData,
+                  onPressed: _handleRefresh,
                   tooltip: 'Refresh',
                 ),
         ),
@@ -204,87 +278,52 @@ class _ModuleGrammarScreenState extends ConsumerState<ModuleGrammarScreen>
     );
   }
 
-  Widget _buildSearchSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: AppDimens.elevationS,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: GrammarSearchBar(
-        controller: _searchController,
-        focusNode: _searchFocusNode,
-        onChanged: _handleSearch,
-        onClear: _clearSearch,
-        isSearching: _isSearching,
-      ),
-    );
-  }
-
-  Widget _buildContentSection(AsyncValue<List<GrammarSummary>> grammarsAsync) {
-    return grammarsAsync.when(
-      data: (grammars) => _buildGrammarContent(grammars),
-      loading: () => const Center(
-        child: SLLoadingIndicator(
-          type: LoadingIndicatorType.fadingCircle,
-          size: AppDimens.circularProgressSizeL,
-        ),
-      ),
-      error: (error, stack) => Center(
-        child: SLErrorView(
-          message: 'Failed to load grammar rules: ${error.toString()}',
-          onRetry: _loadInitialData,
-          icon: Icons.menu_book_outlined,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGrammarContent(List<GrammarSummary> grammars) {
-    if (grammars.isEmpty) {
-      return _buildEmptyState();
+  Widget _buildBody() {
+    if (_isInitialLoad) {
+      return _buildLoadingState();
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadInitialData,
-      color: Theme.of(context).colorScheme.primary,
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: GrammarScreenHeader(
-              totalCount: grammars.length,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Column(
+          children: [
+            // Search Section
+            GrammarSearchSection(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              onChanged: _handleSearch,
+              onClear: _clearSearch,
               isSearching: _isSearching,
-              searchQuery: _searchController.text.trim(),
             ),
-          ),
-          GrammarListSection(
-            grammars: grammars,
-            onGrammarTap: _navigateToGrammarDetail,
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppDimens.spaceXXL)),
-        ],
+
+            // Content Section
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final grammarsAsync = ref.watch(grammarsStateProvider);
+
+                  return grammarsAsync.when(
+                    data: _buildContent,
+                    loading: _buildLoadingState,
+                    error: (error, stack) => _buildErrorState(error.toString()),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return SLEmptyState(
-      icon: _isSearching ? Icons.search_off_rounded : Icons.menu_book_outlined,
-      title: _isSearching
-          ? 'No grammar rules found'
-          : 'No grammar rules available',
-      message: _isSearching
-          ? 'Try different search terms or clear the search to see all rules.'
-          : 'This module doesn\'t have any grammar rules yet. Try refreshing or check back later.',
-      buttonText: _isSearching ? 'Clear Search' : 'Refresh',
-      onButtonPressed: _isSearching ? _clearSearch : _loadInitialData,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: _buildAppBar(),
+      body: _buildBody(),
     );
   }
 }
