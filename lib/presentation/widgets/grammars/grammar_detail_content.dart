@@ -458,7 +458,7 @@ class _GrammarDetailContentState extends State<GrammarDetailContent>
   ) {
     final sectionColor = _getSectionColor(colorScheme, section.color);
 
-    Widget sectionWidget = Column(
+    final Widget sectionWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(section, theme, colorScheme),

@@ -293,7 +293,7 @@ class _ModuleProgressCardState extends State<ModuleProgressCard>
       context,
     ).getCycleColor(widget.progress.cyclesStudied);
 
-    Widget iconWidget = Container(
+    final Widget iconWidget = Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       decoration: BoxDecoration(
         gradient: LinearGradient(

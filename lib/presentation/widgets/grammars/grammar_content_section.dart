@@ -185,12 +185,12 @@ class GrammarContentSection extends StatelessWidget {
     final bool isMultiline = lines.length > 1;
 
     // Detect content format
-    bool shouldBeBulletList =
+    final bool shouldBeBulletList =
         isList ||
         _detectBulletList(content) ||
         (isMultiline && _hasBulletListIndicators(lines));
 
-    bool shouldBeNumberedList =
+    final bool shouldBeNumberedList =
         isNumbered ||
         _detectNumberedList(content) ||
         (isMultiline && _hasNumberedListIndicators(lines));
@@ -287,7 +287,7 @@ class GrammarContentSection extends StatelessWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    List<String> items = _extractListItems(content);
+    final List<String> items = _extractListItems(content);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,12 +338,12 @@ class GrammarContentSection extends StatelessWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    List<String> items = _extractListItems(content);
+    final List<String> items = _extractListItems(content);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items.asMap().entries.map((entry) {
-        int index = entry.key;
+        final int index = entry.key;
         String item = entry.value.trim();
 
         // Remove existing numbers if present
@@ -386,7 +386,7 @@ class GrammarContentSection extends StatelessWidget {
   // Extract list items from content
   List<String> _extractListItems(String content) {
     // Split by newlines and filter out empty lines
-    List<String> lines = content
+    final List<String> lines = content
         .split('\n')
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
@@ -707,7 +707,7 @@ class GrammarContentSection extends StatelessWidget {
                   )
                   .toList(),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

@@ -116,23 +116,23 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
       onPressed: widget.isExtended
           ? widget.onPracticePressed
           : _toggleExpansion,
-      heroTag: "grammar_practice_fab",
+      heroTag: 'grammar_practice_fab',
       backgroundColor: colorScheme.primary,
       foregroundColor: colorScheme.onPrimary,
       elevation: AppDimens.elevationL,
       icon: widget.isExtended
           ? const Icon(Icons.school_rounded)
           : AnimatedBuilder(
-              animation: _rotationAnimation,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: _rotationAnimation.value * 3.14159,
-                  child: Icon(
-                    _isExpanded ? Icons.close_rounded : Icons.more_vert_rounded,
-                  ),
-                );
-              },
+        animation: _rotationAnimation,
+        builder: (context, child) {
+          return Transform.rotate(
+            angle: _rotationAnimation.value * 3.14159,
+            child: Icon(
+              _isExpanded ? Icons.close_rounded : Icons.more_vert_rounded,
             ),
+          );
+        },
+      ),
       label: widget.isExtended ? const Text('Practice') : const Text('Actions'),
     );
   }
@@ -146,7 +146,7 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
   }) {
     return FloatingActionButton(
       onPressed: onPressed,
-      heroTag: "grammar_${tooltip.toLowerCase()}_fab",
+      heroTag: 'grammar_${tooltip.toLowerCase()}_fab',
       backgroundColor: isActive
           ? colorScheme.primaryContainer
           : colorScheme.secondaryContainer,
@@ -229,7 +229,9 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
 
     if (!widget.showAnimation) {
       return _buildFABContent(colorScheme);
@@ -317,7 +319,7 @@ class _GrammarFABSpeedDialState extends State<GrammarFABSpeedDial>
       child: Container(
         margin: EdgeInsets.only(bottom: AppDimens.spaceM + (index * 8)),
         child: FloatingActionButton(
-          heroTag: "grammar_action_${action.label}",
+          heroTag: 'grammar_action_${action.label}',
           onPressed: () {
             action.onPressed();
             _toggle();
@@ -334,18 +336,23 @@ class _GrammarFABSpeedDialState extends State<GrammarFABSpeedDial>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ...widget.actions.asMap().entries.map((entry) {
+        ...widget.actions
+            .asMap()
+            .entries
+            .map((entry) {
           final index = entry.key;
           final action = entry.value;
           return _buildActionButton(action, index);
-        }).toList(),
+        }),
         FloatingActionButton(
-          heroTag: "grammar_main_fab",
+          heroTag: 'grammar_main_fab',
           onPressed: _toggle,
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,

@@ -122,7 +122,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
     // Show expandable FAB for multiple actions
     return FloatingActionButton(
       onPressed: _toggleExpansion,
-      heroTag: "module_main_fab",
+      heroTag: 'module_main_fab',
       backgroundColor: colorScheme.primary,
       foregroundColor: colorScheme.onPrimary,
       elevation: AppDimens.elevationL,
@@ -145,7 +145,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
     if (!widget.hasProgress && widget.onStartLearning != null) {
       return FloatingActionButton.extended(
         onPressed: widget.onStartLearning,
-        heroTag: "module_start_learning_fab",
+        heroTag: 'module_start_learning_fab',
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
         elevation: AppDimens.elevationL,
@@ -157,7 +157,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
     if (widget.hasProgress && widget.onViewProgress != null) {
       return FloatingActionButton.extended(
         onPressed: widget.onViewProgress,
-        heroTag: "module_view_progress_fab",
+        heroTag: 'module_view_progress_fab',
         backgroundColor: colorScheme.secondary,
         foregroundColor: colorScheme.onSecondary,
         elevation: AppDimens.elevationL,
@@ -169,7 +169,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
     if (widget.hasGrammar && widget.onViewGrammar != null) {
       return FloatingActionButton.extended(
         onPressed: widget.onViewGrammar,
-        heroTag: "module_view_grammar_fab",
+        heroTag: 'module_view_grammar_fab',
         backgroundColor: colorScheme.tertiary,
         foregroundColor: colorScheme.onTertiary,
         elevation: AppDimens.elevationL,
@@ -233,7 +233,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
                   onPressed: widget.onStartLearning,
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
-                  heroTag: "module_start_learning_mini_fab",
+                  heroTag: 'module_start_learning_mini_fab',
                 ),
               ),
             );
@@ -258,7 +258,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
                   onPressed: widget.onViewProgress,
                   backgroundColor: colorScheme.secondary,
                   foregroundColor: colorScheme.onSecondary,
-                  heroTag: "module_view_progress_mini_fab",
+                  heroTag: 'module_view_progress_mini_fab',
                 ),
               ),
             );
@@ -283,7 +283,7 @@ class _ModuleDetailFabSectionState extends State<ModuleDetailFabSection>
                   onPressed: widget.onViewGrammar,
                   backgroundColor: colorScheme.tertiary,
                   foregroundColor: colorScheme.onTertiary,
-                  heroTag: "module_view_grammar_mini_fab",
+                  heroTag: 'module_view_grammar_mini_fab',
                   customIcon: widget.isCheckingGrammar
                       ? SizedBox(
                           width: AppDimens.iconS,

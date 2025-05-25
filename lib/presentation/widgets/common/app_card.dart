@@ -176,7 +176,7 @@ class SLCard extends StatelessWidget {
     }
 
     // The main Material Card widget.
-    Widget materialCard = Card(
+    final Widget materialCard = Card(
       margin: EdgeInsets.zero,
       // Margin is handled by the outer Container or by the SLCard user.
       elevation: useGradient ? 0 : effectiveElevation,
