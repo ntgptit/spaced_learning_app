@@ -59,7 +59,7 @@ class ModuleRepositoryImpl implements ModuleRepository {
     try {
       final response = await _apiClient.get(
         ApiEndpoints.modulesByBook(bookId),
-        queryParameters: {'page': page, 'size': size},
+        queryParameters: {'page': null, 'size': null},
       );
 
       final content = response['content'];
