@@ -1,10 +1,11 @@
-// lib/presentation/widgets/modules/grammar/detail/grammar_detail_actions.dart
+// lib/presentation/widgets/grammars/grammar_detail_actions.dart
 import 'package:flutter/material.dart';
 import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_button.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_card.dart';
 
 class GrammarDetailActions extends StatefulWidget {
+  final String moduleId;
   final VoidCallback? onBackToGrammarList;
   final VoidCallback? onBackToModule;
   final VoidCallback? onStartPractice;
@@ -12,10 +13,10 @@ class GrammarDetailActions extends StatefulWidget {
   final VoidCallback? onShare;
   final bool isBookmarked;
   final bool showAnimation;
-  final String moduleId;
 
   const GrammarDetailActions({
     super.key,
+    required this.moduleId,
     this.onBackToGrammarList,
     this.onBackToModule,
     this.onStartPractice,
@@ -23,7 +24,6 @@ class GrammarDetailActions extends StatefulWidget {
     this.onShare,
     this.isBookmarked = false,
     this.showAnimation = true,
-    required this.moduleId,
   });
 
   @override
@@ -34,6 +34,7 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
     with TickerProviderStateMixin {
   late AnimationController _slideController;
   late AnimationController _scaleController;
+  late AnimationController _staggerController;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -52,6 +53,7 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
     if (widget.showAnimation) {
       _slideController.dispose();
       _scaleController.dispose();
+      _staggerController.dispose();
     }
     super.dispose();
   }
@@ -65,6 +67,11 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
     _scaleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
+    );
+
+    _staggerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
     );
 
     _slideAnimation =
@@ -83,114 +90,105 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
   }
 
   void _startAnimations() {
-    Future.delayed(const Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) {
         _slideController.forward();
+        _staggerController.forward();
       }
     });
   }
 
-  Widget _buildNavigationSection(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildQuickActionsSection(ThemeData theme, ColorScheme colorScheme) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.navigation_rounded,
+              Icons.flash_on_rounded,
               color: colorScheme.primary,
               size: AppDimens.iconM,
             ),
-            const SizedBox(width: AppDimens.spaceS),
+            const SizedBox(width: AppDimens.spaceM),
             Text(
-              'Navigation Options',
-              style: theme.textTheme.titleMedium?.copyWith(
+              'Quick Actions',
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppDimens.spaceS),
-        Text(
-          'Continue exploring grammar rules or return to your module',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
         const SizedBox(height: AppDimens.spaceL),
-        Row(
-          children: [
-            Expanded(
-              child: SLButton(
-                text: 'More Grammar',
-                type: SLButtonType.outline,
-                prefixIcon: Icons.list_alt_rounded,
-                onPressed: widget.onBackToGrammarList,
-                size: SLButtonSize.medium,
-              ),
-            ),
-            const SizedBox(width: AppDimens.spaceM),
-            Expanded(
-              child: SLButton(
-                text: 'Back to Module',
-                type: SLButtonType.primary,
-                prefixIcon: Icons.school_rounded,
-                onPressed: widget.onBackToModule,
-                size: SLButtonSize.medium,
-              ),
-            ),
-          ],
-        ),
+        _buildQuickActionGrid(theme, colorScheme),
       ],
     );
   }
 
-  Widget _buildQuickActions(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildQuickActionGrid(ThemeData theme, ColorScheme colorScheme) {
+    final actions = <_QuickAction>[
+      _QuickAction(
+        icon: widget.isBookmarked
+            ? Icons.bookmark_rounded
+            : Icons.bookmark_border_rounded,
+        label: widget.isBookmarked ? 'Bookmarked' : 'Bookmark',
+        onPressed: widget.onBookmark,
+        color: colorScheme.secondary,
+        isActive: widget.isBookmarked,
+      ),
+      _QuickAction(
+        icon: Icons.share_rounded,
+        label: 'Share',
+        onPressed: widget.onShare,
+        color: colorScheme.tertiary,
+      ),
+      _QuickAction(
+        icon: Icons.school_rounded,
+        label: 'Practice',
+        onPressed: widget.onStartPractice,
+        color: colorScheme.primary,
+        isPrimary: true,
+      ),
+    ];
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildQuickActionButton(
-          icon: widget.isBookmarked
-              ? Icons.bookmark_rounded
-              : Icons.bookmark_border_rounded,
-          label: widget.isBookmarked ? 'Bookmarked' : 'Bookmark',
-          onPressed: widget.onBookmark,
-          colorScheme: colorScheme,
-          isActive: widget.isBookmarked,
-        ),
-        _buildQuickActionButton(
-          icon: Icons.share_rounded,
-          label: 'Share',
-          onPressed: widget.onShare,
-          colorScheme: colorScheme,
-        ),
-        _buildQuickActionButton(
-          icon: Icons.school_rounded,
-          label: 'Practice',
-          onPressed: widget.onStartPractice,
-          colorScheme: colorScheme,
-          isPrimary: true,
-        ),
-      ],
+      children: actions.asMap().entries.map((entry) {
+        final index = entry.key;
+        final action = entry.value;
+
+        return AnimatedBuilder(
+          animation: _staggerController,
+          builder: (context, child) {
+            final delay = index * 0.2;
+            final animationValue = (_staggerController.value - delay).clamp(
+              0.0,
+              1.0,
+            );
+
+            return Transform.translate(
+              offset: Offset(0, 20 * (1 - animationValue)),
+              child: Opacity(
+                opacity: animationValue,
+                child: _buildQuickActionButton(action, theme, colorScheme),
+              ),
+            );
+          },
+        );
+      }).toList(),
     );
   }
 
-  Widget _buildQuickActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback? onPressed,
-    required ColorScheme colorScheme,
-    bool isActive = false,
-    bool isPrimary = false,
-  }) {
+  Widget _buildQuickActionButton(
+    _QuickAction action,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return GestureDetector(
       onTapDown: (_) => _scaleController.forward(),
       onTapUp: (_) => _scaleController.reverse(),
       onTapCancel: () => _scaleController.reverse(),
-      onTap: onPressed,
+      onTap: action.onPressed,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) {
@@ -200,46 +198,63 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: AppDimens.avatarSizeL,
-                  height: AppDimens.avatarSizeL,
+                  width: AppDimens.avatarSizeXL,
+                  height: AppDimens.avatarSizeXL,
                   decoration: BoxDecoration(
-                    color: isPrimary
-                        ? colorScheme.primary
-                        : (isActive
-                              ? colorScheme.primaryContainer
+                    gradient: action.isPrimary
+                        ? LinearGradient(
+                            colors: [
+                              action.color,
+                              action.color.withValues(alpha: 0.8),
+                            ],
+                          )
+                        : null,
+                    color: action.isPrimary
+                        ? null
+                        : (action.isActive
+                              ? action.color.withValues(alpha: 0.15)
                               : colorScheme.surfaceContainerHighest),
                     borderRadius: BorderRadius.circular(AppDimens.radiusL),
                     border: Border.all(
-                      color: isPrimary
+                      color: action.isPrimary
                           ? Colors.transparent
-                          : (isActive
-                                ? colorScheme.primary.withValues(alpha: 0.5)
+                          : (action.isActive
+                                ? action.color.withValues(alpha: 0.4)
                                 : colorScheme.outlineVariant),
+                      width: 1.5,
                     ),
+                    boxShadow: action.isPrimary
+                        ? [
+                            BoxShadow(
+                              color: action.color.withValues(alpha: 0.3),
+                              blurRadius: AppDimens.shadowRadiusM,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Icon(
-                    icon,
-                    color: isPrimary
+                    action.icon,
+                    color: action.isPrimary
                         ? colorScheme.onPrimary
-                        : (isActive
-                              ? colorScheme.primary
+                        : (action.isActive
+                              ? action.color
                               : colorScheme.onSurfaceVariant),
-                    size: AppDimens.iconM,
+                    size: AppDimens.iconL,
                   ),
                 ),
-                const SizedBox(height: AppDimens.spaceXS),
+                const SizedBox(height: AppDimens.spaceM),
                 Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: isPrimary
-                        ? colorScheme.primary
-                        : (isActive
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant),
-                    fontWeight: isPrimary || isActive
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                  action.label,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: action.isPrimary || action.isActive
+                        ? action.color
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: action.isPrimary || action.isActive
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -249,68 +264,121 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
     );
   }
 
-  Widget _buildPracticeButton(ThemeData theme, ColorScheme colorScheme) {
-    if (widget.onStartPractice == null) return const SizedBox.shrink();
+  Widget _buildNavigationSection(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.navigation_rounded,
+              color: colorScheme.secondary,
+              size: AppDimens.iconM,
+            ),
+            const SizedBox(width: AppDimens.spaceM),
+            Text(
+              'Continue Learning',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.secondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppDimens.spaceM),
+        Text(
+          'Explore more grammar rules or return to your module to continue your learning journey.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: AppDimens.spaceXL),
+        _buildNavigationButtons(theme, colorScheme),
+      ],
+    );
+  }
 
-    return SLButton(
-      text: 'Start Practice Session',
-      type: SLButtonType.gradient,
-      prefixIcon: Icons.play_arrow_rounded,
-      onPressed: widget.onStartPractice,
-      size: SLButtonSize.large,
-      isFullWidth: true,
-      customGradient: LinearGradient(
-        colors: [colorScheme.primary, colorScheme.secondary],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
+  Widget _buildNavigationButtons(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: SLButton(
+                text: 'More Grammar',
+                type: SLButtonType.outline,
+                prefixIcon: Icons.list_alt_rounded,
+                onPressed: widget.onBackToGrammarList,
+                size: SLButtonSize.large,
+              ),
+            ),
+            const SizedBox(width: AppDimens.spaceL),
+            Expanded(
+              child: SLButton(
+                text: 'Back to Module',
+                type: SLButtonType.secondary,
+                prefixIcon: Icons.arrow_back_rounded,
+                onPressed: widget.onBackToModule,
+                size: SLButtonSize.large,
+              ),
+            ),
+          ],
+        ),
+        if (widget.onStartPractice != null) ...[
+          const SizedBox(height: AppDimens.spaceL),
+          SLButton(
+            text: 'Start Practice Session',
+            type: SLButtonType.gradient,
+            prefixIcon: Icons.play_arrow_rounded,
+            onPressed: widget.onStartPractice,
+            size: SLButtonSize.large,
+            isFullWidth: true,
+            customGradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
   Widget _buildContent(ThemeData theme, ColorScheme colorScheme) {
     return Column(
       children: [
-        // Quick Actions Section
+        // Quick Actions Card
         SLCard(
-          type: SLCardType.outlined,
-          padding: const EdgeInsets.all(AppDimens.paddingL),
-          backgroundColor: colorScheme.surfaceContainerLowest,
+          type: SLCardType.filled,
+          padding: const EdgeInsets.all(AppDimens.paddingXL),
+          backgroundColor: colorScheme.surfaceContainer,
+          elevation: AppDimens.elevationS,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusL),
+            borderRadius: BorderRadius.circular(AppDimens.radiusXL),
             side: BorderSide(
               color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
           ),
-          child: Column(
-            children: [
-              Text(
-                'Quick Actions',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: AppDimens.spaceL),
-              _buildQuickActions(theme, colorScheme),
-            ],
-          ),
+          child: _buildQuickActionsSection(theme, colorScheme),
         ),
 
-        const SizedBox(height: AppDimens.spaceL),
+        const SizedBox(height: AppDimens.spaceXXL),
 
-        // Navigation Section
+        // Navigation Card
         SLCard(
-          type: SLCardType.filled,
-          padding: const EdgeInsets.all(AppDimens.paddingL),
-          backgroundColor: colorScheme.surfaceContainer,
-          elevation: AppDimens.elevationXS,
+          type: SLCardType.outlined,
+          padding: const EdgeInsets.all(AppDimens.paddingXL),
+          backgroundColor: colorScheme.surfaceContainerLowest,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusXL),
+            side: BorderSide(
+              color: colorScheme.secondary.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
           child: _buildNavigationSection(theme, colorScheme),
         ),
-
-        const SizedBox(height: AppDimens.spaceL),
-
-        // Practice Button
-        _buildPracticeButton(theme, colorScheme),
       ],
     );
   }
@@ -339,42 +407,21 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
   }
 }
 
-// Extension for action variations
-extension GrammarDetailActionsVariations on GrammarDetailActions {
-  /// Creates a compact version for smaller screens
-  static Widget compact({
-    required String moduleId,
-    VoidCallback? onBackToGrammarList,
-    VoidCallback? onBackToModule,
-  }) {
-    return GrammarDetailActions(
-      moduleId: moduleId,
-      onBackToGrammarList: onBackToGrammarList,
-      onBackToModule: onBackToModule,
-      showAnimation: false,
-    );
-  }
+// Helper class for quick actions
+class _QuickAction {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final Color color;
+  final bool isActive;
+  final bool isPrimary;
 
-  /// Creates a full-featured version with all actions
-  static Widget full({
-    required String moduleId,
-    VoidCallback? onBackToGrammarList,
-    VoidCallback? onBackToModule,
-    VoidCallback? onStartPractice,
-    VoidCallback? onBookmark,
-    VoidCallback? onShare,
-    bool isBookmarked = false,
-    bool showAnimation = true,
-  }) {
-    return GrammarDetailActions(
-      moduleId: moduleId,
-      onBackToGrammarList: onBackToGrammarList,
-      onBackToModule: onBackToModule,
-      onStartPractice: onStartPractice,
-      onBookmark: onBookmark,
-      onShare: onShare,
-      isBookmarked: isBookmarked,
-      showAnimation: showAnimation,
-    );
-  }
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    this.onPressed,
+    required this.color,
+    this.isActive = false,
+    this.isPrimary = false,
+  });
 }

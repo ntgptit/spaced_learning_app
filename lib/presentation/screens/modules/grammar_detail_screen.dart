@@ -6,16 +6,12 @@ import 'package:spaced_learning_app/core/theme/app_dimens.dart';
 import 'package:spaced_learning_app/presentation/viewmodels/grammar_viewmodel.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/app_bar_with_back.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/grammar/detail/grammar_detail_actions.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/grammar/detail/grammar_detail_content.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/grammar/detail/grammar_detail_fab.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/grammar/detail/grammar_detail_header.dart';
-import 'package:spaced_learning_app/presentation/widgets/modules/grammar/detail/grammar_loading_skeleton.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_detail_content.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_detail_fab.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_detail_header.dart';
+import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_loading_skeleton.dart';
 
 import '../../widgets/grammars/grammar_detail_actions.dart';
-import '../../widgets/grammars/grammar_detail_content.dart';
-import '../../widgets/grammars/grammar_detail_fab.dart';
-import '../../widgets/grammars/grammar_detail_header.dart';
 
 class GrammarDetailScreen extends ConsumerStatefulWidget {
   final String grammarId;
@@ -40,6 +36,7 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
   late Animation<Offset> _slideAnimation;
 
   bool _isRefreshing = false;
+  bool _isBookmarked = false;
 
   @override
   void initState() {
@@ -80,12 +77,14 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
   void _loadInitialData() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _performDataLoad();
+
+      if (!mounted) return;
+
+      _fadeController.forward();
+      await Future.delayed(const Duration(milliseconds: 200));
+
       if (mounted) {
-        _fadeController.forward();
-        await Future.delayed(const Duration(milliseconds: 200));
-        if (mounted) {
-          _slideController.forward();
-        }
+        _slideController.forward();
       }
     });
   }
@@ -99,6 +98,8 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
       await ref
           .read(selectedGrammarProvider.notifier)
           .loadGrammarDetails(widget.grammarId);
+    } catch (error) {
+      _showErrorSnackBar('Failed to load grammar details: $error');
     } finally {
       if (mounted) {
         setState(() => _isRefreshing = false);
@@ -108,40 +109,127 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
 
   Future<void> _handleRefresh() async {
     await _performDataLoad();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Grammar rule refreshed'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          ),
-        ),
-      );
+
+    if (!mounted) return;
+
+    _showSuccessSnackBar('Grammar rule refreshed successfully');
+  }
+
+  void _handlePractice() {
+    _showInfoSnackBar('Practice feature coming soon!');
+  }
+
+  void _handleBookmark() {
+    setState(() => _isBookmarked = !_isBookmarked);
+
+    final message = _isBookmarked
+        ? 'Grammar rule bookmarked'
+        : 'Grammar rule removed from bookmarks';
+    _showSuccessSnackBar(message);
+  }
+
+  void _handleShare() {
+    _showInfoSnackBar('Share feature coming soon!');
+  }
+
+  void _handleBackToGrammarList() {
+    if (!GoRouter.of(context).canPop()) {
+      GoRouter.of(context).go('/books/${widget.moduleId}/grammar');
+      return;
     }
+
+    GoRouter.of(context).pop();
+  }
+
+  void _handleBackToModule() {
+    // Navigate back to module detail
+    final parts = GoRouter.of(
+      context,
+    ).routeInformationProvider.value.uri.pathSegments;
+
+    if (parts.length >= 4) {
+      final bookId = parts[1];
+      GoRouter.of(context).go('/books/$bookId/modules/${widget.moduleId}');
+      return;
+    }
+
+    // Fallback navigation
+    GoRouter.of(context).go('/books');
   }
 
   void _showInfoDialog() {
     showDialog(context: context, builder: (context) => _buildInfoDialog());
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final grammarAsync = ref.watch(selectedGrammarProvider);
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: _buildAppBar(grammarAsync.valueOrNull?.grammarPattern),
-      body: grammarAsync.when(
-        data: (grammar) => _buildGrammarContent(grammar),
-        loading: () => const GrammarLoadingSkeleton(),
-        error: (error, stack) => _buildErrorContent(error),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+            const SizedBox(width: AppDimens.spaceM),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        ),
       ),
-      floatingActionButton: grammarAsync.maybeWhen(
-        data: (grammar) => grammar != null ? const GrammarDetailFAB() : null,
-        orElse: () => null,
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+            const SizedBox(width: AppDimens.spaceM),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  void _showInfoSnackBar(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.info_outline,
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
+            const SizedBox(width: AppDimens.spaceM),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        ),
+      ),
     );
   }
 
@@ -206,10 +294,14 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
                     const SizedBox(height: AppDimens.spaceXXL),
                     GrammarDetailActions(
                       moduleId: widget.moduleId,
-                      onNavigateBack: () => _navigateBack(),
+                      onBackToGrammarList: _handleBackToGrammarList,
+                      onBackToModule: _handleBackToModule,
+                      onStartPractice: _handlePractice,
+                      onBookmark: _handleBookmark,
+                      onShare: _handleShare,
+                      isBookmarked: _isBookmarked,
                     ),
                     const SizedBox(height: AppDimens.spaceXXXL),
-                    // Extra space for FAB
                   ]),
                 ),
               ),
@@ -225,7 +317,7 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingL),
         child: SLErrorView(
-          message: 'Failed to load grammar details: ${error.toString()}',
+          message: error.toString(),
           onRetry: _handleRefresh,
           icon: Icons.error_outline_rounded,
         ),
@@ -311,16 +403,30 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
     );
   }
 
-  void _navigateBack() {
-    if (GoRouter.of(context).canPop()) {
-      GoRouter.of(context).pop();
-      if (GoRouter.of(context).canPop()) {
-        GoRouter.of(context).pop();
-      }
-      return;
-    }
+  @override
+  Widget build(BuildContext context) {
+    final grammarAsync = ref.watch(selectedGrammarProvider);
 
-    // Fallback navigation
-    GoRouter.of(context).go('/modules/${widget.moduleId}');
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: _buildAppBar(grammarAsync.valueOrNull?.grammarPattern),
+      body: grammarAsync.when(
+        data: (grammar) => _buildGrammarContent(grammar),
+        loading: () => const GrammarLoadingSkeleton(),
+        error: (error, stack) => _buildErrorContent(error),
+      ),
+      floatingActionButton: grammarAsync.maybeWhen(
+        data: (grammar) => grammar != null
+            ? GrammarDetailFAB(
+                grammar: grammar,
+                onPracticePressed: _handlePractice,
+                onBookmarkPressed: _handleBookmark,
+                isBookmarked: _isBookmarked,
+              )
+            : null,
+        orElse: () => null,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
   }
 }
