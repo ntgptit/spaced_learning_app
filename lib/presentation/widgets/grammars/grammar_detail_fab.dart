@@ -5,7 +5,8 @@ import 'package:spaced_learning_app/domain/models/grammar.dart';
 
 class GrammarDetailFAB extends StatefulWidget {
   final GrammarDetail grammar;
-  final VoidCallback? onPracticePressed;
+
+  // final VoidCallback? onPracticePressed; // Removed
   final VoidCallback? onBookmarkPressed;
   final bool isBookmarked;
   final bool showAnimation;
@@ -14,11 +15,12 @@ class GrammarDetailFAB extends StatefulWidget {
   const GrammarDetailFAB({
     super.key,
     required this.grammar,
-    this.onPracticePressed,
+    // this.onPracticePressed, // Removed
     this.onBookmarkPressed,
     this.isBookmarked = false,
     this.showAnimation = true,
-    this.isExtended = true,
+    this.isExtended =
+        true, // Set to true if you want a single FAB, false for speed dial like
   });
 
   @override
@@ -43,6 +45,10 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
     _initializeAnimations();
     if (widget.showAnimation) {
       _startEntryAnimation();
+    }
+    // If not extended, default to expanded state to show secondary FABs if any are present
+    if (!widget.isExtended && widget.onBookmarkPressed != null) {
+      _isExpanded = false; // Start collapsed, user needs to tap to expand
     }
   }
 
@@ -98,6 +104,9 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
   }
 
   void _toggleExpansion() {
+    // Only toggle if there are secondary actions to show
+    if (widget.onBookmarkPressed == null && widget.isExtended) return;
+
     setState(() {
       _isExpanded = !_isExpanded;
     });
@@ -112,28 +121,49 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
   }
 
   Widget _buildMainFAB(ColorScheme colorScheme) {
-    return FloatingActionButton.extended(
-      onPressed: widget.isExtended
-          ? widget.onPracticePressed
-          : _toggleExpansion,
-      heroTag: 'grammar_practice_fab',
+    // If isExtended is true, it means we want a single action FAB (e.g., only bookmark)
+    // If onBookmarkPressed is null, then there's no action for the main FAB in extended mode.
+    if (widget.isExtended) {
+      if (widget.onBookmarkPressed == null) {
+        return const SizedBox.shrink(); // No action if bookmark is not available
+      }
+      return FloatingActionButton.extended(
+        onPressed: widget.onBookmarkPressed,
+        heroTag: 'grammar_bookmark_fab_extended',
+        backgroundColor: widget.isBookmarked
+            ? colorScheme.primaryContainer
+            : colorScheme.secondaryContainer,
+        foregroundColor: widget.isBookmarked
+            ? colorScheme.onPrimaryContainer
+            : colorScheme.onSecondaryContainer,
+        elevation: AppDimens.elevationL,
+        icon: Icon(
+          widget.isBookmarked
+              ? Icons.bookmark_rounded
+              : Icons.bookmark_border_rounded,
+        ),
+        label: Text(widget.isBookmarked ? 'Bookmarked' : 'Bookmark'),
+      );
+    }
+
+    // If not extended, this FAB acts as a toggle for other actions
+    return FloatingActionButton(
+      onPressed: _toggleExpansion,
+      heroTag: 'grammar_main_fab_toggle',
       backgroundColor: colorScheme.primary,
       foregroundColor: colorScheme.onPrimary,
       elevation: AppDimens.elevationL,
-      icon: widget.isExtended
-          ? const Icon(Icons.school_rounded)
-          : AnimatedBuilder(
+      child: AnimatedBuilder(
         animation: _rotationAnimation,
         builder: (context, child) {
           return Transform.rotate(
-            angle: _rotationAnimation.value * 3.14159,
+            angle: _rotationAnimation.value * 3.14159, // 180 deg rotation
             child: Icon(
               _isExpanded ? Icons.close_rounded : Icons.more_vert_rounded,
             ),
           );
         },
       ),
-      label: widget.isExtended ? const Text('Practice') : const Text('Actions'),
     );
   }
 
@@ -146,7 +176,7 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
   }) {
     return FloatingActionButton(
       onPressed: onPressed,
-      heroTag: 'grammar_${tooltip.toLowerCase()}_fab',
+      heroTag: 'grammar_${tooltip.toLowerCase().replaceAll(' ', '_')}_fab',
       backgroundColor: isActive
           ? colorScheme.primaryContainer
           : colorScheme.secondaryContainer,
@@ -163,6 +193,7 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
   Widget _buildExpandedActions(ColorScheme colorScheme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end, // Align to the right
       children: [
         // Bookmark FAB
         if (widget.onBookmarkPressed != null) ...[
@@ -190,48 +221,35 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
           ),
           const SizedBox(height: AppDimens.spaceM),
         ],
-
-        // Practice FAB
-        if (widget.onPracticePressed != null) ...[
-          AnimatedBuilder(
-            animation: _expandAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _expandAnimation.value,
-                child: Opacity(
-                  opacity: _expandAnimation.value,
-                  child: _buildSecondaryFAB(
-                    icon: Icons.school_rounded,
-                    tooltip: 'Practice Grammar',
-                    onPressed: widget.onPracticePressed,
-                    colorScheme: colorScheme,
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: AppDimens.spaceM),
-        ],
       ],
     );
   }
 
   Widget _buildFABContent(ColorScheme colorScheme) {
+    // If isExtended is true, only show the main FAB (which will be bookmark or nothing)
+    if (widget.isExtended) {
+      return _buildMainFAB(colorScheme);
+    }
+
+    // If not extended, show the toggle FAB and potentially expanded actions
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (!widget.isExtended && _isExpanded)
-          _buildExpandedActions(colorScheme),
-        _buildMainFAB(colorScheme),
+        if (_isExpanded) _buildExpandedActions(colorScheme),
+        _buildMainFAB(colorScheme), // This is the toggle FAB
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // If there are no actions at all, return an empty widget
+    if (widget.onBookmarkPressed == null && widget.isExtended) {
+      return const SizedBox.shrink();
+    }
 
     if (!widget.showAnimation) {
       return _buildFABContent(colorScheme);
@@ -252,128 +270,7 @@ class _GrammarDetailFABState extends State<GrammarDetailFAB>
   }
 }
 
-// Custom FAB Speed Dial for Grammar Actions
-class GrammarFABSpeedDial extends StatefulWidget {
-  final GrammarDetail grammar;
-  final List<GrammarFABAction> actions;
-  final bool showAnimation;
-
-  const GrammarFABSpeedDial({
-    super.key,
-    required this.grammar,
-    required this.actions,
-    this.showAnimation = true,
-  });
-
-  @override
-  State<GrammarFABSpeedDial> createState() => _GrammarFABSpeedDialState();
-}
-
-class _GrammarFABSpeedDialState extends State<GrammarFABSpeedDial>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _expandAnimation;
-  late Animation<double> _rotationAnimation;
-  bool _isExpanded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    _expandAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.fastOutSlowIn,
-    );
-
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 0.5,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _toggle() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-
-    if (_isExpanded) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
-  }
-
-  Widget _buildActionButton(GrammarFABAction action, int index) {
-    return ScaleTransition(
-      scale: _expandAnimation,
-      child: Container(
-        margin: EdgeInsets.only(bottom: AppDimens.spaceM + (index * 8)),
-        child: FloatingActionButton(
-          heroTag: 'grammar_action_${action.label}',
-          onPressed: () {
-            action.onPressed();
-            _toggle();
-          },
-          backgroundColor: action.backgroundColor,
-          foregroundColor: action.foregroundColor,
-          mini: true,
-          tooltip: action.label,
-          child: Icon(action.icon),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ...widget.actions
-            .asMap()
-            .entries
-            .map((entry) {
-          final index = entry.key;
-          final action = entry.value;
-          return _buildActionButton(action, index);
-        }),
-        FloatingActionButton(
-          heroTag: 'grammar_main_fab',
-          onPressed: _toggle,
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          child: AnimatedBuilder(
-            animation: _rotationAnimation,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: _rotationAnimation.value * 3.14159,
-                child: Icon(
-                  _isExpanded ? Icons.close_rounded : Icons.school_rounded,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// Grammar FAB Action Model
+// Grammar FAB Action Model - Kept for potential future use but not directly used by GrammarDetailFAB anymore
 class GrammarFABAction {
   final IconData icon;
   final String label;
@@ -392,35 +289,35 @@ class GrammarFABAction {
 
 // Extension for FAB variations
 extension GrammarDetailFABVariations on GrammarDetailFAB {
-  /// Creates a simple practice-only FAB
-  static Widget practiceOnly({
+  /// Creates a simple bookmark-only FAB (if bookmark action is provided)
+  static Widget bookmarkOnly({
     required GrammarDetail grammar,
-    required VoidCallback onPracticePressed,
-    bool showAnimation = true,
-  }) {
-    return GrammarDetailFAB(
-      grammar: grammar,
-      onPracticePressed: onPracticePressed,
-      showAnimation: showAnimation,
-      isExtended: true,
-    );
-  }
-
-  /// Creates a multi-action FAB
-  static Widget multiAction({
-    required GrammarDetail grammar,
-    VoidCallback? onPracticePressed,
     VoidCallback? onBookmarkPressed,
     bool isBookmarked = false,
     bool showAnimation = true,
   }) {
     return GrammarDetailFAB(
       grammar: grammar,
-      onPracticePressed: onPracticePressed,
       onBookmarkPressed: onBookmarkPressed,
       isBookmarked: isBookmarked,
       showAnimation: showAnimation,
-      isExtended: false,
+      isExtended: true, // Ensures it behaves as a single action FAB
+    );
+  }
+
+  /// Creates a multi-action FAB (toggle with bookmark)
+  static Widget multiAction({
+    required GrammarDetail grammar,
+    VoidCallback? onBookmarkPressed,
+    bool isBookmarked = false,
+    bool showAnimation = true,
+  }) {
+    return GrammarDetailFAB(
+      grammar: grammar,
+      onBookmarkPressed: onBookmarkPressed,
+      isBookmarked: isBookmarked,
+      showAnimation: showAnimation,
+      isExtended: false, // Ensures it behaves as a speed-dial like FAB
     );
   }
 }

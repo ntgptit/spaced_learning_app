@@ -7,7 +7,6 @@ import 'package:spaced_learning_app/presentation/viewmodels/grammar_viewmodel.da
 import 'package:spaced_learning_app/presentation/widgets/common/app_bar_with_back.dart';
 import 'package:spaced_learning_app/presentation/widgets/common/error_display.dart';
 import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_detail_content.dart';
-import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_detail_fab.dart';
 import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_detail_header.dart';
 import 'package:spaced_learning_app/presentation/widgets/grammars/grammar_loading_skeleton.dart';
 
@@ -115,9 +114,9 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
     _showSuccessSnackBar('Grammar rule refreshed successfully');
   }
 
-  void _handlePractice() {
-    _showInfoSnackBar('Practice feature coming soon!');
-  }
+  // void _handlePractice() { // Removed
+  //   _showInfoSnackBar('Practice feature coming soon!');
+  // }
 
   void _handleBookmark() {
     setState(() => _isBookmarked = !_isBookmarked);
@@ -296,7 +295,7 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
                       moduleId: widget.moduleId,
                       onBackToGrammarList: _handleBackToGrammarList,
                       onBackToModule: _handleBackToModule,
-                      onStartPractice: _handlePractice,
+                      // onStartPractice: _handlePractice, // Removed
                       onBookmark: _handleBookmark,
                       onShare: _handleShare,
                       isBookmarked: _isBookmarked,
@@ -415,18 +414,21 @@ class _GrammarDetailScreenState extends ConsumerState<GrammarDetailScreen>
         loading: () => const GrammarLoadingSkeleton(),
         error: (error, stack) => _buildErrorContent(error),
       ),
-      floatingActionButton: grammarAsync.maybeWhen(
-        data: (grammar) => grammar != null
-            ? GrammarDetailFAB(
-                grammar: grammar,
-                onPracticePressed: _handlePractice,
-                onBookmarkPressed: _handleBookmark,
-                isBookmarked: _isBookmarked,
-              )
-            : null,
-        orElse: () => null,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      // floatingActionButton: grammarAsync.maybeWhen(
+      //   data: (grammar) => grammar != null
+      //       ? GrammarDetailFAB(
+      //           grammar: grammar,
+      //           // onPracticePressed: _handlePractice, // Removed
+      //           onBookmarkPressed: _handleBookmark,
+      //           isBookmarked: _isBookmarked,
+      //           // If you want a single bookmark FAB, set isExtended to true.
+      //           // If you want a speed-dial like FAB (even if only for bookmark now), set to false.
+      //           isExtended: true,
+      //         )
+      //       : null,
+      //   orElse: () => null,
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

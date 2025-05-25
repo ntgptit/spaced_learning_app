@@ -8,7 +8,7 @@ class GrammarDetailActions extends StatefulWidget {
   final String moduleId;
   final VoidCallback? onBackToGrammarList;
   final VoidCallback? onBackToModule;
-  final VoidCallback? onStartPractice;
+
   final VoidCallback? onBookmark;
   final VoidCallback? onShare;
   final bool isBookmarked;
@@ -19,7 +19,6 @@ class GrammarDetailActions extends StatefulWidget {
     required this.moduleId,
     this.onBackToGrammarList,
     this.onBackToModule,
-    this.onStartPractice,
     this.onBookmark,
     this.onShare,
     this.isBookmarked = false,
@@ -141,13 +140,6 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
         label: 'Share',
         onPressed: widget.onShare,
         color: colorScheme.tertiary,
-      ),
-      _QuickAction(
-        icon: Icons.school_rounded,
-        label: 'Practice',
-        onPressed: widget.onStartPractice,
-        color: colorScheme.primary,
-        isPrimary: true,
       ),
     ];
 
@@ -325,22 +317,6 @@ class _GrammarDetailActionsState extends State<GrammarDetailActions>
             ),
           ],
         ),
-        if (widget.onStartPractice != null) ...[
-          const SizedBox(height: AppDimens.spaceL),
-          SLButton(
-            text: 'Start Practice Session',
-            type: SLButtonType.gradient,
-            prefixIcon: Icons.play_arrow_rounded,
-            onPressed: widget.onStartPractice,
-            size: SLButtonSize.large,
-            isFullWidth: true,
-            customGradient: LinearGradient(
-              colors: [colorScheme.primary, colorScheme.secondary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ],
       ],
     );
   }
