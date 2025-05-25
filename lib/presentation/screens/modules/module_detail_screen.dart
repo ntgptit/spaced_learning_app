@@ -42,6 +42,7 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
   bool _isCheckingGrammar = false;
   bool _hasGrammar = false;
   bool _isCreatingProgress = false;
+  bool _grammarCheckCompleted = false;
 
   @override
   void initState() {
@@ -86,7 +87,10 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
 
       if (!mounted) return;
 
-      setState(() => _isInitialLoad = false);
+      setState(() {
+        _isInitialLoad = false;
+        _grammarCheckCompleted = true;
+      });
       _fadeController.forward();
       await Future.delayed(const Duration(milliseconds: 200));
 
@@ -141,8 +145,7 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
   Future<void> _checkGrammarContent() async {
     if (!mounted) return;
 
-    final module = ref.read(selectedModuleProvider).valueOrNull;
-    if (module?.bookId.isEmpty ?? true) return;
+    setState(() => _isCheckingGrammar = true);
 
     try {
       final grammarRepository = ref.read(grammarRepositoryProvider);
@@ -150,11 +153,17 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
           .getGrammarsByModuleId(widget.moduleId);
 
       if (!mounted) return;
-      setState(() => _hasGrammar = grammars.isNotEmpty);
+      setState(() {
+        _hasGrammar = grammars.isNotEmpty;
+        _isCheckingGrammar = false;
+      });
     } catch (e) {
       debugPrint('Error checking grammar content: $e');
       if (mounted) {
-        setState(() => _hasGrammar = false);
+        setState(() {
+          _hasGrammar = false;
+          _isCheckingGrammar = false;
+        });
       }
     }
   }
@@ -163,6 +172,10 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
     setState(() => _isInitialLoad = true);
     await _performDataLoad();
     await _checkGrammarContent();
+    setState(() {
+      _isInitialLoad = false;
+      _grammarCheckCompleted = true;
+    });
   }
 
   Future<void> _startLearning() async {
@@ -442,7 +455,8 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
     ModuleDetail? module,
     ProgressDetail? userProgress,
   ) {
-    if (module == null) return null;
+    // Always show FAB section when module is available and grammar check completed
+    if (module == null || !_grammarCheckCompleted) return null;
 
     final hasProgress = userProgress != null || module.progress.isNotEmpty;
 
@@ -451,7 +465,7 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
       hasGrammar: _hasGrammar,
       isCheckingGrammar: _isCheckingGrammar,
       onStartLearning: _isCreatingProgress ? null : _startLearning,
-      onViewGrammar: _navigateToGrammar,
+      onViewGrammar: _hasGrammar ? _navigateToGrammar : null,
       onViewProgress: hasProgress
           ? () {
               final progressId =
