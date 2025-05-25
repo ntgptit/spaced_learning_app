@@ -30,7 +30,6 @@ class _GrammarSearchSectionState extends State<GrammarSearchSection>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
 
   bool _hasFocus = false;
 
@@ -56,10 +55,6 @@ class _GrammarSearchSectionState extends State<GrammarSearchSection>
 
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
   }
 

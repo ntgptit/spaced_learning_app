@@ -1,3 +1,4 @@
+// lib/presentation/widgets/progress/progress_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -90,7 +91,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTitleSection(theme, context),
+            _buildTitleSection(theme, context), // Truyền context vào đây
             const SizedBox(height: AppDimens.spaceL),
             _buildProgressSection(theme),
             const SizedBox(height: AppDimens.spaceL),
@@ -104,9 +105,9 @@ class ProgressHeaderWidget extends ConsumerWidget {
   }
 
   Widget _buildTitleSection(ThemeData theme, BuildContext context) {
+    // Thêm context
     final colorScheme = theme.colorScheme;
 
-    // Kiểm tra URL từ module hoặc từ tham số
     final String? url = progress.moduleUrl;
     final bool hasUrl = url != null && url.isNotEmpty;
 
@@ -151,7 +152,8 @@ class ProgressHeaderWidget extends ConsumerWidget {
           IconButton(
             icon: Icon(Icons.open_in_new, color: colorScheme.primary),
             tooltip: 'Open learning materials',
-            onPressed: () => _launchModuleUrl(context, url),
+            onPressed: () =>
+                _launchModuleUrl(context, url), // Sử dụng context ở đây
           ),
       ],
     );
@@ -210,7 +212,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
   }
 
   Widget _buildCycleInfoSection(
-    BuildContext context,
+    BuildContext context, // Thêm context
     WidgetRef ref,
     ThemeData theme,
   ) {
@@ -226,6 +228,7 @@ class ProgressHeaderWidget extends ConsumerWidget {
             Container(
               decoration: BoxDecoration(
                 color: cycleColor.withValues(alpha: AppDimens.opacitySemi),
+                // Sử dụng withOpacity
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(AppDimens.paddingS),
@@ -426,6 +429,7 @@ class DateInfoBlock extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: color.withValues(alpha: AppDimens.opacitySemi),
+            // Sử dụng withOpacity
             shape: BoxShape.circle,
           ),
           padding: const EdgeInsets.all(AppDimens.paddingXS),
